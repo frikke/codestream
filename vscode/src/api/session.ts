@@ -13,7 +13,8 @@ import {
 	AgentOpenUrlRequest,
 	PasswordLoginRequestType,
 	TokenLoginRequestType,
-	Unreads
+	Unreads,
+	CodespaceLoginRequestType
 } from "@codestream/protocols/agent";
 import {
 	ChannelServiceType,
@@ -245,9 +246,27 @@ export class CodeStreamSession implements Disposable {
 			(await TokenManager.get(this._serverUrl, config.email));
 		if (token) {
 			this.login(config.email, token, teamId);
+		} else if (this.codespaceEnv()) {
+			await this.codespaceLogin();
 		} else {
 			this.setStatus(SessionStatus.SignedOut);
 		}
+	}
+
+	private async codespaceLogin() {
+		// const githubToken = process.env.GITHUB_TOKEN!;
+		// const githubUrl = process.env.GITHUB_API_URL!;
+		await Container.agent.sendRequest(CodespaceLoginRequestType, {});
+		// const result = fetch(`${githubUrl}/user`, {
+		// 	headers: {
+		// 		authorization: `token ${githubToken}`,
+		// 		Accept: "application/vnd.github.v3+json"
+		// 	}
+	// });
+	}
+
+	private codespaceEnv(): boolean {
+		return (process.env.CODESPACES === "true" && process.env.GITHUB_TOKEN !== undefined);
 	}
 
 	dispose() {

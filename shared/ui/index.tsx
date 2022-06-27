@@ -113,6 +113,7 @@ import { confirmPopup } from "./Stream/Confirm";
 import translations from "./translations/en";
 import { parseProtocol } from "./utilities/urls";
 import { HostApi } from "./webview-api";
+import fetch from "node-fetch";
 
 // import translationsEs from "./translations/es";
 
@@ -173,7 +174,25 @@ export async function initialize(selector: string) {
 			);
 		}
 	}
+
+	// const githubToken = process.env.GITHUB_TOKEN;
+	// const codespaces = process.env.CODESPACES;
+	// if (codespaces === "true" && githubToken) {
+	// 	codespaceLogin(githubToken);
+	// }
+
 }
+
+// function codespaceLogin(githubToken: string) {
+// 	const githubUrl = process.env.GITHUB_API_URL!;
+// 	const result = fetch(`${githubUrl}/user`, {
+// 		headers: {
+// 			authorization: `token ${githubToken}`,
+// 			Accept: "application/vnd.github.v3+json"
+// 		}
+// 	});
+
+// }
 
 // TODO: type up the store state
 function listenForEvents(store) {

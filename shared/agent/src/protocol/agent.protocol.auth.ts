@@ -69,6 +69,18 @@ export const OtcLoginRequestType = new RequestType<OtcLoginRequest, LoginRespons
 	"codestream/login/otc"
 );
 
+export interface CodespaceLoginRequest {
+
+}
+
+export interface CodespaceLoginResponse {
+
+}
+
+export const CodespaceLoginRequestType = new RequestType<CodespaceLoginRequest, CodespaceLoginResponse, void, void>(
+	"codestream/codespaces/login"
+);
+
 export interface GenerateLoginCodeRequest {
 	email: string;
 }
