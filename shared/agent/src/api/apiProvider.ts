@@ -15,6 +15,9 @@ import {
 	ClaimCodeErrorResponse,
 	CloseStreamRequest,
 	CloseStreamResponse,
+	CodespacesAuthApiRequest,
+	CodespacesAuthRequest,
+	CodespacesAuthResponse,
 	ConnectionStatus,
 	CreateChannelStreamRequest,
 	CreateChannelStreamResponse,
@@ -397,6 +400,7 @@ export interface ApiProvider {
 	login(options: LoginOptions): Promise<ApiProviderLoginResponse>;
 	generateLoginCode(request: GenerateLoginCodeRequest): Promise<void>;
 	subscribe(types?: MessageType[]): Promise<void>;
+	codespacesAuth(request: CodespacesAuthApiRequest): Promise<CodespacesAuthResponse>;
 
 	grantBroadcasterChannelAccess(token: string, channel: string): Promise<{}>;
 

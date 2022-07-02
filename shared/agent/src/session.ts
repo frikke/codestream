@@ -43,8 +43,8 @@ import {
 	BaseAgentOptions,
 	BootstrapRequestType,
 	ChangeDataType,
-	CodespaceLoginRequest,
-	CodespaceLoginRequestType,
+	CodespacesAuthRequest,
+	CodespacesAuthRequestType,
 	CodeStreamEnvironment,
 	CodeStreamEnvironmentInfo,
 	ConfirmLoginCodeRequest,
@@ -436,7 +436,7 @@ export class CodeStreamSession {
 			return { accessToken: this._codestreamAccessToken! };
 		});
 		this.agent.registerHandler(PasswordLoginRequestType, e => this.passwordLogin(e));
-		this.agent.registerHandler(CodespaceLoginRequestType, e => this.codespaceLogin(e));
+		this.agent.registerHandler(CodespacesAuthRequestType, e => this.codespacesAuth(e));
 		this.agent.registerHandler(TokenLoginRequestType, e => this.tokenLogin(e));
 		this.agent.registerHandler(OtcLoginRequestType, e => this.otcLogin(e));
 		this.agent.registerHandler(ConfirmLoginCodeRequestType, e => this.codeLogin(e));
@@ -946,27 +946,19 @@ export class CodeStreamSession {
 	}
 
 	@log({ singleLine: true })
-	async codespaceLogin(request: CodespaceLoginRequest) {
+	async codespacesAuth(request: CodespacesAuthRequest) {
 		const cc = Logger.getCorrelationContext();
-		Logger.log(
-			cc,
-			`Codespace login into CodeStream (@ ${this._options.serverUrl})`
-		);
+		Logger.log(cc, `Codespaces login into CodeStream (@ ${this._options.serverUrl})`);
 
 		const githubToken = process.env.GITHUB_TOKEN;
-		const githubUrl = process.env.GITHUB_API_URL;
 		const codespaces = process.env.CODESPACES;
 
-		if (codespaces !== "true" || !githubToken || !githubUrl) {
+		if (codespaces !== "true" || !githubToken) {
 			throw new Error("MISSING_CODESPACE_ENV");
 		}
 
-		const response = await this.api.get<any>(`${githubUrl}/user`);
-		const email: string = response.email;
-
-		
+		return this._api!.codespacesAuth({ authToken: githubToken });
 	}
-
 
 	@log({ singleLine: true })
 	async tokenLogin(request: TokenLoginRequest) {

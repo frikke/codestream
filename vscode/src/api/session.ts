@@ -14,7 +14,7 @@ import {
 	PasswordLoginRequestType,
 	TokenLoginRequestType,
 	Unreads,
-	CodespaceLoginRequestType
+	CodespacesAuthRequestType
 } from "@codestream/protocols/agent";
 import {
 	ChannelServiceType,
@@ -256,7 +256,7 @@ export class CodeStreamSession implements Disposable {
 	private async codespaceLogin() {
 		// const githubToken = process.env.GITHUB_TOKEN!;
 		// const githubUrl = process.env.GITHUB_API_URL!;
-		await Container.agent.sendRequest(CodespaceLoginRequestType, {});
+		await Container.agent.sendRequest(CodespacesAuthRequestType, {});
 		// const result = fetch(`${githubUrl}/user`, {
 		// 	headers: {
 		// 		authorization: `token ${githubToken}`,

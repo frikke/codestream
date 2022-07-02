@@ -37,6 +37,9 @@ import {
 	ClaimCodeErrorResponse,
 	CloseStreamRequest,
 	CodeStreamEnvironment,
+	CodespacesAuthApiRequest,
+	CodespacesAuthRequest,
+	CodespacesAuthResponse,
 	CreateChannelStreamRequest,
 	CreateCodemarkPermalinkRequest,
 	CreateCodemarkRequest,
@@ -634,6 +637,10 @@ export class CodeStreamApiProvider implements ApiProvider {
 
 	async generateLoginCode(request: GenerateLoginCodeRequest): Promise<void> {
 		await this.post<GenerateLoginCodeRequest, {}>("/no-auth/generate-login-code", request);
+	}
+
+	async codespacesAuth(request: CodespacesAuthApiRequest): Promise<CodespacesAuthResponse> {
+		return this.post(`/no-auth/codespaces-auth`, request);
 	}
 
 	async register(request: CSRegisterRequest) {
