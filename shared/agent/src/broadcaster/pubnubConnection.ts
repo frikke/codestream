@@ -40,7 +40,8 @@ const PING_INTERVAL = 30000;
 // use this interface to initialize the PubnubConnection class
 export interface PubnubInitializer {
 	subscribeKey: string; // identifies our Pubnub account, comes from pubnubKey returned with the login response from the API
-	authKey: string; // unique Pubnub token provided in the login response
+	token: string; // access token for the connection
+	//authKey: string; // unique Pubnub token provided in the login response
 	userId: string; // ID of the current user
 	debug?(msg: string, info?: any): void; // for debug messages
 	httpsAgent?: HttpsAgent | HttpsProxyAgent;
@@ -76,7 +77,7 @@ export class PubnubConnection implements BroadcasterConnection {
 
 		this._userId = options.userId;
 		this._pubnub = new Pubnub({
-			authKey: options.authKey,
+			//authKey: options.authKey,
 			uuid: options.userId,
 			subscribeKey: options.subscribeKey,
 			restore: true,
@@ -85,6 +86,7 @@ export class PubnubConnection implements BroadcasterConnection {
 			autoNetworkDetection: true,
 			proxy: options.httpsAgent instanceof HttpsProxyAgent && options.httpsAgent.proxy
 		} as Pubnub.PubnubConfig);
+		this._pubnub.setToken(options.token);
 
 		this._messageCallback = options.onMessage;
 		this._statusCallback = options.onStatus;

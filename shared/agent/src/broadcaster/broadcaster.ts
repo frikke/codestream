@@ -53,7 +53,8 @@ export type HistoryFetchCallback = (info: HistoryFetchInfo) => void;
 export interface BroadcasterInitializer {
 	pubnubSubscribeKey?: string; // identifies our Pubnub account, comes from pubnubKey returned with the login response from the API
 	accessToken: string; // access token for api requests
-	authKey: string; // unique broadcaster token provided in the login response
+	broadcasterToken: string; // token for opening connections to underlying broadcaster engine
+	//authKey: string; // unique broadcaster token provided in the login response
 	userId: string; // ID of the current user
 	strictSSL: boolean; // whether to enforce strict SSL (no self-signed certs)
 	lastMessageReceivedAt?: number; // should persist across sessions, interruptions in service will retrieve messages since this time
@@ -173,6 +174,7 @@ export class Broadcaster {
 		this._debug(`Broadcaster initializing...`);
 
 		if (options.socketCluster) {
+			/*
 			const socketClusterConnection = new SocketClusterConnection();
 			await socketClusterConnection.initialize({
 				host: options.socketCluster.host,
@@ -186,10 +188,12 @@ export class Broadcaster {
 				debug: this._debug
 			});
 			this._broadcasterConnection = socketClusterConnection;
+			*/
 		} else {
 			const pubnubConnection = new PubnubConnection();
 			await pubnubConnection.initialize({
-				authKey: options.authKey,
+				token: options.broadcasterToken,
+				//authKey: options.authKey,
 				userId: options.userId,
 				subscribeKey: options.pubnubSubscribeKey!,
 				httpsAgent: this._httpsAgent,

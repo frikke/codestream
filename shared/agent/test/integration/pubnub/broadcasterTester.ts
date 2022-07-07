@@ -130,7 +130,7 @@ export abstract class BroadcasterTester {
 		this._broadcaster = new Broadcaster(this._api!, undefined);
 		this._broadcasterDisposable = await this._broadcaster!.initialize({
 			pubnubSubscribeKey: this._userData!.pubnubKey,
-			authKey: this._broadcasterToken || this._userData!.broadcasterToken,
+			broadcasterToken: this._broadcasterToken || this._userData!.broadcasterV3Token,
 			accessToken: this._userData!.accessToken,
 			userId: this._userData!.user._id,
 			strictSSL: false,

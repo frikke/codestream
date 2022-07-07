@@ -601,7 +601,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 
 		this._token = response.accessToken;
 		this._pubnubSubscribeKey = response.pubnubKey;
-		this._broadcasterToken = response.broadcasterToken;
+		this._broadcasterToken = response.broadcasterV3Token;
 		this._socketCluster = response.socketCluster;
 
 		this._teamId = team.id;

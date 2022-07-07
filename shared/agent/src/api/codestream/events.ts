@@ -89,9 +89,10 @@ export class BroadcasterEvents implements Disposable {
 	async connect(streamIds?: string[]): Promise<Disposable> {
 		this._disposable = await this._broadcaster.initialize({
 			accessToken: this._options.accessToken,
+			broadcasterToken: this._options.broadcasterToken,
 			pubnubSubscribeKey: this._options.pubnubSubscribeKey,
 			socketCluster: this._options.socketCluster,
-			authKey: this._options.broadcasterToken,
+			//authKey: this._options.broadcasterToken,
 			userId: this._options.api.userId,
 			strictSSL: this._options.strictSSL,
 			debug: this.debug.bind(this),
