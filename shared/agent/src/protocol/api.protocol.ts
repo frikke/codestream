@@ -102,7 +102,6 @@ export interface CSLoginResponse {
 	user: CSMe;
 	accessToken: string;
 	pubnubKey: string;
-	pubnubToken: string;
 	broadcasterToken?: string;
 	socketCluster?: {
 		host: string;
