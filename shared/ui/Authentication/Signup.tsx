@@ -188,6 +188,9 @@ export const Signup = (props: Props) => {
 			if (selectedHost) {
 				selectedRegionName = selectedHost.name;
 			}
+			// Set to first value in array if non of the above for default
+		} else if (!selectedRegion && !forceRegion && environmentHosts.length > 0) {
+			selectedRegionName = environmentHosts[0]?.name;
 		}
 	}
 
