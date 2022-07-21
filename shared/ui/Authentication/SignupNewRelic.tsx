@@ -97,6 +97,8 @@ export const SignupNewRelic = () => {
 			if (selectedHost) {
 				selectedRegionName = selectedHost.name;
 			}
+		} else {
+			selectedRegionName = environmentHosts[0]?.name;
 		}
 	}
 
