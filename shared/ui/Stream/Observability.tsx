@@ -390,6 +390,15 @@ export const Observability = React.memo((props: Props) => {
 	}, [derivedState.newRelicIsConnected]);
 
 	useEffect(() => {
+		if (
+			_isEmpty(derivedState.observabilityRepoEntities) &&
+			derivedState.currentMethodLevelTelemetry?.newRelicEntityGuid
+		) {
+			handleClickCLMBroadcast(derivedState.currentMethodLevelTelemetry?.newRelicEntityGuid);
+		}
+	}, [derivedState.observabilityRepoEntities]);
+
+	useEffect(() => {
 		if (!derivedState.newRelicIsConnected) return;
 
 		if (previousHiddenPaneNodes) {
@@ -572,8 +581,6 @@ export const Observability = React.memo((props: Props) => {
 	];
 
 	const handleClickCLMBroadcast = (entityGuid, e?) => {
-		fetchObservabilityErrors(entityGuid, currentRepoId);
-
 		if (e) {
 			e.preventDefault();
 			e.stopPropagation();
@@ -847,15 +854,8 @@ export const Observability = React.memo((props: Props) => {
 																		return ore.repoId === currentRepoId;
 																	}
 																);
-																console.warn(
-																	derivedState.observabilityRepoEntities,
-																	currentObservabilityRepoEntity,
-																	derivedState.currentMethodLevelTelemetry
-																);
 																const isSelectedCLM =
-																	ea.entityGuid === currentObservabilityRepoEntity?.entityGuid ||
-																	derivedState.currentMethodLevelTelemetry.newRelicEntityGuid ===
-																		ea.entityGuid;
+																	ea.entityGuid === currentObservabilityRepoEntity?.entityGuid;
 																return (
 																	<>
 																		<PaneNodeName
