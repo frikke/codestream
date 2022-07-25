@@ -486,7 +486,7 @@ export const Observability = React.memo((props: Props) => {
 			})
 			.then(response => {
 				if (response?.repos) {
-					const existingObservabilityErrors = observabilityErrors.filter(_ => _.repoId !== repoId);
+					const existingObservabilityErrors = observabilityErrors.filter(_ => _?.repoId !== repoId);
 					existingObservabilityErrors.push(response.repos[0]);
 					setObservabilityErrors(existingObservabilityErrors!);
 				}
@@ -708,7 +708,7 @@ export const Observability = React.memo((props: Props) => {
 				setShowCodeLevelMetricsBroadcastIcon(false);
 			}
 		}
-	}, [currentRepoId, observabilityRepos]);
+	}, [currentRepoId, observabilityRepos, loadingEntities]);
 
 	const handleSetUpMonitoring = (event: React.SyntheticEvent) => {
 		event.preventDefault();
@@ -847,8 +847,15 @@ export const Observability = React.memo((props: Props) => {
 																		return ore.repoId === currentRepoId;
 																	}
 																);
+																console.warn(
+																	derivedState.observabilityRepoEntities,
+																	currentObservabilityRepoEntity,
+																	derivedState.currentMethodLevelTelemetry
+																);
 																const isSelectedCLM =
-																	ea.entityGuid === currentObservabilityRepoEntity?.entityGuid;
+																	ea.entityGuid === currentObservabilityRepoEntity?.entityGuid ||
+																	derivedState.currentMethodLevelTelemetry.newRelicEntityGuid ===
+																		ea.entityGuid;
 																return (
 																	<>
 																		<PaneNodeName
