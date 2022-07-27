@@ -76,6 +76,11 @@ export class SocketClusterConnection implements BroadcasterConnection {
 		};
 	}
 
+	// set a new broadcaster token
+	setToken(token: string) {
+		// this is a no-op for the socketcluster connection
+	}
+
 	// confirm the connection to the SocketCluster server is good
 	async _confirmConnection(): Promise<void> {
 		if (this._connectionTimer) {

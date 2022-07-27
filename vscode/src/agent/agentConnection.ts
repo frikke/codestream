@@ -90,6 +90,8 @@ import {
 	FetchUnreadStreamsRequestType,
 	FetchUsersRequestType,
 	FileLevelTelemetryRequestOptions,
+	ForceLogoutNotification,
+	ForceLogoutNotificationType,
 	FunctionLocator,
 	GetDocumentFromKeyBindingRequestType,
 	GetDocumentFromKeyBindingResponse,
@@ -262,6 +264,11 @@ export class CodeStreamAgentConnection implements Disposable {
 	private _onDidResolveStackTraceLine = new EventEmitter<DidResolveStackTraceLineNotification>();
 	get onDidResolveStackTraceLine(): Event<DidResolveStackTraceLineNotification> {
 		return this._onDidResolveStackTraceLine.event;
+	}
+
+	private _onForceLogout = new EventEmitter<ForceLogoutNotification>();
+	get onForceLogout(): Event<ForceLogoutNotification> {
+		return this._onForceLogout.event;
 	}
 
 	private _client: LanguageClient | undefined;
@@ -1255,6 +1262,7 @@ export class CodeStreamAgentConnection implements Disposable {
 		this._client.onNotification(DidResolveStackTraceLineNotificationType, e =>
 			this._onDidResolveStackTraceLine.fire(e)
 		);
+		this._client.onNotification(ForceLogoutNotificationType, e => this._onForceLogout.fire(e));
 		this._client.onRequest(AgentOpenUrlRequestType, e => this._onOpenUrl.fire(e));
 		this._client.onRequest(AgentFileSearchRequestType, async e => {
 			try {

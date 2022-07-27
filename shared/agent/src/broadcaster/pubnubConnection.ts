@@ -50,13 +50,6 @@ export interface PubnubInitializer {
 	onFetchHistory?: HistoryFetchCallback;
 }
 
-// internal, maintains map of channels and whether they are yet successfully subscribed
-interface SubscriptionMap {
-	[key: string]: {
-		subscribed: boolean;
-	};
-}
-
 export class PubnubConnection implements BroadcasterConnection {
 	private _userId: string | undefined;
 	private _pubnub: Pubnub | undefined;
@@ -66,7 +59,8 @@ export class PubnubConnection implements BroadcasterConnection {
 	private _messageCallback: MessageCallback | undefined;
 	private _statusCallback: StatusCallback | undefined;
 	private _historyFetchCallback: HistoryFetchCallback | undefined;
-	private _subscriptionMap: SubscriptionMap = {};
+	private _simulatingNetworkDisconnect: boolean = false;
+	private _simulatedNetworkDisconnectCount: number = 0;
 
 	// initialize PubnubConnection and optionally subscribe to channels
 	async initialize(options: PubnubInitializer): Promise<Disposable> {
@@ -86,7 +80,7 @@ export class PubnubConnection implements BroadcasterConnection {
 			autoNetworkDetection: true,
 			proxy: options.httpsAgent instanceof HttpsProxyAgent && options.httpsAgent.proxy
 		} as Pubnub.PubnubConfig);
-		this._pubnub.setToken(options.token);
+		this.setToken(options.token);
 
 		this._messageCallback = options.onMessage;
 		this._statusCallback = options.onStatus;
@@ -102,30 +96,29 @@ export class PubnubConnection implements BroadcasterConnection {
 		};
 	}
 
+	// set a new broadcaster token
+	setToken(token: string) {
+		if (this._pubnub) {
+			this._pubnub?.setToken(token);
+			const result = this._pubnub.parseToken(token);
+			const channels = Object.keys(result.resources?.channels || {}).filter(channel => {
+				return result.resources!.channels![channel].read;
+			});
+			const expiresAt = result.timestamp * 1000 + result.ttl * 60 * 1000;
+			this._debug(
+				`Did set PubNub token, token expires in ${expiresAt -
+					Date.now()} ms, at ${expiresAt}, authorized channels are:`,
+				channels
+			);
+		}
+	}
+
 	// subscribe to the passed channels
 	subscribe(channels: string[], options: BroadcasterConnectionOptions = {}) {
-		const unsubscribedChannels: string[] = [];
-		const subscribedChannels: string[] = [];
-		for (const channel of channels) {
-			const subscription = this._subscriptionMap[channel] || {
-				subscribed: false
-			};
-			if (subscription.subscribed) {
-				subscribedChannels.push(channel);
-			} else {
-				unsubscribedChannels.push(channel);
-			}
-		}
-		if (subscribedChannels.length > 0) {
-			this.onStatus({
-				status: BroadcasterStatusType.Connected,
-				channels: subscribedChannels
-			});
-		}
-		if (unsubscribedChannels.length > 0) {
-			this._debug(`Subscribing to ${JSON.stringify(unsubscribedChannels)}`);
+		this._debug(`Subscribing to ${JSON.stringify(channels)}`);
+		if (!this._simulatingNetworkDisconnect) {
 			this._pubnub!.subscribe({
-				channels: unsubscribedChannels
+				channels
 			});
 		}
 	}
@@ -195,37 +188,30 @@ export class PubnubConnection implements BroadcasterConnection {
 			status.category === Pubnub.CATEGORIES.PNConnectedCategory
 		) {
 			this.setConnected(status.subscribedChannels);
+
+			const simulateNetworkDisconnectIn = 10000;
+			const networkDisconnectLastsFor = 30000;
+			if (this._simulatedNetworkDisconnectCount) {
+				this._debug(
+					`NETWORK: Simulating network disconnect of ${networkDisconnectLastsFor}ms in ${simulateNetworkDisconnectIn}ms...`
+				);
+				setTimeout(() => {
+					this._debug("NETWORK: Simulating network disconnect...");
+					this.simulateNetworkDisconnect(networkDisconnectLastsFor);
+				}, simulateNetworkDisconnectIn);
+			}
 		} else if (
 			(status as any).error &&
 			status.category === Pubnub.CATEGORIES.PNAccessDeniedCategory
 		) {
 			// an access denied message, in direct response to a subscription attempt
-			const channels = status.errorData.payload.channels;
-			this._debug(`Access denied for channels: ${channels}`);
-			const criticalChannels: string[] = [];
-			const nonCriticalChannels: string[] = [];
-			// HACK: whether a channel is critical should be passed as an option and processed through the
-			// chain, but the changes to the code are too complicated ... this all needs a refactor anyway
-			status.errorData?.payload?.channels.forEach((channel: string) => {
-				if (channel.startsWith("object-")) {
-					nonCriticalChannels.push(channel);
-				} else {
-					criticalChannels.push(channel);
-				}
-			});
-
-			if (criticalChannels.length > 0) {
-				this._debug(`Access denied for critical channels: ${criticalChannels}`);
-				this.subscriptionFailure(criticalChannels);
-			}
-			if (nonCriticalChannels.length > 0) {
-				this.unsubscribe(nonCriticalChannels);
-				if (this._statusCallback) {
-					this._statusCallback!({
-						status: BroadcasterStatusType.NonCriticalFailure,
-						channels: nonCriticalChannels
-					});
-				}
+			const channels = status.errorData?.payload?.channels;
+			if (channels === undefined) {
+				this._debug(`Access denied for all channels, assuming token problem: ${inspect(status)}`);
+				this.tokenFailure();
+			} else {
+				this._debug(`Access denied for channels: ${channels}`);
+				this.subscriptionFailure(channels);
 			}
 		} else if (
 			(status as any).error &&
@@ -280,6 +266,14 @@ export class PubnubConnection implements BroadcasterConnection {
 		}
 	}
 
+	private async tokenFailure() {
+		if (this._statusCallback) {
+			this._statusCallback({
+				status: BroadcasterStatusType.TokenFailure
+			});
+		}
+	}
+
 	disconnect() {
 		this.removeListener();
 		if (this._statusTimeout) {
@@ -291,7 +285,7 @@ export class PubnubConnection implements BroadcasterConnection {
 		(this._pubnub! as any).reconnect();
 	}
 
-	private async subscriptionFailure(channels: string[]) {
+	private async subscriptionFailure(channels: string[] | undefined) {
 		if (this._statusCallback) {
 			this._statusCallback({
 				status: BroadcasterStatusType.Failed,
@@ -312,5 +306,22 @@ export class PubnubConnection implements BroadcasterConnection {
 
 	_debug(msg: string, info?: any) {
 		this._logger(`PUBNUB: ${msg}`, info);
+	}
+
+	simulateNetworkDisconnect(howLong: number) {
+		this._simulatingNetworkDisconnect = true;
+		this._pubnub!.unsubscribeAll();
+		this.onStatus({
+			error: true,
+			operation: "PNSubscribeOperation",
+			errorData: {},
+			category: "PNNetworkIssuesCategory"
+		});
+
+		setTimeout(() => {
+			this._debug("NETWORK: End of simulated network disconnect");
+			this._simulatingNetworkDisconnect = false;
+			this._simulatedNetworkDisconnectCount--;
+		}, howLong);
 	}
 }

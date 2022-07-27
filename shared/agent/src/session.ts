@@ -65,6 +65,7 @@ import {
 	DidSetEnvironmentNotificationType,
 	DidStartLoginCodeGenerationNotificationType,
 	DidStartLoginNotificationType,
+	ForceLogoutNotificationType,
 	GenerateLoginCodeRequest,
 	GenerateLoginCodeRequestType,
 	GetAccessTokenRequestType,
@@ -623,6 +624,15 @@ export class CodeStreamSession {
 				});
 				break;
 			case MessageType.Teams:
+				if (
+					e.data.find(
+						t => t.id === this._teamId && (t.removedMemberIds || []).includes(this._userId!)
+					)
+				) {
+					// oh no, we were removed from the team we're currently logged into!
+					Logger.log("Current user was removed from current team, initiating forced logout...");
+					this.agent.sendNotification(ForceLogoutNotificationType, { reason: LogoutReason.Kicked });
+				}
 				this._onDidChangeTeams.fire(e.data);
 				this.agent.sendNotification(DidChangeDataNotificationType, {
 					type: ChangeDataType.Teams,

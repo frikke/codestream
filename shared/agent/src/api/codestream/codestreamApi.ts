@@ -2471,10 +2471,15 @@ export class CodeStreamApiProvider implements ApiProvider {
 
 	announceHistoryFetch(info: HistoryFetchInfo): void {
 		const session = SessionContainer.instance().session;
-		const queryParams: ParsedUrlQueryInput = {...info}
+		const queryParams: ParsedUrlQueryInput = { ...info };
 		if (session.announceHistoryFetches()) {
 			this.get<{}>("/history-fetch?" + qs.stringify(queryParams));
 		}
+	}
+
+	async fetchBroadcasterToken(): Promise<string> {
+		const response = await this.get<{ token: string }>("/bcast-token");
+		return response.token;
 	}
 
 	async delete<R extends object>(url: string, token?: string): Promise<R> {
