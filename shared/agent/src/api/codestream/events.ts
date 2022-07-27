@@ -27,6 +27,7 @@ const messageToType: {
 		| MessageType.Teams
 		| MessageType.Users
 		| MessageType.Echo
+		| MessageType.SetBroadcasterV3Token
 		| undefined;
 } = {
 	codemark: MessageType.Codemarks,
@@ -50,7 +51,8 @@ const messageToType: {
 	teams: MessageType.Teams,
 	user: MessageType.Users,
 	users: MessageType.Users,
-	echo: MessageType.Echo
+	echo: MessageType.Echo,
+	setBroadcasterV3Token: MessageType.SetBroadcasterV3Token
 };
 
 export interface BroadcasterEventsInitializer {
@@ -241,7 +243,9 @@ export class BroadcasterEvents implements Disposable {
 		for (const [dataType, rawData] of Object.entries(messages)) {
 			try {
 				const type = messageToType[dataType];
-				if (type) {
+				if (type === MessageType.SetBroadcasterV3Token) {
+					this._broadcaster.setToken(rawData);
+				} else if (type) {
 					const data = CodeStreamApiProvider.normalizeResponse<any>(rawData);
 					this._onDidReceiveMessage.fire({
 						type: type,

@@ -2477,6 +2477,11 @@ export class CodeStreamApiProvider implements ApiProvider {
 		}
 	}
 
+	async fetchBroadcasterToken(): Promise<string> {
+		const response = await this.get<{ token: string }>("/bcast-token");
+		return response.token;
+	}
+
 	async delete<R extends object>(url: string, token?: string): Promise<R> {
 		if (!token && url.indexOf("/no-auth/") === -1) token = this._token;
 		let resp = undefined;

@@ -17,6 +17,7 @@ export interface BroadcasterConnection {
 	reconnect(): void;
 	confirmSubscriptions(channels: string[]): Promise<string[] | boolean>;
 	fetchHistory(options: BroadcasterHistoryInput): Promise<BroadcasterHistoryOutput>;
+	setToken(token: string): void;
 }
 
 export interface BroadcasterHistoryInput {
@@ -103,7 +104,8 @@ export enum BroadcasterStatusType {
 	// the statuses below are used only for testing, normally these are private and black-boxed
 	Confirmed = "Confirmed", // indicates subscriptions have been confirmed
 	NetworkProblem = "NetworkProblem", // indicates a network problem of some sort
-	Queued = "Queued" // indicates channels have been queued for subscribing
+	Queued = "Queued", // indicates channels have been queued for subscribing
+	TokenFailure = "TokenFailure" // indicates user's token is not working, maybe it was revoked
 }
 
 // internal, maintains map of channels and whether they are yet successfully subscribed
@@ -149,6 +151,7 @@ export class Broadcaster {
 	private _partialMessages: { [fullMessageId: string]: PartialMessage[] } = {};
 	private _connectionLostAt: number | undefined;
 	private _historyFetches: number[] = [];
+	private _inTokenFailure: boolean = false;
 
 	// call to receive status updates
 	get onDidStatusChange(): Event<BroadcasterStatus> {
@@ -219,6 +222,13 @@ export class Broadcaster {
 				}
 			}
 		};
+	}
+
+	// set a new broadcaster token
+	setToken(token: string) {
+		if (this._broadcasterConnection) {
+			this._broadcasterConnection.setToken(token);
+		}
 	}
 
 	// subscribe to the passed channels
@@ -380,6 +390,9 @@ export class Broadcaster {
 				return;
 			case BroadcasterStatusType.NetworkProblem:
 				return this.netHiccup();
+
+			case BroadcasterStatusType.TokenFailure:
+				return this.tokenFailure();
 
 			case BroadcasterStatusType.Failed:
 				return this.subscriptionFailure(status.channels!);
@@ -639,6 +652,22 @@ export class Broadcaster {
 		}
 	}
 
+	// the token used to connect to the broadcaster service seems to have failed,
+	// obtain a new token from our server and check our subscriptions
+	private async tokenFailure() {
+		if (this._inTokenFailure) {
+			this._debug("Already in token failure mode, ignoring additional token failure message");
+			return;
+		}
+		this._inTokenFailure = true;
+		this._debug("Received TokenFailure status, fetching new broadcaster token...");
+		const token = await this._api.fetchBroadcasterToken();
+		this._broadcasterConnection!.setToken(token);
+		this._inTokenFailure = false;
+		this._debug("Confirming subscriptions after token fetch...");
+		this.confirmSubscriptions();
+	}
+
 	// simulate a failure to confirm subscriptions, for testing purposes
 	simulateConfirmFailure(doSimulate?: boolean) {
 		this._simulateConfirmFailure = doSimulate || typeof doSimulate === "undefined";
@@ -719,14 +748,36 @@ export class Broadcaster {
 	// we never successfully subscribed to one or more channels requested, enter into a failure
 	// mode, ask the api server to explicitly grant us subscription access to those channels,
 	// and try again
-	private async subscriptionFailure(failedChannels: string[]) {
-		const channels = failedChannels.filter(channel => !this._activeFailures.includes(channel));
-		if (channels.length === 0) {
+	private async subscriptionFailure(failedChannels: string[] | undefined) {
+		const activeFailures = [];
+		const ignoreChannels = [];
+		const channels: string[] = [];
+
+		if (failedChannels === undefined) {
+			failedChannels = [...this.getSubscribedChannels()];
+		}
+
+		failedChannels.forEach(channel => {
+			if (this._activeFailures.includes(channel)) {
+				activeFailures.push(channel);
+			} else if (!this._subscriptions[channel]) {
+				ignoreChannels.push(channel);
+			} else {
+				channels.push(channel);
+			}
+		});
+
+		if (activeFailures.length > 0) {
 			this._debug(
 				"Already handling subscription failures, ignoring: " + JSON.stringify(failedChannels)
 			);
-			return;
 		}
+		if (ignoreChannels.length > 0) {
+			this._debug(
+				"Not interested in these subscription failures, ignoring: " + JSON.stringify(failedChannels)
+			);
+		}
+
 		this._activeFailures = [...this._activeFailures, ...channels];
 		this.emitTrouble(channels);
 

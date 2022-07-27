@@ -20,6 +20,7 @@ import {
 	DidChangeVersionCompatibilityNotificationType,
 	DidEncounterMaintenanceModeNotificationType,
 	DidResolveStackTraceLineNotificationType,
+	ForceLogoutNotificationType,
 	ReportingMessageType,
 	VersionCompatibility
 } from "@codestream/protocols/agent";
@@ -160,6 +161,9 @@ export class WebviewController implements Disposable {
 			}),
 			Container.agent.onDidResolveStackTraceLine(e => {
 				if (this._webview) this._webview.notify(DidResolveStackTraceLineNotificationType, e);
+			}),
+			Container.agent.onForceLogout(e => {
+				if (this._webview) this._webview.notify(ForceLogoutNotificationType, e);
 			})
 		);
 

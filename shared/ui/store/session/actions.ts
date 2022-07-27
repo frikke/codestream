@@ -2,7 +2,7 @@ import { action } from "../common";
 import { SessionActionType, SessionState } from "./types";
 import { HostApi } from "../../webview-api";
 import { reset } from "../actions";
-import { LogoutRequestType, AcceptTOSRequestType } from "@codestream/protocols/webview";
+import { LogoutRequestType, LogoutReason } from "@codestream/protocols/webview";
 import { setBootstrapped } from "../bootstrapped/actions";
 import { setUserPreference } from "../../Stream/actions";
 import {
@@ -42,7 +42,10 @@ export const setMaintenanceMode = (
 	meta?: PasswordLoginParams | TokenLoginRequest | ConfirmLoginCodeRequest
 ) => action(SessionActionType.SetMaintenanceMode, value, meta);
 
-export const logout = () => async (dispatch, getState: () => CodeStreamState) => {
+export const logout = (reason?: LogoutReason) => async (
+	dispatch,
+	getState: () => CodeStreamState
+) => {
 	const { users, session, ide } = getState();
 
 	dispatch(setBootstrapped(false));
@@ -51,7 +54,7 @@ export const logout = () => async (dispatch, getState: () => CodeStreamState) =>
 		await HostApi.instance.send(DisconnectFromIDEProviderRequestType, { provider: "github" });
 	}
 	*/
-	await HostApi.instance.send(LogoutRequestType, {});
+	await HostApi.instance.send(LogoutRequestType, { reason });
 	dispatch(reset());
 	dispatch(setBootstrapped(true));
 };

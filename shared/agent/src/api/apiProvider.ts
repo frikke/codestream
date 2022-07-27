@@ -261,7 +261,8 @@ export enum MessageType {
 	Teams = "teams",
 	Unreads = "unreads",
 	Users = "users",
-	Echo = "echo"
+	Echo = "echo",
+	SetBroadcasterV3Token = "setbroadcasterv3token"
 }
 
 export interface CompaniesRTMessage {
@@ -544,6 +545,7 @@ export interface ApiProvider {
 	setServerUrl(url: string): void;
 
 	announceHistoryFetch(info: HistoryFetchInfo): void;
+	fetchBroadcasterToken(): Promise<string>;
 
 	get<R extends object>(url: string, token?: string): Promise<R>;
 	post<RQ extends object, R extends object>(url: string, body: any, token?: string): Promise<R>;
