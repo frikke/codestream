@@ -292,7 +292,8 @@ export enum LogoutReason {
 	Unknown = "unknown",
 	UnsupportedVersion = "unsupportedVersion",
 	UnsupportedApiVersion = "unsupportedApiVersion",
-	Kicked = "kickedOutOfTeam"
+	Kicked = "kickedOutOfTeam",
+	ServerCommand = "serverCommand"
 }
 
 export interface DidLogoutNotification {
@@ -301,6 +302,14 @@ export interface DidLogoutNotification {
 
 export const DidLogoutNotificationType = new NotificationType<DidLogoutNotification, void>(
 	"codestream/didLogout"
+);
+
+export interface ForceLogoutNotification {
+	reason: LogoutReason;
+}
+
+export const ForceLogoutNotificationType = new NotificationType<ForceLogoutNotification, void>(
+	"/codestream/forceLogout"
 );
 
 export interface DidLoginNotification {
@@ -418,11 +427,3 @@ export const ConfigChangeReloadNotificationType = new NotificationType<
 	ConfigChangeReloadRequest,
 	void
 >("codestream/configChangeReload");
-
-export const ForceLogoutNotificationType = new NotificationType<ForceLogoutNotification, void>(
-	"/codestream/forceLogout"
-);
-
-export interface ForceLogoutNotification {
-	reason: LogoutReason;
-}
