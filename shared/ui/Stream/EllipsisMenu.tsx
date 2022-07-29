@@ -45,15 +45,18 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		const { environmentHosts, environment, isProductionCloud } = state.configs;
 		const currentHost = environmentHosts?.find(host => host.shortName === environment);
 		const supportsMultiRegion = isFeatureEnabled(state, "multiRegion");
+		const userTeamIds = user.teamIds || [];
 
 		return {
 			sidebarPanePreferences: state.preferences.sidebarPanes || EMPTY_HASH,
 			sidebarPaneOrder: state.preferences.sidebarPaneOrder || AVAILABLE_PANES,
-			userCompanies: _sortBy(Object.values(state.companies), "name"),
+			userCompanies: _sortBy(Object.values(state.companies), "name").filter(company =>
+				userTeamIds.includes(company.everyoneTeamId)
+			),
 			userTeams: _sortBy(
 				Object.values(state.teams).filter(t => !t.deactivated),
 				"name"
-			),
+			).filter(t => userTeamIds.includes(t.id)),,
 			currentCompanyId,
 			currentTeamId: teamId,
 			serverUrl: state.configs.serverUrl,

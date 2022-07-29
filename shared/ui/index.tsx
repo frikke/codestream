@@ -40,6 +40,7 @@ import {
 	DidChangeServerUrlNotificationType,
 	ConnectionStatus,
 	ChangeDataType,
+	ForceLogoutNotificationType,
 	VersionCompatibility,
 	ThirdPartyProviders,
 	GetDocumentFromMarkerRequestType,
@@ -95,7 +96,7 @@ import {
 } from "./store/context/actions";
 import { URI } from "vscode-uri";
 import { moveCursorToLine } from "./Stream/api-functions";
-import { setMaintenanceMode } from "./store/session/actions";
+import { logout, setMaintenanceMode, switchToTeam } from "./store/session/actions";
 import { logWarning } from "./logger";
 import { fetchReview } from "./store/reviews/actions";
 import {
@@ -802,6 +803,10 @@ function listenForEvents(store) {
 				params.directives.directives
 			)
 		);
+	});
+
+	api.on(ForceLogoutNotificationType, params => {
+		store.dispatch(logout(params.reason));
 	});
 }
 
