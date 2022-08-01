@@ -30,7 +30,6 @@ import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.editor.impl.EditorImpl
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
-import com.intellij.psi.NavigatablePsiElement
 import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
@@ -211,14 +210,14 @@ abstract class CLMEditorManager(
         functionName: String
     ): PsiElement?
 
-    abstract fun findTopLevelFunction(psiFile: PsiFile, functionName: String): NavigatablePsiElement?
+    abstract fun findTopLevelFunction(psiFile: PsiFile, functionName: String): PsiElement?
 
     private fun updateInlaysCore() {
         val (result, project, path, editor) = displayDeps() ?: return
         if (project.isDisposed) {
             return
         }
-        // Fore document update so we can move inlay to correct position after user adds lines to file
+        // Force document update so we can move inlay to correct position after user adds lines to file
         PsiDocumentManager.getInstance(project).commitDocument(editor.document)
         val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(editor.document) ?: return
         val presentationFactory = PresentationFactory(editor)
