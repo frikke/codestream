@@ -1,5 +1,6 @@
 "use strict";
 
+import { DidChangeRepositoryCommitHashNotification } from "protocols/agent/agent.protocol.notifications";
 import { GetBlameLineInfo } from "protocols/agent/agent.protocol.scm";
 import {
 	ConfigurationChangeEvent,
@@ -22,6 +23,7 @@ export class BlameDecorationProvider implements Disposable {
 	private _decorationTypes: { [key: string]: TextEditorDecorationType } | undefined;
 	private readonly _disposable: Disposable;
 	private _enabledDisposable: Disposable | undefined;
+	private _latestCursorEvent: TextEditorSelectionChangeEvent | undefined;
 
 	constructor() {
 		this._disposable = Disposable.from(
@@ -98,11 +100,19 @@ export class BlameDecorationProvider implements Disposable {
 		this._decorationTypes = decorationTypes;
 
 		this._enabledDisposable = Disposable.from(
-			window.onDidChangeTextEditorSelection(this.onCursorChange, this)
+			window.onDidChangeTextEditorSelection(this.onCursorChange, this),
+			Container.agent.onDidChangeRepositoryCommitHash(this.onRepositoryCommitHashChange, this)
 		);
 	}
 
+	private async onRepositoryCommitHashChange() {
+		if (this._latestCursorEvent) {
+			await this.onCursorChange(this._latestCursorEvent);
+		}
+	}
+
 	private async onCursorChange(e: TextEditorSelectionChangeEvent) {
+		this._latestCursorEvent = e;
 		const cursor = e.selections[0].active;
 		const editor = e.textEditor;
 		if (editor.document.uri.scheme !== "file") {
