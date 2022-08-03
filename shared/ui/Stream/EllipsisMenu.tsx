@@ -56,7 +56,7 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 			userTeams: _sortBy(
 				Object.values(state.teams).filter(t => !t.deactivated),
 				"name"
-			).filter(t => userTeamIds.includes(t.id)),,
+			).filter(t => userTeamIds.includes(t.id)),
 			currentCompanyId,
 			currentTeamId: teamId,
 			serverUrl: state.configs.serverUrl,
