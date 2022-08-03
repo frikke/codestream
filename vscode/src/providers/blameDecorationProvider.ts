@@ -74,6 +74,7 @@ export class BlameDecorationProvider implements Disposable {
 	}
 
 	private disable() {
+		this.resetBlameCache();
 		if (this._enabledDisposable === undefined) return;
 
 		this._enabledDisposable.dispose();
@@ -110,7 +111,7 @@ export class BlameDecorationProvider implements Disposable {
 	}
 
 	private resetBlameCache() {
-		this._blameCache = new Map<number, GetBlameLineInfo>();
+		this._blameCache.clear();
 	}
 
 	private async onSourceChange() {
