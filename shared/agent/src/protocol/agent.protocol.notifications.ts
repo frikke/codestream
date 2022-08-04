@@ -436,3 +436,9 @@ export const SetServerCommandIndexNotificationType = new NotificationType<
 	SetServerCommandIndexNotification,
 	void
 >("codestream/setServerCommandIndex");
+
+export interface ForceReloadNotification {}
+
+export const ForceReloadNotificationType = new NotificationType<ForceReloadNotification, void>(
+	"/codestream/forceReload"
+);
