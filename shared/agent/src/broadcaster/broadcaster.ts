@@ -231,10 +231,12 @@ export class Broadcaster {
 	}
 
 	// reinitialize the connection
-	reinitialize() {
+	async reinitialize() {
+		const channels = this.getSubscribedChannels();
 		this._dispose();
 		delete this._broadcasterConnection;
-		this.initialize(this._initOptions!);
+		await this.initialize(this._initOptions!);
+		this.subscribe(channels);
 	}
 
 	// set a new broadcaster token
