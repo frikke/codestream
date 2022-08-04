@@ -39,7 +39,8 @@ const mapStateToProps = state => {
 		isOnPrem: state.configs.isOnPrem,
 		offline: state.connectivity.offline,
 		acceptedTOS: state.session.userId ? state.preferences.acceptedTOS : state.session.acceptedTOS,
-		configChangeReloadRequired: state.configs.configChangeReloadRequired
+		configChangeReloadRequired: state.configs.configChangeReloadRequired,
+		serverIssuedReloadRequired: state.configs.serverIssuedReloadRequired
 	};
 };
 
@@ -118,20 +119,27 @@ const Root = connect(mapStateToProps)(props => {
 		);
 	}
 
-	if (props.configChangeReloadRequired) {
+	if (props.configChangeReloadRequired || props.serverIssuedReloadRequired) {
+		const infoMessage = props.serverIssuedReloadRequired
+			? "CodeStream updates require your IDE to reload."
+			: "This configuration change requires your IDE to reload.";
+		const actionMessage =
+			props.ide === "VSC"
+				? 'Please click "Reload" when prompted by your IDE.'
+				: "CodeStream will reload when you click OK.";
 		if (props.ide === "VSC") {
 			HostApi.instance.send(RestartRequestType);
 			return (
 				<RoadBlock title="Reload Required">
-					<p>This configuration change requires your IDE to reload.</p>
-					<p>Please click "Reload" when prompted by your IDE.</p>
+					<p>{infoMessage}</p>
+					<p>{actionMessage}</p>
 				</RoadBlock>
 			);
 		} else if (props.ide === "VS") {
 			return (
 				<RoadBlock title="Reload Required">
-					<p>This configuration change requires CodeStream to reload.</p>
-					<p>CodeStream will reload when you click OK.</p>
+					<p>{infoMessage}</p>
+					<p>{actionMessage}</p>
 					<Button
 						onClick={e => {
 							e.preventDefault();

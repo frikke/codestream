@@ -427,3 +427,12 @@ export const ConfigChangeReloadNotificationType = new NotificationType<
 	ConfigChangeReloadRequest,
 	void
 >("codestream/configChangeReload");
+
+export interface SetServerCommandIndexNotification {
+	index: number;
+}
+
+export const SetServerCommandIndexNotificationType = new NotificationType<
+	SetServerCommandIndexNotification,
+	void
+>("codestream/setServerCommandIndex");

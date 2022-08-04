@@ -23,6 +23,16 @@ export interface ApiVersionCompatibilityChangedEvent {
 	missingCapabilities?: CSApiCapabilities;
 }
 
+export interface ServerCommand {
+	command: string;
+	data?: any;
+}
+
+export interface ExecuteServerCommandsEvent {
+	commands: ServerCommand[];
+	level: number;
+}
+
 export class VersionMiddlewareManager implements Disposable {
 	private _onDidChangeCompatibility = new Emitter<VersionCompatibilityChangedEvent>();
 	get onDidChangeCompatibility(): Event<VersionCompatibilityChangedEvent> {
@@ -32,6 +42,11 @@ export class VersionMiddlewareManager implements Disposable {
 	private _onDidChangeApiCompatibility = new Emitter<ApiVersionCompatibilityChangedEvent>();
 	get onDidChangeApiCompatibility(): Event<ApiVersionCompatibilityChangedEvent> {
 		return this._onDidChangeApiCompatibility.event;
+	}
+
+	private _onExecuteServerCommands = new Emitter<ExecuteServerCommandsEvent>();
+	get onExecuteServerCommands(): Event<ExecuteServerCommandsEvent> {
+		return this._onExecuteServerCommands.event;
 	}
 
 	private readonly _disposable: Disposable;
@@ -71,6 +86,11 @@ export class VersionMiddlewareManager implements Disposable {
 		});
 	}
 
+	@log()
+	async executeServerCommands(commands: ServerCommand[], level: number) {
+		this._onExecuteServerCommands.fire({ commands, level });
+	}
+
 	async setApiVersion(version: string) {
 		if (version === this._apiVersion) return;
 		Logger.log(
@@ -104,6 +124,10 @@ export class VersionMiddlewareManager implements Disposable {
 	}
 }
 
+// these are very unlikely to appear within the JSON data sent with the command
+const SERVER_COMMAND_DELIMITER = "|!|";
+const SERVER_COMMAND_DATA_DELIMITER = ":!:";
+
 export class VersionMiddleware implements CodeStreamApiMiddleware {
 	constructor(private _manager: VersionMiddlewareManager) {}
 
@@ -116,6 +140,27 @@ export class VersionMiddleware implements CodeStreamApiMiddleware {
 
 		const apiVersion = context.response.headers.get("X-CS-API-Version") || "";
 		this._manager.setApiVersion(apiVersion);
+
+		const commands = (context.response.headers.get("X-CS-Execute-Commands") || "").split(
+			SERVER_COMMAND_DELIMITER
+		);
+		if (commands.length > 0) {
+			// the first argument is the new index once the client executes these commands
+			const level = parseInt(commands.shift()!, 10);
+			if (commands.length > 0) {
+				const serverCommands: ServerCommand[] = commands.map(serverCommand => {
+					const [command, commandData] = serverCommand.split(SERVER_COMMAND_DATA_DELIMITER);
+					let data;
+					if (commandData) {
+						try {
+							data = JSON.parse(commandData);
+						} catch (e) {}
+					}
+					return { command, data };
+				});
+				this._manager.executeServerCommands(serverCommands, level);
+			}
+		}
 
 		const compatibility = context.response.headers.get(
 			"X-CS-Version-Disposition"

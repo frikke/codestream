@@ -123,6 +123,7 @@ export interface CSLoginResponse {
 		environment: string;
 		publicApiUrl: string;
 	};
+	serverCommandIndex?: number;
 }
 
 export interface CSRegisterRequest {

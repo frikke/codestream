@@ -27,7 +27,8 @@ import {
 	RouteWithQuery,
 	ViewMethodLevelTelemetryNotificationType,
 	ShowProgressIndicatorType,
-	HandlePullRequestDirectivesNotificationType
+	HandlePullRequestDirectivesNotificationType,
+	RestartRequestType
 } from "./ipc/webview.protocol";
 import { createCodeStreamStore } from "./store";
 import { HostApi } from "./webview-api";
@@ -41,6 +42,7 @@ import {
 	ConnectionStatus,
 	ChangeDataType,
 	ForceLogoutNotificationType,
+	ForceReloadNotificationType,
 	VersionCompatibility,
 	ThirdPartyProviders,
 	GetDocumentFromMarkerRequestType,
@@ -54,7 +56,8 @@ import {
 	PixieDynamicLoggingResultNotification,
 	DidResolveStackTraceLineNotificationType,
 	TelemetrySetAnonymousIdRequestType,
-	ConfigChangeReloadNotificationType
+	ConfigChangeReloadNotificationType,
+	SetServerCommandIndexNotificationType
 } from "@codestream/protocols/agent";
 import { CSApiCapabilities, CodemarkType, CSCodeError, CSMe } from "@codestream/protocols/api";
 import translations from "./translations/en";
@@ -92,7 +95,8 @@ import {
 	setPendingProtocolHandlerUrl,
 	goToNewRelicSignup,
 	setCurrentMethodLevelTelemetry,
-	setForceRegion
+	setForceRegion,
+	setServerCommandIndex
 } from "./store/context/actions";
 import { URI } from "vscode-uri";
 import { moveCursorToLine } from "./Stream/api-functions";
@@ -134,6 +138,8 @@ export async function initialize(selector: string) {
 
 	const locale = "en";
 	const messages: any = translations;
+	const serverCommandIndex = store.getState().context.__teamless__?.serverCommandIndex;
+
 	// try {
 	// 	const userLocale = navigator && navigator.language?.split(/-|_/)[0];
 	// 	if (userLocale === "es") {
@@ -153,7 +159,7 @@ export async function initialize(selector: string) {
 
 	// verify we can connect to the server, if successful, as a side effect,
 	// we get the api server's capabilities and our environment
-	const resp = await HostApi.instance.send(VerifyConnectivityRequestType, void {});
+	const resp = await HostApi.instance.send(VerifyConnectivityRequestType, { serverCommandIndex });
 	if (resp.error) {
 		store.dispatch(errorOccurred(resp.error.message, resp.error.details));
 	} else {
@@ -806,6 +812,14 @@ function listenForEvents(store) {
 
 	api.on(ForceLogoutNotificationType, params => {
 		store.dispatch(logout(params.reason));
+	});
+
+	api.on(ForceReloadNotificationType, params => {
+		store.dispatch(updateConfigs({ serverIssuedReloadRequired: true }));
+	});
+
+	api.on(SetServerCommandIndexNotificationType, params => {
+		store.dispatch(setServerCommandIndex(params.index));
 	});
 }
 

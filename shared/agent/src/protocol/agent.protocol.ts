@@ -175,6 +175,10 @@ export interface EnvironmentHost {
 	accessToken?: string;
 }
 
+export interface VerifyConnectivityRequest {
+	serverCommandIndex?: number;
+}
+
 export interface VerifyConnectivityResponse {
 	ok: boolean;
 	error?: {
@@ -193,7 +197,7 @@ export interface VerifyConnectivityResponse {
 }
 
 export const VerifyConnectivityRequestType = new RequestType<
-	void,
+	VerifyConnectivityRequest,
 	VerifyConnectivityResponse,
 	void,
 	void
