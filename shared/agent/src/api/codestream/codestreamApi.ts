@@ -344,6 +344,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 	private _preferences: CodeStreamPreferences | undefined;
 	private _features: CSApiFeatures | undefined;
 	private _messageProcessingPromise: Promise<void> | undefined;
+	private _serverCommandIndex: number | undefined;
 
 	readonly capabilities: Capabilities = {
 		channelMute: true,
@@ -379,6 +380,16 @@ export class CodeStreamApiProvider implements ApiProvider {
 
 	setServerUrl(serverUrl: string) {
 		this.baseUrl = serverUrl.trim();
+	}
+
+	get serverCommandIndex() {
+		return this._serverCommandIndex;
+	}
+
+	setServerCommandIndex(index: number) {
+		if (this._serverCommandIndex === undefined || index > this._serverCommandIndex) {
+			this._serverCommandIndex = index;
+		}
 	}
 
 	useMiddleware(middleware: CodeStreamApiMiddleware) {
@@ -2557,6 +2568,9 @@ export class CodeStreamApiProvider implements ApiProvider {
 						`${this._version.extension.version}+${this._version.extension.build}`
 					);
 					init.headers.append("X-CS-IDE-Version", this._version.ide.version);
+					if (this._serverCommandIndex !== undefined) {
+						init.headers.append("X-CS-Command-Index", this._serverCommandIndex.toString());
+					}
 				}
 			}
 

@@ -28,6 +28,8 @@ import {
 import { CodeStreamApiProvider } from "./api/codestream/codestreamApi";
 import {
 	ApiVersionCompatibilityChangedEvent,
+	ExecuteServerCommandsEvent,
+	ServerCommand,
 	VersionCompatibilityChangedEvent,
 	VersionMiddlewareManager
 } from "./api/middleware/versionMiddleware";
@@ -66,6 +68,7 @@ import {
 	DidStartLoginCodeGenerationNotificationType,
 	DidStartLoginNotificationType,
 	ForceLogoutNotificationType,
+	ForceReloadNotificationType,
 	GenerateLoginCodeRequest,
 	GenerateLoginCodeRequestType,
 	GetAccessTokenRequestType,
@@ -85,6 +88,7 @@ import {
 	RegisterUserRequest,
 	RegisterUserRequestType,
 	ReportingMessageType,
+	SetServerCommandIndexNotificationType,
 	SetServerUrlRequest,
 	SetServerUrlRequestType,
 	ThirdPartyProviders,
@@ -412,6 +416,7 @@ export class CodeStreamSession {
 		const versionManager = new VersionMiddlewareManager(this._api);
 		versionManager.onDidChangeCompatibility(this.onVersionCompatibilityChanged, this);
 		versionManager.onDidChangeApiCompatibility(this.onApiVersionCompatibilityChanged, this);
+		versionManager.onExecuteServerCommands(this.onExecuteServerCommands, this);
 
 		// this.connection.onHover(e => MarkerHandler.onHover(e));
 
@@ -425,7 +430,9 @@ export class CodeStreamSession {
 			}
 		});
 
-		this.agent.registerHandler(VerifyConnectivityRequestType, () => this.verifyConnectivity());
+		this.agent.registerHandler(VerifyConnectivityRequestType, e =>
+			this.verifyConnectivity(e.serverCommandIndex)
+		);
 		this.agent.registerHandler(GetAccessTokenRequestType, e => {
 			return { accessToken: this._codestreamAccessToken! };
 		});
@@ -712,6 +719,53 @@ export class CodeStreamSession {
 		}
 	}
 
+	@log()
+	private async onExecuteServerCommands(e: ExecuteServerCommandsEvent) {
+		Logger.log(`Setting server command index to ${e.index}`);
+		this.agent.sendNotification(SetServerCommandIndexNotificationType, { index: e.index });
+		this._api?.setServerCommandIndex(e.index);
+
+		e.commands.forEach(async command => {
+			let wait = 0;
+			if (command.data?.at) {
+				wait = command.data?.at - Date.now();
+				if (wait < 0) {
+					wait = 0;
+				}
+			} else if (command.data?.in) {
+				wait = command.data?.in;
+			}
+
+			if (wait > 0) {
+				Logger.log(`Will execute server command ${command.command} in ${wait}...`);
+				setTimeout(this.executeServerCommand.bind(this), wait, command);
+			} else {
+				await this.executeServerCommand(command);
+			}
+		});
+	}
+
+	private async executeServerCommand(command: ServerCommand) {
+		Logger.log(`Executing server command: ${command.command}`);
+		switch (command.command) {
+			case "logout":
+				if (this._userId) {
+					this.agent.sendNotification(ForceLogoutNotificationType, {
+						reason: LogoutReason.ServerCommand
+					});
+				}
+				break;
+
+			case "reload":
+				this.agent.sendNotification(ForceReloadNotificationType, {});
+				break;
+
+			case "hello":
+				Logger.log("Server says hello");
+				break;
+		}
+	}
+
 	private _api: ApiProvider | undefined;
 	get api() {
 		return this._api!;
@@ -900,8 +954,12 @@ export class CodeStreamSession {
 	}
 
 	@log({ singleLine: true })
-	async verifyConnectivity(): Promise<VerifyConnectivityResponse> {
+	async verifyConnectivity(serverCommandIndex?: number): Promise<VerifyConnectivityResponse> {
 		if (!this._api) throw new Error("cannot verify connectivity, no API connection established");
+		if (serverCommandIndex !== undefined) {
+			this._api.setServerCommandIndex(serverCommandIndex);
+		}
+
 		const response = await this._api.verifyConnectivity();
 		const currentTeam = await this.tryResolveCurrentTeam();
 		this.registerApiCapabilities(response.capabilities as CSApiCapabilities, currentTeam);
@@ -1229,6 +1287,12 @@ export class CodeStreamSession {
 		if (this.isOnPrem && this.apiCapabilities.echoes) {
 			this.listenForEchoes();
 		}
+
+		Logger.log(`Upon login, setting server command index to ${response.serverCommandIndex}`);
+		this._api?.setServerCommandIndex(response.serverCommandIndex || 0);
+		this.agent.sendNotification(SetServerCommandIndexNotificationType, {
+			index: response.serverCommandIndex || 0
+		});
 
 		return loginResponse;
 	}

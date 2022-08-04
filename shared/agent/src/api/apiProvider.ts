@@ -542,6 +542,8 @@ export interface ApiProvider {
 
 	verifyConnectivity(): Promise<VerifyConnectivityResponse>;
 	setServerUrl(url: string): void;
+	get serverCommandIndex(): number | undefined;
+	setServerCommandIndex(index: number): void;
 
 	announceHistoryFetch(info: HistoryFetchInfo): void;
 

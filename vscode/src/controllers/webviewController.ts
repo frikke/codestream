@@ -21,6 +21,8 @@ import {
 	DidEncounterMaintenanceModeNotificationType,
 	DidResolveStackTraceLineNotificationType,
 	ForceLogoutNotificationType,
+	ForceReloadNotificationType,
+	SetServerCommandIndexNotificationType,
 	ReportingMessageType,
 	VersionCompatibility
 } from "@codestream/protocols/agent";
@@ -164,6 +166,12 @@ export class WebviewController implements Disposable {
 			}),
 			Container.agent.onForceLogout(e => {
 				if (this._webview) this._webview.notify(ForceLogoutNotificationType, e);
+			}),
+			Container.agent.onForceReload(e => {
+				if (this._webview) this._webview.notify(ForceReloadNotificationType, e);
+			}),
+			Container.agent.onSetServerCommandIndex(e => {
+				if (this._webview) this._webview.notify(SetServerCommandIndexNotificationType, e);
 			})
 		);
 

@@ -92,6 +92,8 @@ import {
 	FileLevelTelemetryRequestOptions,
 	ForceLogoutNotification,
 	ForceLogoutNotificationType,
+	ForceReloadNotification,
+	ForceReloadNotificationType,
 	FunctionLocator,
 	GetBlameRequestType,
 	GetBlameResponse,
@@ -130,6 +132,8 @@ import {
 	ReportMessageRequestType,
 	RestartRequiredNotificationType,
 	SetCodemarkStatusRequestType,
+	SetServerCommandIndexNotification,
+	SetServerCommandIndexNotificationType,
 	SetStreamPurposeRequestType,
 	TelemetryRequestType,
 	UnarchiveStreamRequestType,
@@ -271,6 +275,16 @@ export class CodeStreamAgentConnection implements Disposable {
 	private _onForceLogout = new EventEmitter<ForceLogoutNotification>();
 	get onForceLogout(): Event<ForceLogoutNotification> {
 		return this._onForceLogout.event;
+	}
+
+	private _onForceReload = new EventEmitter<ForceReloadNotification>();
+	get onForceReload(): Event<ForceReloadNotification> {
+		return this._onForceReload.event;
+	}
+
+	private _onSetServerCommandIndex = new EventEmitter<SetServerCommandIndexNotification>();
+	get onSetServerCommandIndex(): Event<SetServerCommandIndexNotification> {
+		return this._onSetServerCommandIndex.event;
 	}
 
 	private _client: LanguageClient | undefined;
@@ -1273,6 +1287,10 @@ export class CodeStreamAgentConnection implements Disposable {
 			this._onDidResolveStackTraceLine.fire(e)
 		);
 		this._client.onNotification(ForceLogoutNotificationType, e => this._onForceLogout.fire(e));
+		this._client.onNotification(ForceReloadNotificationType, e => this._onForceReload.fire(e));
+		this._client.onNotification(SetServerCommandIndexNotificationType, e =>
+			this._onSetServerCommandIndex.fire(e)
+		);
 		this._client.onRequest(AgentOpenUrlRequestType, e => this._onOpenUrl.fire(e));
 		this._client.onRequest(AgentFileSearchRequestType, async e => {
 			try {

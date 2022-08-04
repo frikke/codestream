@@ -368,3 +368,7 @@ export const setForceRegion = (params: { region: string }) =>
 
 export const clearForceRegion = (params = {}) =>
 	action(ContextActionsType.SetTeamlessContext, { forceRegion: undefined });
+
+export const setServerCommandIndex = (index: number) => {
+	action(ContextActionsType.SetTeamlessContext, { serverCommandIndex: index });
+};

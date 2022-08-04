@@ -304,13 +304,19 @@ export const DidLogoutNotificationType = new NotificationType<DidLogoutNotificat
 	"codestream/didLogout"
 );
 
+export interface ForceLogoutNotification {
+	reason: LogoutReason;
+}
+
 export const ForceLogoutNotificationType = new NotificationType<ForceLogoutNotification, void>(
 	"/codestream/forceLogout"
 );
 
-export interface ForceLogoutNotification {
-	reason: LogoutReason;
-}
+export interface ForceReloadNotification {}
+
+export const ForceReloadNotificationType = new NotificationType<ForceReloadNotification, void>(
+	"/codestream/forceReload"
+);
 
 export interface DidLoginNotification {
 	data: LoginSuccessResponse;
@@ -417,3 +423,12 @@ export const ConfigChangeReloadNotificationType = new NotificationType<
 	ConfigChangeReloadRequest,
 	void
 >("codestream/configChangeReload");
+
+export interface SetServerCommandIndexNotification {
+	index: number;
+}
+
+export const SetServerCommandIndexNotificationType = new NotificationType<
+	SetServerCommandIndexNotification,
+	void
+>("codestream/setServerCommandIndex");

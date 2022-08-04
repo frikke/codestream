@@ -144,6 +144,7 @@ export interface CodeErrorData {
 export interface TeamlessContext {
 	selectedRegion?: string;
 	forceRegion?: string;
+	serverCommandIndex?: number;
 }
 
 export interface WebviewContext {
@@ -246,6 +247,7 @@ export interface WebviewConfigs {
 	environmentHosts?: EnvironmentHost[];
 	newRelicApiUrl?: string;
 	configChangeReloadRequired?: boolean;
+	serverIssuedReloadRequired?: boolean;
 }
 
 export interface IpcHost {
