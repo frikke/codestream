@@ -30,7 +30,7 @@ export interface ServerCommand {
 
 export interface ExecuteServerCommandsEvent {
 	commands: ServerCommand[];
-	level: number;
+	index: number;
 }
 
 export class VersionMiddlewareManager implements Disposable {
@@ -87,8 +87,8 @@ export class VersionMiddlewareManager implements Disposable {
 	}
 
 	@log()
-	async executeServerCommands(commands: ServerCommand[], level: number) {
-		this._onExecuteServerCommands.fire({ commands, level });
+	async executeServerCommands(commands: ServerCommand[], index: number) {
+		this._onExecuteServerCommands.fire({ commands, index });
 	}
 
 	async setApiVersion(version: string) {
@@ -146,7 +146,7 @@ export class VersionMiddleware implements CodeStreamApiMiddleware {
 		);
 		if (commands.length > 0) {
 			// the first argument is the new index once the client executes these commands
-			const level = parseInt(commands.shift()!, 10);
+			const index = parseInt(commands.shift()!, 10);
 			if (commands.length > 0) {
 				const serverCommands: ServerCommand[] = commands.map(serverCommand => {
 					const [command, commandData] = serverCommand.split(SERVER_COMMAND_DATA_DELIMITER);
@@ -158,7 +158,7 @@ export class VersionMiddleware implements CodeStreamApiMiddleware {
 					}
 					return { command, data };
 				});
-				this._manager.executeServerCommands(serverCommands, level);
+				this._manager.executeServerCommands(serverCommands, index);
 			}
 		}
 
