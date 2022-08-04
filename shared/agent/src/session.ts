@@ -761,6 +761,12 @@ export class CodeStreamSession {
 				this.agent.sendNotification(ForceReloadNotificationType, {});
 				break;
 
+			case "fetchBroadcasterToken":
+				if (!this.api) return;
+				const { token, pubnubKey } = await this.api.fetchBroadcasterToken();
+				this.api.setTokenAndKey(token, pubnubKey);
+				break;
+
 			case "hello":
 				Logger.log("Server says hello");
 				break;

@@ -210,6 +210,7 @@ import {
 	CSDirectStream,
 	CSEditPostRequest,
 	CSEditPostResponse,
+	CSFetchBCastTokenResponse,
 	CSFileStream,
 	CSGetApiCapabilitiesResponse,
 	CSGetCodeErrorResponse,
@@ -936,6 +937,12 @@ export class CodeStreamApiProvider implements ApiProvider {
 
 	private onUnreadsChanged(e: Unreads) {
 		this._onDidReceiveMessage.fire({ type: MessageType.Unreads, data: e });
+	}
+
+	setTokenAndKey(token: string, pubnubKey: string) {
+		if (this._events) {
+			this._events.setTokenAndKey(token, pubnubKey);
+		}
 	}
 
 	grantBroadcasterChannelAccess(token: string, channel: string): Promise<{}> {
@@ -2488,9 +2495,8 @@ export class CodeStreamApiProvider implements ApiProvider {
 		}
 	}
 
-	async fetchBroadcasterToken(): Promise<string> {
-		const response = await this.get<{ token: string }>("/bcast-token");
-		return response.token;
+	async fetchBroadcasterToken(): Promise<CSFetchBCastTokenResponse> {
+		return this.get<CSFetchBCastTokenResponse>("/bcast-token");
 	}
 
 	async delete<R extends object>(url: string, token?: string): Promise<R> {

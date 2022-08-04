@@ -260,6 +260,10 @@ export class BroadcasterEvents implements Disposable {
 		}
 	}
 
+	setTokenAndKey(token: string, pubnubKey: string) {
+		this._broadcaster.setTokenAndKey(token, pubnubKey);
+	}
+
 	private debug(msg: string, info?: any) {
 		if (info === undefined) {
 			Logger.logWithDebugParams(`BROADCASTER: ${msg}`);

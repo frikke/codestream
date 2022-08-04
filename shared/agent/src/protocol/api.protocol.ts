@@ -919,3 +919,8 @@ export interface CSThirdPartyProviderSetInfoRequestData {
 	data: { [key: string]: any };
 	pendingVerification?: boolean;
 }
+
+export interface CSFetchBCastTokenResponse {
+	token: string;
+	pubnubKey: string;
+}

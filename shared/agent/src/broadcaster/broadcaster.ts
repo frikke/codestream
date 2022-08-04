@@ -152,6 +152,7 @@ export class Broadcaster {
 	private _connectionLostAt: number | undefined;
 	private _historyFetches: number[] = [];
 	private _inTokenFailure: boolean = false;
+	private _initOptions: BroadcasterInitializer | undefined;
 
 	// call to receive status updates
 	get onDidStatusChange(): Event<BroadcasterStatus> {
@@ -170,6 +171,7 @@ export class Broadcaster {
 
 	// initialize BroadcasterConnection
 	async initialize(options: BroadcasterInitializer): Promise<Disposable> {
+		this._initOptions = options;
 		this._initializationStartedAt = Date.now();
 		if (options.debug) {
 			this._debug = options.debug;
@@ -216,12 +218,23 @@ export class Broadcaster {
 
 		return {
 			dispose: () => {
-				this.unsubscribeAll();
-				if (this._broadcasterConnection) {
-					this._broadcasterConnection.disconnect();
-				}
+				this._dispose();
 			}
 		};
+	}
+
+	_dispose() {
+		this.unsubscribeAll();
+		if (this._broadcasterConnection) {
+			this._broadcasterConnection.disconnect();
+		}
+	}
+
+	// reinitialize the connection
+	reinitialize() {
+		this._dispose();
+		delete this._broadcasterConnection;
+		this.initialize(this._initOptions!);
 	}
 
 	// set a new broadcaster token
@@ -661,11 +674,31 @@ export class Broadcaster {
 		}
 		this._inTokenFailure = true;
 		this._debug("Received TokenFailure status, fetching new broadcaster token...");
-		const token = await this._api.fetchBroadcasterToken();
-		this._broadcasterConnection!.setToken(token);
+		const { token, pubnubKey } = await this._api.fetchBroadcasterToken();
+		const reinitializing = this.setTokenAndKey(token, pubnubKey);
 		this._inTokenFailure = false;
-		this._debug("Confirming subscriptions after token fetch...");
-		this.confirmSubscriptions();
+		if (!reinitializing) {
+			this._debug("Confirming subscriptions after token fetch...");
+			this.confirmSubscriptions();
+		}
+	}
+
+	// after setting a new token and subscribe key, we might need to reinitialize
+	async setTokenAndKey(token: string, pubnubKey: string): Promise<boolean> {
+		if (pubnubKey !== this._initOptions?.pubnubSubscribeKey) {
+			this._debug("PubNub key has changed, reinitializing...");
+			this._initOptions!.broadcasterToken = token;
+			this._initOptions!.pubnubSubscribeKey = pubnubKey;
+			this.reinitialize();
+			return true;
+		} else if (token !== this._initOptions?.broadcasterToken) {
+			this._debug("PubNub token has changed, setting...");
+			this._initOptions.broadcasterToken = token;
+			this._broadcasterConnection!.setToken(token);
+		} else {
+			this._debug("PubNub token and key are same");
+		}
+		return false;
 	}
 
 	// simulate a failure to confirm subscriptions, for testing purposes
