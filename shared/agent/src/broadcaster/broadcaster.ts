@@ -18,6 +18,7 @@ export interface BroadcasterConnection {
 	confirmSubscriptions(channels: string[]): Promise<string[] | boolean>;
 	fetchHistory(options: BroadcasterHistoryInput): Promise<BroadcasterHistoryOutput>;
 	setToken(token: string): void;
+	networkIsDown(): boolean;
 }
 
 export interface BroadcasterHistoryInput {
@@ -231,8 +232,8 @@ export class Broadcaster {
 	}
 
 	// reinitialize the connection
-	async reinitialize() {
-		const channels = this.getSubscribedChannels();
+	async reinitialize(channels?: string[]) {
+		channels = channels || this.getSubscribedChannels();
 		this._dispose();
 		delete this._broadcasterConnection;
 		await this.initialize(this._initOptions!);
@@ -669,15 +670,15 @@ export class Broadcaster {
 
 	// the token used to connect to the broadcaster service seems to have failed,
 	// obtain a new token from our server and check our subscriptions
-	private async tokenFailure() {
+	private async tokenFailure(channels?: string[]) {
 		if (this._inTokenFailure) {
 			this._debug("Already in token failure mode, ignoring additional token failure message");
 			return;
 		}
 		this._inTokenFailure = true;
 		this._debug("Received TokenFailure status, fetching new broadcaster token...");
-		const { token, pubnubKey } = await this._api.fetchBroadcasterToken();
-		const reinitializing = this.setTokenAndKey(token, pubnubKey);
+		const { token, pubnubKey } = await this._api.fetchBroadcasterToken(true);
+		const reinitializing = this.setTokenAndKey(token, pubnubKey, channels);
 		this._inTokenFailure = false;
 		if (!reinitializing) {
 			this._debug("Confirming subscriptions after token fetch...");
@@ -686,12 +687,12 @@ export class Broadcaster {
 	}
 
 	// after setting a new token and subscribe key, we might need to reinitialize
-	async setTokenAndKey(token: string, pubnubKey: string): Promise<boolean> {
+	async setTokenAndKey(token: string, pubnubKey: string, channels?: string[]): Promise<boolean> {
 		if (pubnubKey !== this._initOptions?.pubnubSubscribeKey) {
 			this._debug("PubNub key has changed, reinitializing...");
 			this._initOptions!.broadcasterToken = token;
 			this._initOptions!.pubnubSubscribeKey = pubnubKey;
-			this.reinitialize();
+			this.reinitialize(channels);
 			return true;
 		} else if (token !== this._initOptions?.broadcasterToken) {
 			this._debug("PubNub token has changed, setting...");
@@ -829,6 +830,19 @@ export class Broadcaster {
 				this.unsubscribeAll();
 				return this.emitStatus(BroadcasterStatusType.Aborted);
 			}
+		} else if (
+			this.getSubscribedChannels().length === 0 &&
+			!this._broadcasterConnection?.networkIsDown()
+		) {
+			// try to obtain a new broadcaster token, this can happen if a key rotation has occurred while we
+			// were disconnected
+			this._debug(
+				"We are having subscription failures but network is up, try to obtain a new broadcaster token and resubscribe to:" +
+					this._activeFailures
+			);
+			this._subscriptionsPending = false;
+			await this.tokenFailure(this._activeFailures);
+			return;
 		}
 
 		if (channels.length === 0) {

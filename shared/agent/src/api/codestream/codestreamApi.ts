@@ -346,6 +346,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 	private _features: CSApiFeatures | undefined;
 	private _messageProcessingPromise: Promise<void> | undefined;
 	private _serverCommandIndex: number | undefined;
+	private _apiRequestTimeout: NodeJS.Timer | undefined;
 
 	readonly capabilities: Capabilities = {
 		channelMute: true,
@@ -2495,8 +2496,12 @@ export class CodeStreamApiProvider implements ApiProvider {
 		}
 	}
 
-	async fetchBroadcasterToken(): Promise<CSFetchBCastTokenResponse> {
-		return this.get<CSFetchBCastTokenResponse>("/bcast-token");
+	async fetchBroadcasterToken(force?: boolean): Promise<CSFetchBCastTokenResponse> {
+		let url = "/bcast-token";
+		if (force) {
+			url += "?force=1";
+		}
+		return this.get<CSFetchBCastTokenResponse>(url);
 	}
 
 	async delete<R extends object>(url: string, token?: string): Promise<R> {
@@ -2732,6 +2737,9 @@ export class CodeStreamApiProvider implements ApiProvider {
 					}
 				}
 			}
+
+			this.resetServerPing();
+
 			return [resp, count];
 		} catch (ex) {
 			Logger.error(ex);
@@ -2781,6 +2789,24 @@ export class CodeStreamApiProvider implements ApiProvider {
 		});
 
 		return new ServerError(message, data, response.status);
+	}
+
+	// make sure we ping the server every 24 hours with a request
+	// this ensure that any commands the server issues get looked for at least that often
+	resetServerPing() {
+		const ONE_DAY = 24 * 60 * 60 * 1000;
+		if (this._apiRequestTimeout) {
+			clearTimeout(this._apiRequestTimeout);
+		}
+		this._apiRequestTimeout = setTimeout(() => {
+			Logger.log(`${ONE_DAY} ms elapsed since last API server connect, verify connectivity....`);
+			delete this._apiRequestTimeout;
+			this.ping();
+		}, ONE_DAY);
+	}
+
+	async ping() {
+		return this.get<{ pong: boolean }>(`/no-auth/ping`);
 	}
 
 	// TODO: Move somewhere more generic

@@ -548,9 +548,9 @@ export interface ApiProvider {
 	setServerCommandIndex(index: number): void;
 
 	announceHistoryFetch(info: HistoryFetchInfo): void;
-	fetchBroadcasterToken(): Promise<CSFetchBCastTokenResponse>;
+	fetchBroadcasterToken(force?: boolean): Promise<CSFetchBCastTokenResponse>;
 	setTokenAndKey(token: string, pubnubKey: string): void;
-	
+
 	get<R extends object>(url: string, token?: string): Promise<R>;
 	post<RQ extends object, R extends object>(url: string, body: any, token?: string): Promise<R>;
 	put<RQ extends object, R extends object>(url: string, body: RQ, token?: string): Promise<R>;

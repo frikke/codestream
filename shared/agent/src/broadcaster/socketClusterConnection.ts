@@ -218,6 +218,11 @@ export class SocketClusterConnection implements BroadcasterConnection {
 		return troubleChannels;
 	}
 
+	// this is a stub, pending possible reuse of SocketCluster
+	networkIsDown() {
+		return false;
+	}
+
 	async _confirmAuth() {
 		this._debug("Emitting authorization request...");
 		try {

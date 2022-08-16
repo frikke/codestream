@@ -61,6 +61,7 @@ export class PubnubConnection implements BroadcasterConnection {
 	private _historyFetchCallback: HistoryFetchCallback | undefined;
 	private _simulatingNetworkDisconnect: boolean = false;
 	private _simulatedNetworkDisconnectCount: number = 0;
+	private _networkDown: boolean = false;
 
 	// initialize PubnubConnection and optionally subscribe to channels
 	async initialize(options: PubnubInitializer): Promise<Disposable> {
@@ -68,7 +69,6 @@ export class PubnubConnection implements BroadcasterConnection {
 			this._logger = options.debug;
 		}
 		this._debug(`Connection initializing...`);
-
 		this._userId = options.userId;
 		this._pubnub = new Pubnub({
 			//authKey: options.authKey,
@@ -202,17 +202,17 @@ export class PubnubConnection implements BroadcasterConnection {
 			}
 		} else if (
 			(status as any).error &&
-			status.category === Pubnub.CATEGORIES.PNAccessDeniedCategory
+			(status.category === Pubnub.CATEGORIES.PNAccessDeniedCategory ||
+				status.errorData?.message.match(/invalid subscribe key/i))
 		) {
 			// an access denied message, in direct response to a subscription attempt
 			const channels = status.errorData?.payload?.channels;
-			if (channels === undefined) {
-				this._debug(`Access denied for all channels, assuming token problem: ${inspect(status)}`);
-				this.tokenFailure();
-			} else {
-				this._debug(`Access denied for channels: ${channels}`);
-				this.subscriptionFailure(channels);
-			}
+			this._debug(
+				`Access denied for all channels ${channels || "(all)"}, assuming token problem: ${inspect(
+					status
+				)}`
+			);
+			this.tokenFailure();
 		} else if (
 			(status as any).error &&
 			(status.operation === Pubnub.OPERATIONS.PNHeartbeatOperation ||
@@ -221,7 +221,21 @@ export class PubnubConnection implements BroadcasterConnection {
 			// a network error of some kind, make sure we are truly connected
 			this._debug(`PubNub network error: ${inspect(status)}`);
 			this.netHiccup();
+		} else if (
+			status.category === Pubnub.CATEGORIES.PNNetworkIssuesCategory ||
+			status.category === Pubnub.CATEGORIES.PNNetworkDownCategory
+		) {
+			this._debug("PubNub reports network is down or has issues");
+			this._networkDown = true;
+		} else if (status.category === Pubnub.CATEGORIES.PNNetworkUpCategory) {
+			this._debug("PubNub reports network is up");
+			this._networkDown = false;
 		}
+	}
+
+	// return whether PubNub thinks the network is down
+	networkIsDown() {
+		return this._networkDown;
 	}
 
 	// set the given channels as successfully subscribed to, and if we're subscribed to
