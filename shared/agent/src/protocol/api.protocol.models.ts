@@ -776,6 +776,9 @@ export interface CSMePreferences {
 	lastTeamId?: string;
 	observabilityRepoEntities?: { repoId: string; entityGuid: string }[];
 	hideCodeLevelMetricsInstructions?: boolean;
+	issueMru?: {
+		[providerId: string]: { [currentState: string]: string };
+	};
 }
 
 export interface RepoSetting {
