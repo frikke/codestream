@@ -113,7 +113,7 @@ export interface CSLoginResponse {
 	repos: CSRepository[];
 	provider?: "codestream" | "slack" | "msteams" | string;
 	providerAccess?: "strict";
-	teamId?: string;
+	teamId: string;
 	capabilities?: CSApiCapabilities;
 	features?: CSApiFeatures;
 	environmentInfo: CodeStreamEnvironmentInfo;

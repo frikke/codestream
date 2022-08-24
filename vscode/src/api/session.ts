@@ -180,6 +180,7 @@ export class CodeStreamSession implements Disposable {
 	private _disposableAuthenticated: Disposable | undefined;
 
 	private _email: string | undefined;
+	private _teamId: string | undefined;
 	private _environmentInfo: CodeStreamEnvironmentInfo | undefined;
 	private _isOnPrem: boolean | undefined;
 	private _id: string | undefined;
@@ -194,7 +195,7 @@ export class CodeStreamSession implements Disposable {
 			Container.agent.onDidStartLogin(() => this.setStatus(SessionStatus.SigningIn)),
 			Container.agent.onDidFailLogin(() => this.setStatus(SessionStatus.SignedOut)),
 			Container.agent.onDidLogin(params => {
-				this.completeLogin(params.data);
+				this.completeLogin(params.data, params.data.loginResponse.teamId);
 			}),
 			Container.agent.onDidRequireRestart(() => {
 				this.logout();
@@ -208,9 +209,12 @@ export class CodeStreamSession implements Disposable {
 			Container.agent.onDidRestart(async () => {
 				Logger.log("Agent restarted unexpectedly, waiting for it to reinitialize...");
 				delete this._loginPromise;
+				const teamId = this._teamId;
 				const disposable = Container.agent.onAgentInitialized(async () => {
 					Logger.log("Agent reinitialized, initiating auto-signin...");
-					await this.autoSignin();
+					if (teamId) {
+						await this.autoSignin(teamId);
+					}
 					disposable.dispose();
 				});
 			}),
@@ -220,19 +224,24 @@ export class CodeStreamSession implements Disposable {
 		);
 
 		if (config.autoSignIn) {
-			this.setStatus(SessionStatus.SigningIn);
-			const disposable = Container.agent.onDidStart(async () => {
-				await this.autoSignin();
-				disposable.dispose();
-			});
+			const teamId = Container.context.workspaceState.get(WorkspaceState.TeamId) as string;
+			if (teamId) {
+				this.setStatus(SessionStatus.SigningIn);
+				const disposable = Container.agent.onDidStart(async () => {
+					await this.autoSignin(teamId);
+					disposable.dispose();
+				});
+			}
 		}
 	}
 
-	async autoSignin() {
+	async autoSignin(teamId: string) {
 		const config = Container.config;
-		const token = await TokenManager.get(this._serverUrl, config.email);
+		let token =
+			(await TokenManager.get(this._serverUrl, config.email, teamId)) ||
+			(await TokenManager.get(this._serverUrl, config.email));
 		if (token) {
-			this.login(config.email, token);
+			this.login(config.email, token, teamId);
 		} else {
 			this.setStatus(SessionStatus.SignedOut);
 		}
@@ -540,7 +549,7 @@ export class CodeStreamSession implements Disposable {
 	async login(
 		email: string,
 		passwordOrToken: string | AccessToken,
-		teamId?: string
+		teamId: string
 	): Promise<LoginResult> {
 		if (this._loginPromise === undefined) {
 			this._loginPromise = this.loginCore(email, passwordOrToken, teamId);
@@ -572,6 +581,7 @@ export class CodeStreamSession implements Disposable {
 				// Clear the access token
 				await Container.context.workspaceState.update(WorkspaceState.TeamId, undefined);
 				await TokenManager.clear(this._serverUrl, this._email!);
+				await TokenManager.clear(this._serverUrl, this._email!, this._teamId!);
 			}
 
 			this._email = undefined;
@@ -600,7 +610,7 @@ export class CodeStreamSession implements Disposable {
 	private async loginCore(
 		email: string,
 		passwordOrToken: string | AccessToken,
-		teamId?: string
+		teamId: string
 	): Promise<LoginResult> {
 		this.setServerUrl(Container.config.serverUrl);
 		Logger.log(`Signing ${email} into CodeStream (${this.serverUrl})`);
@@ -623,7 +633,7 @@ export class CodeStreamSession implements Disposable {
 			if (isLoginFailResponse(response)) {
 				if (response.error !== LoginResult.VersionUnsupported) {
 					// Clear the access token
-					await TokenManager.clear(this._serverUrl, email);
+					await TokenManager.clear(this._serverUrl, email, teamId);
 				}
 
 				this.setStatus(SessionStatus.SignedOut, SessionSignedOutReason.SignInFailure);
@@ -644,17 +654,18 @@ export class CodeStreamSession implements Disposable {
 		}
 	}
 
-	private async completeLogin(response: LoginSuccessResponse, teamId?: string) {
+	private async completeLogin(response: LoginSuccessResponse, teamId: string) {
 		const user = response.loginResponse.user;
 		const email = user.email;
 		this._email = email;
+		this._teamId = teamId;
 		this._agentCapabilities = response.state.capabilities;
 
 		// Create an id for this session
 		this._id = Strings.sha1(`${instanceId}|${this.serverUrl}|${email}|${teamId}`.toLowerCase());
 
 		const token = response.state.token;
-		await TokenManager.addOrUpdate(this._serverUrl, email, token);
+		await TokenManager.addOrUpdate(this._serverUrl, email, teamId, token);
 
 		// Update the saved e-mail on successful login
 		if (email !== Container.config.email) {
