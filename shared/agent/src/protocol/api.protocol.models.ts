@@ -716,7 +716,7 @@ export interface PullRequestQuery {
 	providerId: string;
 	name: string;
 	query: string;
-	hidden: boolean;
+	hidden?: boolean;
 }
 
 export interface FetchRequestQuery {

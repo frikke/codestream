@@ -4,6 +4,7 @@ import { CrossPostIssueValues } from "./agent.protocol";
 import { CodeErrorPlus } from "./agent.protocol.codeErrors";
 import { CodemarkPlus } from "./agent.protocol.codemarks";
 import { ReviewPlus } from "./agent.protocol.reviews";
+import { PullRequestQuery } from "./api.protocol.models";
 
 export interface ThirdPartyProviderConfig {
 	id: string;
@@ -132,6 +133,7 @@ export interface TransitionsEntity {
 	id: string;
 	name: string;
 }
+
 export interface ThirdPartyProviderCard {
 	id: string;
 	title: string;
@@ -241,6 +243,7 @@ export interface CreateThirdPartyPostRequest {
 	mentionedUserIds?: string[];
 	parentPostId?: string;
 }
+
 export interface CreateThirdPartyPostResponse {
 	post: any;
 	ts?: string;
@@ -763,7 +766,13 @@ export const QueryThirdPartyRequestType = new RequestType<
 >("codestream/provider/query");
 
 export interface FetchProviderDefaultPullRequest {}
-export interface FetchProviderDefaultPullResponse {}
+
+export type FetchProviderDefaultPullResponse = {
+	[key: string]: PullRequestQuery[];
+};
+
+export type PRProviderQueries = FetchProviderDefaultPullResponse;
+
 export const FetchProviderDefaultPullRequestsType = new RequestType<
 	FetchProviderDefaultPullRequest,
 	FetchProviderDefaultPullResponse,
@@ -774,7 +783,7 @@ export const FetchProviderDefaultPullRequestsType = new RequestType<
 export interface GetMyPullRequestsRequest {
 	owner?: string;
 	repo?: string;
-	queries: string[];
+	prQueries: PullRequestQuery[];
 	/**
 	 * forces a re-fetch from the provider
 	 */
@@ -995,9 +1004,11 @@ export const GetNewRelicUrlRequestType = new RequestType<
 >("codestream/newrelic/url");
 
 export interface GetNewRelicAssigneesRequest {}
+
 export interface GetNewRelicAssigneesResponse {
 	users: any[];
 }
+
 export const GetNewRelicAssigneesRequestType = new RequestType<
 	GetNewRelicAssigneesRequest,
 	GetNewRelicAssigneesResponse,
@@ -1013,6 +1024,7 @@ export interface NewRelicAccount {
 export interface GetNewRelicAccountsResponse {
 	accounts: NewRelicAccount[];
 }
+
 export const GetNewRelicAccountsRequestType = new RequestType<
 	void,
 	GetNewRelicAccountsResponse,
@@ -1058,6 +1070,7 @@ export interface ObservabilityRepo {
 export interface GetObservabilityErrorsResponse {
 	repos: ObservabilityRepoError[];
 }
+
 export const GetObservabilityErrorsRequestType = new RequestType<
 	GetObservabilityErrorsRequest,
 	GetObservabilityErrorsResponse,
@@ -1085,6 +1098,7 @@ export interface EntityAccount {
 export interface GetObservabilityReposResponse {
 	repos: ObservabilityRepo[];
 }
+
 export const GetObservabilityReposRequestType = new RequestType<
 	GetObservabilityReposRequest,
 	GetObservabilityReposResponse,
@@ -1097,9 +1111,11 @@ export interface GetObservabilityEntitiesRequest {
 	appNames?: string[];
 	resetCache?: boolean;
 }
+
 export interface GetObservabilityEntitiesResponse {
 	entities: { guid: string; name: string }[];
 }
+
 export const GetObservabilityEntitiesRequestType = new RequestType<
 	GetObservabilityEntitiesRequest,
 	GetObservabilityEntitiesResponse,
@@ -1108,9 +1124,11 @@ export const GetObservabilityEntitiesRequestType = new RequestType<
 >("codestream/newrelic/entities");
 
 export interface GetObservabilityErrorAssignmentsRequest {}
+
 export interface GetObservabilityErrorAssignmentsResponse {
 	items: ObservabilityErrorCore[];
 }
+
 export const GetObservabilityErrorAssignmentsRequestType = new RequestType<
 	GetObservabilityErrorAssignmentsRequest,
 	GetObservabilityErrorAssignmentsResponse,
@@ -1121,6 +1139,7 @@ export const GetObservabilityErrorAssignmentsRequestType = new RequestType<
 export interface GetObservabilityErrorGroupMetadataRequest {
 	errorGroupGuid: string;
 }
+
 export interface GetObservabilityErrorGroupMetadataResponse {
 	occurrenceId?: string;
 	entityId?: string;
@@ -1170,6 +1189,7 @@ export interface GetServiceLevelTelemetryRequest {
 	repoId: string;
 	/** entity id of the NewRelic entity */
 	newRelicEntityGuid: string;
+	metricTimesliceNameMapping?: MetricTimesliceNameMapping;
 	/** related service needs less data, skips redundant call */
 	skipRepoFetch?: boolean;
 }
