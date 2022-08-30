@@ -68,6 +68,7 @@ import { Modal } from "../Modal";
 import ConfigureNewRelic from "../ConfigureNewRelic";
 import { ConditionalNewRelic } from "./ConditionalComponent";
 import { invite } from "../actions";
+import { OpenUrlRequestType } from "@codestream/protocols/webview";
 
 interface SimpleError {
 	/**
@@ -584,9 +585,14 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 		);
 	};
 
-	const handleEntityLinkClick = () => {
+	const handleEntityLinkClick = (e, url) => {
+		e.preventDefault();
+		e.stopPropagation();
 		HostApi.instance.track("Open Service Summary on NR", {
 			Section: "Error"
+		});
+		HostApi.instance.send(OpenUrlRequestType, {
+			url
 		});
 	};
 
@@ -672,7 +678,12 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 											<>
 												{props.errorGroup && (
 													<>
-														<Link onClick={handleEntityLinkClick} href={props.errorGroup.entityUrl}>
+														<Link
+															onClick={e => {
+																handleEntityLinkClick(e, props.errorGroup?.entityUrl);
+															}}
+															href={props.errorGroup.entityUrl}
+														>
 															<span className="subtle">{props.errorGroup.entityName}</span>{" "}
 															<Icon name="link-external" className="open-external"></Icon>
 														</Link>
