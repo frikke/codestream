@@ -682,7 +682,6 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 															onClick={e => {
 																handleEntityLinkClick(e, props.errorGroup?.entityUrl);
 															}}
-															href={props.errorGroup.entityUrl}
 														>
 															<span className="subtle">{props.errorGroup.entityName}</span>{" "}
 															<Icon name="link-external" className="open-external"></Icon>
