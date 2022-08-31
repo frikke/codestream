@@ -5,6 +5,7 @@ import {
 	Dictionary,
 	flatten as _flatten,
 	groupBy as _groupBy,
+	isEmpty as _isEmpty,
 	memoize,
 	uniq as _uniq
 } from "lodash";
@@ -1119,7 +1120,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 	): Promise<GetNewRelicRelatedEntitiesResponse | undefined> {
 		try {
 			const response = await this.query(
-				`query relatedEntitiesTest($entityGuid: EntityGuid!) {
+				`query getRelatedEntities($entityGuid: EntityGuid!) {
 					actor {
 					  entity(guid: $entityGuid) {
 						name
@@ -1132,6 +1133,10 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 								alertSeverity
 								domain
 								type
+								tags {
+									key
+									values
+								  }
 								account {
 								  name
 								}
@@ -1144,6 +1149,10 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 								  alertSeverity
 								  domain
 								  type
+								  tags {
+									key
+									values
+								  }
 								  account {
 									name
 								  }
@@ -1160,9 +1169,44 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 					entityGuid: request.entityGuid
 				}
 			);
+
 			if (response?.actor?.entity?.relatedEntities?.results) {
-				const results = response.actor.entity.relatedEntities.results.map((_: RelatedEntity) => {
+				const results = response?.actor?.entity?.relatedEntities?.results;
+
+				const resultGuids = results.map((_: RelatedEntity) => {
 					const _entity = request.direction === "INBOUND" ? _.source.entity : _.target.entity;
+					return _entity.guid;
+				});
+
+				const entitiesReponse = await this.findRelatedEntityByRepositoryGuids(resultGuids);
+
+				// relatedEntities query from entities response
+				// you want to find where entityGuid = <guid> and source.entity.type =APPLICATION and source.entity.guid=<guid> AND target.type =REPOSITORY
+
+				let entitiesWithAppAssociations = entitiesReponse?.actor?.entities?.filter(
+					_ =>
+						_?.relatedEntities?.results?.filter(r => r.source?.entity?.type === "APPLICATION")
+							.length &&
+						_?.relatedEntities?.results?.filter(r => r.target?.entity?.type === "REPOSITORY").length
+				);
+
+				let entitiesWithRelatedRepos = <any>[];
+				entitiesWithAppAssociations.forEach(_ => {
+					_?.relatedEntities?.results?.forEach(_ => {
+						let sourceGuid = _.source.entity.guid;
+						let targetWithUrl = _.target.entity.tags?.find(_ => _.key === "url");
+						if (!_isEmpty(targetWithUrl)) {
+							const entityRepoObject = {
+								[sourceGuid]: targetWithUrl?.values
+							};
+							entitiesWithRelatedRepos.push(entityRepoObject);
+						}
+					});
+				});
+
+				const mappedServices = results.map((_: RelatedEntity) => {
+					const _entity = request.direction === "INBOUND" ? _.source.entity : _.target.entity;
+
 					return {
 						alertSeverity: _entity.alertSeverity,
 						guid: _entity.guid,
@@ -1172,7 +1216,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 						accountName: _entity?.account?.name
 					};
 				});
-				return results;
+				return mappedServices;
 			} else {
 				return [];
 			}
