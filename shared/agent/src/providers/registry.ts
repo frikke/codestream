@@ -772,7 +772,7 @@ export class ThirdPartyProviderRegistry {
 				{
 					providerId: "github/enterprise",
 					name: WAITING_ON_REVIEW,
-					query: `is:pr is:open review-requested:@me`,
+					query: `is:pr is:open involves:@me`,
 					hidden: false
 				},
 				{
