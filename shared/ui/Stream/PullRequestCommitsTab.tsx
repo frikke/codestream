@@ -2,9 +2,9 @@ import { LoadingMessage } from "@codestream/webview/src/components/LoadingMessag
 import { CodeStreamState } from "@codestream/webview/store";
 import {
 	getPullRequestCommits,
-	getPullRequestCommitsFromProvider
+	getPullRequestCommitsFromProvider,
 } from "@codestream/webview/store/providerPullRequests/actions";
-import { useDidMount } from "@codestream/webview/utilities/hooks";
+import { useAppDispatch, useAppSelector, useDidMount } from "@codestream/webview/utilities/hooks";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Icon from "./Icon";
@@ -105,8 +105,8 @@ const PRCommitButtons = styled.div`
 
 export const PullRequestCommitsTab = props => {
 	const { pr } = props;
-	const dispatch = useDispatch();
-	const derivedState = useSelector((state: CodeStreamState) => {
+	const dispatch = useAppDispatch();
+	const derivedState = useAppSelector((state: CodeStreamState) => {
 		const currentPullRequestProviderId = state.context.currentPullRequest
 			? state.context.currentPullRequest.providerId
 			: null;
@@ -127,7 +127,7 @@ export const PullRequestCommitsTab = props => {
 			currentPullRequest: state.context.currentPullRequest,
 			currentPullRequestId: state.context.currentPullRequest
 				? state.context.currentPullRequest.id
-				: undefined
+				: undefined,
 		};
 	});
 
@@ -141,7 +141,7 @@ export const PullRequestCommitsTab = props => {
 			return new Intl.DateTimeFormat("en", {
 				day: "2-digit",
 				month: "2-digit",
-				year: "2-digit"
+				year: "2-digit",
 			}).format(new Date(_.authoredDate).getTime());
 		});
 
@@ -158,7 +158,11 @@ export const PullRequestCommitsTab = props => {
 
 	const getData = async (options?: { force: true }) => {
 		const data = await dispatch(
-			getPullRequestCommits(pr.providerId, derivedState.currentPullRequestId!, options)
+			getPullRequestCommits({
+				providerId: pr.providerId,
+				id: derivedState.currentPullRequestId!,
+				options,
+			})
 		);
 		_mapData(data);
 	};
@@ -173,7 +177,10 @@ export const PullRequestCommitsTab = props => {
 				if (e.type === ChangeDataType.Commits) {
 					setIsLoading(true);
 					const data = await dispatch(
-						getPullRequestCommitsFromProvider(pr.providerId, derivedState.currentPullRequestId!)
+						getPullRequestCommitsFromProvider({
+							providerId: pr.providerId,
+							id: derivedState.currentPullRequestId!,
+						})
 					);
 					_mapData(data);
 				}
@@ -204,7 +211,7 @@ export const PullRequestCommitsTab = props => {
 							{new Intl.DateTimeFormat("en", {
 								day: "numeric",
 								month: "short",
-								year: "numeric"
+								year: "numeric",
 							}).format(new Date(day.toString()))}
 						</PRCommitDay>
 						<div>

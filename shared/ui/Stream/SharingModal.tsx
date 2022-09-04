@@ -11,7 +11,7 @@ import {
 	CreateThirdPartyPostRequestType,
 	NewRelicErrorGroup,
 	ReviewPlus,
-	UpdatePostSharingDataRequestType
+	UpdatePostSharingDataRequestType,
 } from "@codestream/protocols/agent";
 import { HostApi } from "@codestream/webview/webview-api";
 import { useSelector, useStore } from "react-redux";
@@ -122,11 +122,11 @@ export function SharingModal(props: SharingModalProps) {
 		author: state.users[shareTarget.creatorId],
 		mentionedUserIds: uniq([
 			...findMentionedUserIds(getTeamMembers(state), shareTarget.text || ""),
-			...findMentionedUserIds(getTeamMembers(state), shareTarget.title || "")
-		])
+			...findMentionedUserIds(getTeamMembers(state), shareTarget.title || ""),
+		]),
 	}));
 
-	const store = useStore();
+	const store = useStore<CodeStreamState>();
 	const getProviderName = providerId => {
 		return capitalize(
 			getConnectedProviders(store.getState()).find(config => config.id === providerId)!.name
@@ -135,7 +135,7 @@ export function SharingModal(props: SharingModalProps) {
 
 	const valuesRef = React.useRef<SharingAttributes>();
 	const [state, setState] = React.useState<{ name: FormStateType; message?: string }>({
-		name: "not-ready"
+		name: "not-ready",
 	});
 
 	const handleValues = React.useCallback(
@@ -162,7 +162,7 @@ export function SharingModal(props: SharingModalProps) {
 				codemark: props.codemark,
 				review: props.review,
 				codeError: props.codeError,
-				mentionedUserIds
+				mentionedUserIds,
 			});
 			if (props.post && ts) {
 				const newTarget = {
@@ -173,7 +173,7 @@ export function SharingModal(props: SharingModalProps) {
 					channelId: valuesRef.current!.channelId,
 					channelName: valuesRef.current!.channelName || "",
 					postId: ts,
-					url: permalink || ""
+					url: permalink || "",
 				};
 
 				const sharedTo = props.post.sharedTo || [];
@@ -181,13 +181,13 @@ export function SharingModal(props: SharingModalProps) {
 
 				const a = await HostApi.instance.send(UpdatePostSharingDataRequestType, {
 					postId: props.post.id,
-					sharedTo
+					sharedTo,
 				});
 			}
 
 			const trackingData = {
 				Destination: getProviderName(valuesRef.current!.providerId),
-				[`${shareTargetType} Status`]: "Existing"
+				[`${shareTargetType} Status`]: "Existing",
 			};
 			if (
 				props.codeError &&
@@ -202,7 +202,7 @@ export function SharingModal(props: SharingModalProps) {
 		} catch (error) {
 			setState({ name: "failure", message: error.message });
 			logError(`Failed to share an existing ${shareTargetType.toLowerCase()}`, {
-				message: error.message
+				message: error.message,
 			});
 		}
 	};
@@ -237,7 +237,7 @@ export function SharingModal(props: SharingModalProps) {
 						<CardTitle>
 							<LinkifiedText
 								dangerouslySetInnerHTML={{
-									__html: markdownifyToHtml(shareTarget.title || shareTarget.text || "")
+									__html: markdownifyToHtml(shareTarget.title || shareTarget.text || ""),
 								}}
 							/>
 						</CardTitle>

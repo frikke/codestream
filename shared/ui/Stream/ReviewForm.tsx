@@ -12,7 +12,7 @@ import {
 	UpdateReviewResponse,
 	CodemarkPlus,
 	TelemetryRequestType,
-	UpdateTeamSettingsRequestType
+	UpdateTeamSettingsRequestType,
 } from "@codestream/protocols/agent";
 import {
 	CSReview,
@@ -23,9 +23,10 @@ import {
 	CSReviewApprovalSetting,
 	CSReviewAssignmentSetting,
 	CodemarkStatus,
-	FileStatus
+	FileStatus,
 } from "@codestream/protocols/api";
 import { LabeledSwitch } from "@codestream/webview/src/components/controls/LabeledSwitch";
+import { editReview } from "@codestream/webview/store/reviews/thunks";
 import { debounce as _debounce } from "lodash-es";
 import React, { ReactElement } from "react";
 import { connect } from "react-redux";
@@ -39,7 +40,7 @@ import {
 	keyFilterFalsey,
 	safe,
 	arrayDiff,
-	escapeHtml
+	escapeHtml,
 } from "../utils";
 import { HostApi } from "../webview-api";
 import Button from "./Button";
@@ -53,7 +54,7 @@ import {
 	getTeamMembers,
 	getTeamTagsArray,
 	getTeamMates,
-	getActiveMemberIds
+	getActiveMemberIds,
 } from "../store/users/reducer";
 import MessageInput, { AttachmentField } from "./MessageInput";
 import {
@@ -62,7 +63,7 @@ import {
 	closePanel,
 	createPostAndReview,
 	setUserPreference,
-	setCodemarkStatus
+	setCodemarkStatus,
 } from "./actions";
 import { CodeStreamState } from "../store";
 import { CSText } from "../src/components/CSText";
@@ -78,21 +79,21 @@ import { logError } from "../logger";
 import { DocumentData } from "../protocols/agent/agent.protocol.notifications";
 import { InlineMenu } from "../src/components/controls/InlineMenu";
 import { LoadingMessage } from "../src/components/LoadingMessage";
-import { editReview, EditableAttributes } from "../store/reviews/actions";
+import { EditableAttributes } from "../store/reviews/actions";
 import { Modal } from "./Modal";
 import { FeatureFlag } from "./FeatureFlag";
 import Timestamp from "./Timestamp";
 import {
 	ReviewShowLocalDiffRequestType,
 	WebviewPanels,
-	UpdateConfigurationRequestType
+	UpdateConfigurationRequestType,
 } from "@codestream/protocols/webview";
 import { Checkbox } from "../src/components/Checkbox";
 import { getAllByCommit, teamReviewCount } from "../store/reviews/reducer";
 import {
 	setCurrentRepo,
 	setCurrentReview,
-	setNewPostEntry
+	setNewPostEntry,
 } from "@codestream/webview/store/context/actions";
 import styled from "styled-components";
 import { DropdownButton } from "./DropdownButton";
@@ -254,7 +255,7 @@ function merge(defaults: Partial<State>, review: CSReview): State {
 class ReviewForm extends React.Component<Props, State> {
 	static defaultProps = {
 		isEditing: false,
-		isAmending: false
+		isAmending: false,
 	};
 	_titleInput: HTMLElement | null = null;
 	_formDiv: HTMLElement | null = null;
@@ -300,7 +301,7 @@ class ReviewForm extends React.Component<Props, State> {
 			currentFile: "",
 			addressesIssues: {},
 			attachments: [],
-			isDragging: 0
+			isDragging: 0,
 		};
 
 		const state = props.editingReview
@@ -312,7 +313,7 @@ class ReviewForm extends React.Component<Props, State> {
 					scmError: false,
 					scmErrorMessage: "",
 					notify: false,
-					...defaultState
+					...defaultState,
 			  } as State);
 
 		let assignees: any;
@@ -334,7 +335,7 @@ class ReviewForm extends React.Component<Props, State> {
 		}
 		this.state = {
 			...state,
-			assignees
+			assignees,
 		};
 
 		if (props.isEditing && props.editingReview) {
@@ -344,13 +345,13 @@ class ReviewForm extends React.Component<Props, State> {
 			});
 			this.state = {
 				...this.state,
-				selectedTags
+				selectedTags,
 			};
 		}
 		if (props.isEditing && props.editingReview) {
 			this.state = {
 				...this.state,
-				text: escapeHtml(this.state.text)
+				text: escapeHtml(this.state.text),
 			};
 		}
 	}
@@ -360,7 +361,7 @@ class ReviewForm extends React.Component<Props, State> {
 
 		let firstRepoUri: string = "";
 		const openRepos = await HostApi.instance.send(GetReposScmRequestType, {
-			inEditorOnly: true
+			inEditorOnly: true,
 		});
 		if (openRepos && openRepos.repositories) {
 			this.setState({ openRepos: openRepos.repositories });
@@ -373,7 +374,7 @@ class ReviewForm extends React.Component<Props, State> {
 
 		if (uri) {
 			const scmInfo = await HostApi.instance.send(GetFileScmInfoRequestType, {
-				uri: uri
+				uri: uri,
 			});
 			if (scmInfo.scm) {
 				const repoId: string = scmInfo.scm.repoId || "";
@@ -394,7 +395,7 @@ class ReviewForm extends React.Component<Props, State> {
 			this.setState({
 				isLoadingScm: false,
 				scmError: true,
-				scmErrorMessage: "Please open a repository"
+				scmErrorMessage: "Please open a repository",
 			});
 			if (callback && typeof callback === "function") callback();
 		}
@@ -405,7 +406,7 @@ class ReviewForm extends React.Component<Props, State> {
 		const { editingReview } = this.props;
 
 		const openRepos = await HostApi.instance.send(GetReposScmRequestType, {
-			inEditorOnly: true
+			inEditorOnly: true,
 		});
 		if (editingReview && openRepos && openRepos.repositories) {
 			const { reviewChangesets } = editingReview;
@@ -424,7 +425,7 @@ class ReviewForm extends React.Component<Props, State> {
 						repoName,
 						startCommit,
 						prevEndCommit: startCommit,
-						editingReviewBranch: lastChangeset.branch
+						editingReviewBranch: lastChangeset.branch,
 					},
 					() => {
 						this.handleRepoChange(repoUri);
@@ -444,7 +445,7 @@ class ReviewForm extends React.Component<Props, State> {
 			currentRepoPath,
 			ideSupportsCreateReviewOnCommit,
 			createReviewOnCommit,
-			isAutoFREnabled
+			isAutoFREnabled,
 		} = this.props;
 		if (isEditing && !isAmending) return;
 
@@ -510,7 +511,7 @@ class ReviewForm extends React.Component<Props, State> {
 				isAmending,
 				inviteUsersOnTheFly,
 				blameMap = {},
-				editingReview
+				editingReview,
 			} = this.props;
 			const {
 				includeSaved,
@@ -518,7 +519,7 @@ class ReviewForm extends React.Component<Props, State> {
 				topSelectionIndex,
 				repoStatus,
 				startCommit,
-				prevEndCommit
+				prevEndCommit,
 			} = this.state;
 			const includeLatestCommit =
 				this.props.currentReviewOptions && this.props.currentReviewOptions.includeLatestCommit;
@@ -539,7 +540,7 @@ class ReviewForm extends React.Component<Props, State> {
 					currentUserEmail: currentUser.email,
 					prevEndCommit,
 					reviewId: editingReview && editingReview.id,
-					includeLatestCommit
+					includeLatestCommit,
 				});
 			} catch (e) {
 				logError(e);
@@ -552,7 +553,7 @@ class ReviewForm extends React.Component<Props, State> {
 					isLoadingScm: false,
 					isReloadingScm: false,
 					scmError: true,
-					scmErrorMessage: statusInfo.error
+					scmErrorMessage: statusInfo.error,
 				});
 				return;
 			}
@@ -562,7 +563,7 @@ class ReviewForm extends React.Component<Props, State> {
 					isLoadingScm: false,
 					isReloadingScm: false,
 					scmError: true,
-					scmErrorMessage: "Unable to retrieve Git repository information"
+					scmErrorMessage: "Unable to retrieve Git repository information",
 				});
 			}
 
@@ -573,7 +574,7 @@ class ReviewForm extends React.Component<Props, State> {
 					scmError: true,
 					scmErrorMessage:
 						"This repository has no remotes.\n" +
-						"Please configure a remote URL for this repository before creating a review."
+						"Please configure a remote URL for this repository before creating a review.",
 				});
 				return;
 			}
@@ -637,7 +638,7 @@ class ReviewForm extends React.Component<Props, State> {
 						{
 							bottomSelectionIndex: startCommitIndex - 1,
 							startCommit: statusInfo.scm.startCommit,
-							excludeCommit
+							excludeCommit,
 						},
 						() => this.handleRepoChange()
 					);
@@ -655,7 +656,7 @@ class ReviewForm extends React.Component<Props, State> {
 								topSelectionIndex: 0,
 								bottomSelectionIndex: 0,
 								startCommit: statusInfo.scm.startCommit,
-								excludeCommit
+								excludeCommit,
 							},
 							() => this.handleRepoChange()
 						);
@@ -666,7 +667,7 @@ class ReviewForm extends React.Component<Props, State> {
 						this.setState({
 							bottomSelectionIndex: -2,
 							startCommit: statusInfo.scm.startCommit,
-							excludeCommit
+							excludeCommit,
 						});
 					} else if (!hasSavedFiles && this.state.topSelectionIndex === -2) {
 						statusInfo.scm.commits?.forEach(commit => {
@@ -675,7 +676,7 @@ class ReviewForm extends React.Component<Props, State> {
 						this.setState({
 							topSelectionIndex: -1,
 							startCommit: statusInfo.scm.startCommit,
-							excludeCommit
+							excludeCommit,
 						});
 					} else if (startCommitIndex === 0) {
 						statusInfo.scm.commits?.forEach((commit, index) => {
@@ -683,7 +684,7 @@ class ReviewForm extends React.Component<Props, State> {
 						});
 						this.setState({
 							startCommit: statusInfo.scm.startCommit,
-							excludeCommit
+							excludeCommit,
 						});
 					}
 				}
@@ -718,7 +719,7 @@ class ReviewForm extends React.Component<Props, State> {
 
 			if (isAmending && startCommit) {
 				this.setState({
-					bottomSelectionIndex: (statusInfo?.scm?.commits?.length || 0) - 1
+					bottomSelectionIndex: (statusInfo?.scm?.commits?.length || 0) - 1,
 				});
 			}
 
@@ -799,7 +800,7 @@ class ReviewForm extends React.Component<Props, State> {
 				});
 
 				const response = await HostApi.instance.send(IgnoreFilesRequestType, {
-					repoPath: statusInfo.scm.repoPath
+					repoPath: statusInfo.scm.repoPath,
 				});
 				if (response && response.paths) {
 					this.ignoredFiles = ignore(); // make a new one
@@ -813,7 +814,7 @@ class ReviewForm extends React.Component<Props, State> {
 				isLoadingScm: false,
 				isReloadingScm: false,
 				scmError: false,
-				scmErrorMessage: ""
+				scmErrorMessage: "",
 			});
 		} catch (e) {
 			logError(e);
@@ -857,7 +858,7 @@ class ReviewForm extends React.Component<Props, State> {
 			if (!user.isRegistered) return;
 			return {
 				value: user.id,
-				label: user.username
+				label: user.username,
 			};
 		});
 	}
@@ -883,7 +884,7 @@ class ReviewForm extends React.Component<Props, State> {
 			includeSaved,
 			includeStaged,
 			reviewerEmails,
-			attachments
+			attachments,
 		} = this.state;
 
 		// FIXME first, process the email-only reviewers
@@ -903,7 +904,7 @@ class ReviewForm extends React.Component<Props, State> {
 				const attributes: EditableAttributes = {
 					title: title,
 					text: replaceHtml(text || "")!,
-					allReviewersMustApprove
+					allReviewersMustApprove,
 				};
 				let repoChanges;
 				// @ts-ignore
@@ -960,8 +961,8 @@ class ReviewForm extends React.Component<Props, State> {
 							newFiles: keyFilterFalsey(excludedFiles),
 							includeSaved: includeSaved && scm!.savedFiles.length > 0,
 							includeStaged: includeStaged && scm!.stagedFiles.length > 0,
-							checkpoint
-						}
+							checkpoint,
+						},
 					];
 					attributes.repoChanges = repoChanges;
 				}
@@ -1013,10 +1014,10 @@ class ReviewForm extends React.Component<Props, State> {
 							newFiles: keyFilterFalsey(excludedFiles),
 							includeSaved: includeSaved && scm!.savedFiles.length > 0,
 							includeStaged: includeStaged && scm!.stagedFiles.length > 0,
-							checkpoint: 0
-						}
+							checkpoint: 0,
+						},
 					],
-					files: attachments
+					files: attachments,
 				} as any;
 
 				const { type: createResult } = await this.props.createPostAndReview(
@@ -1042,7 +1043,7 @@ class ReviewForm extends React.Component<Props, State> {
 											textAlign: "left",
 											fontSize: "12px",
 											display: "inline-block",
-											margin: "0 auto"
+											margin: "0 auto",
 										}}
 									>
 										<Checkbox
@@ -1063,16 +1064,16 @@ class ReviewForm extends React.Component<Props, State> {
 							buttons: [
 								{
 									label: "OK",
-									action: () => this.props.closePanel()
-								}
-							]
+									action: () => this.props.closePanel(),
+								},
+							],
 						});
 					}
 				}
 			}
 		} catch (error) {
 			logError(error, {
-				isEditing: this.props.isEditing
+				isEditing: this.props.isEditing,
 			});
 			this.setState({ reviewCreationError: error.message, isLoading: false });
 		} finally {
@@ -1092,7 +1093,7 @@ class ReviewForm extends React.Component<Props, State> {
 			textInvalid: false,
 			reviewersInvalid: false,
 			sharingAttributesInvalid: false,
-			changesInvalid: false
+			changesInvalid: false,
 		};
 
 		let invalid = false;
@@ -1155,7 +1156,7 @@ class ReviewForm extends React.Component<Props, State> {
 			this.setState(state => ({
 				channelMenuOpen: !state.channelMenuOpen,
 				channelMenuTarget: target,
-				crossPostMessage: true
+				crossPostMessage: true,
 			}));
 		}
 	};
@@ -1177,7 +1178,7 @@ class ReviewForm extends React.Component<Props, State> {
 		const target = event.target;
 		this.setState(state => ({
 			labelMenuOpen: !state.labelMenuOpen,
-			labelMenuTarget: target
+			labelMenuTarget: target,
 		}));
 	};
 
@@ -1258,7 +1259,7 @@ class ReviewForm extends React.Component<Props, State> {
 									checked={this.state.addressesIssues[codemark.id]}
 									onChange={value => {
 										this.setState({
-											addressesIssues: { ...this.state.addressesIssues, [codemark.id]: value }
+											addressesIssues: { ...this.state.addressesIssues, [codemark.id]: value },
 										});
 									}}
 								>
@@ -1312,7 +1313,7 @@ class ReviewForm extends React.Component<Props, State> {
 			teamId: this.props.teamId,
 			// we need to replace . with * to allow for the creation of deeply-nested
 			// team settings, since that's how they're stored in mongo
-			settings: { blameMap: { [author.replace(/\./g, "*")]: assigneeId } }
+			settings: { blameMap: { [author.replace(/\./g, "*")]: assigneeId } },
 		});
 		// FIXME
 		setTimeout(() => this.handleRepoChange(), 2000);
@@ -1440,9 +1441,9 @@ class ReviewForm extends React.Component<Props, State> {
 						label: this.props.isEditing ? "Discard Edits" : "Discard Review",
 						wait: true,
 						action: () => finish(),
-						className: "delete"
-					}
-				]
+						className: "delete",
+					},
+				],
 			});
 		} else {
 			finish();
@@ -1490,11 +1491,11 @@ class ReviewForm extends React.Component<Props, State> {
 								uri: "file://" + ignoreFile,
 								range: Range.create(0, 0, 0, 0),
 								atTop: true,
-								preserveFocus: true
+								preserveFocus: true,
 							});
-						}
-					}
-				]
+						},
+					},
+				],
 			});
 		} else {
 			confirmPopup({
@@ -1506,7 +1507,7 @@ class ReviewForm extends React.Component<Props, State> {
 						<span className="subtle"> to the CodeStream ignore file </span>
 						<span className="monospace highlight bold">{ignoreFile}</span>
 					</>
-				)
+				),
 			});
 		}
 		return null;
@@ -1615,7 +1616,7 @@ class ReviewForm extends React.Component<Props, State> {
 				topSelectionIndex: newTopSelectionIndex,
 				bottomSelectionIndex: newBottomSelectionIndex,
 				startCommit,
-				excludeCommit
+				excludeCommit,
 			},
 			callback
 		);
@@ -1736,7 +1737,7 @@ class ReviewForm extends React.Component<Props, State> {
 						{/* headshot */}
 						<span
 							dangerouslySetInnerHTML={{
-								__html: markdownify(title, { excludeOnlyEmoji: true, inline: true })
+								__html: markdownify(title, { excludeOnlyEmoji: true, inline: true }),
 							}}
 						/>
 					</label>
@@ -1923,7 +1924,7 @@ class ReviewForm extends React.Component<Props, State> {
 			includeStaged,
 			excludedFiles,
 			startCommit,
-			topSelectionIndex
+			topSelectionIndex,
 		} = this.state;
 		const { editingReview } = this.props;
 		if (!repoStatus) return;
@@ -1948,10 +1949,10 @@ class ReviewForm extends React.Component<Props, State> {
 			includeStaged: includeStaged && repoStatus.scm!.stagedFiles.length > 0,
 			editingReviewId: editingReview && editingReview.id,
 			baseSha: startCommit || "",
-			headSha: endCommit
+			headSha: endCommit,
 		});
 		this.setState({
-			currentFile: path
+			currentFile: path,
 		});
 	}
 
@@ -2118,7 +2119,7 @@ class ReviewForm extends React.Component<Props, State> {
 			case "user": {
 				const dropdownItems = [
 					{ label: "Anyone Can Approve", action: () => this.setAllReviewersMustApprove(false) },
-					{ label: "Everyone Must Approve", action: () => this.setAllReviewersMustApprove(true) }
+					{ label: "Everyone Must Approve", action: () => this.setAllReviewersMustApprove(true) },
 				];
 				const { allReviewersMustApprove } = this.state;
 				return (
@@ -2156,7 +2157,7 @@ class ReviewForm extends React.Component<Props, State> {
 						style={{
 							padding: "10px",
 							border: "1px solid var(--base-border-color)",
-							marginTop: "3px"
+							marginTop: "3px",
 						}}
 					>
 						<ChangesetFileList checkpoint={checkpoint} review={editingReview} noOnClick />
@@ -2179,7 +2180,7 @@ class ReviewForm extends React.Component<Props, State> {
 		return {
 			email,
 			username: email.replace(/@.*/, ""),
-			isRegistered: false
+			isRegistered: false,
 		};
 	}
 
@@ -2204,7 +2205,7 @@ class ReviewForm extends React.Component<Props, State> {
 			isLoadingScm,
 			isReloadingScm,
 			scmError,
-			scmErrorMessage
+			scmErrorMessage,
 		} = this.state;
 
 		// coAuthorLabels are a mapping from teamMate ID to the # of edits represented in
@@ -2248,7 +2249,7 @@ class ReviewForm extends React.Component<Props, State> {
 							return {
 								label: repoName || repo.folder.uri,
 								key: repo.id,
-								action: () => this.setRepo(repo)
+								action: () => this.setRepo(repo),
 							};
 						})
 				: [];
@@ -2284,7 +2285,7 @@ class ReviewForm extends React.Component<Props, State> {
 							<Headshot size={20} display="inline-block" person={{ email }} />
 						</span>
 					),
-					action: () => this.toggleReviewerEmail(email)
+					action: () => this.toggleReviewerEmail(email),
 				});
 			});
 		}
@@ -2415,8 +2416,8 @@ class ReviewForm extends React.Component<Props, State> {
 									{
 										label: "Remove from Review",
 										key: "remove",
-										action: () => this.removeReviewer(email)
-									}
+										action: () => this.removeReviewer(email),
+									},
 								] as any;
 								if (!person.isRegistered && this.props.isCurrentUserAdmin) {
 									menuItems.push({
@@ -2432,9 +2433,9 @@ class ReviewForm extends React.Component<Props, State> {
 												return {
 													label: <HeadshotName person={member} />,
 													key: "assign-" + member.id,
-													action: () => this.addBlameMap(email, member.id)
+													action: () => this.addBlameMap(email, member.id),
 												};
-											})
+											}),
 									});
 								}
 								const menu = <HeadshotMenu person={person} menuItems={menuItems} />;
@@ -2481,8 +2482,8 @@ class ReviewForm extends React.Component<Props, State> {
 										menuItems={[
 											{
 												label: "Remove from Review",
-												action: () => this.removeReviewer(email)
-											}
+												action: () => this.removeReviewer(email),
+											},
 										]}
 									/>
 								);
@@ -2517,7 +2518,7 @@ class ReviewForm extends React.Component<Props, State> {
 								marginTop: "10px",
 								float: "right",
 								width: "auto",
-								marginRight: 0
+								marginRight: 0,
 							}}
 						>
 							<CancelButton toolTip={cancelTip} onClick={this.confirmCancel} mode="button" />
@@ -2530,7 +2531,7 @@ class ReviewForm extends React.Component<Props, State> {
 											paddingRight: "10px",
 											// fixed width to handle the isLoading case
 											width: "80px",
-											marginRight: 0
+											marginRight: 0,
 										}}
 										className={cx("control-button", { cancel: !this.state.title })}
 										type="submit"
@@ -2576,17 +2577,8 @@ class ReviewForm extends React.Component<Props, State> {
 const EMPTY_OBJECT = {};
 
 const mapStateToProps = (state: CodeStreamState, props): ConnectedProps => {
-	const {
-		context,
-		editorContext,
-		users,
-		teams,
-		session,
-		preferences,
-		repos,
-		documents,
-		ide
-	} = state;
+	const { context, editorContext, users, teams, session, preferences, repos, documents, ide } =
+		state;
 	const user = users[session.userId!] as CSMe;
 	const channel = context.currentStreamId
 		? getStreamForId(state.streams, context.currentTeamId, context.currentStreamId) ||
@@ -2662,7 +2654,7 @@ const mapStateToProps = (state: CodeStreamState, props): ConnectedProps => {
 		currentRepoPath: context.currentRepo && context.currentRepo.path,
 		ideSupportsCreateReviewOnCommit: ide.name === "JETBRAINS" || ide.name === "VSC",
 		isAutoFREnabled: isFeatureEnabled(state, "autoFR"),
-		createReviewOnCommit: state.preferences.reviewCreateOnCommit !== false
+		createReviewOnCommit: state.preferences.reviewCreateOnCommit !== false,
 	};
 };
 
@@ -2676,7 +2668,7 @@ const ConnectedReviewForm = connect(mapStateToProps, {
 	setCurrentReview,
 	setCurrentRepo,
 	setCodemarkStatus,
-	setNewPostEntry
+	setNewPostEntry,
 })(ReviewForm);
 
 export { ConnectedReviewForm as ReviewForm };

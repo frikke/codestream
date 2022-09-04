@@ -1,24 +1,25 @@
 import {
 	ApiVersionCompatibility,
 	BootstrapRequestType,
-	VersionCompatibility
+	VersionCompatibility,
 } from "@codestream/protocols/agent";
 import {
 	BootstrapInHostRequestType,
-	GetActiveEditorContextRequestType
+	GetActiveEditorContextRequestType,
 } from "@codestream/protocols/webview";
 import { BootstrapInHostResponse, SignedInBootstrapData } from "../ipc/host.protocol";
 import { CSApiCapabilities } from "../protocols/agent/api.protocol.models";
 import {
 	apiCapabilitiesUpdated,
 	apiUpgradeRecommended,
-	apiUpgradeRequired
+	apiUpgradeRequired,
 } from "../store/apiVersioning/actions";
 import { upgradeRequired } from "../store/versioning/actions";
 import { uuid } from "../utils";
 import { HostApi } from "../webview-api";
 import { BootstrapActionType } from "./bootstrapped/types";
-import { updateCapabilities } from "./capabilities/actions";
+// import { updateCapabilities } from "./capabilities/actions";
+import capabilities, { CapabilitiesState } from "../store/capabilities/reducer";
 import { action, withExponentialConnectionRetry } from "./common";
 import { bootstrapCompanies } from "./companies/actions";
 import { updateConfigs } from "./configs/actions";
@@ -45,7 +46,7 @@ export const bootstrap = (data?: SignedInBootstrapData) => async (dispatch, getS
 			dispatch(
 				bootstrapEssentials({
 					...bootstrapCore,
-					session: { ...bootstrapCore.session, otc: uuid() }
+					session: { ...bootstrapCore.session, otc: uuid() },
 				})
 			);
 			return;
@@ -56,11 +57,11 @@ export const bootstrap = (data?: SignedInBootstrapData) => async (dispatch, getS
 			async () => {
 				const [bootstrapData, { editorContext }] = await Promise.all([
 					api.send(BootstrapRequestType, {}),
-					api.send(GetActiveEditorContextRequestType, undefined)
+					api.send(GetActiveEditorContextRequestType, undefined),
 				]);
 				return {
 					bootstrapData,
-					editorContext
+					editorContext,
 				};
 			},
 			"bootstrap"
@@ -91,10 +92,10 @@ const bootstrapEssentials = (data: BootstrapInHostResponse) => dispatch => {
 		contextActions.setContext({
 			hasFocus: true,
 			...data.context,
-			sessionStart: new Date().getTime()
+			sessionStart: new Date().getTime(),
 		})
 	);
-	dispatch(updateCapabilities(data.capabilities || {}));
+	dispatch(capabilities.actions.updateCapabilities(data.capabilities || {}));
 	if (data.capabilities) {
 		dispatch(apiCapabilitiesUpdated(data.capabilities as CSApiCapabilities));
 	}

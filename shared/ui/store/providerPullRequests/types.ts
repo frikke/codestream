@@ -14,7 +14,7 @@ export enum ProviderPullRequestActionsTypes {
 	ClearPullRequestError = "@providerPullRequests/ClearError",
 	HandleDirectives = "@providerPullRequests/HandleDirectives",
 	UpdatePullRequestTitle = "@providerPullRequests/UpdatePullRequestTitle",
-	UpdatePullRequestFilter = "@providerPullRequests/UpdatePullRequestFilter"
+	UpdatePullRequestFilter = "@providerPullRequests/UpdatePullRequestFilter",
 }
 
 /**
@@ -33,7 +33,7 @@ export enum ProviderPullRequestActionsTypes {
  * 	}
  */
 export type ProviderPullRequestsState = {
-	myPullRequests: Index<{ data?: GetMyPullRequestsResponse[] }>;
+	myPullRequests: GetMyPullRequestsResponse[][];
 	pullRequests: Index<
 		Index<{
 			conversations: any;

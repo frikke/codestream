@@ -1,10 +1,16 @@
+import {
+	api,
+	fetchErrorGroup,
+	jumpToStackLine,
+	upgradePendingCodeError,
+} from "@codestream/webview/store/codeErrors/thunks";
 import { isSha } from "@codestream/webview/utilities/strings";
 import React, { PropsWithChildren, useEffect } from "react";
 import { CardProps, getCardProps, CardFooter } from "@codestream/webview/src/components/Card";
 import {
 	DidChangeObservabilityDataNotificationType,
 	GetNewRelicAssigneesRequestType,
-	ResolveStackTraceResponse
+	ResolveStackTraceResponse,
 } from "@codestream/protocols/agent";
 import {
 	MinimumWidthCard,
@@ -14,7 +20,7 @@ import {
 	MetaLabel,
 	MetaSectionCollapsed,
 	HeaderActions,
-	BigTitle
+	BigTitle,
 } from "../Codemark/BaseCodemark";
 import { CSUser, CSCodeError, CSPost } from "@codestream/protocols/api";
 import { CodeStreamState } from "@codestream/webview/store";
@@ -22,15 +28,11 @@ import { useSelector, useDispatch } from "react-redux";
 import Icon from "../Icon";
 import Tooltip from "../Tooltip";
 import { replaceHtml, emptyArray } from "@codestream/webview/utils";
-import { useDidMount } from "@codestream/webview/utilities/hooks";
+import { useAppDispatch, useAppSelector, useDidMount } from "@codestream/webview/utilities/hooks";
 import { HostApi } from "@codestream/webview/webview-api";
 import {
-	api,
 	fetchCodeError,
-	fetchErrorGroup,
-	jumpToStackLine,
 	PENDING_CODE_ERROR_ID_PREFIX,
-	upgradePendingCodeError
 } from "@codestream/webview/store/codeErrors/actions";
 import { DelayedRender } from "@codestream/webview/Container/DelayedRender";
 import { getCodeError, getCodeErrorCreator } from "@codestream/webview/store/codeErrors/reducer";
@@ -40,7 +42,7 @@ import {
 	getTeamMates,
 	findMentionedUserIds,
 	isCurrentUserInternal,
-	getTeamMembers
+	getTeamMembers,
 } from "@codestream/webview/store/users/reducer";
 import { createPost, markItemRead } from "../actions";
 import { getThreadPosts } from "@codestream/webview/store/posts/reducer";
@@ -122,7 +124,7 @@ export interface BaseCodeErrorMenuProps {
 }
 
 const ComposeWrapper = styled.div.attrs(() => ({
-	className: "compose codemark-compose"
+	className: "compose codemark-compose",
 }))`
 	&&& {
 		padding: 0 !important;
@@ -223,7 +225,7 @@ export const ALERT_SEVERITY_COLORS = {
 	NOT_CONFIGURED: "#9FA5A5",
 	WARNING: "#F0B400",
 	// if not connected, we're unknown
-	UNKNOWN: "transparent"
+	UNKNOWN: "transparent",
 };
 export const ALERT_SEVERITY_SORTING_ORDER: string[] = [
 	"",
@@ -231,7 +233,7 @@ export const ALERT_SEVERITY_SORTING_ORDER: string[] = [
 	"NOT_ALERTING",
 	"NOT_CONFIGURED",
 	"WARNING",
-	"UNKNOWN"
+	"UNKNOWN",
 ];
 
 /**
@@ -240,7 +242,7 @@ export const ALERT_SEVERITY_SORTING_ORDER: string[] = [
 const STATES_TO_ACTION_STRINGS = {
 	RESOLVED: "Resolve",
 	IGNORED: "Ignore",
-	UNRESOLVED: "Unresolve"
+	UNRESOLVED: "Unresolve",
 };
 /**
  * States are from NR
@@ -250,14 +252,14 @@ const STATES_TO_DISPLAY_STRINGS = {
 	IGNORED: "Ignored",
 	UNRESOLVED: "Unresolved",
 	// if not connected, we're unknown, just say "Status"
-	UNKNOWN: "Status"
+	UNKNOWN: "Status",
 };
 
 // if child props are passed in, we assume they are the action buttons/menu for the header
 export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeaderProps>) => {
 	const { codeError, collapsed } = props;
-	const dispatch = useDispatch<any>();
-	const derivedState = useSelector((state: CodeStreamState) => {
+	const dispatch = useAppDispatch();
+	const derivedState = useAppSelector((state: CodeStreamState) => {
 		return {
 			isConnectedToNewRelic: isConnected(state, { id: "newrelic*com" }),
 			codeErrorCreator: getCodeErrorCreator(state),
@@ -265,7 +267,7 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 			ideName: encodeURIComponent(state.ide.name || ""),
 			teamMembers: getTeamMembers(state),
 			emailAddress: state.session.userId ? state.users[state.session.userId]?.email : "",
-			hideCodeErrorInstructions: state.preferences.hideCodeErrorInstructions
+			hideCodeErrorInstructions: state.preferences.hideCodeErrorInstructions,
 		};
 	});
 
@@ -279,7 +281,7 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 		// if no email address or it's you
 		if (!emailAddress || derivedState.emailAddress.toLowerCase() === emailAddress.toLowerCase()) {
 			HostApi.instance.emit(DidChangeObservabilityDataNotificationType.method, {
-				type: "Assignment"
+				type: "Assignment",
 			});
 		}
 	};
@@ -294,7 +296,7 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 				"Error Group ID": props.errorGroup?.guid,
 				"NR Account ID": props.errorGroup?.accountId,
 				Assignment: props.errorGroup?.assignee ? "Change" : "New",
-				"Assignee Type": type
+				"Assignee Type": type,
 			});
 
 			setIsAssigneeChanging(true);
@@ -302,7 +304,7 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 			await dispatch(
 				api("setAssignee", {
 					errorGroupGuid: props.errorGroup?.guid!,
-					emailAddress: emailAddress
+					emailAddress: emailAddress,
 				})
 			);
 
@@ -331,7 +333,7 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 			buttons: [
 				{
 					label: "Cancel",
-					className: "control-button btn-secondary"
+					className: "control-button btn-secondary",
 				},
 				{
 					label: "Invite",
@@ -341,19 +343,19 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 						dispatch(
 							invite({
 								email: emailAddress,
-								inviteType: "error"
+								inviteType: "error",
 							})
 						);
 						HostApi.instance.track("Teammate Invited", {
 							"Invitee Email Address": emailAddress,
-							"Invitation Method": "Error Assignment"
+							"Invitation Method": "Error Assignment",
 						});
 
 						// "upgrade" them to an invitee
 						_setAssignee("Invitee");
-					}
-				}
-			]
+					},
+				},
+			],
 		});
 	};
 
@@ -373,7 +375,7 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 			api("removeAssignee", {
 				errorGroupGuid: props.errorGroup?.guid!,
 				emailAddress: emailAddress,
-				userId: userId
+				userId: userId,
 			})
 		);
 
@@ -401,7 +403,7 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 								await dispatch(
 									api("setState", {
 										errorGroupGuid: props.errorGroup?.guid!,
-										state: _
+										state: _,
 									})
 								);
 								notify();
@@ -410,9 +412,9 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 								HostApi.instance.track("Error Status Changed", {
 									"Error Group ID": props.errorGroup?.guid,
 									"NR Account ID": props.errorGroup?.accountId,
-									"Error Status": STATES_TO_ACTION_STRINGS[_]
+									"Error Status": STATES_TO_ACTION_STRINGS[_],
 								});
-							}
+							},
 						};
 					}) as DropdownButtonItems[]
 			);
@@ -423,8 +425,8 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 					label: STATES_TO_DISPLAY_STRINGS["UNKNOWN"],
 					action: e => {
 						setOpenConnectionModal(true);
-					}
-				} as DropdownButtonItems
+					},
+				} as DropdownButtonItems,
 			]);
 		}
 	};
@@ -433,7 +435,7 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 		if (collapsed) return;
 
 		let assigneeItems: DropdownButtonItems[] = [
-			{ type: "search", label: "", placeholder: "Search...", key: "search" }
+			{ type: "search", label: "", placeholder: "Search...", key: "search" },
 		];
 
 		let assigneeEmail;
@@ -449,7 +451,7 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 					</span>
 				),
 				noHover: true,
-				disabled: true
+				disabled: true,
 			});
 			assigneeItems.push({
 				icon: <Headshot size={16} display="inline-block" person={{ email: a.email }} />,
@@ -464,8 +466,8 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 								removeAssignee(e, a.email, a.id);
 							}}
 						/>
-					)
-				}
+					),
+				},
 			});
 		}
 
@@ -490,7 +492,7 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 						</span>
 					),
 					noHover: true,
-					disabled: true
+					disabled: true,
 				});
 				assigneeItems = assigneeItems.concat(
 					usersFromGitNotOnTeam.map(_ => {
@@ -501,7 +503,7 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 							label: label,
 							searchLabel: _.displayName || _.email,
 							subtext: label === _.email ? undefined : _.email,
-							action: () => setAssignee(_.email, "Teammate")
+							action: () => setAssignee(_.email, "Teammate"),
 						};
 					})
 				);
@@ -522,7 +524,7 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 						</span>
 					),
 					noHover: true,
-					disabled: true
+					disabled: true,
 				});
 				assigneeItems = assigneeItems.concat(
 					usersFromCodeStream.map(_ => {
@@ -533,7 +535,7 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 							label: _.fullName || _.email,
 							searchLabel: _.fullName || _.username,
 							subtext: label === _.email ? undefined : _.email,
-							action: () => setAssignee(_.email, "Teammate")
+							action: () => setAssignee(_.email, "Teammate"),
 						};
 					})
 				);
@@ -589,10 +591,10 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 		e.preventDefault();
 		e.stopPropagation();
 		HostApi.instance.track("Open Service Summary on NR", {
-			Section: "Error"
+			Section: "Error",
 		});
 		HostApi.instance.send(OpenUrlRequestType, {
-			url
+			url,
 		});
 	};
 
@@ -617,8 +619,10 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 											Working with errors requires a connection to your New Relic account. If you
 											don't have one, get a teammate{" "}
 											{derivedState.codeErrorCreator
-												? `like ${derivedState.codeErrorCreator.fullName ||
-														derivedState.codeErrorCreator.username} `
+												? `like ${
+														derivedState.codeErrorCreator.fullName ||
+														derivedState.codeErrorCreator.username
+												  } `
 												: ""}
 											to invite you.
 										</div>
@@ -644,7 +648,7 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 					style={{
 						display: "flex",
 						flexWrap: "wrap",
-						justifyContent: "space-between"
+						justifyContent: "space-between",
 					}}
 				>
 					<div
@@ -653,7 +657,7 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 							whiteSpace: "nowrap",
 							overflow: "hidden",
 							textOverflow: "ellipsis",
-							marginBottom: "10px"
+							marginBottom: "10px",
 						}}
 					>
 						<div
@@ -666,7 +670,7 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 									: `1px solid ${ALERT_SEVERITY_COLORS["NOT_CONFIGURED"]}`,
 								backgroundColor:
 									ALERT_SEVERITY_COLORS[props.errorGroup?.entityAlertingSeverity || "UNKNOWN"],
-								margin: "0 5px 0 6px"
+								margin: "0 5px 0 6px",
 							}}
 						/>
 
@@ -732,7 +736,7 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 								<div
 									style={{
 										display: "inline-block",
-										opacity: derivedState.hideCodeErrorInstructions ? "1" : ".25"
+										opacity: derivedState.hideCodeErrorInstructions ? "1" : ".25",
 									}}
 								>
 									<ConditionalNewRelic
@@ -753,7 +757,7 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 																		className="no-right-margin"
 																		person={{
 																			fullName: props.errorGroup.assignee?.name,
-																			email: props.errorGroup.assignee?.email
+																			email: props.errorGroup.assignee?.email,
 																		}}
 																	/>
 																)}
@@ -801,7 +805,7 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 									<div
 										style={{
 											display: "inline-block",
-											opacity: resolutionDropdownOptionsWrapperOpacity()
+											opacity: resolutionDropdownOptionsWrapperOpacity(),
 										}}
 									>
 										{STATES_TO_DISPLAY_STRINGS[props.errorGroup?.state || "UNKNOWN"]}
@@ -819,7 +823,7 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 										<div
 											style={{
 												display: "inline-block",
-												opacity: derivedState.hideCodeErrorInstructions ? "1" : ".25"
+												opacity: derivedState.hideCodeErrorInstructions ? "1" : ".25",
 											}}
 										>
 											<BaseCodeErrorMenu
@@ -898,8 +902,8 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 
 export const BaseCodeErrorMenu = (props: BaseCodeErrorMenuProps) => {
 	const { codeError, collapsed } = props;
-	const dispatch = useDispatch();
-	const derivedState = useSelector((state: CodeStreamState) => {
+	const dispatch = useAppDispatch();
+	const derivedState = useAppSelector((state: CodeStreamState) => {
 		const post =
 			codeError && codeError.postId
 				? getPost(state.posts, codeError!.streamId, codeError.postId)
@@ -912,13 +916,13 @@ export const BaseCodeErrorMenu = (props: BaseCodeErrorMenuProps) => {
 			author: props.codeError ? state.users[props.codeError.creatorId] : undefined,
 			userIsFollowing: props.codeError
 				? (props.codeError.followerIds || []).includes(state.session.userId!)
-				: []
+				: [],
 		};
 	});
 	const [isLoading, setIsLoading] = React.useState(false);
 	const [menuState, setMenuState] = React.useState<{ open: boolean; target?: any }>({
 		open: false,
-		target: undefined
+		target: undefined,
 	});
 
 	const [shareModalOpen, setShareModalOpen] = React.useReducer(open => !open, false);
@@ -937,7 +941,7 @@ export const BaseCodeErrorMenu = (props: BaseCodeErrorMenuProps) => {
 					setIsLoading(true);
 					await dispatch(fetchErrorGroup(props.codeError));
 					setIsLoading(false);
-				}
+				},
 			});
 		}
 		if (props.codeError?.id?.indexOf(PENDING_CODE_ERROR_ID_PREFIX) === -1) {
@@ -950,7 +954,7 @@ export const BaseCodeErrorMenu = (props: BaseCodeErrorMenuProps) => {
 						permalinkRef.current.select();
 						document.execCommand("copy");
 					}
-				}
+				},
 			});
 		}
 
@@ -1061,8 +1065,8 @@ export const BaseCodeErrorMenu = (props: BaseCodeErrorMenuProps) => {
 };
 
 const BaseCodeError = (props: BaseCodeErrorProps) => {
-	const dispatch = useDispatch();
-	const derivedState = useSelector((state: CodeStreamState) => {
+	const dispatch = useAppDispatch();
+	const derivedState = useAppSelector((state: CodeStreamState) => {
 		const codeError = state.codeErrors[props.codeError.id] || props.codeError;
 		const codeAuthorId = (props.codeError.codeAuthorIds || [])[0];
 
@@ -1075,7 +1079,7 @@ const BaseCodeError = (props: BaseCodeErrorProps) => {
 			errorGroup: props.errorGroup,
 			errorGroupIsLoading: (state.codeErrors.errorGroups[codeError.objectId] as any)?.isLoading,
 			currentCodeErrorData: state.context.currentCodeErrorData,
-			hideCodeErrorInstructions: state.preferences.hideCodeErrorInstructions
+			hideCodeErrorInstructions: state.preferences.hideCodeErrorInstructions,
 		};
 	});
 	const renderedFooter = props.renderFooter && props.renderFooter(CardFooter, ComposeWrapper);
@@ -1278,7 +1282,7 @@ const BaseCodeError = (props: BaseCodeErrorProps) => {
 						padding: "10px 0",
 						whiteSpace: "normal",
 						alignItems: "flex-start",
-						opacity: derivedState.hideCodeErrorInstructions ? "1" : ".25"
+						opacity: derivedState.hideCodeErrorInstructions ? "1" : ".25",
 					}}
 				>
 					<Icon name="alert" />
@@ -1288,7 +1292,7 @@ const BaseCodeError = (props: BaseCodeErrorProps) => {
 			{codeError?.text && (
 				<Message
 					style={{
-						opacity: derivedState.hideCodeErrorInstructions ? "1" : ".25"
+						opacity: derivedState.hideCodeErrorInstructions ? "1" : ".25",
 					}}
 				>
 					{codeError.text}
@@ -1300,7 +1304,7 @@ const BaseCodeError = (props: BaseCodeErrorProps) => {
 				<div
 					style={{
 						minHeight: derivedState.errorGroupIsLoading || errorGroup ? "18px" : "initial",
-						opacity: derivedState.hideCodeErrorInstructions ? "1" : ".25"
+						opacity: derivedState.hideCodeErrorInstructions ? "1" : ".25",
 					}}
 				>
 					{errorGroup &&
@@ -1391,7 +1395,7 @@ const renderMetaSectionCollapsed = (props: BaseCodeErrorProps) => {
 };
 
 const ReplyInput = (props: { codeError: CSCodeError }) => {
-	const dispatch = useDispatch();
+	const dispatch = useAppDispatch();
 	const [text, setText] = React.useState("");
 	const [attachments, setAttachments] = React.useState<AttachmentField[]>([]);
 	const [isLoading, setIsLoading] = React.useState(false);
@@ -1403,9 +1407,9 @@ const ReplyInput = (props: { codeError: CSCodeError }) => {
 
 		setIsLoading(true);
 
-		const actualCodeError = ((await dispatch(
+		const actualCodeError = (await dispatch(
 			upgradePendingCodeError(props.codeError.id, "Comment")
-		)) as any) as {
+		)) as any as {
 			codeError: CSCodeError;
 		};
 		dispatch(markItemRead(props.codeError.id, actualCodeError.codeError.numReplies + 1));
@@ -1419,7 +1423,7 @@ const ReplyInput = (props: { codeError: CSCodeError }) => {
 				findMentionedUserIds(teamMates, text),
 				{
 					entryPoint: "Code Error",
-					files: attachments
+					files: attachments,
 				}
 			)
 		);
@@ -1508,13 +1512,13 @@ const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 			userIsFollowing: (props.codeError.followerIds || []).includes(state.session.userId!),
 			replies: props.collapsed
 				? emptyArray
-				: getThreadPosts(state, codeError.streamId, codeError.postId)
+				: getThreadPosts(state, codeError.streamId, codeError.postId),
 		};
 	});
 
 	const [preconditionError, setPreconditionError] = React.useState<SimpleError>({
 		message: "",
-		type: ""
+		type: "",
 	});
 	const [isEditing, setIsEditing] = React.useState(false);
 	const [shareModalOpen, setShareModalOpen] = React.useReducer(open => !open, false);
@@ -1598,8 +1602,8 @@ const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 const CodeErrorForId = (props: PropsWithId) => {
 	const { id, ...otherProps } = props;
 
-	const dispatch = useDispatch<Dispatch>();
-	const codeError = useSelector((state: CodeStreamState) => {
+	const dispatch = useAppDispatch();
+	const codeError = useAppSelector((state: CodeStreamState) => {
 		return getCodeError(state.codeErrors, id);
 	});
 	const [notFound, setNotFound] = React.useState(false);

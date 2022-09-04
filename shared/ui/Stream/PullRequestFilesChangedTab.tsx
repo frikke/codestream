@@ -1,11 +1,11 @@
 import {
 	getProviderPullRequestRepo,
-	getCurrentProviderPullRequest
+	getCurrentProviderPullRequest,
 } from "@codestream/webview/store/providerPullRequests/reducer";
 import { DropdownButton } from "@codestream/webview/Stream/DropdownButton";
 import { distanceOfTimeInWords } from "@codestream/webview/Stream/Timestamp";
 import React, { useState, useEffect, useMemo } from "react";
-import { useDidMount } from "../utilities/hooks";
+import { useAppDispatch, useAppSelector, useDidMount } from "../utilities/hooks";
 import { useSelector, useDispatch } from "react-redux";
 import { CodeStreamState } from "../store";
 import { FileStatus } from "@codestream/protocols/api";
@@ -13,14 +13,14 @@ import { LoadingMessage } from "../src/components/LoadingMessage";
 import {
 	getPullRequestCommits,
 	getPullRequestFiles,
-	getPullRequestFilesFromProvider
+	getPullRequestFilesFromProvider,
 } from "../store/providerPullRequests/actions";
 import { PullRequestFilesChangedList } from "./PullRequestFilesChangedList";
 import {
 	ChangeDataType,
 	DidChangeDataNotificationType,
 	FetchThirdPartyPullRequestCommitsResponse,
-	FetchThirdPartyPullRequestPullRequest
+	FetchThirdPartyPullRequestPullRequest,
 } from "@codestream/protocols/agent";
 import { HostApi } from "../webview-api";
 import Icon from "./Icon";
@@ -28,7 +28,7 @@ import styled from "styled-components";
 import Tooltip from "./Tooltip";
 
 const STATUS_MAP = {
-	modified: FileStatus.modified
+	modified: FileStatus.modified,
 };
 
 export const DirectoryTopLevel = styled.div`
@@ -62,8 +62,8 @@ export const PullRequestFilesChangedTab = (props: {
 	fetch?: Function;
 }) => {
 	const { prCommitsRange, setPrCommitsRange, pr } = props;
-	const dispatch = useDispatch();
-	const derivedState = useSelector((state: CodeStreamState) => {
+	const dispatch = useAppDispatch();
+	const derivedState = useAppSelector((state: CodeStreamState) => {
 		return {
 			providerPullRequests: state.providerPullRequests.pullRequests,
 			pullRequestFilesChangedMode: state.preferences.pullRequestFilesChangedMode || "files",
@@ -71,7 +71,7 @@ export const PullRequestFilesChangedTab = (props: {
 			currentPullRequest: getCurrentProviderPullRequest(state),
 			currentPullRequestId: state.context.currentPullRequest
 				? state.context.currentPullRequest.id
-				: undefined
+				: undefined,
 		};
 	});
 
@@ -92,7 +92,7 @@ export const PullRequestFilesChangedTab = (props: {
 				linesAdded: _.additions,
 				linesRemoved: _.deletions,
 				file: _.filename,
-				status: STATUS_MAP[_.status]
+				status: STATUS_MAP[_.status],
 			};
 		});
 		filesChanged.sort((a, b) => a.file.localeCompare(b.file));
@@ -125,14 +125,17 @@ export const PullRequestFilesChangedTab = (props: {
 		pr?.updatedAt,
 		derivedState.currentPullRequestId,
 		prCommitsRange,
-		accessRawDiffs
+		accessRawDiffs,
 	]);
 
 	useEffect(() => {
 		(async () => {
 			setIsLoading(true);
 			const data = await dispatch(
-				getPullRequestFilesFromProvider(pr.providerId, derivedState.currentPullRequestId!)
+				getPullRequestFilesFromProvider({
+					providerId: pr.providerId,
+					id: derivedState.currentPullRequestId!,
+				})
 			);
 			_mapData(data);
 		})();
@@ -143,7 +146,7 @@ export const PullRequestFilesChangedTab = (props: {
 		let disposable;
 		(async () => {
 			const prCommitsData = await dispatch(
-				getPullRequestCommits(pr.providerId, derivedState.currentPullRequestId!)
+				getPullRequestCommits({ providerId: pr.providerId, id: derivedState.currentPullRequestId! })
 			);
 			_mapCommitsData(prCommitsData);
 			await getPRFiles();
@@ -152,7 +155,10 @@ export const PullRequestFilesChangedTab = (props: {
 				if (e.type === ChangeDataType.Commits) {
 					setIsLoading(true);
 					const data = await dispatch(
-						getPullRequestFilesFromProvider(pr.providerId, derivedState.currentPullRequestId!)
+						getPullRequestFilesFromProvider({
+							providerId: pr.providerId,
+							id: derivedState.currentPullRequestId!,
+						})
 					);
 					_mapData(data);
 				}
@@ -166,24 +172,24 @@ export const PullRequestFilesChangedTab = (props: {
 	const getPRFiles = async () => {
 		if (prCommitsRange.length > 0 && derivedState.currentRepo) {
 			const data = await dispatch(
-				getPullRequestFiles(
-					pr.providerId,
-					derivedState.currentPullRequestId!,
-					prCommitsRange,
-					derivedState.currentRepo.id,
-					accessRawDiffs
-				)
+				getPullRequestFiles({
+					providerId: pr.providerId,
+					id: derivedState.currentPullRequestId!,
+					commits: prCommitsRange,
+					repoId: derivedState.currentRepo.id,
+					accessRawDiffs,
+				})
 			);
 			_mapData(data);
 		} else {
 			const data = await dispatch(
-				getPullRequestFiles(
-					pr.providerId,
-					derivedState.currentPullRequestId!,
-					undefined,
-					undefined,
-					accessRawDiffs
-				)
+				getPullRequestFiles({
+					providerId: pr.providerId,
+					id: derivedState.currentPullRequestId!,
+					commits: undefined,
+					repoId: undefined,
+					accessRawDiffs,
+				})
 			);
 			_mapData(data);
 		}
@@ -271,8 +277,8 @@ export const PullRequestFilesChangedTab = (props: {
 			},
 			subtextNoPadding: prCommits.length
 				? `${prCommits.length} commit${prCommits.length > 1 ? "s" : ""}`
-				: ""
-		}
+				: "",
+		},
 	];
 	if (lastReviewCommitOid) {
 		const lastReviewCommitIndex = prCommits.findIndex(commit => commit.oid === lastReviewCommitOid);
@@ -289,7 +295,7 @@ export const PullRequestFilesChangedTab = (props: {
 			},
 			subtextNoPadding: commitsSinceLastReview
 				? `${commitsSinceLastReview} commit${commitsSinceLastReview > 1 ? "s" : ""}`
-				: ""
+				: "",
 		});
 	}
 	dropdownItems.push({ label: "Hold shift + click to select a range", type: "static" });
@@ -299,7 +305,7 @@ export const PullRequestFilesChangedTab = (props: {
 			dropdownItems.push({
 				label: _.message,
 				floatRight: {
-					label: _.abbreviatedOid
+					label: _.abbreviatedOid,
 				},
 				subtextNoPadding: `${
 					_.author && _.author.user && _.author.user.login
@@ -333,7 +339,7 @@ export const PullRequestFilesChangedTab = (props: {
 					}
 				},
 				inRange: true,
-				key: _.oid
+				key: _.oid,
 			});
 		});
 
@@ -367,7 +373,7 @@ export const PullRequestFilesChangedTab = (props: {
 								<div
 									style={{
 										margin: "0 14px 0 auto",
-										padding: "3px 0 0 0"
+										padding: "3px 0 0 0",
 									}}
 								>
 									{viewedRatio}

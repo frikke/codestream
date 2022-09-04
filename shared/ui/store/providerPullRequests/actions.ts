@@ -1,111 +1,122 @@
-import { PullRequestQuery } from "@codestream/protocols/api";
-import { action } from "../common";
-import { ProviderPullRequestActionsTypes } from "./types";
-import { logError } from "@codestream/webview/logger";
-import { HostApi } from "@codestream/webview/webview-api";
 import {
-	FetchThirdPartyPullRequestRequestType,
-	FetchThirdPartyPullRequestResponse,
-	ExecuteThirdPartyTypedType,
-	ExecuteThirdPartyTypedRequest,
-	GetMyPullRequestsRequest,
-	GetMyPullRequestsResponse,
-	FetchThirdPartyPullRequestCommitsType,
-	QueryThirdPartyRequestType,
 	ExecuteThirdPartyRequestUntypedType,
+	ExecuteThirdPartyTypedRequest,
+	ExecuteThirdPartyTypedType,
 	FetchAssignableUsersRequestType,
 	FetchAssignableUsersResponse,
+	FetchThirdPartyPullRequestCommitsResponse,
+	FetchThirdPartyPullRequestCommitsType,
+	FetchThirdPartyPullRequestFilesResponse,
+	FetchThirdPartyPullRequestRequestType,
+	FetchThirdPartyPullRequestResponse,
 	GetCommitsFilesRequestType,
-	GetCommitsFilesResponse
+	GetCommitsFilesResponse,
+	GetMyPullRequestsRequest,
+	GetMyPullRequestsResponse,
+	QueryThirdPartyRequestType,
 } from "@codestream/protocols/agent";
-import { CodeStreamState } from "..";
+import { PullRequestQuery } from "@codestream/protocols/api";
+import { PullRequest } from "@codestream/protocols/webview";
+import { logError } from "@codestream/webview/logger";
+import { setProviderError } from "@codestream/webview/store/codeErrors/thunks";
+import {
+	getPullRequestExactId,
+	PullRequestIdPayload,
+} from "@codestream/webview/store/providerPullRequests/reducer";
+import { HostApi } from "@codestream/webview/webview-api";
+import { createAsyncThunk } from "@reduxjs/toolkit";
+import { isArrayLike } from "lodash-es";
 import { RequestType } from "vscode-languageserver-protocol";
+import { AppDispatch, CodeStreamState } from "..";
+import { action } from "../common";
 import {
 	setCurrentPullRequest,
 	setCurrentPullRequestAndBranch,
-	setCurrentReview
+	setCurrentReview,
 } from "../context/actions";
-import { getPullRequestExactId, isAnHourOld } from "./reducer";
+// import { getPullRequestExactId, isAnHourOld } from "./reducer";
 import { getPRLabelForProvider } from "../providers/reducer";
+import { ProviderPullRequestActionsTypes, ProviderPullRequestsState } from "./types";
+import pullRequestSlice from "./reducer";
 
-export const reset = () => action("RESET");
-
-export const _addPullRequestConversations = (providerId: string, id: string, pullRequest: any) =>
-	action(ProviderPullRequestActionsTypes.AddPullRequestConversations, {
-		providerId,
-		id,
-		pullRequest
-	});
-
-export const _addPullRequestCollaborators = (providerId: string, id: string, collaborators: any) =>
-	action(ProviderPullRequestActionsTypes.AddPullRequestCollaborators, {
-		providerId,
-		id,
-		collaborators
-	});
-
-export const updatePullRequestTitle = (providerId: string, id: string, pullRequestData: any) =>
-	action(ProviderPullRequestActionsTypes.UpdatePullRequestTitle, {
-		providerId,
-		id,
-		pullRequestData
-	});
-
-export const _updatePullRequestFilter = (providerId: string, data: any, index: any) =>
-	action(ProviderPullRequestActionsTypes.UpdatePullRequestFilter, {
-		providerId,
-		data,
-		index
-	});
-
-export const _addPullRequestFiles = (
-	providerId: string,
-	id: string,
-	commits: string,
-	pullRequestFiles: any,
-	accessRawDiffs?: boolean
-) =>
-	action(ProviderPullRequestActionsTypes.AddPullRequestFiles, {
-		providerId,
-		id,
-		commits,
-		pullRequestFiles,
-		accessRawDiffs
-	});
-
-export const _addPullRequestCommits = (providerId: string, id: string, pullRequestCommits: any) =>
-	action(ProviderPullRequestActionsTypes.AddPullRequestCommits, {
-		providerId,
-		id,
-		pullRequestCommits
-	});
-
-export const _addMyPullRequests = (providerId: string, data: any) =>
-	action(ProviderPullRequestActionsTypes.AddMyPullRequests, {
-		providerId,
-		data
-	});
-
-export const _addPullRequestError = (providerId: string, id: string, error?: { message: string }) =>
-	action(ProviderPullRequestActionsTypes.AddPullRequestError, {
-		providerId,
-		id,
-		error
-	});
-
-export const clearPullRequestError = (providerId: string, id: string) =>
-	action(ProviderPullRequestActionsTypes.ClearPullRequestError, {
-		providerId,
-		id,
-		undefined
-	});
-
-export const handleDirectives = (providerId: string, id: string, data: any) =>
-	action(ProviderPullRequestActionsTypes.HandleDirectives, {
-		providerId,
-		id,
-		data
-	});
+// export const reset = () => action("RESET");
+//
+// export const _addPullRequestConversations = (providerId: string, id: string, pullRequest: any) =>
+// 	action(ProviderPullRequestActionsTypes.AddPullRequestConversations, {
+// 		providerId,
+// 		id,
+// 		pullRequest
+// 	});
+//
+// export const _addPullRequestCollaborators = (providerId: string, id: string, collaborators: any) =>
+// 	action(ProviderPullRequestActionsTypes.AddPullRequestCollaborators, {
+// 		providerId,
+// 		id,
+// 		collaborators
+// 	});
+//
+// export const updatePullRequestTitle = (providerId: string, id: string, pullRequestData: any) =>
+// 	action(ProviderPullRequestActionsTypes.UpdatePullRequestTitle, {
+// 		providerId,
+// 		id,
+// 		pullRequestData
+// 	});
+//
+// export const _updatePullRequestFilter = (providerId: string, data: any, index: any) =>
+// 	action(ProviderPullRequestActionsTypes.UpdatePullRequestFilter, {
+// 		providerId,
+// 		data,
+// 		index
+// 	});
+//
+// export const _addPullRequestFiles = (
+// 	providerId: string,
+// 	id: string,
+// 	commits: string,
+// 	pullRequestFiles: any,
+// 	accessRawDiffs?: boolean
+// ) =>
+// 	action(ProviderPullRequestActionsTypes.AddPullRequestFiles, {
+// 		providerId,
+// 		id,
+// 		commits,
+// 		pullRequestFiles,
+// 		accessRawDiffs
+// 	});
+//
+// export const _addPullRequestCommits = (providerId: string, id: string, pullRequestCommits: any) =>
+// 	action(ProviderPullRequestActionsTypes.AddPullRequestCommits, {
+// 		providerId,
+// 		id,
+// 		pullRequestCommits
+// 	});
+//
+// export const _addMyPullRequests = (providerId: string, data: any) =>
+// 	action(ProviderPullRequestActionsTypes.AddMyPullRequests, {
+// 		providerId,
+// 		data
+// 	});
+//
+// export const _addPullRequestError = (providerId: string, id: string, error?: { message: string }) =>
+// 	action(ProviderPullRequestActionsTypes.AddPullRequestError, {
+// 		providerId,
+// 		id,
+// 		error
+// 	});
+//
+// export const clearPullRequestError = (providerId: string, id: string) =>
+// 	action(ProviderPullRequestActionsTypes.ClearPullRequestError, {
+// 		providerId,
+// 		id,
+// 		undefined
+// 	});
+//
+// export const handleDirectives = (providerId: string, id: string, data: any) =>
+// 	action(ProviderPullRequestActionsTypes.HandleDirectives, {
+// 		providerId,
+// 		id,
+// 		data
+// 	});
 
 const _getPullRequestConversationsFromProvider = async (
 	providerId: string,
@@ -116,7 +127,7 @@ const _getPullRequestConversationsFromProvider = async (
 		providerId: providerId,
 		pullRequestId: id,
 		src: src,
-		force: true
+		force: true,
 	});
 
 	let response2: FetchAssignableUsersResponse | undefined = undefined;
@@ -140,7 +151,7 @@ const _getPullRequestConversationsFromProvider = async (
 	if (boardId) {
 		response2 = await HostApi.instance.send(FetchAssignableUsersRequestType, {
 			providerId: providerId,
-			boardId: boardId
+			boardId: boardId,
 		});
 	}
 	return {
@@ -152,40 +163,54 @@ const _getPullRequestConversationsFromProvider = async (
 							id: _.id,
 							username: _.displayName,
 							avatar: {
-								image: _.avatarUrl
-							}
+								image: _.avatarUrl,
+							},
 						};
 				  })
-				: []
+				: [],
 	};
 };
 
-export const getPullRequestConversationsFromProvider = (
-	providerId: string,
-	id: string
-) => async dispatch => {
+export const getPullRequestConversationsFromProvider = createAsyncThunk<
+	FetchThirdPartyPullRequestResponse | undefined,
+	PullRequestIdPayload,
+	{ state: CodeStreamState }
+>("providerPullRequests/getPullRequestConversationsFromProvider", async (request, { dispatch }) => {
+	const { providerId, id } = request;
 	try {
-		dispatch(clearPullRequestError(providerId, id));
+		dispatch(pullRequestSlice.actions.clearPullRequestError(request));
 
 		const responses = await _getPullRequestConversationsFromProvider(
 			providerId,
 			id,
 			"getPullRequestConversationsFromProvider"
 		);
-		dispatch(_addPullRequestConversations(providerId, id, responses.conversations));
-		dispatch(_addPullRequestCollaborators(providerId, id, responses.collaborators));
+		dispatch(
+			pullRequestSlice.actions.addPullRequestConversations({
+				...request,
+				conversations: responses.conversations,
+			})
+		);
+		dispatch(
+			pullRequestSlice.actions.addPullRequestCollaborators({
+				...request,
+				collaborators: responses.collaborators,
+			})
+		);
 
 		return responses.conversations as FetchThirdPartyPullRequestResponse;
 	} catch (error) {
 		logError(`failed to refresh pullRequest: ${error?.message}`, { providerId, id });
 	}
 	return undefined;
-};
+});
 
-export const getPullRequestConversations = (providerId: string, id: string) => async (
-	dispatch,
-	getState: () => CodeStreamState
-) => {
+export const getPullRequestConversations = createAsyncThunk<
+	FetchThirdPartyPullRequestResponse | undefined,
+	PullRequestIdPayload,
+	{ state: CodeStreamState }
+>("providerPullRequests/getPullRequestConversations", async (request, { getState, dispatch }) => {
+	const { providerId, id } = request;
 	try {
 		const state = getState();
 		const provider = state.providerPullRequests.pullRequests[providerId];
@@ -210,14 +235,24 @@ export const getPullRequestConversations = (providerId: string, id: string) => a
 			id,
 			"getPullRequestConversations"
 		);
-		await dispatch(_addPullRequestConversations(providerId, id, responses.conversations));
-		await dispatch(_addPullRequestCollaborators(providerId, id, responses.collaborators));
+		await dispatch(
+			pullRequestSlice.actions.addPullRequestConversations({
+				...request,
+				conversations: responses.conversations,
+			})
+		);
+		await dispatch(
+			pullRequestSlice.actions.addPullRequestCollaborators({
+				...request,
+				collaborators: responses.collaborators,
+			})
+		);
 		return responses.conversations;
 	} catch (error) {
 		logError(error, { detail: `failed to get pullRequest conversations`, providerId, id });
 		return { error };
 	}
-};
+});
 
 /**
  * This resets the provider's files changed list
@@ -227,21 +262,32 @@ export const getPullRequestConversations = (providerId: string, id: string) => a
 export const clearPullRequestFiles = (providerId: string, id: string) =>
 	action(ProviderPullRequestActionsTypes.ClearPullRequestFiles, {
 		providerId,
-		id
+		id,
 	});
 
-export const getPullRequestFiles = (
-	providerId: string,
-	id: string,
-	commits: string[] = [],
-	repoId?: string,
-	accessRawDiffs?: boolean
-) => async (dispatch, getState: () => CodeStreamState) => {
+interface GetPullRequestFiles {
+	providerId: string;
+	id: string;
+	commits?: string[];
+	repoId?: string;
+	accessRawDiffs?: boolean;
+}
+
+function isGetCommitsFilesResponse(response: any): response is GetCommitsFilesResponse[] {
+	return isArrayLike(response);
+}
+
+export const getPullRequestFiles = createAsyncThunk<
+	GetCommitsFilesResponse[] | undefined,
+	GetPullRequestFiles,
+	{ state: CodeStreamState }
+>("providerPullRequests", async (params, { getState, dispatch }) => {
+	const { providerId, id, commits = [], repoId, accessRawDiffs } = params;
 	try {
 		const state = getState();
 		const provider = state.providerPullRequests.pullRequests[providerId];
 		const commitsIndex = JSON.stringify(commits);
-		let exactId = getPullRequestExactId(state);
+		const exactId = getPullRequestExactId(state);
 		if (provider) {
 			const pr = provider[exactId];
 			if (
@@ -256,58 +302,100 @@ export const getPullRequestFiles = (
 			}
 		}
 
-		let response: GetCommitsFilesResponse[];
+		let response: GetCommitsFilesResponse[] | undefined;
 
 		if (repoId && commits.length > 0) {
 			response = await HostApi.instance.send(GetCommitsFilesRequestType, {
 				repoId,
-				commits
+				commits,
 			});
 		} else {
-			response = await dispatch(
-				api("getPullRequestFilesChanged", {
-					pullRequestId: id,
-					accessRawDiffs
+			const dispatchResponse = await dispatch(
+				api({
+					method: "getPullRequestFilesChanged",
+					params: {
+						pullRequestId: id,
+						accessRawDiffs,
+					},
 				})
 			);
+			if (isGetCommitsFilesResponse(dispatchResponse)) {
+				response = dispatchResponse;
+			}
 		}
 
-		dispatch(_addPullRequestFiles(providerId, id, commitsIndex, response, accessRawDiffs));
+		if (!response) {
+			return undefined;
+		}
+
+		dispatch(
+			pullRequestSlice.actions.addPullRequestFiles({
+				providerId,
+				id,
+				commits: commitsIndex,
+				pullRequestFiles: response,
+				accessRawDiffs,
+			})
+		);
 		return response;
 	} catch (error) {
 		logError(error, { detail: `failed to get pullRequest files`, providerId, id });
 	}
 	return undefined;
-};
+});
 
-export const getPullRequestFilesFromProvider = (
-	providerId: string,
-	id: string
-) => async dispatch => {
+export const getPullRequestFilesFromProvider = createAsyncThunk<
+	GetCommitsFilesResponse[] | undefined,
+	PullRequestIdPayload,
+	{ state: CodeStreamState }
+>("providerPullRequests/getPullRequestFilesFromProvider", async (request, { dispatch }) => {
+	const { id, providerId } = request;
 	try {
-		const response = await dispatch(
-			api("getPullRequestFilesChanged", {
-				pullRequestId: id
+		const dispatchResponse = await dispatch(
+			api({
+				method: "getPullRequestFilesChanged",
+				params: {
+					pullRequestId: id,
+				},
 			})
 		);
+		if (!isGetCommitsFilesResponse(dispatchResponse)) {
+			return undefined;
+		}
+		const response = dispatchResponse;
+		//  as GetCommitsFilesResponse[];
 		// JSON.stringify matches the other use of this call
-		dispatch(_addPullRequestFiles(providerId, id, JSON.stringify([]), response, undefined));
+		dispatch(
+			pullRequestSlice.actions.addPullRequestFiles({
+				providerId,
+				id,
+				commits: JSON.stringify([]),
+				pullRequestFiles: response,
+			})
+		);
 		return response;
 	} catch (error) {
 		logError(error, { detail: `failed to get pullRequest files from provider`, providerId, id });
 	}
 	return undefined;
-};
+});
 
-export const getMyPullRequests = (
-	providerId: string,
-	queries: PullRequestQuery[],
-	openReposOnly: boolean,
-	options?: { force?: boolean },
-	throwOnError?: boolean,
-	test?: boolean,
-	index?: Number
-) => async (dispatch, getState: () => CodeStreamState) => {
+export interface PRRequest {
+	providerId: string;
+	queries: PullRequestQuery[];
+	openReposOnly: boolean;
+	options?: { force?: boolean };
+	throwOnError?: boolean;
+	test?: boolean;
+	index?: number;
+}
+
+export const getMyPullRequests = createAsyncThunk<
+	GetMyPullRequestsResponse[][] | undefined,
+	PRRequest,
+	{ state: CodeStreamState }
+>("providerPullRequests/myPullRequests", async (request: PRRequest, { getState, dispatch }) => {
+	const { providerId, queries, openReposOnly, options, index, throwOnError } = request;
 	try {
 		let force = false;
 		if (!options || !options.force) {
@@ -321,24 +409,28 @@ export const getMyPullRequests = (
 			// bypass our cache
 			force = true;
 		}
-		const request = new RequestType<
+		const apiRequest = new RequestType<
 			ExecuteThirdPartyTypedRequest<GetMyPullRequestsRequest>,
-			GetMyPullRequestsResponse,
+			GetMyPullRequestsResponse[][],
 			any,
 			any
 		>("codestream/provider/generic");
-		const response = await HostApi.instance.send(request, {
+		const response = await HostApi.instance.send(apiRequest, {
 			method: "getMyPullRequests",
 			providerId: providerId,
 			params: {
 				prQueries: queries,
 				isOpen: openReposOnly,
-				force: force || (options && options.force)
-			}
+				force: force || (options && options.force),
+			},
 		});
 		if (index !== undefined) {
-			dispatch(_updatePullRequestFilter(providerId, response, index));
-		} else if (!test) dispatch(_addMyPullRequests(providerId, response));
+			dispatch(
+				pullRequestSlice.actions.updatePullRequestFilter({ providerId, data: response, index })
+			);
+		} else if (!test) {
+			dispatch(pullRequestSlice.actions.addMyPullRequests({ providerId, data: response }));
+		}
 
 		return response;
 	} catch (error) {
@@ -349,36 +441,48 @@ export const getMyPullRequests = (
 		logError(error, { detail: `failed to get my pullRequests`, providerId });
 	}
 	return undefined;
-};
+});
 
-export const clearPullRequestCommits = (providerId: string, id: string) =>
-	action(ProviderPullRequestActionsTypes.ClearPullRequestCommits, {
-		providerId,
-		id
-	});
+// export const clearPullRequestCommits = (providerId: string, id: string) =>
+// 	action(ProviderPullRequestActionsTypes.ClearPullRequestCommits, {
+// 		providerId,
+// 		id,
+// 	});
 
-export const getPullRequestCommitsFromProvider = (
-	providerId: string,
-	id: string
-) => async dispatch => {
-	try {
-		const response = await HostApi.instance.send(FetchThirdPartyPullRequestCommitsType, {
-			providerId,
-			pullRequestId: id
-		});
-		dispatch(_addPullRequestCommits(providerId, id, response));
-		return response;
-	} catch (error) {
-		logError(error, { detail: `failed to refresh pullRequest commits`, providerId, id });
+export const getPullRequestCommitsFromProvider = createAsyncThunk<
+	FetchThirdPartyPullRequestCommitsResponse[] | undefined,
+	PullRequestIdPayload,
+	{ state: CodeStreamState }
+>(
+	"providerPullRequests/getPullRequestCommitsFromProvider",
+	async (request, { getState, dispatch }) => {
+		const { id, providerId } = request;
+		try {
+			const response = await HostApi.instance.send(FetchThirdPartyPullRequestCommitsType, {
+				providerId,
+				pullRequestId: id,
+			});
+			dispatch(
+				pullRequestSlice.actions.addPullRequestCommits({ ...request, pullRequestCommits: response })
+			);
+			return response;
+		} catch (error) {
+			logError(error, { detail: `failed to refresh pullRequest commits`, providerId, id });
+		}
+		return undefined;
 	}
-	return undefined;
-};
+);
 
-export const getPullRequestCommits = (
-	providerId: string,
-	id: string,
-	options?: { force: true }
-) => async (dispatch, getState: () => CodeStreamState) => {
+export interface GetPullRequestCommitsRequest extends PullRequestIdPayload {
+	options?: { force: true };
+}
+
+export const getPullRequestCommits = createAsyncThunk<
+	FetchThirdPartyPullRequestCommitsResponse[] | undefined,
+	GetPullRequestCommitsRequest,
+	{ state: CodeStreamState }
+>("providerPullRequests/getPullRequestCommits", async (request, { getState, dispatch }) => {
+	const { providerId, options, id } = request;
 	try {
 		const state = getState();
 		const provider = state.providerPullRequests.pullRequests[providerId];
@@ -396,26 +500,43 @@ export const getPullRequestCommits = (
 		}
 		const response = await HostApi.instance.send(FetchThirdPartyPullRequestCommitsType, {
 			providerId: providerId,
-			pullRequestId: id
+			pullRequestId: id,
 		});
-		dispatch(_addPullRequestCommits(providerId, id, response));
+		dispatch(
+			pullRequestSlice.actions.addPullRequestCommits({
+				providerId,
+				id,
+				pullRequestCommits: response,
+			})
+		);
 		return response;
 	} catch (error) {
 		logError(error, { detail: `failed to get pullRequest commits`, providerId, id });
 	}
 	return undefined;
-};
+});
 
-export const openPullRequestByUrl = (
-	url: string,
+export interface OpenPullRequestByUrlRequest {
+	url: string;
 	options?: {
 		source?: string;
 		checkoutBranch?: any;
 		providerId?: string;
 		groupIndex?: string;
 		isVS?: boolean;
-	}
-) => async (dispatch, getState: () => CodeStreamState) => {
+	};
+}
+
+export interface OpenPullRequestByUrlResponse {
+	error: string;
+}
+
+export const openPullRequestByUrl = createAsyncThunk<
+	OpenPullRequestByUrlResponse | undefined,
+	OpenPullRequestByUrlRequest,
+	{ state: CodeStreamState }
+>("providerPullReuqests/openPullRequestByUrl", async (request, { getState, dispatch }) => {
+	const { options, url } = request;
 	const prLabel = getPRLabelForProvider(options?.providerId || "");
 	const defaultErrorString = `Enter the URL for a specific ${prLabel.pullrequest}`;
 	let handled = false;
@@ -423,7 +544,7 @@ export const openPullRequestByUrl = (
 	let providerInfo;
 	try {
 		providerInfo = await HostApi.instance.send(QueryThirdPartyRequestType, {
-			url: url
+			url: url,
 		});
 	} catch (error) {}
 	try {
@@ -431,12 +552,13 @@ export const openPullRequestByUrl = (
 			const id = await HostApi.instance.send(ExecuteThirdPartyRequestUntypedType, {
 				method: "getPullRequestIdFromUrl",
 				providerId: providerInfo.providerId,
-				params: { url }
+				params: { url },
 			});
 			if (id) {
 				dispatch(setCurrentReview(""));
-				if (options && options.checkoutBranch)
+				if (options && options.checkoutBranch) {
 					dispatch(setCurrentPullRequestAndBranch(id as string));
+				}
 				dispatch(
 					setCurrentPullRequest(
 						providerInfo.providerId,
@@ -467,31 +589,90 @@ export const openPullRequestByUrl = (
 		response = { error: defaultErrorString };
 	}
 	return response;
-};
+});
 
-export const setProviderError = (
-	providerId: string,
-	id: string,
-	error?: { message: string }
-) => async (dispatch, getState: () => CodeStreamState) => {
-	try {
-		dispatch(_addPullRequestError(providerId, id, error));
-	} catch (error) {
-		logError(error, { detail: `failed to setProviderError`, providerId, id });
-	}
-};
+// export const setProviderError = createAsyncThunk()
+// 	(providerId: string, id: string, error?: { message: string }) =>
+// 	async (dispatch, getState: () => CodeStreamState) => {
+// 		try {
+// 			dispatch(_addPullRequestError(providerId, id, error));
+// 		} catch (error) {
+// 			logError(error, { detail: `failed to setProviderError`, providerId, id });
+// 		}
+// 	};
 
-export const clearProviderError = (
-	providerId: string,
-	id: string,
-	error?: { message: string }
-) => async (dispatch, getState: () => CodeStreamState) => {
-	try {
-		dispatch(_addPullRequestError(providerId, id, error));
-	} catch (error) {
-		logError(error, { detail: `failed to setProviderError`, providerId, id });
-	}
-};
+// export const clearProviderError =
+// 	(providerId: string, id: string, error?: { message: string }) =>
+// 	async (dispatch, getState: () => CodeStreamState) => {
+// 		try {
+// 			dispatch(_addPullRequestError(providerId, id, error));
+// 		} catch (error) {
+// 			logError(error, { detail: `failed to setProviderError`, providerId, id });
+// 		}
+// 	};
+
+export type MethodType =
+	| "addReviewerToPullRequest"
+	| "cancelMergeWhenPipelineSucceeds"
+	| "createCommentReply"
+	| "createPullRequestComment"
+	| "createPullRequestCommentAndClose"
+	| "createPullRequestCommentAndReopen"
+	| "createPullRequestThread"
+	| "createPullRequestInlineComment"
+	| "createPullRequestInlineReviewComment"
+	| "createToDo"
+	| "deletePullRequest"
+	| "deletePullRequestComment"
+	| "deletePullRequestReview"
+	| "getIssues"
+	| "getLabels"
+	| "getMilestones"
+	| "getPullRequestFilesChanged"
+	| "getPullRequestLastUpdated"
+	| "getProjects"
+	| "getReviewers"
+	| "lockPullRequest"
+	| "markPullRequestReadyForReview"
+	| "markFileAsViewed"
+	| "markToDoDone"
+	| "mergePullRequest"
+	| "remoteBranches"
+	| "removeReviewerFromPullRequest"
+	| "resolveReviewThread"
+	| "setAssigneeOnPullRequest"
+	| "setIssueOnPullRequest"
+	| "setLabelOnPullRequest"
+	| "setReviewersOnPullRequest"
+	| "setWorkInProgressOnPullRequest"
+	| "submitReview"
+	| "toggleReaction"
+	| "toggleMilestoneOnPullRequest"
+	| "toggleProjectOnPullRequest"
+	| "togglePullRequestApproval"
+	| "unresolveReviewThread"
+	| "updateIssueComment"
+	| "unlockPullRequest"
+	| "updatePullRequest"
+	| "updatePullRequestBody"
+	| "updatePullRequestSubscription"
+	| "updatePullRequestTitle"
+	| "updateReview"
+	| "updateReviewComment";
+
+interface ApiRequest {
+	method: MethodType;
+	params: any;
+	options?: {
+		updateOnSuccess?: boolean;
+		preventClearError: boolean;
+		preventErrorReporting?: boolean;
+	};
+}
+
+interface ApiHandled {
+	handled: boolean;
+}
 
 /**
  * Provider api
@@ -500,142 +681,103 @@ export const clearProviderError = (
  * @param params the data to send to the provider
  * @param options optional options
  */
-export const api = <T = any, R = any>(
-	method:
-		| "addReviewerToPullRequest"
-		| "cancelMergeWhenPipelineSucceeds"
-		| "createCommentReply"
-		| "createPullRequestComment"
-		| "createPullRequestCommentAndClose"
-		| "createPullRequestCommentAndReopen"
-		| "createPullRequestThread"
-		| "createPullRequestInlineComment"
-		| "createPullRequestInlineReviewComment"
-		| "createToDo"
-		| "deletePullRequest"
-		| "deletePullRequestComment"
-		| "deletePullRequestReview"
-		| "getIssues"
-		| "getLabels"
-		| "getMilestones"
-		| "getPullRequestFilesChanged"
-		| "getPullRequestLastUpdated"
-		| "getProjects"
-		| "getReviewers"
-		| "lockPullRequest"
-		| "markPullRequestReadyForReview"
-		| "markFileAsViewed"
-		| "markToDoDone"
-		| "mergePullRequest"
-		| "remoteBranches"
-		| "removeReviewerFromPullRequest"
-		| "resolveReviewThread"
-		| "setAssigneeOnPullRequest"
-		| "setIssueOnPullRequest"
-		| "setLabelOnPullRequest"
-		| "setReviewersOnPullRequest"
-		| "setWorkInProgressOnPullRequest"
-		| "submitReview"
-		| "toggleReaction"
-		| "toggleMilestoneOnPullRequest"
-		| "toggleProjectOnPullRequest"
-		| "togglePullRequestApproval"
-		| "unresolveReviewThread"
-		| "updateIssueComment"
-		| "unlockPullRequest"
-		| "updatePullRequest"
-		| "updatePullRequestBody"
-		| "updatePullRequestSubscription"
-		| "updatePullRequestTitle"
-		| "updateReview"
-		| "updateReviewComment",
-	params: any,
-	options?: {
-		updateOnSuccess?: boolean;
-		preventClearError: boolean;
-		preventErrorReporting?: boolean;
-	}
-) => async (dispatch, getState: () => CodeStreamState) => {
-	let providerId;
-	let pullRequestId;
-	try {
-		const state = getState();
-		const currentPullRequest = state.context.currentPullRequest;
-		if (!currentPullRequest) {
-			dispatch(
-				setProviderError(providerId, pullRequestId, {
-					message: "currentPullRequest not found"
-				})
-			);
-			return;
-		}
-		({ providerId, id: pullRequestId } = currentPullRequest);
-		params = params || {};
-		if (!params.pullRequestId) params.pullRequestId = pullRequestId;
-		if (currentPullRequest.metadata) {
-			params = { ...params, ...currentPullRequest.metadata };
-			params.metadata = currentPullRequest.metadata;
-		}
-
-		const response = (await HostApi.instance.send(new ExecuteThirdPartyTypedType<T, R>(), {
-			method: method,
-			providerId: providerId,
-			params: params
-		})) as any;
-		if (response && (!options || (options && !options.preventClearError))) {
-			dispatch(clearPullRequestError(providerId, pullRequestId));
-		}
-
-		if (response && response.directives) {
-			dispatch(handleDirectives(providerId, pullRequestId, response.directives));
-			return {
-				handled: true
-			};
-		}
-		return response as R;
-	} catch (error) {
-		let errorString = typeof error === "string" ? error : error.message;
-		if (errorString) {
-			if (
-				options &&
-				options.preventErrorReporting &&
-				(errorString.indexOf("ENOTFOUND") > -1 ||
-					errorString.indexOf("ETIMEDOUT") > -1 ||
-					errorString.indexOf("EAI_AGAIN") > -1 ||
-					errorString.indexOf("ECONNRESET") > -1 ||
-					errorString.indexOf("ENETDOWN") > -1 ||
-					errorString.indexOf("socket disconnected before secure") > -1)
-			) {
-				// ignores calls where the user might be offline
-				console.error(error);
+export const api = createAsyncThunk<any, ApiRequest, { state: CodeStreamState }>(
+	"providerPullRequests/api",
+	async (request, { getState, dispatch }) => {
+		const { method, options } = request;
+		let params = request.params;
+		let providerId;
+		let pullRequestId;
+		try {
+			const state = getState();
+			const currentPullRequest: PullRequest | undefined = state.context.currentPullRequest;
+			if (!currentPullRequest) {
+				dispatch(
+					setProviderError(providerId, pullRequestId, {
+						message: "currentPullRequest not found",
+					})
+				);
 				return undefined;
 			}
+			({ providerId, id: pullRequestId } = currentPullRequest);
+			params = params || {};
+			if (!params.pullRequestId) params.pullRequestId = pullRequestId;
+			if (currentPullRequest.metadata) {
+				params = { ...params, ...currentPullRequest.metadata };
+				params.metadata = currentPullRequest.metadata;
+			}
 
-			const target = "failed with message: ";
-			const targetLength = target.length;
-			const index = errorString.indexOf(target);
-			if (index > -1) {
-				errorString = errorString.substring(index + targetLength);
-				const jsonIndex = errorString.indexOf(`: {\"`);
-				// not the first character
-				if (jsonIndex > 0) {
-					errorString = errorString.substring(0, jsonIndex);
+			// TODO restore generics
+			const response = (await HostApi.instance.send(new ExecuteThirdPartyTypedType(), {
+				method: method,
+				providerId: providerId,
+				params: params,
+			})) as any;
+			if (response && (!options || (options && !options.preventClearError))) {
+				dispatch(pullRequestSlice.actions.clearPullRequestError({ providerId, id: pullRequestId }));
+			}
+
+			if (response && response.directives) {
+				dispatch(
+					pullRequestSlice.actions.handleDirectives({
+						providerId,
+						id: pullRequestId,
+						data: response.directives,
+					})
+				);
+				return {
+					handled: true,
+				};
+			}
+			return response; // TODO restore generics as R;
+		} catch (error) {
+			let errorString = typeof error === "string" ? error : error.message;
+			if (errorString) {
+				if (
+					options &&
+					options.preventErrorReporting &&
+					(errorString.indexOf("ENOTFOUND") > -1 ||
+						errorString.indexOf("ETIMEDOUT") > -1 ||
+						errorString.indexOf("EAI_AGAIN") > -1 ||
+						errorString.indexOf("ECONNRESET") > -1 ||
+						errorString.indexOf("ENETDOWN") > -1 ||
+						errorString.indexOf("socket disconnected before secure") > -1)
+				) {
+					// ignores calls where the user might be offline
+					console.error(error);
+					return undefined;
+				}
+
+				const target = "failed with message: ";
+				const targetLength = target.length;
+				const index = errorString.indexOf(target);
+				if (index > -1) {
+					errorString = errorString.substring(index + targetLength);
+					const jsonIndex = errorString.indexOf(`: {\"`);
+					// not the first character
+					if (jsonIndex > 0) {
+						errorString = errorString.substring(0, jsonIndex);
+					}
 				}
 			}
-		}
-		dispatch(
-			setProviderError(providerId, pullRequestId, {
-				message: errorString
-			})
-		);
-		logError(error, { providerId, pullRequestId, method, message: errorString });
+			dispatch(
+				setProviderError(providerId, pullRequestId, {
+					message: errorString,
+				})
+			);
+			logError(error, { providerId, pullRequestId, method, message: errorString });
 
-		HostApi.instance.track("PR Error", {
-			Host: providerId,
-			Operation: method,
-			Error: errorString,
-			IsOAuthError: errorString && errorString.indexOf("OAuth App access restrictions") > -1
-		});
-		return undefined;
+			HostApi.instance.track("PR Error", {
+				Host: providerId,
+				Operation: method,
+				Error: errorString,
+				IsOAuthError: errorString && errorString.indexOf("OAuth App access restrictions") > -1,
+			});
+			return undefined;
+		}
 	}
+);
+
+const isAnHourOld = conversationsLastFetch => {
+	return conversationsLastFetch > 0 && Date.now() - conversationsLastFetch > 60 * 60 * 1000;
 };

@@ -1,5 +1,5 @@
+import { useAppDispatch } from "@codestream/webview/utilities/hooks";
 import React, { useState } from "react";
-import { useDispatch } from "react-redux";
 import Icon from "../../Icon";
 import { Button } from "@codestream/webview/src/components/Button";
 import { OutlineBox, FlexRow } from "./PullRequest";
@@ -9,7 +9,7 @@ import Tooltip from "../../Tooltip";
 import { GitLabMergeRequest } from "@codestream/protocols/agent";
 
 export const ApproveBox = (props: { pr: GitLabMergeRequest }) => {
-	const dispatch = useDispatch();
+	const dispatch = useAppDispatch();
 
 	if (!props.pr.userPermissions?.canApprove || !props.pr.supports.approvals) return null;
 
@@ -18,8 +18,11 @@ export const ApproveBox = (props: { pr: GitLabMergeRequest }) => {
 		setIsLoading(true);
 		try {
 			await dispatch(
-				api("togglePullRequestApproval", {
-					approve: approve
+				api({
+					method: "togglePullRequestApproval",
+					params: {
+						approve: approve,
+					},
 				})
 			);
 		} catch (ex) {
