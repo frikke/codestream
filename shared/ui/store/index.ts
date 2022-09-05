@@ -74,7 +74,7 @@ export const store = configureStore({
 	// 	getDefaultMiddleware().prepend(
 	// 		batchedSubscribe(debounceToAnimationFrame((notify: Function) => notify())) as any
 	// 	),
-	enhancers: [batchedSubscribe(debounceToAnimationFrame)],
+	enhancers: [batchedSubscribe(debounceToAnimationFrame((notify: Function) => notify()))],
 });
 
 export type AppDispatch = typeof store.dispatch;

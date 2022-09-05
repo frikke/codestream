@@ -178,19 +178,23 @@ export const getPullRequestConversationsFromProvider = createAsyncThunk<
 >("providerPullRequests/getPullRequestConversationsFromProvider", async (request, { dispatch }) => {
 	const { providerId, id } = request;
 	try {
+		console.info("clearPullRequestError");
 		dispatch(pullRequestSlice.actions.clearPullRequestError(request));
 
+		console.info("_getPullRequestConversationsFromProvider");
 		const responses = await _getPullRequestConversationsFromProvider(
 			providerId,
 			id,
 			"getPullRequestConversationsFromProvider"
 		);
+		console.info("addPullRequestConversations");
 		dispatch(
 			pullRequestSlice.actions.addPullRequestConversations({
 				...request,
 				conversations: responses.conversations,
 			})
 		);
+		console.info("addPullRequestCollaborators");
 		dispatch(
 			pullRequestSlice.actions.addPullRequestCollaborators({
 				...request,
@@ -198,7 +202,7 @@ export const getPullRequestConversationsFromProvider = createAsyncThunk<
 			})
 		);
 
-		return responses.conversations as FetchThirdPartyPullRequestResponse;
+		return responses.conversations;
 	} catch (error) {
 		logError(`failed to refresh pullRequest: ${error?.message}`, { providerId, id });
 	}
@@ -310,7 +314,7 @@ export const getPullRequestFiles = createAsyncThunk<
 				commits,
 			});
 		} else {
-			const dispatchResponse = await dispatch(
+			response = await dispatch(
 				api({
 					method: "getPullRequestFilesChanged",
 					params: {
@@ -318,10 +322,7 @@ export const getPullRequestFiles = createAsyncThunk<
 						accessRawDiffs,
 					},
 				})
-			);
-			if (isGetCommitsFilesResponse(dispatchResponse)) {
-				response = dispatchResponse;
-			}
+			).unwrap();
 		}
 
 		if (!response) {
@@ -351,18 +352,14 @@ export const getPullRequestFilesFromProvider = createAsyncThunk<
 >("providerPullRequests/getPullRequestFilesFromProvider", async (request, { dispatch }) => {
 	const { id, providerId } = request;
 	try {
-		const dispatchResponse = await dispatch(
+		const response = await dispatch(
 			api({
 				method: "getPullRequestFilesChanged",
 				params: {
 					pullRequestId: id,
 				},
 			})
-		);
-		if (!isGetCommitsFilesResponse(dispatchResponse)) {
-			return undefined;
-		}
-		const response = dispatchResponse;
+		).unwrap();
 		//  as GetCommitsFilesResponse[];
 		// JSON.stringify matches the other use of this call
 		dispatch(
@@ -395,7 +392,7 @@ export const getMyPullRequests = createAsyncThunk<
 	PRRequest,
 	{ state: CodeStreamState }
 >("providerPullRequests/myPullRequests", async (request: PRRequest, { getState, dispatch }) => {
-	const { providerId, queries, openReposOnly, options, index, throwOnError } = request;
+	const { providerId, queries, openReposOnly, options, index, throwOnError, test } = request;
 	try {
 		let force = false;
 		if (!options || !options.force) {
@@ -692,6 +689,7 @@ export const api = createAsyncThunk<any, ApiRequest, { state: CodeStreamState }>
 			const state = getState();
 			const currentPullRequest: PullRequest | undefined = state.context.currentPullRequest;
 			if (!currentPullRequest) {
+				console.info("=== setProviderError");
 				dispatch(
 					setProviderError(providerId, pullRequestId, {
 						message: "currentPullRequest not found",
@@ -714,10 +712,12 @@ export const api = createAsyncThunk<any, ApiRequest, { state: CodeStreamState }>
 				params: params,
 			})) as any;
 			if (response && (!options || (options && !options.preventClearError))) {
+				console.info("=== clearPullRequestError");
 				dispatch(pullRequestSlice.actions.clearPullRequestError({ providerId, id: pullRequestId }));
 			}
 
 			if (response && response.directives) {
+				console.info("=== handleDirectives");
 				dispatch(
 					pullRequestSlice.actions.handleDirectives({
 						providerId,
@@ -760,6 +760,7 @@ export const api = createAsyncThunk<any, ApiRequest, { state: CodeStreamState }>
 					}
 				}
 			}
+			console.info("=== setProviderError 2");
 			dispatch(
 				setProviderError(providerId, pullRequestId, {
 					message: errorString,

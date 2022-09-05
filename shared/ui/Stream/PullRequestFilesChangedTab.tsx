@@ -21,6 +21,7 @@ import {
 	DidChangeDataNotificationType,
 	FetchThirdPartyPullRequestCommitsResponse,
 	FetchThirdPartyPullRequestPullRequest,
+	GetCommitsFilesResponse,
 } from "@codestream/protocols/agent";
 import { HostApi } from "../webview-api";
 import Icon from "./Icon";
@@ -85,7 +86,7 @@ export const PullRequestFilesChangedTab = (props: {
 
 	// const [lastReviewCommitOid, setLastReviewCommitOid] = useState<string | undefined>();
 
-	const _mapData = data => {
+	const _mapData = (data: GetCommitsFilesResponse[]) => {
 		const filesChanged = data?.map(_ => {
 			return {
 				..._,
@@ -100,7 +101,7 @@ export const PullRequestFilesChangedTab = (props: {
 		setIsLoading(false);
 	};
 
-	const _mapCommitsData = data => {
+	const _mapCommitsData = (data: FetchThirdPartyPullRequestCommitsResponse[]) => {
 		setPrCommits(
 			data.sort((a, b) => new Date(a.authoredDate).getTime() - new Date(b.authoredDate).getTime())
 		);
@@ -131,12 +132,13 @@ export const PullRequestFilesChangedTab = (props: {
 	useEffect(() => {
 		(async () => {
 			setIsLoading(true);
-			const data = await dispatch(
-				getPullRequestFilesFromProvider({
-					providerId: pr.providerId,
-					id: derivedState.currentPullRequestId!,
-				})
-			);
+			const data =
+				(await dispatch(
+					getPullRequestFilesFromProvider({
+						providerId: pr.providerId,
+						id: derivedState.currentPullRequestId!,
+					})
+				).unwrap()) ?? [];
 			_mapData(data);
 		})();
 	}, [pr?.files?.totalCount]);
@@ -145,21 +147,26 @@ export const PullRequestFilesChangedTab = (props: {
 		setIsLoading(true);
 		let disposable;
 		(async () => {
-			const prCommitsData = await dispatch(
-				getPullRequestCommits({ providerId: pr.providerId, id: derivedState.currentPullRequestId! })
-			);
+			const prCommitsData =
+				(await dispatch(
+					getPullRequestCommits({
+						providerId: pr.providerId,
+						id: derivedState.currentPullRequestId!,
+					})
+				).unwrap()) ?? [];
 			_mapCommitsData(prCommitsData);
 			await getPRFiles();
 
 			disposable = HostApi.instance.on(DidChangeDataNotificationType, async (e: any) => {
 				if (e.type === ChangeDataType.Commits) {
 					setIsLoading(true);
-					const data = await dispatch(
-						getPullRequestFilesFromProvider({
-							providerId: pr.providerId,
-							id: derivedState.currentPullRequestId!,
-						})
-					);
+					const data =
+						(await dispatch(
+							getPullRequestFilesFromProvider({
+								providerId: pr.providerId,
+								id: derivedState.currentPullRequestId!,
+							})
+						).unwrap()) ?? [];
 					_mapData(data);
 				}
 			});
@@ -171,26 +178,28 @@ export const PullRequestFilesChangedTab = (props: {
 
 	const getPRFiles = async () => {
 		if (prCommitsRange.length > 0 && derivedState.currentRepo) {
-			const data = await dispatch(
-				getPullRequestFiles({
-					providerId: pr.providerId,
-					id: derivedState.currentPullRequestId!,
-					commits: prCommitsRange,
-					repoId: derivedState.currentRepo.id,
-					accessRawDiffs,
-				})
-			);
+			const data =
+				(await dispatch(
+					getPullRequestFiles({
+						providerId: pr.providerId,
+						id: derivedState.currentPullRequestId!,
+						commits: prCommitsRange,
+						repoId: derivedState.currentRepo.id,
+						accessRawDiffs,
+					})
+				).unwrap()) ?? [];
 			_mapData(data);
 		} else {
-			const data = await dispatch(
-				getPullRequestFiles({
-					providerId: pr.providerId,
-					id: derivedState.currentPullRequestId!,
-					commits: undefined,
-					repoId: undefined,
-					accessRawDiffs,
-				})
-			);
+			const data =
+				(await dispatch(
+					getPullRequestFiles({
+						providerId: pr.providerId,
+						id: derivedState.currentPullRequestId!,
+						commits: undefined,
+						repoId: undefined,
+						accessRawDiffs,
+					})
+				).unwrap()) ?? [];
 			_mapData(data);
 		}
 	};

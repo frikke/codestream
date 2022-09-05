@@ -60,7 +60,7 @@ import {
 import { logWarning } from "./logger";
 import { store } from "./store";
 import { bootstrap, reset } from "./store/actions";
-// import translationsEs from "./translations/es";
+
 import {
 	apiCapabilitiesUpdated,
 	apiUpgradeRecommended,
@@ -111,6 +111,8 @@ import { confirmPopup } from "./Stream/Confirm";
 import translations from "./translations/en";
 import { parseProtocol } from "./utilities/urls";
 import { HostApi } from "./webview-api";
+
+// import translationsEs from "./translations/es";
 
 export function setupCommunication(host: { postMessage: (message: any) => void }) {
 	Object.defineProperty(window, "acquireCodestreamHost", {

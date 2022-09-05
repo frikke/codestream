@@ -18,11 +18,11 @@ import { CurrentRepoResponse, ProviderPullRequestsState, RepoPullRequest } from 
 
 const initialState: ProviderPullRequestsState = { pullRequests: {}, myPullRequests: [] };
 
-const createNewObject = (state, action) => {
-	const newState = { ...state.pullRequests };
-	newState[action.payload.providerId] = newState[action.payload.providerId] || {};
-	return newState;
-};
+// const createNewObject = (state, action) => {
+// 	const newState = { ...state.pullRequests };
+// 	newState[action.payload.providerId] = newState[action.payload.providerId] || {};
+// 	return newState;
+// };
 
 function parseId(idOrJson?: string): string | undefined {
 	if (!idOrJson) {
@@ -100,88 +100,54 @@ const slice = createSlice({
 	initialState,
 	reducers: {
 		addMyPullRequests: (state, action: PayloadAction<PullRequestPayload>) => {
-			const newState = { ...state.myPullRequests };
-			newState[action.payload.providerId] = action.payload.data;
-
-			return {
-				myPullRequests: newState,
-				pullRequests: { ...state.pullRequests },
-			};
+			state.myPullRequests[action.payload.providerId] = action.payload.data;
+			return;
 		},
 		updatePullRequestFilter: (state, action: PayloadAction<PullRequestFilterPayload>) => {
-			const newState = { ...state.myPullRequests };
-			if (newState[action.payload.providerId]) {
-				newState[action.payload.providerId][action.payload.index] = action.payload.data;
-			}
-			return {
-				myPullRequests: newState,
-				pullRequests: { ...state.pullRequests },
-			};
+			state.myPullRequests[action.payload.providerId][action.payload.index] = action.payload.data;
+			return;
 		},
 		addPullRequestFiles: (state, action: PayloadAction<AddPullRequestFilesPayload>) => {
 			const id = parseId(action.payload.id);
 			if (!id) {
-				return state;
+				return;
 			}
-			const newState = createNewObject(state, action);
-			const files = {
-				...newState[action.payload.providerId][id].files,
-			};
+
+			state.pullRequests[action.payload.providerId][id].accessRawDiffs =
+				action.payload.accessRawDiffs;
+			const files = state.pullRequests[action.payload.providerId][id].files ?? {};
 			files[action.payload.commits] = action.payload.pullRequestFiles;
-			newState[action.payload.providerId][id] = {
-				...newState[action.payload.providerId][id],
-				accessRawDiffs: action.payload.accessRawDiffs,
-				files,
-			};
-			return {
-				myPullRequests: { ...state.myPullRequests },
-				pullRequests: newState,
-			};
+			state.pullRequests[action.payload.providerId][id].files = files;
+
+			return;
 		},
 		clearPullRequestFiles: (state, action: PayloadAction<PullRequestIdPayload>) => {
 			const id = parseId(action.payload.id);
 			if (!id) {
-				return state;
+				return;
 			}
-			const newState = createNewObject(state, action);
-			newState[action.payload.providerId][id] = {
-				...newState[action.payload.providerId][id],
-				files: [],
-			};
-			return {
-				myPullRequests: { ...state.myPullRequests },
-				pullRequests: newState,
-			};
+
+			state.pullRequests[action.payload.providerId][id].files = {};
+
+			return;
 		},
 		addPullRequestCommits: (state, action: PayloadAction<PullRequestCommitsPayload>) => {
 			const id = parseId(action.payload.id);
 			if (!id) {
-				return state;
+				return;
 			}
-			const newState = createNewObject(state, action);
-			newState[action.payload.providerId][id] = {
-				...newState[action.payload.providerId][id],
-				commits: action.payload.pullRequestCommits,
-			};
-			return {
-				myPullRequests: { ...state.myPullRequests },
-				pullRequests: newState,
-			};
+			state.pullRequests[action.payload.providerId][id].commits = action.payload.pullRequestCommits;
+			return;
 		},
 		clearPullRequestCommits: (state, action: PayloadAction<PullRequestIdPayload>) => {
 			const id = parseId(action.payload.id);
 			if (!id) {
 				return state;
 			}
-			const newState = createNewObject(state, action);
-			newState[action.payload.providerId][id] = {
-				...newState[action.payload.providerId][id],
-				commits: [],
-			};
-			return {
-				myPullRequests: { ...state.myPullRequests },
-				pullRequests: newState,
-			};
+
+			state.pullRequests[action.payload.providerId][id].commits = [];
+
+			return;
 		},
 		addPullRequestCollaborators: (
 			state,
@@ -189,34 +155,24 @@ const slice = createSlice({
 		) => {
 			const id = parseId(action.payload.id);
 			if (!id) {
-				return state;
+				return;
 			}
-			const newState = createNewObject(state, action);
-			newState[action.payload.providerId][id] = {
-				...newState[action.payload.providerId][id],
-				collaborators: action.payload.collaborators,
-			};
-			return {
-				myPullRequests: { ...state.myPullRequests },
-				pullRequests: newState,
-			};
+			state.pullRequests[action.payload.providerId][id].collaborators =
+				action.payload.collaborators;
+			return;
 		},
 		updatePullRequestTitle: (state, action: PayloadAction<UpdatePullRequestTitlePayload>) => {
-			const newState = { ...state.myPullRequests };
-			newState[action.payload.providerId]["data"]?.forEach((arr: any, index) => {
+			state.myPullRequests[action.payload.providerId]["data"]?.forEach((arr: any, index) => {
 				arr?.forEach((pr, i) => {
 					if (pr.id === action.payload.id) {
-						newState[action.payload.providerId]["data"]![index][i] = {
-							...newState[action.payload.providerId]["data"]![index][i],
+						state.myPullRequests[action.payload.providerId]["data"]![index][i] = {
+							...state.myPullRequests[action.payload.providerId]["data"]![index][i],
 							title: action.payload.pullRequestData.title,
 						};
 					}
 				});
 			});
-			return {
-				myPullRequests: newState,
-				pullRequests: { ...state.pullRequests },
-			};
+			return;
 		},
 		addPullRequestConversations: (
 			state,
@@ -224,63 +180,50 @@ const slice = createSlice({
 		) => {
 			const id = parseId(action.payload.id);
 			if (!id) {
-				return state;
+				return;
 			}
-			const newState = createNewObject(state, action);
-			newState[action.payload.providerId][id] = {
-				...newState[action.payload.providerId][id],
+			if (!state.pullRequests[action.payload.providerId]) {
+				state.pullRequests[action.payload.providerId] = {};
+			}
+			state.pullRequests[action.payload.providerId][id] = {
+				...state.pullRequests[action.payload.providerId][id],
 				conversations: action.payload.conversations,
 				conversationsLastFetch: Date.now(),
 			};
-			return {
-				myPullRequests: { ...state.myPullRequests },
-				pullRequests: newState,
-			};
+			// state.pullRequests[action.payload.providerId][id].conversations =
+			// 	action.payload.conversations;
+			// state.pullRequests[action.payload.providerId][id].conversationsLastFetch = Date.now();
+			return;
 		},
 		clearPullRequestError: (state, action: PayloadAction<PullRequestIdPayload>) => {
 			const id = parseId(action.payload.id);
 			if (!id) {
-				return state;
+				return;
 			}
-			const newState = createNewObject(state, action);
-			newState[action.payload.providerId][id] = {
-				...newState[action.payload.providerId][id],
-			};
-			newState[action.payload.providerId][id].error = undefined;
-			return {
-				myPullRequests: { ...state.myPullRequests },
-				pullRequests: newState,
-			};
+			if (state.pullRequests[action.payload.providerId]?.[id]?.error) {
+				state.pullRequests[action.payload.providerId][id].error = undefined;
+			}
+
+			return;
 		},
 		addPullRequestError: (state, action: PayloadAction<AddPullRequestErrorPayload>) => {
 			const id = parseId(action.payload.id);
 			if (!id) {
-				return state;
+				return;
 			}
-			const newState = createNewObject(state, action);
-			newState[action.payload.providerId][id] = {
-				...newState[action.payload.providerId][id],
-			};
-			newState[action.payload.providerId][id].error = action.payload.error;
-			return {
-				myPullRequests: { ...state.myPullRequests },
-				pullRequests: newState,
-			};
+			state.pullRequests[action.payload.providerId][id].error = action.payload.error;
+			return;
 		},
 		handleDirectives: (state, action: PayloadAction<HandleDirectivesPayload>) => {
 			const id = parseId(action.payload.id);
 			if (!id) {
-				return state;
+				return;
 			}
-			const newState = { ...state.pullRequests };
 			const providerId = action.payload.providerId;
-			newState[providerId] = newState[action.payload.providerId] || {};
-			newState[providerId][id] = {
-				...newState[providerId][id],
-			};
-			if (newState[providerId][id] && newState[providerId][id].conversations) {
+
+			if (state.pullRequests[providerId][id] && state.pullRequests[providerId][id].conversations) {
 				if (providerId === "gitlab*com" || providerId === "gitlab/enterprise") {
-					const pr = newState[providerId][id].conversations.project
+					const pr = state.pullRequests[providerId][id].conversations.project
 						.mergeRequest as GitLabMergeRequest;
 					for (const directive of action.payload.data) {
 						if (directive.type === "addApprovedBy") {
@@ -528,7 +471,7 @@ const slice = createSlice({
 						}
 					}
 				} else if (providerId === "github*com" || providerId === "github/enterprise") {
-					const pr = newState[providerId][id].conversations.repository
+					const pr = state.pullRequests[providerId][id].conversations.repository
 						.pullRequest as FetchThirdPartyPullRequestPullRequest;
 					/**
 					 *
@@ -889,10 +832,7 @@ const slice = createSlice({
 					}
 				}
 			}
-			return {
-				myPullRequests: { ...state.myPullRequests },
-				pullRequests: newState,
-			};
+			return;
 		},
 		reset: _state => {
 			return initialState;

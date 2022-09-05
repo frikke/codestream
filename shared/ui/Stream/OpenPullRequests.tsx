@@ -493,7 +493,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 		const newGroups = {};
 		for (const connectedProvider of PRConnectedProviders) {
 			if (derivedState.myPullRequests && derivedState.myPullRequests[connectedProvider.id]) {
-				newGroups[connectedProvider.id] = derivedState.myPullRequests[connectedProvider.id].data;
+				newGroups[connectedProvider.id] = derivedState.myPullRequests[connectedProvider.id];
 			}
 		}
 		setPullRequestGroups(newGroups);
