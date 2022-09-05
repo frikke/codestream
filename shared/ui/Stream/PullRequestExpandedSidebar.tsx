@@ -12,7 +12,7 @@ import { Row } from "./CrossPostIssueControls/IssuesPane";
 import { openModal } from "../store/context/actions";
 import { WebviewModals } from "../ipc/webview.protocol.common";
 import { HostApi } from "../webview-api";
-import { api } from "../store/providerPullRequests/actions";
+import { api } from "../store/providerPullRequests/thunk";
 
 export const ReviewButton = styled.div`
 	color: white;

@@ -18,12 +18,6 @@ import { CurrentRepoResponse, ProviderPullRequestsState, RepoPullRequest } from 
 
 const initialState: ProviderPullRequestsState = { pullRequests: {}, myPullRequests: [] };
 
-// const createNewObject = (state, action) => {
-// 	const newState = { ...state.pullRequests };
-// 	newState[action.payload.providerId] = newState[action.payload.providerId] || {};
-// 	return newState;
-// };
-
 function parseId(idOrJson?: string): string | undefined {
 	if (!idOrJson) {
 		return undefined;
@@ -95,7 +89,7 @@ export interface HandleDirectivesPayload extends PullRequestIdPayload {
 	data: Directive[];
 }
 
-const slice = createSlice({
+const providerPullRequestsSlice = createSlice({
 	name: "providerPullRequests",
 	initialState,
 	reducers: {
@@ -1095,4 +1089,19 @@ export const getProviderPullRequestCollaborators = createSelector(
 	}
 );
 
-export default slice;
+export const {
+	addMyPullRequests,
+	addPullRequestCollaborators,
+	addPullRequestCommits,
+	addPullRequestConversations,
+	addPullRequestError,
+	addPullRequestFiles,
+	clearPullRequestCommits,
+	clearPullRequestError,
+	clearPullRequestFiles,
+	handleDirectives,
+	reset,
+	updatePullRequestFilter,
+	updatePullRequestTitle,
+} = providerPullRequestsSlice.actions;
+export default providerPullRequestsSlice.reducer;

@@ -27,7 +27,7 @@ import { logError } from "../logger";
 import { useDispatch, useSelector } from "react-redux";
 import { useAppDispatch, useAppSelector, useDidMount } from "../utilities/hooks";
 import { Loading } from "../Container/Loading";
-import { supportsSSOSignIn } from "../store/configs/reducer";
+import { supportsSSOSignIn } from "../store/configs/slice";
 import { Server } from "../webview-api";
 import { PresentTOS } from "./PresentTOS";
 import Tooltip from "../Stream/Tooltip";

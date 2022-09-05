@@ -10,11 +10,11 @@ import { CodeStreamState } from "@codestream/webview/store";
 import { Link } from "../../Link";
 import { CommandLineInstructions } from "./CommandLineInstructions";
 import styled from "styled-components";
-import { api } from "../../../store/providerPullRequests/actions";
+import { api } from "../../../store/providerPullRequests/thunk";
 import {
 	getCurrentProviderPullRequestObject,
 	getCurrentProviderPullRequestRootObject,
-} from "../../../store/providerPullRequests/reducer";
+} from "../../../store/providerPullRequests/slice";
 import { GitLabMergeRequest, GitLabMergeRequestWrapper } from "@codestream/protocols/agent";
 import { useAppDispatch, useAppSelector, useDidMount } from "@codestream/webview/utilities/hooks";
 import Timestamp from "../../Timestamp";

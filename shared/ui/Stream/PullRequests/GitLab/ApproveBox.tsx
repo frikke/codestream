@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import Icon from "../../Icon";
 import { Button } from "@codestream/webview/src/components/Button";
 import { OutlineBox, FlexRow } from "./PullRequest";
-import { api } from "../../../store/providerPullRequests/actions";
+import { api } from "../../../store/providerPullRequests/thunk";
 import { PRHeadshotName } from "@codestream/webview/src/components/HeadshotName";
 import Tooltip from "../../Tooltip";
 import { GitLabMergeRequest } from "@codestream/protocols/agent";

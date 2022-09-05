@@ -13,7 +13,7 @@ import {
 	FetchThirdPartyPullRequestPullRequest,
 	GitLabMergeRequest,
 } from "@codestream/protocols/agent";
-import { api } from "../store/providerPullRequests/actions";
+import { api } from "../store/providerPullRequests/thunk";
 import {
 	PullRequestReactButton as GitLabPullRequestReactButton,
 	PullRequestReactions as GitLabPullRequestReactions,

@@ -1,12 +1,11 @@
+import { updateConfigs } from "@codestream/webview/store/configs/slice";
 import { changeRegistrationEmail, setEnvironment } from "@codestream/webview/store/session/thunks";
 import React, { useState, useCallback } from "react";
 import Button from "../Stream/Button";
 import { Link } from "../Stream/Link";
 import { FormattedMessage } from "react-intl";
 import { goToLogin } from "../store/context/actions";
-import { updateConfigs } from "../store/configs/actions";
 import { logError } from "../logger";
-import { useDispatch, useSelector } from "react-redux";
 import Icon from "../Stream/Icon";
 import { useAppDispatch, useAppSelector, useDidMount } from "../utilities/hooks";
 import styled from "styled-components";

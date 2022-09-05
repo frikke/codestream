@@ -23,17 +23,18 @@ import { ErrorMessage } from "../../../src/components/ErrorMessage";
 import { LoadingMessage } from "../../../src/components/LoadingMessage";
 import { clearCurrentPullRequest, setCurrentPullRequest } from "../../../store/context/actions";
 import {
-	api,
-	clearPullRequestFiles,
-	getPullRequestConversations,
-	getPullRequestConversationsFromProvider,
-} from "../../../store/providerPullRequests/actions";
-import providerPullRequestsSlice, {
+	clearPullRequestCommits,
 	getCurrentProviderPullRequest,
 	getCurrentProviderPullRequestLastUpdated,
 	getPullRequestExactId,
 	getPullRequestId,
-} from "../../../store/providerPullRequests/reducer";
+} from "../../../store/providerPullRequests/slice";
+import {
+	api,
+	clearPullRequestFiles,
+	getPullRequestConversations,
+	getPullRequestConversationsFromProvider,
+} from "../../../store/providerPullRequests/thunk";
 import { getPreferences } from "../../../store/users/reducer";
 import { HostApi } from "../../../webview-api";
 import CancelButton from "../../CancelButton";
@@ -539,7 +540,7 @@ export const PullRequest = () => {
 			)
 		);
 		dispatch(
-			providerPullRequestsSlice.actions.clearPullRequestCommits({
+			clearPullRequestCommits({
 				providerId: derivedState.currentPullRequestProviderId!,
 				id: derivedState.currentPullRequestId!,
 			})

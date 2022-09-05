@@ -1,7 +1,7 @@
 import {
 	getProviderPullRequestRepo,
 	getCurrentProviderPullRequest,
-} from "@codestream/webview/store/providerPullRequests/reducer";
+} from "@codestream/webview/store/providerPullRequests/slice";
 import { DropdownButton } from "@codestream/webview/Stream/DropdownButton";
 import { distanceOfTimeInWords } from "@codestream/webview/Stream/Timestamp";
 import React, { useState, useEffect, useMemo } from "react";
@@ -14,7 +14,7 @@ import {
 	getPullRequestCommits,
 	getPullRequestFiles,
 	getPullRequestFilesFromProvider,
-} from "../store/providerPullRequests/actions";
+} from "../store/providerPullRequests/thunk";
 import { PullRequestFilesChangedList } from "./PullRequestFilesChangedList";
 import {
 	ChangeDataType,

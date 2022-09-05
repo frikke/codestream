@@ -6,7 +6,6 @@ import {
 	FetchAssignableUsersResponse,
 	FetchThirdPartyPullRequestCommitsResponse,
 	FetchThirdPartyPullRequestCommitsType,
-	FetchThirdPartyPullRequestFilesResponse,
 	FetchThirdPartyPullRequestRequestType,
 	FetchThirdPartyPullRequestResponse,
 	GetCommitsFilesRequestType,
@@ -20,103 +19,29 @@ import { PullRequest } from "@codestream/protocols/webview";
 import { logError } from "@codestream/webview/logger";
 import { setProviderError } from "@codestream/webview/store/codeErrors/thunks";
 import {
+	addMyPullRequests,
+	addPullRequestCollaborators,
+	addPullRequestCommits,
+	addPullRequestConversations,
+	addPullRequestFiles,
+	clearPullRequestError,
 	getPullRequestExactId,
+	handleDirectives,
 	PullRequestIdPayload,
-} from "@codestream/webview/store/providerPullRequests/reducer";
+	updatePullRequestFilter,
+} from "@codestream/webview/store/providerPullRequests/slice";
 import { HostApi } from "@codestream/webview/webview-api";
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { isArrayLike } from "lodash-es";
 import { RequestType } from "vscode-languageserver-protocol";
-import { AppDispatch, CodeStreamState } from "..";
+import { CodeStreamState } from "..";
 import { action } from "../common";
 import {
 	setCurrentPullRequest,
 	setCurrentPullRequestAndBranch,
 	setCurrentReview,
 } from "../context/actions";
-// import { getPullRequestExactId, isAnHourOld } from "./reducer";
 import { getPRLabelForProvider } from "../providers/reducer";
-import { ProviderPullRequestActionsTypes, ProviderPullRequestsState } from "./types";
-import pullRequestSlice from "./reducer";
-
-// export const reset = () => action("RESET");
-//
-// export const _addPullRequestConversations = (providerId: string, id: string, pullRequest: any) =>
-// 	action(ProviderPullRequestActionsTypes.AddPullRequestConversations, {
-// 		providerId,
-// 		id,
-// 		pullRequest
-// 	});
-//
-// export const _addPullRequestCollaborators = (providerId: string, id: string, collaborators: any) =>
-// 	action(ProviderPullRequestActionsTypes.AddPullRequestCollaborators, {
-// 		providerId,
-// 		id,
-// 		collaborators
-// 	});
-//
-// export const updatePullRequestTitle = (providerId: string, id: string, pullRequestData: any) =>
-// 	action(ProviderPullRequestActionsTypes.UpdatePullRequestTitle, {
-// 		providerId,
-// 		id,
-// 		pullRequestData
-// 	});
-//
-// export const _updatePullRequestFilter = (providerId: string, data: any, index: any) =>
-// 	action(ProviderPullRequestActionsTypes.UpdatePullRequestFilter, {
-// 		providerId,
-// 		data,
-// 		index
-// 	});
-//
-// export const _addPullRequestFiles = (
-// 	providerId: string,
-// 	id: string,
-// 	commits: string,
-// 	pullRequestFiles: any,
-// 	accessRawDiffs?: boolean
-// ) =>
-// 	action(ProviderPullRequestActionsTypes.AddPullRequestFiles, {
-// 		providerId,
-// 		id,
-// 		commits,
-// 		pullRequestFiles,
-// 		accessRawDiffs
-// 	});
-//
-// export const _addPullRequestCommits = (providerId: string, id: string, pullRequestCommits: any) =>
-// 	action(ProviderPullRequestActionsTypes.AddPullRequestCommits, {
-// 		providerId,
-// 		id,
-// 		pullRequestCommits
-// 	});
-//
-// export const _addMyPullRequests = (providerId: string, data: any) =>
-// 	action(ProviderPullRequestActionsTypes.AddMyPullRequests, {
-// 		providerId,
-// 		data
-// 	});
-//
-// export const _addPullRequestError = (providerId: string, id: string, error?: { message: string }) =>
-// 	action(ProviderPullRequestActionsTypes.AddPullRequestError, {
-// 		providerId,
-// 		id,
-// 		error
-// 	});
-//
-// export const clearPullRequestError = (providerId: string, id: string) =>
-// 	action(ProviderPullRequestActionsTypes.ClearPullRequestError, {
-// 		providerId,
-// 		id,
-// 		undefined
-// 	});
-//
-// export const handleDirectives = (providerId: string, id: string, data: any) =>
-// 	action(ProviderPullRequestActionsTypes.HandleDirectives, {
-// 		providerId,
-// 		id,
-// 		data
-// 	});
+import { ProviderPullRequestActionsTypes } from "./types";
 
 const _getPullRequestConversationsFromProvider = async (
 	providerId: string,
@@ -179,7 +104,7 @@ export const getPullRequestConversationsFromProvider = createAsyncThunk<
 	const { providerId, id } = request;
 	try {
 		console.info("clearPullRequestError");
-		dispatch(pullRequestSlice.actions.clearPullRequestError(request));
+		dispatch(clearPullRequestError(request));
 
 		console.info("_getPullRequestConversationsFromProvider");
 		const responses = await _getPullRequestConversationsFromProvider(
@@ -189,14 +114,14 @@ export const getPullRequestConversationsFromProvider = createAsyncThunk<
 		);
 		console.info("addPullRequestConversations");
 		dispatch(
-			pullRequestSlice.actions.addPullRequestConversations({
+			addPullRequestConversations({
 				...request,
 				conversations: responses.conversations,
 			})
 		);
 		console.info("addPullRequestCollaborators");
 		dispatch(
-			pullRequestSlice.actions.addPullRequestCollaborators({
+			addPullRequestCollaborators({
 				...request,
 				collaborators: responses.collaborators,
 			})
@@ -240,13 +165,13 @@ export const getPullRequestConversations = createAsyncThunk<
 			"getPullRequestConversations"
 		);
 		await dispatch(
-			pullRequestSlice.actions.addPullRequestConversations({
+			addPullRequestConversations({
 				...request,
 				conversations: responses.conversations,
 			})
 		);
 		await dispatch(
-			pullRequestSlice.actions.addPullRequestCollaborators({
+			addPullRequestCollaborators({
 				...request,
 				collaborators: responses.collaborators,
 			})
@@ -275,10 +200,6 @@ interface GetPullRequestFiles {
 	commits?: string[];
 	repoId?: string;
 	accessRawDiffs?: boolean;
-}
-
-function isGetCommitsFilesResponse(response: any): response is GetCommitsFilesResponse[] {
-	return isArrayLike(response);
 }
 
 export const getPullRequestFiles = createAsyncThunk<
@@ -330,7 +251,7 @@ export const getPullRequestFiles = createAsyncThunk<
 		}
 
 		dispatch(
-			pullRequestSlice.actions.addPullRequestFiles({
+			addPullRequestFiles({
 				providerId,
 				id,
 				commits: commitsIndex,
@@ -363,7 +284,7 @@ export const getPullRequestFilesFromProvider = createAsyncThunk<
 		//  as GetCommitsFilesResponse[];
 		// JSON.stringify matches the other use of this call
 		dispatch(
-			pullRequestSlice.actions.addPullRequestFiles({
+			addPullRequestFiles({
 				providerId,
 				id,
 				commits: JSON.stringify([]),
@@ -422,11 +343,9 @@ export const getMyPullRequests = createAsyncThunk<
 			},
 		});
 		if (index !== undefined) {
-			dispatch(
-				pullRequestSlice.actions.updatePullRequestFilter({ providerId, data: response, index })
-			);
+			dispatch(updatePullRequestFilter({ providerId, data: response, index }));
 		} else if (!test) {
-			dispatch(pullRequestSlice.actions.addMyPullRequests({ providerId, data: response }));
+			dispatch(addMyPullRequests({ providerId, data: response }));
 		}
 
 		return response;
@@ -459,9 +378,7 @@ export const getPullRequestCommitsFromProvider = createAsyncThunk<
 				providerId,
 				pullRequestId: id,
 			});
-			dispatch(
-				pullRequestSlice.actions.addPullRequestCommits({ ...request, pullRequestCommits: response })
-			);
+			dispatch(addPullRequestCommits({ ...request, pullRequestCommits: response }));
 			return response;
 		} catch (error) {
 			logError(error, { detail: `failed to refresh pullRequest commits`, providerId, id });
@@ -500,7 +417,7 @@ export const getPullRequestCommits = createAsyncThunk<
 			pullRequestId: id,
 		});
 		dispatch(
-			pullRequestSlice.actions.addPullRequestCommits({
+			addPullRequestCommits({
 				providerId,
 				id,
 				pullRequestCommits: response,
@@ -709,13 +626,13 @@ export const api = createAsyncThunk<any, ApiRequest, { state: CodeStreamState }>
 			})) as any;
 			if (response && (!options || (options && !options.preventClearError))) {
 				console.info("=== clearPullRequestError");
-				dispatch(pullRequestSlice.actions.clearPullRequestError({ providerId, id: pullRequestId }));
+				dispatch(clearPullRequestError({ providerId, id: pullRequestId }));
 			}
 
 			if (response && response.directives) {
 				console.info("=== handleDirectives");
 				dispatch(
-					pullRequestSlice.actions.handleDirectives({
+					handleDirectives({
 						providerId,
 						id: pullRequestId,
 						data: response.directives,

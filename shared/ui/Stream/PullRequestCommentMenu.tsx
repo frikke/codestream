@@ -5,7 +5,7 @@ import Icon from "./Icon";
 import { InlineMenu } from "../src/components/controls/InlineMenu";
 import copy from "copy-to-clipboard";
 import { confirmPopup } from "./Confirm";
-import { api } from "../store/providerPullRequests/actions";
+import { api } from "../store/providerPullRequests/thunk";
 
 interface CommentMenuProps {
 	pr: any;

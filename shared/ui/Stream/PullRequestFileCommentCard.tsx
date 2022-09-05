@@ -20,7 +20,7 @@ import { PullRequestMinimizedComment } from "./PullRequestMinimizedComment";
 import { PullRequestEditingComment } from "./PullRequestEditingComment";
 import { PullRequestReplyComment } from "./PullRequestReplyComment";
 import { Button } from "../src/components/Button";
-import { api } from "../store/providerPullRequests/actions";
+import { api } from "../store/providerPullRequests/thunk";
 import { useDispatch, useSelector } from "react-redux";
 import { GHOST } from "./PullRequestTimelineItems";
 import { prettyPrintOne } from "code-prettify";
@@ -34,7 +34,7 @@ import {
 	getProviderPullRequestCollaborators,
 	getProviderPullRequestRepo,
 	getPullRequestId,
-} from "../store/providerPullRequests/reducer";
+} from "../store/providerPullRequests/slice";
 import {
 	EditorHighlightRangeRequestType,
 	EditorRevealRangeRequestType,

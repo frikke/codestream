@@ -1,77 +1,75 @@
-import { setProviderError } from "@codestream/webview/store/codeErrors/thunks";
-import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { CodeStreamState } from "../store";
-import styled, { ThemeProvider } from "styled-components";
+import {
+	ChangeDataType,
+	DidChangeDataNotificationType,
+	GetReposScmRequestType,
+	ReposScm,
+	SwitchBranchRequestType,
+} from "@codestream/protocols/agent";
 import { CSMe } from "@codestream/protocols/api";
-import { CreateCodemarkIcons } from "./CreateCodemarkIcons";
-import ScrollBox from "./ScrollBox";
-import Icon from "./Icon";
-import { Tabs, Tab } from "../src/components/Tabs";
-import Timestamp from "./Timestamp";
+import { setProviderError } from "@codestream/webview/store/codeErrors/thunks";
 import copy from "copy-to-clipboard";
-import { Link } from "./Link";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import styled, { ThemeProvider } from "styled-components";
+import { logError } from "../logger";
+import { Button } from "../src/components/Button";
+import { InlineMenu } from "../src/components/controls/InlineMenu";
+import { FloatingLoadingMessage } from "../src/components/FloatingLoadingMessage";
+import { LoadingMessage } from "../src/components/LoadingMessage";
+import { Tab, Tabs } from "../src/components/Tabs";
+import { CodeStreamState } from "../store";
 import {
 	clearCurrentPullRequest,
 	setCurrentPullRequest,
 	setCurrentReview,
 } from "../store/context/actions";
-import { useAppDispatch, useAppSelector, useDidMount } from "../utilities/hooks";
-import { HostApi } from "../webview-api";
 import {
-	FetchThirdPartyPullRequestPullRequest,
-	GetReposScmRequestType,
-	ReposScm,
-	SwitchBranchRequestType,
-	DidChangeDataNotificationType,
-	ChangeDataType,
-	FetchThirdPartyPullRequestResponse,
-} from "@codestream/protocols/agent";
-import {
-	PRHeader,
-	PRTitle,
-	PRStatus,
-	PRStatusButton,
-	PRStatusMessage,
-	PRAuthor,
-	PRAction,
-	PRBranch,
-	PRBadge,
-	PRPlusMinus,
-	PREditTitle,
-	PRActionButtons,
-	PRSubmitReviewButton,
-	PRIAmRequested,
-} from "./PullRequestComponents";
-import { LoadingMessage } from "../src/components/LoadingMessage";
-import { bootstrapReviews } from "../store/reviews/actions";
-import { PullRequestConversationTab } from "./PullRequestConversationTab";
-import { PullRequestCommitsTab } from "./PullRequestCommitsTab";
-import * as reviewSelectors from "../store/reviews/reducer";
-import { PullRequestFilesChangedTab } from "./PullRequestFilesChangedTab";
-import { FloatingLoadingMessage } from "../src/components/FloatingLoadingMessage";
-import { Button } from "../src/components/Button";
-import Tooltip from "./Tooltip";
-import { PullRequestFinishReview } from "./PullRequestFinishReview";
-import {
-	getPullRequestConversationsFromProvider,
-	clearPullRequestFiles,
-	getPullRequestConversations,
-	api,
-} from "../store/providerPullRequests/actions";
-import {
+	clearPullRequestCommits,
 	getCurrentProviderPullRequest,
 	getCurrentProviderPullRequestLastUpdated,
 	getProviderPullRequestRepoObject,
-} from "../store/providerPullRequests/reducer";
-import { confirmPopup } from "./Confirm";
-import { PullRequestFileComments } from "./PullRequestFileComments";
-import { InlineMenu } from "../src/components/controls/InlineMenu";
+	updatePullRequestTitle,
+} from "../store/providerPullRequests/slice";
+import {
+	api,
+	clearPullRequestFiles,
+	getPullRequestConversations,
+	getPullRequestConversationsFromProvider,
+} from "../store/providerPullRequests/thunk";
+import { bootstrapReviews } from "../store/reviews/actions";
+import * as reviewSelectors from "../store/reviews/reducer";
 import { getPreferences } from "../store/users/reducer";
+import { useAppDispatch, useAppSelector, useDidMount } from "../utilities/hooks";
+import { HostApi } from "../webview-api";
 import { setUserPreference } from "./actions";
+import { confirmPopup } from "./Confirm";
+import { CreateCodemarkIcons } from "./CreateCodemarkIcons";
+import Icon from "./Icon";
+import { Link } from "./Link";
+import { PullRequestCommitsTab } from "./PullRequestCommitsTab";
+import {
+	PRAction,
+	PRActionButtons,
+	PRAuthor,
+	PRBadge,
+	PRBranch,
+	PREditTitle,
+	PRHeader,
+	PRIAmRequested,
+	PRPlusMinus,
+	PRStatus,
+	PRStatusButton,
+	PRStatusMessage,
+	PRSubmitReviewButton,
+	PRTitle,
+} from "./PullRequestComponents";
+import { PullRequestConversationTab } from "./PullRequestConversationTab";
+import { PullRequestFileComments } from "./PullRequestFileComments";
+import { PullRequestFilesChangedTab } from "./PullRequestFilesChangedTab";
+import { PullRequestFinishReview } from "./PullRequestFinishReview";
 import { GHOST } from "./PullRequestTimelineItems";
-import { logError } from "../logger";
-import providerPullRequestSlice from "../store/providerPullRequests/reducer";
+import ScrollBox from "./ScrollBox";
+import Timestamp from "./Timestamp";
+import Tooltip from "./Tooltip";
 
 const Root = styled.div`
 	@media only screen and (max-width: ${props => props.theme.breakpoint}) {
@@ -287,7 +285,7 @@ export const PullRequest = () => {
 			)
 		);
 		dispatch(
-			providerPullRequestSlice.actions.clearPullRequestCommits({
+			clearPullRequestCommits({
 				providerId: derivedState.currentPullRequestProviderId!,
 				id: derivedState.currentPullRequestId!,
 			})
@@ -393,7 +391,7 @@ export const PullRequest = () => {
 			).unwrap();
 			if (response !== undefined) {
 				dispatch(
-					providerPullRequestSlice.actions.updatePullRequestTitle({
+					updatePullRequestTitle({
 						providerId: derivedState.currentPullRequestProviderId!,
 						id: derivedState.currentPullRequestId!,
 						pullRequestData: { title: title },

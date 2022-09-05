@@ -24,11 +24,11 @@ import {
 	SharingNewCodemarkAttributes,
 	updateCodemarks,
 } from "@codestream/webview/store/codemarks/actions";
-import providerPullRequestSlice from "../providerPullRequests/reducer";
 import { getConnectedProviders } from "@codestream/webview/store/providers/reducer";
 import { addStreams } from "@codestream/webview/store/streams/actions";
 import { capitalize } from "@codestream/webview/utils";
 import { HostApi } from "@codestream/webview/webview-api";
+import { handleDirectives } from "../providerPullRequests/slice";
 
 type EditableAttributes = Partial<
 	Pick<CSCodemark, "tags" | "text" | "title" | "assignees" | "relatedCodemarkIds">
@@ -65,7 +65,7 @@ export const createCodemark =
 				if (responseAsPassthrough?.isPassThrough) {
 					if (responseAsPassthrough && responseAsPassthrough.directives) {
 						dispatch(
-							providerPullRequestSlice.actions.handleDirectives({
+							handleDirectives({
 								providerId: responseAsPassthrough.pullRequest.providerId,
 								id: responseAsPassthrough.pullRequest.id,
 								data: responseAsPassthrough.directives.directives,

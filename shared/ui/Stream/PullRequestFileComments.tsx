@@ -1,7 +1,7 @@
 import React, { PropsWithChildren, useCallback, useEffect, useState } from "react";
 import Icon from "./Icon";
 import { FetchThirdPartyPullRequestPullRequest } from "@codestream/protocols/agent";
-import { getPullRequestFiles } from "../store/providerPullRequests/actions";
+import { getPullRequestFiles } from "../store/providerPullRequests/thunk";
 import { useDispatch, useSelector } from "react-redux";
 import copy from "copy-to-clipboard";
 import { FileStatus } from "@codestream/protocols/api";

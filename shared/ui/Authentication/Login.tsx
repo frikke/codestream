@@ -12,7 +12,7 @@ import {
 	goToOktaConfig,
 	clearForceRegion,
 } from "../store/context/actions";
-import { supportsSSOSignIn } from "../store/configs/reducer";
+import { supportsSSOSignIn } from "../store/configs/slice";
 import { InlineMenu } from "../src/components/controls/InlineMenu";
 import Tooltip from "../Stream/Tooltip";
 import { ModalRoot } from "../Stream/Modal"; // HACK ALERT: including this component is NOT the right way

@@ -6,15 +6,6 @@ export interface CapabilitiesState {
 
 const initialState: CapabilitiesState = {};
 
-// export function reduceCapabilities(state = initialState, { type, payload }: CapabilitiesActions) {
-// 	switch (type) {
-// 		case "UPDATE_CAPABILITIES":
-// 			return { ...state, ...payload };
-// 		default:
-// 			return state;
-// 	}
-// }
-
 const slice = createSlice({
 	name: "capabilities",
 	initialState,
@@ -25,4 +16,5 @@ const slice = createSlice({
 	},
 });
 
+export const { updateCapabilities } = slice.actions;
 export default slice;

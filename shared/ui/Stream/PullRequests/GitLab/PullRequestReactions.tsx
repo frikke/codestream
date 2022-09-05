@@ -7,7 +7,7 @@ import styled from "styled-components";
 import Tooltip from "../../Tooltip";
 import { SmartFormattedList } from "../../SmartFormattedList";
 import { GitLabMergeRequest } from "@codestream/protocols/agent";
-import { api } from "../../../store/providerPullRequests/actions";
+import { api } from "../../../store/providerPullRequests/thunk";
 import EmojiPicker from "../../EmojiPicker";
 
 interface Props {

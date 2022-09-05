@@ -3,7 +3,7 @@ import { CodeStreamState } from "@codestream/webview/store";
 import {
 	getPullRequestCommits,
 	getPullRequestCommitsFromProvider,
-} from "@codestream/webview/store/providerPullRequests/actions";
+} from "@codestream/webview/store/providerPullRequests/thunk";
 import { useAppDispatch, useAppSelector, useDidMount } from "@codestream/webview/utilities/hooks";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";

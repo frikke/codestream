@@ -9,7 +9,7 @@ import { PullRequestQuery } from "@codestream/protocols/api";
 import { Link } from "../../Link";
 import { replaceHtml } from "../../../utils";
 import { PRBranch, PRError } from "../../PullRequestComponents";
-import { api, getMyPullRequests } from "../../../store/providerPullRequests/actions";
+import { api, getMyPullRequests } from "../../../store/providerPullRequests/thunk";
 import MessageInput from "../../MessageInput";
 import { TextInput } from "@codestream/webview/Authentication/TextInput";
 import { Modal } from "../../Modal";
@@ -27,7 +27,7 @@ import Timestamp from "../../Timestamp";
 import { Circle } from "../../PullRequestConversationTab";
 import { HostApi } from "@codestream/webview/webview-api";
 import { OpenUrlRequestType } from "../../../ipc/host.protocol";
-import { getCurrentProviderPullRequest } from "@codestream/webview/store/providerPullRequests/reducer";
+import { getCurrentProviderPullRequest } from "@codestream/webview/store/providerPullRequests/slice";
 import * as providerSelectors from "../../../store/providers/reducer";
 import { FetchProviderDefaultPullRequestsType } from "@codestream/protocols/agent";
 

@@ -49,14 +49,14 @@ import {
 	getPullRequestConversationsFromProvider,
 	openPullRequestByUrl,
 	PRRequest,
-} from "../store/providerPullRequests/actions";
+} from "../store/providerPullRequests/thunk";
 import {
 	getCurrentProviderPullRequest,
 	getMyPullRequests as getMyPullRequestsSelector,
 	getProviderPullRequestRepoObject,
 	getPullRequestExactId,
 	getPullRequestId,
-} from "../store/providerPullRequests/reducer";
+} from "../store/providerPullRequests/slice";
 import { configureAndConnectProvider } from "../store/providers/actions";
 import * as providerSelectors from "../store/providers/reducer";
 import { getPRLabel } from "../store/providers/reducer";

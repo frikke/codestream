@@ -12,7 +12,7 @@ import { HostApi } from "@codestream/webview/webview-api";
 import copy from "copy-to-clipboard";
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { api } from "../../../store/providerPullRequests/actions";
+import { api } from "../../../store/providerPullRequests/thunk";
 import Icon from "../../Icon";
 import { Link } from "../../Link";
 import { MarkdownText } from "../../MarkdownText";

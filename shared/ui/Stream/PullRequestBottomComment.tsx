@@ -15,7 +15,7 @@ import { PRHeadshot } from "../src/components/Headshot";
 import MessageInput from "./MessageInput";
 import { ButtonRow } from "../src/components/Dialog";
 import { Button } from "../src/components/Button";
-import { api } from "../store/providerPullRequests/actions";
+import { api } from "../store/providerPullRequests/thunk";
 import { replaceHtml } from "../utils";
 import { DropdownButton, DropdownButtonItems } from "./DropdownButton";
 import { CodeStreamState } from "../store";

@@ -19,7 +19,7 @@ import { PullRequestMinimizedComment } from "./PullRequestMinimizedComment";
 import { PullRequestEditingComment } from "./PullRequestEditingComment";
 import { PullRequestReplyComment } from "./PullRequestReplyComment";
 import { Button } from "../src/components/Button";
-import { api } from "../store/providerPullRequests/actions";
+import { api } from "../store/providerPullRequests/thunk";
 import { useDispatch } from "react-redux";
 import { GHOST } from "./PullRequestTimelineItems";
 

@@ -8,7 +8,7 @@ import { InlineMenu } from "../src/components/controls/InlineMenu";
 import { ButtonRow, Dialog } from "../src/components/Dialog";
 import { PRHeadshot } from "../src/components/Headshot";
 import { CodeStreamState } from "../store";
-import { getMyPullRequests } from "../store/providerPullRequests/actions";
+import { getMyPullRequests } from "../store/providerPullRequests/thunk";
 import { getPRLabel } from "../store/providers/reducer";
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import { PROVIDER_MAPPINGS } from "./CrossPostIssueControls/types";

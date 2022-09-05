@@ -7,7 +7,7 @@ import { useDispatch } from "react-redux";
 import { HostApi } from "@codestream/webview/webview-api";
 import { Button } from "../src/components/Button";
 import Tooltip from "./Tooltip";
-import { api } from "../store/providerPullRequests/actions";
+import { api } from "../store/providerPullRequests/thunk";
 import { replaceHtml } from "../utils";
 import { FetchThirdPartyPullRequestPullRequest } from "@codestream/protocols/agent";
 import { confirmPopup } from "./Confirm";

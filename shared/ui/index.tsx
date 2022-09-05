@@ -26,6 +26,7 @@ import { logError } from "@codestream/webview/logger";
 import { setBootstrapped } from "@codestream/webview/store/bootstrapped/actions";
 import "@formatjs/intl-listformat/polyfill-locales";
 import { openErrorGroup, resolveStackTraceLine } from "@codestream/webview/store/codeErrors/thunks";
+import { updateConfigs } from "@codestream/webview/store/configs/slice";
 import { fetchReview } from "@codestream/webview/store/reviews/thunks";
 import { switchToTeam } from "@codestream/webview/store/session/thunks";
 import * as path from "path-browserify";
@@ -70,9 +71,8 @@ import { fetchCodeError, handleDirectives } from "./store/codeErrors/actions";
 import { getCodeError } from "./store/codeErrors/reducer";
 import { getCodemark } from "./store/codemarks/reducer";
 import { CodemarksState } from "./store/codemarks/types";
-import { updateConfigs } from "./store/configs/actions";
 import { errorOccurred, offline, online } from "./store/connectivity/actions";
-import apiCapabilities from "./store/capabilities/reducer";
+import apiCapabilities from "./store/capabilities/slice";
 import {
 	blur,
 	clearCurrentPullRequest,
@@ -98,7 +98,7 @@ import {
 } from "./store/editorContext/actions";
 import { EditorContextState } from "./store/editorContext/types";
 import { updatePreferences } from "./store/preferences/actions";
-import { openPullRequestByUrl } from "./store/providerPullRequests/actions";
+import { openPullRequestByUrl } from "./store/providerPullRequests/thunk";
 import { configureProvider, updateProviders } from "./store/providers/actions";
 import { isConnected } from "./store/providers/reducer";
 import { getReview } from "./store/reviews/reducer";

@@ -93,7 +93,7 @@ import { ReposState } from "../store/repos/types";
 import { getDocumentFromMarker } from "./api-functions";
 import { getPRLabel, LabelHash } from "../store/providers/reducer";
 import { CodeErrorsState } from "../store/codeErrors/types";
-import { getPullRequestConversationsFromProvider } from "../store/providerPullRequests/actions";
+import { getPullRequestConversationsFromProvider } from "../store/providerPullRequests/thunk";
 
 export interface ICrossPostIssueContext {
 	setSelectedAssignees(any: any): void;

@@ -7,14 +7,14 @@ import { setCurrentPullRequest } from "../store/context/actions";
 import { openModal } from "../store/context/actions";
 import { WebviewModals } from "../ipc/webview.protocol.common";
 import { orderBy } from "lodash-es";
-import { api } from "../store/providerPullRequests/actions";
+import { api } from "../store/providerPullRequests/thunk";
 import { useAppDispatch, useAppSelector, useDidMount } from "../utilities/hooks";
 import { useSelector } from "react-redux";
 import { CodeStreamState } from "@codestream/webview/store";
 import {
 	getCurrentProviderPullRequest,
 	getProviderPullRequestRepo,
-} from "../store/providerPullRequests/reducer";
+} from "../store/providerPullRequests/slice";
 import * as Path from "path-browserify";
 import { Range } from "vscode-languageserver-types";
 import { HostApi } from "../webview-api";

@@ -22,7 +22,7 @@ import { PullRequestFinishReview } from "./PullRequestFinishReview";
 import { Checkbox } from "../src/components/Checkbox";
 import { HostApi } from "../webview-api";
 import { Link } from "./Link";
-import { getProviderPullRequestRepo } from "../store/providerPullRequests/reducer";
+import { getProviderPullRequestRepo } from "../store/providerPullRequests/slice";
 import { EditorRevealRangeRequestType } from "@codestream/protocols/webview";
 import * as path from "path-browserify";
 import { Range } from "vscode-languageserver-types";

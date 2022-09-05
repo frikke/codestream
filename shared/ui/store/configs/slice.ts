@@ -1,10 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { ActionType } from "../common";
-import * as actions from "./actions";
-import { ConfigsActionsType, ConfigsState } from "./types";
 import * as url from "url";
-
-// type ConfigsActions = ActionType<typeof actions>;
+import { ConfigsState } from "./types";
 
 const initialState: ConfigsState = {
 	showHeadshots: true,
@@ -14,15 +10,6 @@ const initialState: ConfigsState = {
 	isOnPrem: false,
 	isProductionCloud: false,
 };
-
-// export function reduceConfigs(state = initialState, { type, payload }: ConfigsActions) {
-// 	switch (type) {
-// 		case ConfigsActionsType.Update:
-// 			return { ...state, ...payload };
-// 		default:
-// 			return { ...initialState, ...state };
-// 	}
-// }
 
 const slice = createSlice({
 	name: "configs",
@@ -43,4 +30,5 @@ export const supportsSSOSignIn = (configs: Partial<ConfigsState>) => {
 	}
 };
 
+export const { updateConfigs } = slice.actions;
 export default slice.reducer;

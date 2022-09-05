@@ -9,7 +9,7 @@ import { FetchThirdPartyPullRequestPullRequest } from "@codestream/protocols/age
 import MessageInput from "./MessageInput";
 import { ButtonRow } from "../src/components/Dialog";
 import { Button } from "../src/components/Button";
-import { api } from "../store/providerPullRequests/actions";
+import { api } from "../store/providerPullRequests/thunk";
 import { replaceHtml } from "../utils";
 import { CodeStreamState } from "../store";
 import { getPRLabel } from "../store/providers/reducer";

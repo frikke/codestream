@@ -7,6 +7,8 @@ import {
 	BootstrapInHostRequestType,
 	GetActiveEditorContextRequestType,
 } from "@codestream/protocols/webview";
+import { updateConfigs } from "@codestream/webview/store/configs/slice";
+import { setIde } from "@codestream/webview/store/ide/slice";
 import { BootstrapInHostResponse, SignedInBootstrapData } from "../ipc/host.protocol";
 import { CSApiCapabilities } from "../protocols/agent/api.protocol.models";
 import {
@@ -18,14 +20,11 @@ import { upgradeRequired } from "../store/versioning/actions";
 import { uuid } from "../utils";
 import { HostApi } from "../webview-api";
 import { BootstrapActionType } from "./bootstrapped/types";
-// import { updateCapabilities } from "./capabilities/actions";
-import capabilities, { CapabilitiesState } from "../store/capabilities/reducer";
+import { updateCapabilities } from "./capabilities/slice";
 import { action, withExponentialConnectionRetry } from "./common";
 import { bootstrapCompanies } from "./companies/actions";
-import { updateConfigs } from "./configs/actions";
 import * as contextActions from "./context/actions";
 import * as editorContextActions from "./editorContext/actions";
-import { setIde } from "./ide/actions";
 import * as preferencesActions from "./preferences/actions";
 import { updateProviders } from "./providers/actions";
 import { bootstrapRepos } from "./repos/actions";
@@ -95,7 +94,7 @@ const bootstrapEssentials = (data: BootstrapInHostResponse) => dispatch => {
 			sessionStart: new Date().getTime(),
 		})
 	);
-	dispatch(capabilities.actions.updateCapabilities(data.capabilities || {}));
+	dispatch(updateCapabilities(data.capabilities || {}));
 	if (data.capabilities) {
 		dispatch(apiCapabilitiesUpdated(data.capabilities as CSApiCapabilities));
 	}

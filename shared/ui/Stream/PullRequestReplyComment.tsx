@@ -13,7 +13,7 @@ import MessageInput from "./MessageInput";
 import { Button } from "../src/components/Button";
 import { confirmPopup } from "./Confirm";
 import { PRHeadshot } from "../src/components/Headshot";
-import { api } from "../store/providerPullRequests/actions";
+import { api } from "../store/providerPullRequests/thunk";
 import { replaceHtml } from "../utils";
 
 interface Props {
