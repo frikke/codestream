@@ -220,7 +220,7 @@ export const EditPullRequest = props => {
 	const [remoteBranches, setRemoteBranches] = useState([] as any[]);
 
 	const fetchRemoteBranches = async () => {
-		const response = (await dispatch(api({ method: "remoteBranches", params: {} }))) as any;
+		const response = await dispatch(api({ method: "remoteBranches", params: {} })).unwrap();
 		setRemoteBranches(response.filter(_ => _.name !== pr.sourceBranch));
 	};
 
@@ -239,7 +239,7 @@ export const EditPullRequest = props => {
 		if (availableReviewers === undefined) {
 			setAvailableReviewers([]);
 		}
-		const reviewers = (await dispatch(api({ method: "getReviewers", params: {} }))) as any;
+		const reviewers = await dispatch(api({ method: "getReviewers", params: {} })).unwrap();
 		setAvailableReviewers(reviewers.users);
 	};
 
@@ -297,7 +297,7 @@ export const EditPullRequest = props => {
 		if (availableAssignees === undefined) {
 			setAvailableAssignees(EMPTY_ARRAY);
 		}
-		const assignees = (await dispatch(api({ method: "getReviewers", params: {} }))) as any;
+		const assignees = await dispatch(api({ method: "getReviewers", params: {} })).unwrap();
 		setAvailableAssignees(assignees.users);
 	};
 
@@ -359,7 +359,7 @@ export const EditPullRequest = props => {
 		labelsField.length > 0 ? <SmartFormattedList value={labelsField.map(_ => _.title)} /> : "None";
 
 	const fetchAvailableLabels = async (e?) => {
-		const labels = (await dispatch(api({ method: "getLabels", params: {} }))) as any;
+		const labels = await dispatch(api({ method: "getLabels", params: {} })).unwrap();
 		setAvailableLabels(labels);
 	};
 
@@ -414,7 +414,7 @@ export const EditPullRequest = props => {
 	const [availableMilestones, setAvailableMilestones] = useState<[] | undefined>();
 
 	const fetchAvailableMilestones = async (e?) => {
-		const milestones = (await dispatch(api({ method: "getMilestones", params: {} }))) as any;
+		const milestones = await dispatch(api({ method: "getMilestones", params: {} })).unwrap();
 		setAvailableMilestones(milestones);
 	};
 

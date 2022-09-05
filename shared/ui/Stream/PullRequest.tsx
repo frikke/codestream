@@ -388,7 +388,9 @@ export const PullRequest = () => {
 		try {
 			setIsLoadingMessage("Saving Title...");
 			setSavingTitle(true);
-			const response = await dispatch(api({ method: "updatePullRequestTitle", params: { title } }));
+			const response = await dispatch(
+				api({ method: "updatePullRequestTitle", params: { title } })
+			).unwrap();
 			if (response !== undefined) {
 				dispatch(
 					providerPullRequestSlice.actions.updatePullRequestTitle({

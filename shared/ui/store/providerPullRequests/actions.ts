@@ -667,10 +667,6 @@ interface ApiRequest {
 	};
 }
 
-interface ApiHandled {
-	handled: boolean;
-}
-
 /**
  * Provider api
  *
