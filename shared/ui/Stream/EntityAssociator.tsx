@@ -1,18 +1,16 @@
 import { keyBy as _keyBy } from "lodash-es";
 import React, { PropsWithChildren, useState } from "react";
 import { useDispatch } from "react-redux";
-
 import { GetObservabilityEntitiesRequestType, WarningOrError } from "@codestream/protocols/agent";
-
 import { Button } from "../src/components/Button";
 import { NoContent } from "../src/components/Pane";
 import { api } from "../store/codeErrors/actions";
-import { useDidMount } from "../utilities/hooks";
-import { HostApi } from "../webview-api";
-import { DropdownButton } from "./DropdownButton";
+import { DropdownButton, DropdownButtonItems } from "./DropdownButton";
 import { WarningBox } from "./WarningBox";
 import Tooltip from "./Tooltip";
 import { logError } from "../logger";
+import { useRequestType } from "../utilities/hooks";
+import Icon from "./Icon";
 
 interface EntityAssociatorProps {
 	title?: string;
@@ -25,41 +23,67 @@ interface EntityAssociatorProps {
 
 export const EntityAssociator = React.memo((props: PropsWithChildren<EntityAssociatorProps>) => {
 	const dispatch = useDispatch<any>();
-
-	const [entities, setEntities] = useState<{ guid: string; name: string }[]>([]);
 	const [selected, setSelected] = useState<{ guid: string; name: string } | undefined>(undefined);
 	const [isLoading, setIsLoading] = useState(false);
 	const [warningOrErrors, setWarningOrErrors] = useState<WarningOrError[] | undefined>(undefined);
 
-	useDidMount(() => {
-		HostApi.instance
-			.send(GetObservabilityEntitiesRequestType, { appName: props.remoteName })
-			.then(_ => {
-				setEntities(_.entities);
-			});
+	const obsEntitiesResult = useRequestType(GetObservabilityEntitiesRequestType, {
+		appName: props.remoteName
 	});
 
-	const items = entities?.length
-		? ([
-				{
-					type: "search",
-					placeholder: "Search...",
-					action: "search",
-					key: "search"
-				}
-		  ] as any).concat(
-				entities.map(_ => {
-					return {
-						key: _.guid,
-						label: _.name,
-						searchLabel: _.name,
-						action: () => {
-							setSelected(_);
-						}
-					};
-				})
-		  )
-		: [];
+	if (obsEntitiesResult.error) {
+		const errorMessage = typeof obsEntitiesResult.error === "string";
+		logError(`Unexpected error during related entities fetch: ${errorMessage}`, {
+			appName: props.remoteName
+		});
+	}
+
+	let items: DropdownButtonItems[] = [];
+
+	if (obsEntitiesResult?.loading) {
+		items = [
+			{
+				type: "loading",
+				label: (
+					<div>
+						{" "}
+						<Icon
+							style={{
+								marginRight: "5px"
+							}}
+							className="spin"
+							name="sync"
+						/>{" "}
+						Loading...
+					</div>
+				),
+				action: () => {},
+				key: "loading"
+			}
+		];
+	} else {
+		items = obsEntitiesResult?.data?.entities?.length
+			? ([
+					{
+						type: "search",
+						placeholder: "Search...",
+						action: "search",
+						key: "search"
+					}
+			  ] as any).concat(
+					obsEntitiesResult?.data?.entities.map(_ => {
+						return {
+							key: _.guid,
+							label: _.name,
+							searchLabel: _.name,
+							action: () => {
+								setSelected(_);
+							}
+						};
+					})
+			  )
+			: [];
+	}
 
 	return (
 		<NoContent style={{ marginLeft: "40px" }}>

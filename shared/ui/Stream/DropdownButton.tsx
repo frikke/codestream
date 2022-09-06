@@ -9,7 +9,7 @@ import Menu from "./Menu";
 // The api for consumers could probably be better, but it's only used in the review component for now
 
 export interface DropdownButtonItems {
-	label: any;
+	label?: any;
 	key?: string;
 	action?: (range?: any) => void;
 	buttonAction?: () => void;
