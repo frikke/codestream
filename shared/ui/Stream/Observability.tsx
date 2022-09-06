@@ -64,6 +64,7 @@ import { ObservabilityCurrentRepo } from "./ObservabilityCurrentRepo";
 import { ObservabilityGoldenMetricDropdown } from "./ObservabilityGoldenMetricDropdown";
 import { ObservabilityErrorWrapper } from "./ObservabilityErrorWrapper";
 import { ObservabilityRelatedWrapper } from "./ObservabilityRelatedWrapper";
+import { ObservabilityAddAdditionalService } from "./ObservabilityAddAdditionalService";
 
 interface Props {
 	paneState: PaneState;
@@ -258,6 +259,7 @@ export const Observability = React.memo((props: Props) => {
 	const [currentEntityAccounts, setCurrentEntityAccounts] = useState<EntityAccount[] | undefined>(
 		[]
 	);
+	const [currentObsRepo, setCurrentObsRepo] = useState<ObservabilityRepo | undefined>();
 	const previousHiddenPaneNodes = usePrevious(derivedState.hiddenPaneNodes);
 	const previousNewRelicIsConnected = usePrevious(derivedState.newRelicIsConnected);
 
@@ -733,7 +735,7 @@ export const Observability = React.memo((props: Props) => {
 
 	useEffect(() => {
 		if (!_isEmpty(currentRepoId) && !_isEmpty(observabilityRepos)) {
-			const currentRepo = _head(observabilityRepos.filter(_ => _.repoId === currentRepoId));
+			const currentRepo = _head(observabilityRepos.filter(_ => _?.repoId === currentRepoId));
 
 			// Show repo entity associator UI if needed
 			if (
@@ -746,6 +748,10 @@ export const Observability = React.memo((props: Props) => {
 				setRepoForEntityAssociator(currentRepo);
 			} else {
 				setRepoForEntityAssociator({});
+			}
+
+			if (currentRepo) {
+				setCurrentObsRepo(currentRepo);
 			}
 
 			// Show CLM broadcast icon if needed
@@ -765,7 +771,7 @@ export const Observability = React.memo((props: Props) => {
 	// If a user adds a newly cloned repo into their IDE, we need to refetch observability Repos
 	useEffect(() => {
 		if (!_isEmpty(currentRepoId) && !_isEmpty(observabilityRepos)) {
-			const currentRepo = _head(observabilityRepos.filter(_ => _.repoId === currentRepoId));
+			const currentRepo = _head(observabilityRepos.filter(_ => _?.repoId === currentRepoId));
 			if (!currentRepo) {
 				HostApi.instance
 					.send(GetObservabilityReposRequestType, {})
@@ -1065,6 +1071,17 @@ export const Observability = React.memo((props: Props) => {
 															);
 														} else return null;
 													})}
+												<>
+													{currentObsRepo && (
+														<ObservabilityAddAdditionalService
+															onSuccess={async e => {
+																_useDidMount();
+															}}
+															remote={currentObsRepo.repoRemote}
+															remoteName={currentObsRepo.repoName}
+														/>
+													)}
+												</>
 											</>
 										)}
 										{hasEntities && (

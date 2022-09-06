@@ -31,9 +31,9 @@ export const EntityAssociator = React.memo((props: PropsWithChildren<EntityAssoc
 		appName: props.remoteName
 	});
 
-	if (obsEntitiesResult.error) {
+	if (obsEntitiesResult?.error) {
 		const errorMessage = typeof obsEntitiesResult.error === "string";
-		logError(`Unexpected error during related entities fetch: ${errorMessage}`, {
+		logError(`Unexpected error during entities fetch for EntityAssociator: ${errorMessage}`, {
 			appName: props.remoteName
 		});
 	}
@@ -88,7 +88,7 @@ export const EntityAssociator = React.memo((props: PropsWithChildren<EntityAssoc
 	return (
 		<NoContent style={{ marginLeft: "40px" }}>
 			{props.title && <h3>{props.title}</h3>}
-			<p style={{ marginTop: 0 }}>{props.label}</p>
+			{props.label && <p style={{ marginTop: 0 }}>{props.label}</p>}
 			{warningOrErrors && <WarningBox items={warningOrErrors} />}
 			<DropdownButton
 				items={items}
