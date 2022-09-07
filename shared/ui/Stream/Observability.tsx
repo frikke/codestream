@@ -738,7 +738,7 @@ export const Observability = React.memo((props: Props) => {
 			// Show repo entity associator UI if needed
 			if (
 				currentRepo &&
-				!currentRepo.hasRepoAssociation &&
+				(!currentRepo.hasRepoAssociation || currentRepo.entityAccounts.length < 1) &&
 				!observabilityErrors?.find(
 					oe => oe?.repoId === currentRepo?.repoId && oe?.errors.length > 0
 				)
