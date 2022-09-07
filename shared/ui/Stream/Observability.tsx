@@ -1079,6 +1079,7 @@ export const Observability = React.memo((props: Props) => {
 															}}
 															remote={currentObsRepo.repoRemote}
 															remoteName={currentObsRepo.repoName}
+															servicesToExcludeFromSearch={currentEntityAccounts}
 														/>
 													)}
 												</>

@@ -1,7 +1,11 @@
 import { keyBy as _keyBy } from "lodash-es";
 import React, { PropsWithChildren, useState } from "react";
 import { useDispatch } from "react-redux";
-import { GetObservabilityEntitiesRequestType, WarningOrError } from "@codestream/protocols/agent";
+import {
+	GetObservabilityEntitiesRequestType,
+	WarningOrError,
+	EntityAccount
+} from "@codestream/protocols/agent";
 import { Button } from "../src/components/Button";
 import { NoContent } from "../src/components/Pane";
 import { api } from "../store/codeErrors/actions";
@@ -19,6 +23,7 @@ interface EntityAssociatorProps {
 	remoteName: string;
 	onSuccess?: Function;
 	onFinally?: Function;
+	servicesToExcludeFromSearch?: EntityAccount[];
 }
 
 export const EntityAssociator = React.memo((props: PropsWithChildren<EntityAssociatorProps>) => {
@@ -71,16 +76,23 @@ export const EntityAssociator = React.memo((props: PropsWithChildren<EntityAssoc
 						key: "search"
 					}
 			  ] as any).concat(
-					obsEntitiesResult?.data?.entities.map(_ => {
-						return {
-							key: _.guid,
-							label: _.name,
-							searchLabel: _.name,
-							action: () => {
-								setSelected(_);
+					obsEntitiesResult?.data?.entities
+						.filter(_ => {
+							if (props.servicesToExcludeFromSearch) {
+								return !props.servicesToExcludeFromSearch.some(s => s.entityGuid === _.guid);
 							}
-						};
-					})
+							return true;
+						})
+						.map(_ => {
+							return {
+								key: _.guid,
+								label: _.name,
+								searchLabel: _.name,
+								action: () => {
+									setSelected(_);
+								}
+							};
+						})
 			  )
 			: [];
 	}

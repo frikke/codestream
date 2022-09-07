@@ -3,15 +3,17 @@ import React, { useState } from "react";
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import Icon from "./Icon";
 import { EntityAssociator } from "./EntityAssociator";
+import { EntityAccount } from "@codestream/protocols/agent";
 interface Props {
 	onSuccess: Function;
 	remote: string;
 	remoteName: string;
+	servicesToExcludeFromSearch?: EntityAccount[];
 }
 
 export const ObservabilityAddAdditionalService = React.memo((props: Props) => {
 	const [expanded, setExpanded] = useState<boolean>(false);
-	const { onSuccess, remote, remoteName } = props;
+	const { onSuccess, remote, remoteName, servicesToExcludeFromSearch } = props;
 
 	return (
 		<>
@@ -28,7 +30,12 @@ export const ObservabilityAddAdditionalService = React.memo((props: Props) => {
 			</Row>
 			{expanded && (
 				<>
-					<EntityAssociator onSuccess={onSuccess} remote={remote} remoteName={remoteName} />
+					<EntityAssociator
+						onSuccess={onSuccess}
+						remote={remote}
+						remoteName={remoteName}
+						servicesToExcludeFromSearch={servicesToExcludeFromSearch}
+					/>
 				</>
 			)}
 		</>
