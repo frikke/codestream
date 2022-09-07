@@ -25,6 +25,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+import { ApiError } from "../api/apiProvider";
+
 /**
  * Modifications Copyright CodeStream Inc. under the Apache 2.0 License (Apache-2.0)
  */
@@ -122,4 +124,12 @@ export namespace Objects {
 	export function isEmpty(o: object) {
 		return Object.values(o).length === 0;
 	}
+}
+
+export function isErrnoException(err: unknown): err is NodeJS.ErrnoException {
+	return err instanceof Error && err.hasOwnProperty("errno");
+}
+
+export function isApiError(err: any): err is ApiError {
+	return err.hasOwnProperty("info") && err.hasOwnProperty("statusCode");
 }

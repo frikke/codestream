@@ -346,6 +346,18 @@ export interface RawRTMessage {
 	blockUntilProcessed?: boolean;
 }
 
+export interface ApiError {
+	info: {
+		code: string;
+		message: string;
+		info: {
+			error: string;
+			error_description: string;
+		};
+	};
+	statusCode: number;
+}
+
 export type RTMessage =
 	| CodemarksRTMessage
 	| CompaniesRTMessage

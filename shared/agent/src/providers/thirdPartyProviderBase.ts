@@ -21,8 +21,11 @@ import { CSMe, CSProviderInfos } from "../protocol/api.protocol.models";
 import { CodeStreamSession } from "../session";
 import { log } from "../system/decorators/log";
 import { Functions } from "../system/function";
+import { isApiError, isErrnoException } from "../system/object";
 import { Strings } from "../system/string";
 import { ApiResponse, isRefreshable, ProviderVersion, ThirdPartyProvider } from "./provider";
+
+const transitoryErrors = new Set(["ECONNREFUSED", "ETIMEDOUT", "ECONNRESET", "ENOTFOUND"]);
 
 export abstract class ThirdPartyProviderBase<
 	TProviderInfo extends CSProviderInfos = CSProviderInfos
@@ -280,7 +283,6 @@ export abstract class ThirdPartyProviderBase<
 			if (oneMinuteBeforeExpiration > new Date().getTime()) return;
 
 			try {
-				Logger.log(`refreshToken for providerId ${this.providerConfig.id}`);
 				const me = await this.session.api.refreshThirdPartyProvider({
 					providerId: this.providerConfig.id,
 					refreshToken: this._providerInfo.refreshToken,
@@ -288,8 +290,23 @@ export abstract class ThirdPartyProviderBase<
 				});
 				this._providerInfo = this.getProviderInfo(me);
 			} catch (error) {
-				await this.disconnect();
-				return this.ensureConnected();
+				if (isErrnoException(error)) {
+					if (error.code && transitoryErrors.has(error.code)) {
+						// Gets displayed in UI
+						throw new Error(`Error refreshing token for ${this.providerConfig.id}: ${error.code}`);
+					}
+				}
+				if (isApiError(error)) {
+					/*
+					Might be able to narrow down further - need to check what errors come back for temporary
+					codestream server -> provider server errors vs real disconnect errors
+					(i.e. check error.code is RAPI-1009)
+					 */
+					await this.disconnect();
+					return this.ensureConnected();
+				}
+				// Track unknown errors but do not disconnect - assume error is temporary
+				Logger.error(error, `Unexpected error refreshing token for ${this.providerConfig.id}`);
 			}
 		});
 	}
