@@ -96,9 +96,9 @@ interface PRResponse {
 				viewerDidAuthor: boolean;
 				viewerLatestReviewRequest?: {
 					asCodeOwner: boolean;
-					requestedReviewer: {
-						login: string;
-						id: string;
+					requestedReviewer?: {
+						login?: string;
+						id?: string;
 					};
 				};
 				reviews: {
@@ -3171,6 +3171,9 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 		const providerId = this.providerConfig?.id!;
 
 		const githubLogin = await this.getGithubLogin(providerId);
+		if (!githubLogin) {
+			throw new Error("Unable to retrieve github login");
+		}
 		// see: https://docs.github.com/en/github/searching-for-information-on-github/searching-issues-and-pull-requests
 		const items = await Promise.all(
 			queriesSafe.map(prQuery => {
@@ -3197,10 +3200,12 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 					prQuery.query.indexOf("repo:") > -1 ? prQuery.query : repoQuery + prQuery.query;
 				if (prQuery.query !== finalQuery) {
 					Logger.log(
-						`getMyPullRequests providerId="${providerId}" finalQuery="${finalQuery}" query=${prQuery}`
+						`getMyPullRequests providerId="${providerId}" finalQuery="${finalQuery}" query=${prQuery} login=${githubLogin}`
 					);
 				} else {
-					Logger.log(`getMyPullRequests providerId="${providerId}" finalQuery="${finalQuery}"`);
+					Logger.log(
+						`getMyPullRequests providerId="${providerId}" finalQuery="${finalQuery}" login=${githubLogin}`
+					);
 				}
 				return this.query<PRResponse>(this.buildSearchQuery(finalQuery, limit, githubLogin));
 			})
@@ -3226,8 +3231,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 								queries[index].query ===
 								defaultQueries[providerId].find(_ => _.name === WAITING_ON_REVIEW)?.query;
 							const isReviewer =
-								pullRequest.viewerLatestReviewRequest?.requestedReviewer.login ===
-								item.viewer.login;
+								pullRequest.viewerLatestReviewRequest?.requestedReviewer?.login === githubLogin;
 							const hasReviewed: boolean = !_isEmpty(pullRequest.reviews.nodes);
 							const lastDecision = pullRequest.reviews.nodes
 								.reverse()
@@ -6049,7 +6053,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 		}
 	}
 
-	private async getGithubLogin(providerId: string) {
+	private async getGithubLogin(providerId: string): Promise<string | undefined> {
 		const cached = this._githubLoginCache.get(providerId);
 		if (cached) {
 			return cached;
@@ -6057,11 +6061,15 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 		Logger.log(`Getting login for providerId: ${providerId}`);
 		const query = `query {
 						viewer {
+						  id
 							login
 						}
 					}`;
 		const response = await this.query<GithubSelfResponse>(query);
-		this._githubLoginCache.set(providerId, response.viewer.login);
+		Logger.log(`githubLogin: ${JSON.stringify(response)}`);
+		if (response.viewer.login) {
+			this._githubLoginCache.set(providerId, response.viewer.login);
+		}
 		return response.viewer.login;
 	}
 }
