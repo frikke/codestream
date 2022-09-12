@@ -80,10 +80,14 @@ import {
 	StackTraceResponse,
 	ThirdPartyDisconnect,
 	ThirdPartyProviderConfig,
+	ServiceGoldenMetricsQueryResult,
 	GetServiceLevelTelemetryRequest,
 	GetServiceLevelTelemetryRequestType,
 	GetServiceLevelTelemetryResponse,
-	ServiceGoldenMetricsQueryResult
+	GetAlertViolationsRequest,
+	GetAlertViolationsRequestType,
+	GetAlertViolationsResponse,
+	GetAlertViolationsQueryResult
 } from "../protocol/agent.protocol";
 import { CSMe, CSNewRelicProviderInfo } from "../protocol/api.protocol";
 import { CodeStreamSession } from "../session";
@@ -2377,6 +2381,11 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			return undefined;
 		}
 
+		let recentAlertViolations: GetAlertViolationsResponse | undefined = {};
+		if (request.fetchRecentAlertViolations) {
+			recentAlertViolations = await this.getRecentAlertViolations(request.newRelicEntityGuid);
+		}
+
 		try {
 			const serviceLevelGoldenMetrics = await this.getServiceGoldenMetrics(
 				entity?.entityGuid || request.newRelicEntityGuid
@@ -2388,12 +2397,58 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				newRelicEntityName: entity?.entityName!,
 				newRelicEntityGuid: entity?.entityGuid! || request.newRelicEntityGuid,
 				newRelicUrl: `${this.productUrl}/redirect/entity/${entity?.entityGuid ||
-					request.newRelicEntityGuid}`
+					request.newRelicEntityGuid}`,
+				recentAlertViolations: recentAlertViolations || {}
 			};
 		} catch (ex) {
 			Logger.error(ex, "getServiceLevelTelemetry", {
 				request
 			});
+		}
+
+		return undefined;
+	}
+
+	async getRecentAlertViolations(
+		entityGuid: string
+	): Promise<GetAlertViolationsResponse | undefined> {
+		try {
+			const response = await this.query<GetAlertViolationsQueryResult>(
+				`query getRecentAlertViolations($entityGuid: EntityGuid!) {
+					actor {
+					  entity(guid: $entityGuid) {
+						name
+						recentAlertViolations(count: 2) {
+						  agentUrl
+						  alertSeverity
+						  closedAt
+						  label
+						  level
+						  openedAt
+						  violationId
+						  violationUrl
+						}
+					  }
+					}
+				  }				  
+				`,
+				{
+					entityGuid: entityGuid
+				}
+			);
+			return response?.actor?.entity;
+		} catch (ex) {
+			ContextLogger.warn("getRecentAlertViolations failure", {
+				entityGuid
+			});
+			const accessTokenError = ex as {
+				message: string;
+				innerError?: { message: string };
+				isAccessTokenError: boolean;
+			};
+			if (accessTokenError && accessTokenError.innerError && accessTokenError.isAccessTokenError) {
+				throw new Error(accessTokenError.message);
+			}
 		}
 
 		return undefined;

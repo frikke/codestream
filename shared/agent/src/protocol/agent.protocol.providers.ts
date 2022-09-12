@@ -1229,6 +1229,17 @@ export interface GetServiceLevelTelemetryRequest {
 	metricTimesliceNameMapping?: MetricTimesliceNameMapping;
 	/** related service needs less data, skips redundant call */
 	skipRepoFetch?: boolean;
+	fetchRecentAlertViolations?: boolean;
+}
+
+export interface GetAlertViolationsRequest {
+	/** CodeStream repoId */
+	repoId: string;
+	/** entity id of the NewRelic entity */
+	newRelicEntityGuid: string;
+	metricTimesliceNameMapping?: MetricTimesliceNameMapping;
+	/** related service needs less data, skips redundant call */
+	skipRepoFetch?: boolean;
 }
 
 export type MetricTimesliceNameMapping = {
@@ -1307,6 +1318,12 @@ export interface GetServiceLevelTelemetryResponse {
 	newRelicAlertSeverity?: string;
 	newRelicEntityAccounts: EntityAccount[];
 	newRelicEntityName: string;
+	recentAlertViolations?: GetAlertViolationsResponse;
+}
+
+export interface GetAlertViolationsResponse {
+	name?: string;
+	recentAlertViolations?: RecentAlertViolation[];
 }
 
 export const GetFileLevelTelemetryRequestType = new RequestType<
@@ -1329,6 +1346,13 @@ export const GetServiceLevelTelemetryRequestType = new RequestType<
 	void,
 	void
 >("codestream/newrelic/serviceLevelTelemetry");
+
+export const GetAlertViolationsRequestType = new RequestType<
+	GetAlertViolationsRequest,
+	GetAlertViolationsResponse,
+	void,
+	void
+>("codestream/newrelic/alertViolations");
 
 export interface CrashOrException {
 	message?: string;
@@ -1544,6 +1568,26 @@ export interface GoldenMetricsQueryResult {
 			};
 		};
 	};
+}
+
+export interface GetAlertViolationsQueryResult {
+	actor: {
+		entity: {
+			name: string;
+			recentAlertViolations: RecentAlertViolation[];
+		};
+	};
+}
+
+export interface RecentAlertViolation {
+	agentUrl: string;
+	alertSeverity: string;
+	closedAt: string;
+	label: string;
+	level: string;
+	openedAt: string;
+	violationId: string;
+	violationUrl: string;
 }
 
 export interface ServiceGoldenMetricsQueryResult {
