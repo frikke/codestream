@@ -84,8 +84,6 @@ import {
 	GetServiceLevelTelemetryRequest,
 	GetServiceLevelTelemetryRequestType,
 	GetServiceLevelTelemetryResponse,
-	GetAlertViolationsRequest,
-	GetAlertViolationsRequestType,
 	GetAlertViolationsResponse,
 	GetAlertViolationsQueryResult
 } from "../protocol/agent.protocol";

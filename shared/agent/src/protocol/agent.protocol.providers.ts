@@ -1240,6 +1240,7 @@ export interface GetAlertViolationsRequest {
 	metricTimesliceNameMapping?: MetricTimesliceNameMapping;
 	/** related service needs less data, skips redundant call */
 	skipRepoFetch?: boolean;
+	fetchRecentAlertViolations?: boolean;
 }
 
 export type MetricTimesliceNameMapping = {

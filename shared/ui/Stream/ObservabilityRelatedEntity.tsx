@@ -88,10 +88,12 @@ export const ObservabilityRelatedEntity = React.memo((props: Props) => {
 			const response = await HostApi.instance.send(GetServiceLevelTelemetryRequestType, {
 				newRelicEntityGuid: entityGuid,
 				repoId: props.currentRepoId,
-				skipRepoFetch: true
+				skipRepoFetch: true,
+				fetchRecentAlertViolations: true
 			});
 			if (response?.goldenMetrics) {
 				setGoldenMetrics(response.goldenMetrics);
+				// setRecentAlertViolations(response.recentAlertViolations);
 			}
 			setLoadingGoldenMetrics(false);
 		}
