@@ -1,13 +1,10 @@
 import { forEach as _forEach, isEmpty as _isEmpty } from "lodash-es";
 import React, { useEffect, useState } from "react";
-import Icon from "./Icon";
 import { ALERT_SEVERITY_COLORS } from "./CodeError/index";
 import styled from "styled-components";
-import { useDidMount, useInterval } from "../utilities/hooks";
-import cx from "classnames";
 import { Row } from "./CrossPostIssueControls/IssuesPane";
-
-interface RecentAlertViolations extends Array<RecentAlertViolation> {}
+import { HostApi } from "@codestream/webview/webview-api";
+import { OpenUrlRequestType } from "@codestream/protocols/webview";
 
 interface RecentAlertViolation {
 	agentUrl: string;
@@ -19,6 +16,8 @@ interface RecentAlertViolation {
 	violationId: string;
 	violationUrl: string;
 }
+
+interface RecentAlertViolations extends Array<RecentAlertViolation> {}
 
 interface Props {
 	alertViolations: RecentAlertViolations;
@@ -36,6 +35,7 @@ export const ObservabilityAlertViolations = React.memo((props: Props) => {
 		height: 10px;
 		display: inline-block;
 		margin-right: 4px;
+		margin-top: 4px;
 	`;
 
 	const RowIcons = styled.div`
@@ -51,6 +51,11 @@ export const ObservabilityAlertViolations = React.memo((props: Props) => {
 		}
 	`;
 
+	const handleRowClick = (e, violationUrl) => {
+		e.preventDefault();
+		HostApi.instance.send(OpenUrlRequestType, { url: violationUrl });
+	};
+
 	return (
 		<>
 			{alertViolations?.map(_ => {
@@ -60,7 +65,11 @@ export const ObservabilityAlertViolations = React.memo((props: Props) => {
 							padding: customPadding ? customPadding : "2px 10px 2px 60px",
 						}}
 						className={"pr-row"}
+						onClick={(e) => {
+							handleRowClick(e, _.violationUrl);
+						}}
 					>
+						<EntityHealth backgroundColor={ALERT_SEVERITY_COLORS[_.alertSeverity]} />
 						{_.label}
 					</Row>
 				);
