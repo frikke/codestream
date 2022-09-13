@@ -1232,16 +1232,7 @@ export interface GetServiceLevelTelemetryRequest {
 	fetchRecentAlertViolations?: boolean;
 }
 
-export interface GetAlertViolationsRequest {
-	/** CodeStream repoId */
-	repoId: string;
-	/** entity id of the NewRelic entity */
-	newRelicEntityGuid: string;
-	metricTimesliceNameMapping?: MetricTimesliceNameMapping;
-	/** related service needs less data, skips redundant call */
-	skipRepoFetch?: boolean;
-	fetchRecentAlertViolations?: boolean;
-}
+export interface GetAlertViolationsRequest {}
 
 export type MetricTimesliceNameMapping = {
 	/**
