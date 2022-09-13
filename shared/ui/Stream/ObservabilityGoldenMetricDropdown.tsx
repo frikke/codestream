@@ -5,11 +5,14 @@ import styled from "styled-components";
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import Icon from "./Icon";
 import Tooltip from "./Tooltip";
+import { GetAlertViolationsResponse } from "@codestream/protocols/agent";
+import { ObservabilityAlertViolations } from "./ObservabilityAlertViolations";
 
 interface Props {
 	goldenMetrics: GoldenMetricsResult[];
 	loadingGoldenMetrics: boolean;
 	noDropdown?: boolean;
+	recentAlertViolations?: GetAlertViolationsResponse;
 }
 
 const StyledMetric = styled.div`
@@ -50,7 +53,7 @@ interface GoldenMetricTitleMapping {
 export const ObservabilityGoldenMetricDropdown = React.memo((props: Props) => {
 	const [expanded, setExpanded] = useState<boolean>(true);
 	const [updatedAt, setUpdatedAt] = useState<string>("");
-	const { goldenMetrics, loadingGoldenMetrics, noDropdown } = props;
+	const { goldenMetrics, loadingGoldenMetrics, noDropdown, recentAlertViolations } = props;
 	const goldenMetricTitleMapping: GoldenMetricTitleMapping = {
 		responseTimeMs: {
 			// this matches the "name" from the goldenMetrics in the agent and the key here
@@ -58,7 +61,7 @@ export const ObservabilityGoldenMetricDropdown = React.memo((props: Props) => {
 
 			title: "Response time (ms)",
 			units: "ms",
-			tooltip: "This shows the average time this service spends processing web requests."
+			tooltip: "This shows the average time this service spends processing web requests.",
 		},
 		throughput: {
 			// this matches the "name" from the goldenMetrics in the agent and the key here
@@ -67,7 +70,7 @@ export const ObservabilityGoldenMetricDropdown = React.memo((props: Props) => {
 			title: "Throughput",
 			units: "rpm",
 			tooltip:
-				"Throughput measures how many requests this service processes per minute. It will help you find your busiest service."
+				"Throughput measures how many requests this service processes per minute. It will help you find your busiest service.",
 		},
 		errorRate: {
 			// this matches the "name" from the goldenMetrics in the agent and the key here
@@ -76,8 +79,8 @@ export const ObservabilityGoldenMetricDropdown = React.memo((props: Props) => {
 			title: "Error rate",
 			units: "avg",
 			tooltip:
-				"Error rate is the percentage of transactions that result in an error during a particular time range."
-		}
+				"Error rate is the percentage of transactions that result in an error during a particular time range.",
+		},
 	};
 
 	useEffect(() => {
@@ -137,7 +140,7 @@ export const ObservabilityGoldenMetricDropdown = React.memo((props: Props) => {
 					return (
 						<Row
 							style={{
-								padding: noDropdown ? "0 10px 0 60px" : "0 10px 0 42px"
+								padding: noDropdown ? "0 10px 0 60px" : "0 10px 0 42px",
 							}}
 							className={"pr-row"}
 						>
@@ -183,7 +186,7 @@ export const ObservabilityGoldenMetricDropdown = React.memo((props: Props) => {
 				<>
 					<Row
 						style={{
-							padding: "2px 10px 2px 30px"
+							padding: "2px 10px 2px 30px",
 						}}
 						className={"pr-row"}
 						onClick={() => setExpanded(!expanded)}
@@ -207,13 +210,13 @@ export const ObservabilityGoldenMetricDropdown = React.memo((props: Props) => {
 			{expanded && loadingGoldenMetrics && (
 				<Row
 					style={{
-						padding: noDropdown ? "0 10px 0 60px" : "0 10px 0 42px"
+						padding: noDropdown ? "0 10px 0 60px" : "0 10px 0 42px",
 					}}
 					className={"pr-row"}
 				>
 					<Icon
 						style={{
-							marginRight: "5px"
+							marginRight: "5px",
 						}}
 						className="spin"
 						name="sync"
@@ -222,7 +225,13 @@ export const ObservabilityGoldenMetricDropdown = React.memo((props: Props) => {
 				</Row>
 			)}
 			{(noDropdown || expanded) && !loadingGoldenMetrics && !_isEmpty(goldenMetrics) && (
-				<>{goldenMetricOutput()}</>
+				<>
+					{goldenMetricOutput()}
+					<ObservabilityAlertViolations
+						alertViolations={recentAlertViolations?.recentAlertViolations}
+						customPadding={"2px 10px 2px 42px"}
+					/>
+				</>
 			)}
 		</>
 	);

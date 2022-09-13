@@ -5,29 +5,16 @@ import styled from "styled-components";
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import { HostApi } from "@codestream/webview/webview-api";
 import { OpenUrlRequestType } from "@codestream/protocols/webview";
-
-interface RecentAlertViolation {
-	agentUrl: string;
-	alertSeverity: string;
-	closedAt: string;
-	label: string;
-	level: string;
-	openedAt: string;
-	violationId: string;
-	violationUrl: string;
-}
-
-interface RecentAlertViolations extends Array<RecentAlertViolation> {}
+import { RecentAlertViolation } from "@codestream/protocols/agent";
+import Tooltip from "./Tooltip";
 
 interface Props {
-	alertViolations: RecentAlertViolations;
+	alertViolations?: RecentAlertViolation[];
 	customPadding?: string;
 }
 
 export const ObservabilityAlertViolations = React.memo((props: Props) => {
-	const [expanded, setExpanded] = useState<boolean>(false);
 	const { alertViolations, customPadding } = props;
-	// const alertSeverityColor = ALERT_SEVERITY_COLORS[relatedEntity?.alertSeverity];
 
 	const EntityHealth = styled.div<{ backgroundColor: string }>`
 		background-color: ${props => (props.backgroundColor ? props.backgroundColor : "white")};
@@ -36,19 +23,6 @@ export const ObservabilityAlertViolations = React.memo((props: Props) => {
 		display: inline-block;
 		margin-right: 4px;
 		margin-top: 4px;
-	`;
-
-	const RowIcons = styled.div`
-		text-align: right;
-		white-space: nowrap;
-		margin-left: auto;
-		display: "block";
-		.icon {
-			opacity: 0.7;
-		}
-		.icon-override-actions-visible {
-			display: none;
-		}
 	`;
 
 	const handleRowClick = (e, violationUrl) => {
@@ -65,12 +39,14 @@ export const ObservabilityAlertViolations = React.memo((props: Props) => {
 							padding: customPadding ? customPadding : "2px 10px 2px 60px",
 						}}
 						className={"pr-row"}
-						onClick={(e) => {
+						onClick={e => {
 							handleRowClick(e, _.violationUrl);
 						}}
 					>
 						<EntityHealth backgroundColor={ALERT_SEVERITY_COLORS[_.alertSeverity]} />
-						{_.label}
+						<Tooltip placement="topRight" title={_.label} delay={1}>
+							<div style={{ minWidth: "0", padding: "0" }}>{_.label}</div>
+						</Tooltip>
 					</Row>
 				);
 			})}

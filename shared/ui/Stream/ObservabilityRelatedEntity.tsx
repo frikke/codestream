@@ -6,14 +6,16 @@ import { HostApi } from "@codestream/webview/webview-api";
 import { ObservabilityGoldenMetricDropdown } from "./ObservabilityGoldenMetricDropdown";
 import styled from "styled-components";
 import { PaneNodeName } from "../src/components/Pane";
-import {
-	GetServiceLevelTelemetryRequestType,
-	GetNewRelicUrlRequestType,
-} from "@codestream/protocols/agent";
 import { useDidMount, useInterval } from "../utilities/hooks";
 import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import cx from "classnames";
-import { GoldenMetricsResult, RelatedEntityByType } from "@codestream/protocols/agent";
+import {
+	GoldenMetricsResult,
+	RelatedEntityByType,
+	GetServiceLevelTelemetryRequestType,
+	GetNewRelicUrlRequestType,
+	GetAlertViolationsResponse,
+} from "@codestream/protocols/agent";
 import { ObservabilityAlertViolations } from "./ObservabilityAlertViolations";
 
 interface Props {
@@ -26,7 +28,9 @@ export const ObservabilityRelatedEntity = React.memo((props: Props) => {
 	const [loadingGoldenMetrics, setLoadingGoldenMetrics] = useState<boolean>(true);
 	const [goldenMetrics, setGoldenMetrics] = useState<GoldenMetricsResult[]>([]);
 	const [newRelicUrl, setNewRelicUrl] = useState<string>("");
-	const [recentAlertViolations, setRecentAlertViolations] = useState<any>([]);
+	const [recentAlertViolations, setRecentAlertViolations] = useState<
+		GetAlertViolationsResponse | undefined
+	>();
 
 	const { relatedEntity } = props;
 	const alertSeverityColor = ALERT_SEVERITY_COLORS[relatedEntity?.alertSeverity];
@@ -37,22 +41,6 @@ export const ObservabilityRelatedEntity = React.memo((props: Props) => {
 		height: 10px;
 		display: inline-block;
 		margin-right: 4px;
-	`;
-
-	const RowIcons = styled.div`
-		text-align: right;
-		// position: absolute;
-		// right: 5px;
-		// top: 2px;
-		white-space: nowrap;
-		margin-left: auto;
-		display: "block";
-		.icon {
-			opacity: 0.7;
-		}
-		.icon-override-actions-visible {
-			display: none;
-		}
 	`;
 
 	useDidMount(() => {
@@ -155,7 +143,7 @@ export const ObservabilityRelatedEntity = React.memo((props: Props) => {
 						noDropdown={true}
 					/>
 					<ObservabilityAlertViolations
-						alertViolations={recentAlertViolations.recentAlertViolations}
+						alertViolations={recentAlertViolations?.recentAlertViolations}
 					/>
 				</>
 			)}
