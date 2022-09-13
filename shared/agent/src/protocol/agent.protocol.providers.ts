@@ -1324,6 +1324,7 @@ export interface GetServiceLevelTelemetryResponse {
 
 export interface GetAlertViolationsResponse {
 	name?: string;
+	guid?: string;
 	recentAlertViolations?: RecentAlertViolation[];
 }
 

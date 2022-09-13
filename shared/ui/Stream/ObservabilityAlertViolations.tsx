@@ -22,11 +22,12 @@ interface RecentAlertViolation {
 
 interface Props {
 	alertViolations: RecentAlertViolations;
+	customPadding?: string;
 }
 
-export const ObservabilityRelatedEntity = React.memo((props: Props) => {
+export const ObservabilityAlertViolations = React.memo((props: Props) => {
 	const [expanded, setExpanded] = useState<boolean>(false);
-	const { alertViolations } = props;
+	const { alertViolations, customPadding } = props;
 	// const alertSeverityColor = ALERT_SEVERITY_COLORS[relatedEntity?.alertSeverity];
 
 	const EntityHealth = styled.div<{ backgroundColor: string }>`
@@ -52,12 +53,18 @@ export const ObservabilityRelatedEntity = React.memo((props: Props) => {
 
 	return (
 		<>
-			<Row
-				style={{
-					padding: "0 10px 0 60px"
-				}}
-				className={"pr-row"}
-			></Row>
+			{alertViolations?.map(_ => {
+				return (
+					<Row
+						style={{
+							padding: customPadding ? customPadding : "2px 10px 2px 60px",
+						}}
+						className={"pr-row"}
+					>
+						{_.label}
+					</Row>
+				);
+			})}
 		</>
 	);
 });

@@ -8,12 +8,13 @@ import styled from "styled-components";
 import { PaneNodeName } from "../src/components/Pane";
 import {
 	GetServiceLevelTelemetryRequestType,
-	GetNewRelicUrlRequestType
+	GetNewRelicUrlRequestType,
 } from "@codestream/protocols/agent";
 import { useDidMount, useInterval } from "../utilities/hooks";
 import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import cx from "classnames";
 import { GoldenMetricsResult, RelatedEntityByType } from "@codestream/protocols/agent";
+import { ObservabilityAlertViolations } from "./ObservabilityAlertViolations";
 
 interface Props {
 	relatedEntity: RelatedEntityByType;
@@ -25,6 +26,7 @@ export const ObservabilityRelatedEntity = React.memo((props: Props) => {
 	const [loadingGoldenMetrics, setLoadingGoldenMetrics] = useState<boolean>(true);
 	const [goldenMetrics, setGoldenMetrics] = useState<GoldenMetricsResult[]>([]);
 	const [newRelicUrl, setNewRelicUrl] = useState<string>("");
+	const [recentAlertViolations, setRecentAlertViolations] = useState<any>([]);
 
 	const { relatedEntity } = props;
 	const alertSeverityColor = ALERT_SEVERITY_COLORS[relatedEntity?.alertSeverity];
@@ -74,7 +76,7 @@ export const ObservabilityRelatedEntity = React.memo((props: Props) => {
 	const fetchNewRelicUrl = async (entityGuid?: string | null) => {
 		if (entityGuid) {
 			const response = await HostApi.instance.send(GetNewRelicUrlRequestType, {
-				entityGuid
+				entityGuid,
 			});
 			if (response) {
 				setNewRelicUrl(response.newRelicUrl);
@@ -89,11 +91,11 @@ export const ObservabilityRelatedEntity = React.memo((props: Props) => {
 				newRelicEntityGuid: entityGuid,
 				repoId: props.currentRepoId,
 				skipRepoFetch: true,
-				fetchRecentAlertViolations: true
+				fetchRecentAlertViolations: true,
 			});
 			if (response?.goldenMetrics) {
 				setGoldenMetrics(response.goldenMetrics);
-				// setRecentAlertViolations(response.recentAlertViolations);
+				setRecentAlertViolations(response.recentAlertViolations);
 			}
 			setLoadingGoldenMetrics(false);
 		}
@@ -127,7 +129,7 @@ export const ObservabilityRelatedEntity = React.memo((props: Props) => {
 					<Icon
 						name="globe"
 						className={cx("clickable", {
-							"icon-override-actions-visible": true
+							"icon-override-actions-visible": true,
 						})}
 						title="View on New Relic"
 						placement="bottomLeft"
@@ -136,10 +138,10 @@ export const ObservabilityRelatedEntity = React.memo((props: Props) => {
 							e.preventDefault();
 							e.stopPropagation();
 							HostApi.instance.track("Open Service Summary on NR", {
-								Section: "Related Services"
+								Section: "Related Services",
 							});
 							HostApi.instance.send(OpenUrlRequestType, {
-								url: newRelicUrl
+								url: newRelicUrl,
 							});
 						}}
 					/>
@@ -151,6 +153,9 @@ export const ObservabilityRelatedEntity = React.memo((props: Props) => {
 						goldenMetrics={goldenMetrics}
 						loadingGoldenMetrics={loadingGoldenMetrics}
 						noDropdown={true}
+					/>
+					<ObservabilityAlertViolations
+						alertViolations={recentAlertViolations.recentAlertViolations}
 					/>
 				</>
 			)}
