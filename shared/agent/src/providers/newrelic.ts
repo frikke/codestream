@@ -2438,6 +2438,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		} catch (ex) {
 			ContextLogger.warn("getRecentAlertViolations failure", {
 				entityGuid,
+				error: ex,
 			});
 			const accessTokenError = ex as {
 				message: string;
