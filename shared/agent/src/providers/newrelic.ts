@@ -7,6 +7,7 @@ import {
 	groupBy as _groupBy,
 	memoize,
 	uniq as _uniq,
+	uniqBy as _uniqBy,
 } from "lodash";
 import { join, relative, sep } from "path";
 import Cache from "timed-cache";
@@ -120,6 +121,7 @@ import {
 	spanQueryTypes,
 } from "./newrelic/spanQuery";
 import { ThirdPartyIssueProviderBase } from "./thirdPartyIssueProviderBase";
+// import { mapOrder } from "../../../ui/utils";
 
 const ignoredErrors = [GraphqlNrqlTimeoutError];
 
@@ -433,6 +435,41 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		}
 		return undefined;
 	}
+
+	private mapOrder(array: any = [], order: string[] = [], key: string = "") {
+		if (array.length > 0 && order.length > 0 && key) {
+			array.sort(function (a: any, b: any) {
+				var A = a[key],
+					B = b[key];
+
+				if (order.indexOf(A) > order.indexOf(B)) {
+					return 1;
+				} else {
+					return -1;
+				}
+			});
+		}
+
+		return array;
+	}
+
+	// Sort an array of objects based on order of a seperate array
+	// export function mapOrder(array: any = [], order: string[] = [], key: string = "") {
+	// 	if (array.length > 0 && order.length > 0 && key) {
+	// 		array.sort(function(a, b) {
+	// 			var A = a[key],
+	// 				B = b[key];
+
+	// 			if (order.indexOf(A) > order.indexOf(B)) {
+	// 				return 1;
+	// 			} else {
+	// 				return -1;
+	// 			}
+	// 		});
+	// 	}
+
+	// 	return array;
+	// }
 
 	private getInsufficientApiKeyError(ex: any): { message: string } | undefined {
 		const requestError = ex as {
@@ -2481,7 +2518,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 					  entity(guid: $entityGuid) {
 						name
 						guid
-						recentAlertViolations(count: 2) {
+						recentAlertViolations(count: 20) {
 						  agentUrl
 						  alertSeverity
 						  closedAt
@@ -2499,7 +2536,43 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 					entityGuid: entityGuid,
 				}
 			);
-			return response?.actor?.entity;
+
+			if (response?.actor?.entity) {
+				let _entity = response?.actor?.entity;
+				const _recentAlertViolationsArray = _entity?.recentAlertViolations;
+
+				const ALERT_SEVERITY_SORTING_ORDER: string[] = [
+					"",
+					"CRITICAL",
+					"NOT_ALERTING",
+					"NOT_CONFIGURED",
+					"WARNING",
+					"UNKNOWN",
+				];
+
+				// get unique labels
+				const _recentAlertViolationsArrayUnique = _uniqBy(_recentAlertViolationsArray, "label");
+
+				// sort based on openedAt time
+				_recentAlertViolationsArrayUnique.sort((a, b) =>
+					a.openedAt > b.openedAt ? 1 : b.openedAt > a.openedAt ? -1 : 0
+				);
+
+				// sort based on alert serverity defined in ALERT_SEVERITY_SORTING_ORDER
+				const _recentAlertViolationsArraySorted = this.mapOrder(
+					_recentAlertViolationsArray,
+					ALERT_SEVERITY_SORTING_ORDER,
+					"alertSeverity"
+				);
+
+				// take top 2
+				const _topTwoRecentAlertViolations = _recentAlertViolationsArraySorted.slice(0, 2);
+
+				_entity.recentAlertViolations = _topTwoRecentAlertViolations;
+
+				return _entity;
+			}
+			return {};
 		} catch (ex) {
 			ContextLogger.warn("getRecentAlertViolations failure", {
 				entityGuid,
