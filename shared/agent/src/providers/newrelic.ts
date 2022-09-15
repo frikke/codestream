@@ -121,7 +121,6 @@ import {
 	spanQueryTypes,
 } from "./newrelic/spanQuery";
 import { ThirdPartyIssueProviderBase } from "./thirdPartyIssueProviderBase";
-// import { mapOrder } from "../../../ui/utils";
 
 const ignoredErrors = [GraphqlNrqlTimeoutError];
 
@@ -436,6 +435,9 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		return undefined;
 	}
 
+	// Map array of objects based on order of array of strings
+	// @TODO: might be worth creating a agent/src/providers/newrelic/utils.tsx file
+	// for some of these private functions
 	private mapOrder(array: any = [], order: string[] = [], key: string = "") {
 		if (array.length > 0 && order.length > 0 && key) {
 			array.sort(function (a: any, b: any) {
@@ -452,24 +454,6 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 
 		return array;
 	}
-
-	// Sort an array of objects based on order of a seperate array
-	// export function mapOrder(array: any = [], order: string[] = [], key: string = "") {
-	// 	if (array.length > 0 && order.length > 0 && key) {
-	// 		array.sort(function(a, b) {
-	// 			var A = a[key],
-	// 				B = b[key];
-
-	// 			if (order.indexOf(A) > order.indexOf(B)) {
-	// 				return 1;
-	// 			} else {
-	// 				return -1;
-	// 			}
-	// 		});
-	// 	}
-
-	// 	return array;
-	// }
 
 	private getInsufficientApiKeyError(ex: any): { message: string } | undefined {
 		const requestError = ex as {
