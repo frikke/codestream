@@ -981,6 +981,7 @@ export const getProviderPullRequestRepoObjectCore = (
 	providerId?: string
 ) => {
 	const result: CurrentRepoResponse = {};
+	const openReposByName = repos?.map(_ => _?.name?.toLowerCase())?.join("|");
 
 	try {
 		if (!currentPr || !currentPr.conversations) {
@@ -1068,7 +1069,6 @@ export const getProviderPullRequestRepoObjectCore = (
 		}
 	} catch (ex) {
 		result.error = typeof ex === "string" ? ex : ex.message;
-		const openReposByName = repos?.map(_ => _?.name?.toLowerCase())?.join("|");
 		logError(result.error || "Could not find currentRepo", {
 			detail: "Could not find currentRepo",
 			ex,
@@ -1077,7 +1077,6 @@ export const getProviderPullRequestRepoObjectCore = (
 		console.error(ex);
 	}
 	if (result.error || !result.currentRepo) {
-		const openReposByName = repos?.map(_ => _?.name?.toLowerCase())?.join("|");
 		logError(result.error || "Could not find currentRepo", {
 			detail: "Could not find currentRepo",
 			result,
