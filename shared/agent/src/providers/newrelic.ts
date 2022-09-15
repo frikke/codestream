@@ -441,14 +441,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 	private mapOrder(array: any = [], order: string[] = [], key: string = "") {
 		if (array.length > 0 && order.length > 0 && key) {
 			array.sort(function (a: any, b: any) {
-				var A = a[key],
-					B = b[key];
-
-				if (order.indexOf(A) > order.indexOf(B)) {
-					return 1;
-				} else {
-					return -1;
-				}
+				return order.indexOf(a[key]) > order.indexOf(b[key]) ? 1 : -1;
 			});
 		}
 
@@ -2522,8 +2515,8 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			);
 
 			if (response?.actor?.entity) {
-				let _entity = response?.actor?.entity;
-				const _recentAlertViolationsArray = _entity?.recentAlertViolations;
+				let entity = response?.actor?.entity;
+				const recentAlertViolationsArray = entity?.recentAlertViolations;
 
 				const ALERT_SEVERITY_SORTING_ORDER: string[] = [
 					"",
@@ -2535,26 +2528,26 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				];
 
 				// get unique labels
-				const _recentAlertViolationsArrayUnique = _uniqBy(_recentAlertViolationsArray, "label");
+				const recentAlertViolationsArrayUnique = _uniqBy(recentAlertViolationsArray, "label");
 
 				// sort based on openedAt time
-				_recentAlertViolationsArrayUnique.sort((a, b) =>
+				recentAlertViolationsArrayUnique.sort((a, b) =>
 					a.openedAt > b.openedAt ? 1 : b.openedAt > a.openedAt ? -1 : 0
 				);
 
 				// sort based on alert serverity defined in ALERT_SEVERITY_SORTING_ORDER
-				const _recentAlertViolationsArraySorted = this.mapOrder(
-					_recentAlertViolationsArray,
+				const recentAlertViolationsArraySorted = this.mapOrder(
+					recentAlertViolationsArray,
 					ALERT_SEVERITY_SORTING_ORDER,
 					"alertSeverity"
 				);
 
 				// take top 2
-				const _topTwoRecentAlertViolations = _recentAlertViolationsArraySorted.slice(0, 2);
+				const topTwoRecentAlertViolations = recentAlertViolationsArraySorted.slice(0, 2);
 
-				_entity.recentAlertViolations = _topTwoRecentAlertViolations;
+				entity.recentAlertViolations = topTwoRecentAlertViolations;
 
-				return _entity;
+				return entity;
 			}
 			return {};
 		} catch (ex) {
