@@ -1068,16 +1068,20 @@ export const getProviderPullRequestRepoObjectCore = (
 		}
 	} catch (ex) {
 		result.error = typeof ex === "string" ? ex : ex.message;
+		const openReposByName = repos?.map(_ => _?.name?.toLowerCase())?.join("|");
 		logError(result.error || "Could not find currentRepo", {
 			detail: "Could not find currentRepo",
 			ex,
+			openReposByName,
 		});
 		console.error(ex);
 	}
 	if (result.error || !result.currentRepo) {
+		const openReposByName = repos?.map(_ => _?.name?.toLowerCase())?.join("|");
 		logError(result.error || "Could not find currentRepo", {
 			detail: "Could not find currentRepo",
 			result,
+			openReposByName,
 		});
 	}
 	return result;
