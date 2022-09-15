@@ -6,7 +6,7 @@ import {
 	getCurrentProviderPullRequest,
 	getCurrentProviderPullRequestLastUpdated,
 	getPullRequestExactId,
-	getPullRequestId
+	getPullRequestId,
 } from "../../../store/providerPullRequests/reducer";
 import { LoadingMessage } from "../../../src/components/LoadingMessage";
 import { ErrorMessage } from "../../../src/components/ErrorMessage";
@@ -26,7 +26,7 @@ import {
 	FetchThirdPartyPullRequestPullRequest,
 	GetReposScmRequestType,
 	GitLabMergeRequest,
-	GitLabMergeRequestWrapper
+	GitLabMergeRequestWrapper,
 } from "@codestream/protocols/agent";
 import {
 	PRActionIcons,
@@ -38,7 +38,7 @@ import {
 	PRSelectorButtons,
 	PRStatusButton,
 	PRSubmitReviewButton,
-	PRTitle
+	PRTitle,
 } from "../../PullRequestComponents";
 import { PullRequestFileComments } from "../../PullRequestFileComments";
 import { PullRequestFilesChangedTab } from "../../PullRequestFilesChangedTab";
@@ -48,10 +48,8 @@ import {
 	api,
 	clearPullRequestCommits,
 	clearPullRequestFiles,
-	getPullRequestCommitsFromProvider,
 	getPullRequestConversations,
 	getPullRequestConversationsFromProvider,
-	getPullRequestFilesFromProvider
 } from "../../../store/providerPullRequests/actions";
 import { HostApi } from "../../../webview-api";
 import { clearCurrentPullRequest, setCurrentPullRequest } from "../../../store/context/actions";
@@ -279,7 +277,7 @@ const InlineIcon = styled.div`
 const stateMap = {
 	opened: "open",
 	closed: "closed",
-	merged: "merged"
+	merged: "merged",
 };
 
 const EMPTY_HASH = {};
@@ -325,7 +323,7 @@ export const PullRequest = () => {
 			team,
 			textEditorUri: state.editorContext.textEditorUri,
 			reposState: state.repos,
-			checkoutBranch: state.context.pullRequestCheckoutBranch
+			checkoutBranch: state.context.pullRequestCheckoutBranch,
 		};
 	});
 
@@ -350,11 +348,11 @@ export const PullRequest = () => {
 	const breakpoints = {
 		auto: "630px",
 		"side-by-side": "10px",
-		vertical: "100000px"
+		vertical: "100000px",
 	};
 	const addViewPreferencesToTheme = theme => ({
 		...theme,
-		breakpoint: breakpoints[derivedState.viewPreference]
+		breakpoint: breakpoints[derivedState.viewPreference],
 	});
 
 	const closeFileComments = () => {
@@ -387,7 +385,7 @@ export const PullRequest = () => {
 	const getOpenRepos = async () => {
 		const { reposState } = derivedState;
 		const response: GetReposScmResponse = await HostApi.instance.send(GetReposScmRequestType, {
-			includeCurrentBranches: true
+			includeCurrentBranches: true,
 		});
 		if (response && response.repositories) {
 			const repos = response.repositories.map(repo => {
@@ -605,7 +603,7 @@ export const PullRequest = () => {
 		if (!pr || !pr.discussions || !pr.discussions.nodes) return [0, 0];
 		return [
 			pr.discussions.nodes.filter(_ => _.resolvable && !_.resolved).length,
-			pr.discussions.nodes.filter(_ => _.resolvable && _.resolved).length
+			pr.discussions.nodes.filter(_ => _.resolvable && _.resolved).length,
 		];
 	})();
 
@@ -614,7 +612,7 @@ export const PullRequest = () => {
 		setIsLoadingMessage(onOff ? "Marking as draft..." : "Marking as ready...");
 		await dispatch(
 			api("setWorkInProgressOnPullRequest", {
-				onOff
+				onOff,
 			})
 		);
 		setIsLoadingMessage("");
@@ -643,7 +641,7 @@ export const PullRequest = () => {
 					display: "flex",
 					height: "100vh",
 					alignItems: "center",
-					background: "var(--sidebar-background)"
+					background: "var(--sidebar-background)",
 				}}
 			>
 				<div style={{ position: "absolute", top: "20px", right: "20px" }}>
@@ -766,7 +764,7 @@ export const PullRequest = () => {
 								by <PRHeadshotName person={pr.author} fullName />
 								<PRActionIcons>
 									<PRAuthorBadges
-										pr={(pr as unknown) as FetchThirdPartyPullRequestPullRequest}
+										pr={pr as unknown as FetchThirdPartyPullRequestPullRequest}
 										node={pr}
 									/>
 								</PRActionIcons>
@@ -784,7 +782,7 @@ export const PullRequest = () => {
 											align="dropdownRight"
 											items={[
 												{ label: "Edit", key: "edit", action: edit },
-												{ label: "Reopen", key: "reopen", action: reopen }
+												{ label: "Reopen", key: "reopen", action: reopen },
 											]}
 										>
 											Edit
@@ -801,9 +799,9 @@ export const PullRequest = () => {
 												{
 													label: pr.isDraft ? "Mark as ready" : "Mark as draft",
 													key: "draft",
-													action: () => toggleWorkInProgress()
+													action: () => toggleWorkInProgress(),
 												},
-												{ label: "Close", key: "close", action: close }
+												{ label: "Close", key: "close", action: close },
 											]}
 										>
 											Edit
@@ -845,7 +843,7 @@ export const PullRequest = () => {
 							background: "var(--app-background-color)",
 							zIndex: 20,
 							top: 0,
-							paddingTop: "10px"
+							paddingTop: "10px",
 						}}
 					>
 						<Tabs style={{ margin: "0 20px 10px 20px", display: "flex", flexWrap: "wrap-reverse" }}>
