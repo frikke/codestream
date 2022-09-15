@@ -5,7 +5,7 @@ import {
 	CurrentRepoResponse,
 	ProviderPullRequestActionsTypes,
 	ProviderPullRequestsState,
-	RepoPullRequest
+	RepoPullRequest,
 } from "./types";
 import { createSelector } from "reselect";
 import { CodeStreamState } from "..";
@@ -14,7 +14,7 @@ import { ContextActionsType, ContextState } from "../context/types";
 import {
 	DiscussionNode,
 	FetchThirdPartyPullRequestPullRequest,
-	GitLabMergeRequest
+	GitLabMergeRequest,
 } from "@codestream/protocols/agent";
 import { logError } from "@codestream/webview/logger";
 
@@ -50,12 +50,12 @@ export function reduceProviderPullRequests(
 			if (action.payload && id && action.payload.providerId) {
 				const newState = createNewObject(state, action);
 				newState[action.payload.providerId][id] = {
-					...newState[action.payload.providerId][id]
+					...newState[action.payload.providerId][id],
 				};
 				newState[action.payload.providerId][id].error = undefined;
 				return {
 					myPullRequests: { ...state.myPullRequests },
-					pullRequests: newState
+					pullRequests: newState,
 				};
 			} else if (action.payload) {
 				const newState = { ...state };
@@ -72,11 +72,11 @@ export function reduceProviderPullRequests(
 		case ProviderPullRequestActionsTypes.AddMyPullRequests: {
 			const newState = { ...state.myPullRequests };
 			newState[action.payload.providerId] = {
-				data: action.payload.data
+				data: action.payload.data,
 			};
 			return {
 				myPullRequests: newState,
-				pullRequests: { ...state.pullRequests }
+				pullRequests: { ...state.pullRequests },
 			};
 		}
 		case ProviderPullRequestActionsTypes.UpdatePullRequestFilter: {
@@ -86,67 +86,67 @@ export function reduceProviderPullRequests(
 			}
 			return {
 				myPullRequests: newState,
-				pullRequests: { ...state.pullRequests }
+				pullRequests: { ...state.pullRequests },
 			};
 		}
 		case ProviderPullRequestActionsTypes.AddPullRequestFiles: {
 			const newState = createNewObject(state, action);
 			const files = {
-				...newState[action.payload.providerId][id].files
+				...newState[action.payload.providerId][id].files,
 			};
 			files[action.payload.commits] = action.payload.pullRequestFiles;
 			newState[action.payload.providerId][id] = {
 				...newState[action.payload.providerId][id],
 				accessRawDiffs: action.payload.accessRawDiffs,
-				files
+				files,
 			};
 			return {
 				myPullRequests: { ...state.myPullRequests },
-				pullRequests: newState
+				pullRequests: newState,
 			};
 		}
 		case ProviderPullRequestActionsTypes.ClearPullRequestFiles: {
 			const newState = createNewObject(state, action);
 			newState[action.payload.providerId][id] = {
 				...newState[action.payload.providerId][id],
-				files: []
+				files: [],
 			};
 			return {
 				myPullRequests: { ...state.myPullRequests },
-				pullRequests: newState
+				pullRequests: newState,
 			};
 		}
 		case ProviderPullRequestActionsTypes.AddPullRequestCommits: {
 			const newState = createNewObject(state, action);
 			newState[action.payload.providerId][id] = {
 				...newState[action.payload.providerId][id],
-				commits: action.payload.pullRequestCommits
+				commits: action.payload.pullRequestCommits,
 			};
 			return {
 				myPullRequests: { ...state.myPullRequests },
-				pullRequests: newState
+				pullRequests: newState,
 			};
 		}
 		case ProviderPullRequestActionsTypes.ClearPullRequestCommits: {
 			const newState = createNewObject(state, action);
 			newState[action.payload.providerId][id] = {
 				...newState[action.payload.providerId][id],
-				commits: []
+				commits: [],
 			};
 			return {
 				myPullRequests: { ...state.myPullRequests },
-				pullRequests: newState
+				pullRequests: newState,
 			};
 		}
 		case ProviderPullRequestActionsTypes.AddPullRequestCollaborators: {
 			const newState = createNewObject(state, action);
 			newState[action.payload.providerId][id] = {
 				...newState[action.payload.providerId][id],
-				collaborators: action.payload.collaborators
+				collaborators: action.payload.collaborators,
 			};
 			return {
 				myPullRequests: { ...state.myPullRequests },
-				pullRequests: newState
+				pullRequests: newState,
 			};
 		}
 		case ProviderPullRequestActionsTypes.UpdatePullRequestTitle: {
@@ -156,14 +156,14 @@ export function reduceProviderPullRequests(
 					if (pr.id === action.payload.id) {
 						newState[action.payload.providerId]["data"]![index][i] = {
 							...newState[action.payload.providerId]["data"]![index][i],
-							title: action.payload.pullRequestData.title
+							title: action.payload.pullRequestData.title,
 						};
 					}
 				});
 			});
 			return {
 				myPullRequests: newState,
-				pullRequests: { ...state.pullRequests }
+				pullRequests: { ...state.pullRequests },
 			};
 		}
 		case ProviderPullRequestActionsTypes.AddPullRequestConversations: {
@@ -171,33 +171,33 @@ export function reduceProviderPullRequests(
 			newState[action.payload.providerId][id] = {
 				...newState[action.payload.providerId][id],
 				conversations: action.payload.pullRequest,
-				conversationsLastFetch: Date.now()
+				conversationsLastFetch: Date.now(),
 			};
 			return {
 				myPullRequests: { ...state.myPullRequests },
-				pullRequests: newState
+				pullRequests: newState,
 			};
 		}
 		case ProviderPullRequestActionsTypes.ClearPullRequestError: {
 			const newState = createNewObject(state, action);
 			newState[action.payload.providerId][id] = {
-				...newState[action.payload.providerId][id]
+				...newState[action.payload.providerId][id],
 			};
 			newState[action.payload.providerId][id].error = undefined;
 			return {
 				myPullRequests: { ...state.myPullRequests },
-				pullRequests: newState
+				pullRequests: newState,
 			};
 		}
 		case ProviderPullRequestActionsTypes.AddPullRequestError: {
 			const newState = createNewObject(state, action);
 			newState[action.payload.providerId][id] = {
-				...newState[action.payload.providerId][id]
+				...newState[action.payload.providerId][id],
 			};
 			newState[action.payload.providerId][id].error = action.payload.error;
 			return {
 				myPullRequests: { ...state.myPullRequests },
-				pullRequests: newState
+				pullRequests: newState,
 			};
 		}
 		case ProviderPullRequestActionsTypes.HandleDirectives: {
@@ -205,7 +205,7 @@ export function reduceProviderPullRequests(
 			let providerId = action.payload.providerId;
 			newState[providerId] = newState[action.payload.providerId] || {};
 			newState[providerId][id] = {
-				...newState[providerId][id]
+				...newState[providerId][id],
 			};
 			if (newState[providerId][id] && newState[providerId][id].conversations) {
 				if (providerId === "gitlab*com" || providerId === "gitlab/enterprise") {
@@ -820,7 +820,7 @@ export function reduceProviderPullRequests(
 			}
 			return {
 				myPullRequests: { ...state.myPullRequests },
-				pullRequests: newState
+				pullRequests: newState,
 			};
 		}
 		case "RESET":
@@ -985,7 +985,7 @@ export const getProviderPullRequestRepoObjectCore = (
 	try {
 		if (!currentPr || !currentPr.conversations) {
 			return {
-				error: "missing current pr or conversations"
+				error: "missing current pr or conversations",
 			};
 		}
 		let repoName;
@@ -1068,11 +1068,16 @@ export const getProviderPullRequestRepoObjectCore = (
 		}
 	} catch (ex) {
 		result.error = typeof ex === "string" ? ex : ex.message;
+		logError(result.error || "Could not find currentRepo", {
+			detail: "Could not find currentRepo",
+			ex,
+		});
 		console.error(ex);
 	}
 	if (result.error || !result.currentRepo) {
 		logError(result.error || "Could not find currentRepo", {
-			result
+			detail: "Could not find currentRepo",
+			result,
 		});
 	}
 	return result;
