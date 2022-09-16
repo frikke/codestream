@@ -980,6 +980,12 @@ export const getProviderPullRequestRepoObjectCore = (
 	currentPr: RepoPullRequest,
 	providerId?: string
 ) => {
+	console.log(
+		`getProviderPullRequestRepoObjectCore arguments: repos, currentPr, providerId?`,
+		repos,
+		currentPr,
+		providerId ? providerId : ""
+	);
 	const result: CurrentRepoResponse = {};
 	const openReposByName = repos?.map(_ => _?.name?.toLowerCase())?.join("|");
 
@@ -1083,6 +1089,7 @@ export const getProviderPullRequestRepoObjectCore = (
 			openReposByName,
 		});
 	}
+	console.log(`getProviderPullRequestRepoObjectCore result`, result);
 	return result;
 };
 
