@@ -1232,6 +1232,8 @@ export interface GetServiceLevelTelemetryRequest {
 	fetchRecentAlertViolations?: boolean;
 }
 
+export interface GetEntityCountRequest {}
+
 export interface GetAlertViolationsRequest {}
 
 export type MetricTimesliceNameMapping = {
@@ -1313,6 +1315,10 @@ export interface GetServiceLevelTelemetryResponse {
 	recentAlertViolations?: GetAlertViolationsResponse;
 }
 
+export interface GetEntityCountResponse {
+	entityCount: number;
+}
+
 export interface GetAlertViolationsResponse {
 	name?: string;
 	guid?: string;
@@ -1339,6 +1345,13 @@ export const GetServiceLevelTelemetryRequestType = new RequestType<
 	void,
 	void
 >("codestream/newrelic/serviceLevelTelemetry");
+
+export const GetEntityCountRequestType = new RequestType<
+	GetEntityCountRequest,
+	GetEntityCountResponse,
+	void,
+	void
+>("codestream/newrelic/entityCount");
 
 export const GetAlertViolationsRequestType = new RequestType<
 	GetAlertViolationsRequest,

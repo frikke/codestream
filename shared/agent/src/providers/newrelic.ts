@@ -87,6 +87,9 @@ import {
 	StackTraceResponse,
 	ThirdPartyDisconnect,
 	ThirdPartyProviderConfig,
+	GetEntityCountRequestType,
+	GetEntityCountRequest,
+	GetEntityCountResponse,
 } from "../protocol/agent.protocol";
 import { CSMe, CSNewRelicProviderInfo } from "../protocol/api.protocol";
 import { CodeStreamSession } from "../session";
@@ -446,6 +449,46 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		}
 
 		return array;
+	}
+
+	private async generateStatementsFromAppNames(request: any) {
+		let statements: string[] = [];
+		if (request.appNames?.length) {
+			for (const appName of request.appNames) {
+				const appStatements = this.generateEntityQueryStatements(appName);
+				if (appStatements?.length) {
+					statements = statements.concat(appStatements);
+				}
+			}
+		}
+
+		if (request.appName != null) {
+			const appStatements = this.generateEntityQueryStatements(request.appName);
+			if (appStatements?.length) {
+				statements = statements.concat(appStatements);
+			}
+		}
+
+		// try to find entities matching our open repos and/or their remote paths
+		const { scm } = SessionContainer.instance();
+		const reposResponse = await scm.getRepos({ inEditorOnly: true, includeRemotes: true });
+		reposResponse?.repositories?.forEach(repo => {
+			if (repo?.folder?.name) {
+				const appStatements = this.generateEntityQueryStatements(repo.folder.name);
+				if (appStatements?.length) {
+					statements = statements.concat(appStatements);
+				}
+			}
+			repo.remotes?.forEach(remote => {
+				if (remote.path) {
+					const appStatements = this.generateEntityQueryStatements(remote.path);
+					if (appStatements?.length) {
+						statements = statements.concat(appStatements);
+					}
+				}
+			});
+		});
+		return statements;
 	}
 
 	private getInsufficientApiKeyError(ex: any): { message: string } | undefined {
@@ -2171,7 +2214,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		}
 
 		try {
-			const entityCount = await this.getEntityCount();
+			const { entityCount } = await this.getEntityCount();
 			if (entityCount < 1) {
 				ContextLogger.log("getFileLevelTelemetry: no NR1 entities");
 				return undefined;
@@ -3839,7 +3882,9 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		);
 	}
 
-	protected async getEntityCount(): Promise<number> {
+	@lspHandler(GetEntityCountRequestType)
+	@log()
+	async getEntityCount(request?: GetEntityCountRequest): Promise<GetEntityCountResponse> {
 		try {
 			const result = await this.query(`{
 			actor {
@@ -3849,15 +3894,35 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			}
 		  }`);
 
-			return result?.actor?.entitySearch?.count;
+			return { entityCount: result?.actor?.entitySearch?.count };
 		} catch (ex) {
 			this.errorLogIfNotIgnored(ex, "getEntityCount");
 			if (ex instanceof GraphqlNrqlError) {
 				throw ex;
 			}
 		}
-		return 0;
+		return { entityCount: 0 };
 	}
+
+	// protected async getEntityCount(): Promise<number> {
+	// 	try {
+	// 		const result = await this.query(`{
+	// 		actor {
+	// 		  entitySearch(query: "type='APPLICATION'") {
+	// 			count
+	// 		  }
+	// 		}
+	// 	  }`);
+
+	// 		return result?.actor?.entitySearch?.count;
+	// 	} catch (ex) {
+	// 		this.errorLogIfNotIgnored(ex, "getEntityCount");
+	// 		if (ex instanceof GraphqlNrqlError) {
+	// 			throw ex;
+	// 		}
+	// 	}
+	// 	return 0;
+	// }
 
 	private findBuiltFrom(relatedEntities: RelatedEntity[]): BuiltFromResult | undefined {
 		if (!relatedEntities || !relatedEntities.length) return undefined;

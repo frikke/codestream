@@ -26,6 +26,7 @@ import {
 	GetServiceLevelTelemetryRequestType,
 	GoldenMetricsResult,
 	GetAlertViolationsResponse,
+	GetEntityCountRequestType,
 } from "@codestream/protocols/agent";
 import {
 	HostDidChangeWorkspaceFoldersNotificationType,
@@ -350,16 +351,9 @@ export const Observability = React.memo((props: Props) => {
 		}
 
 		try {
-			const entitiesResponse = await HostApi.instance.send(GetObservabilityEntitiesRequestType, {
-				// if we found repos in the IDE, try to find entities based on repo names
-				appNames:
-					reposResponse?.repos && repoIds.length
-						? reposResponse.repos.filter(r => repoIds.includes(r.repoId)).map(r => r.repoName)
-						: [],
-				resetCache: force,
-			});
+			const { entityCount } = await HostApi.instance.send(GetEntityCountRequestType, {});
 
-			setHasEntities(!_isEmpty(entitiesResponse.entities));
+			setHasEntities(entityCount > 0);
 		} catch (err) {
 			setGenericError(err?.message || GENERIC_ERROR_MESSAGE);
 		} finally {

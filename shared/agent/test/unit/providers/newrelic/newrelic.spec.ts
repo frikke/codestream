@@ -999,10 +999,6 @@ class NewRelicProviderStubBase extends NewRelicProvider {
 		return true;
 	}
 
-	protected async getEntityCount(): Promise<number> {
-		return 1;
-	}
-
 	protected async getObservabilityEntityRepos(
 		repoId: string
 	): Promise<ObservabilityRepo | undefined> {
@@ -1579,10 +1575,6 @@ class NewRelicProviderStub extends NewRelicProviderStubBase {
 
 	isConnected(user: CSMe): boolean {
 		return true;
-	}
-
-	protected async getEntityCount(): Promise<number> {
-		return 1;
 	}
 
 	protected async getObservabilityEntityRepos(
