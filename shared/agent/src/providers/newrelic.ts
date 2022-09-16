@@ -87,6 +87,9 @@ import {
 	StackTraceResponse,
 	ThirdPartyDisconnect,
 	ThirdPartyProviderConfig,
+	GetEntityCountRequestType,
+	GetEntityCountRequest,
+	GetEntityCountResponse,
 } from "../protocol/agent.protocol";
 import { CSMe, CSNewRelicProviderInfo } from "../protocol/api.protocol";
 import { CodeStreamSession } from "../session";
@@ -2171,7 +2174,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		}
 
 		try {
-			const entityCount = await this.getEntityCount();
+			const { entityCount } = await this.getEntityCount();
 			if (entityCount < 1) {
 				ContextLogger.log("getFileLevelTelemetry: no NR1 entities");
 				return undefined;
@@ -3839,7 +3842,9 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		);
 	}
 
-	protected async getEntityCount(): Promise<number> {
+	@lspHandler(GetEntityCountRequestType)
+	@log()
+	async getEntityCount(request?: GetEntityCountRequest): Promise<GetEntityCountResponse> {
 		try {
 			const result = await this.query(`{
 			actor {
@@ -3849,14 +3854,14 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			}
 		  }`);
 
-			return result?.actor?.entitySearch?.count;
+			return { entityCount: result?.actor?.entitySearch?.count };
 		} catch (ex) {
 			this.errorLogIfNotIgnored(ex, "getEntityCount");
 			if (ex instanceof GraphqlNrqlError) {
 				throw ex;
 			}
 		}
-		return 0;
+		return { entityCount: 0 };
 	}
 
 	private findBuiltFrom(relatedEntities: RelatedEntity[]): BuiltFromResult | undefined {

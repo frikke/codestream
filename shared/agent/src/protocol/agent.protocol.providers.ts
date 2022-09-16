@@ -1221,6 +1221,11 @@ export interface GetMethodLevelTelemetryRequest {
 	metricTimesliceNameMapping?: MetricTimesliceNameMapping;
 }
 
+export interface GetEntityCountRequest {}
+
+export interface GetEntityCountResponse {
+	entityCount: number;
+}
 export interface GetServiceLevelTelemetryRequest {
 	/** CodeStream repoId */
 	repoId: string;
@@ -1346,6 +1351,13 @@ export const GetAlertViolationsRequestType = new RequestType<
 	void,
 	void
 >("codestream/newrelic/alertViolations");
+
+export const GetEntityCountRequestType = new RequestType<
+	GetEntityCountRequest,
+	GetEntityCountResponse,
+	void,
+	void
+>("codestream/newrelic/entityCount");
 
 export interface CrashOrException {
 	message?: string;
