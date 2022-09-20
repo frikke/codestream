@@ -261,6 +261,7 @@ class ApplicationSettingsService : PersistentStateComponent<ApplicationSettingsS
 
     val webViewConfigs
         get() = Configs(
+            "unknown",
             state.serverUrl,
             state.email,
             state.avatars,

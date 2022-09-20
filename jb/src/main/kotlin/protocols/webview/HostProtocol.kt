@@ -33,6 +33,7 @@ class Capabilities {
 }
 
 class Configs(
+    val environment: String,
     val serverUrl: String,
     val email: String?,
     val showHeadshots: Boolean,
