@@ -1,47 +1,50 @@
-import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
-import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import Icon from "./Icon";
-import styled from "styled-components";
-import { PRComment, PRCommentCard } from "./PullRequestComponents";
-import Tooltip from "./Tooltip";
-import { HostApi } from "../webview-api";
 import {
 	ChangeDataType,
 	DidChangeDataNotificationType,
 	FetchThirdPartyPullRequestPullRequest,
 } from "@codestream/protocols/agent";
-import { PRHeadshot } from "../src/components/Headshot";
-import MessageInput from "./MessageInput";
-import { ButtonRow } from "../src/components/Dialog";
+import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
+import React, { useState } from "react";
+import styled from "styled-components";
 import { Button } from "../src/components/Button";
-import { api } from "../store/providerPullRequests/thunks";
-import { replaceHtml } from "../utils";
-import { DropdownButton, DropdownButtonItems } from "./DropdownButton";
+import { PRHeadshot } from "../src/components/Headshot";
 import { CodeStreamState } from "../store";
+import { api } from "../store/providerPullRequests/thunks";
 import { getPRLabel } from "../store/providers/reducer";
+import { replaceHtml } from "../utils";
+import { HostApi } from "../webview-api";
+import { DropdownButton, DropdownButtonItems } from "./DropdownButton";
+import Icon from "./Icon";
+import MessageInput from "./MessageInput";
+import { PRComment, PRCommentCard } from "./PullRequestComponents";
+import Tooltip from "./Tooltip";
 
 interface Props {
 	pr: FetchThirdPartyPullRequestPullRequest | any;
 	setIsLoadingMessage: Function;
 	__onDidRender: Function;
 	className?: string;
+	bottomCommentText?: string;
+	bottomCommentTextCallback?: Function;
 }
 
 export const PullRequestBottomComment = styled((props: Props) => {
 	const dispatch = useAppDispatch();
-	const { pr, setIsLoadingMessage } = props;
-
+	const { pr, setIsLoadingMessage, bottomCommentText, bottomCommentTextCallback } = props;
 	const derivedState = useAppSelector((state: CodeStreamState) => {
 		return {
 			prLabel: getPRLabel(state),
 		};
 	});
-
-	const [text, setText] = useState("");
+	const [text, setText] = useState(bottomCommentText || "");
 	const [isLoadingComment, setIsLoadingComment] = useState(false);
 	const [isLoadingCommentAndClose, setIsLoadingCommentAndClose] = useState(false);
 	const [isPreviewing, setIsPreviewing] = useState(false);
+
+	const handleOnChange = value => {
+		setText(value);
+		if (bottomCommentTextCallback) bottomCommentTextCallback(value);
+	};
 
 	const trackComment = type => {
 		HostApi.instance.track("PR Comment Added", {
@@ -274,7 +277,7 @@ export const PullRequestBottomComment = styled((props: Props) => {
 								multiCompose
 								text={text}
 								placeholder="Add Comment..."
-								onChange={setText}
+								onChange={value => handleOnChange(value)}
 								onSubmit={onCommentClick}
 								setIsPreviewing={value => setIsPreviewing(value)}
 								__onDidRender={stuff => props.__onDidRender(stuff)}

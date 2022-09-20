@@ -273,6 +273,7 @@ export const PullRequestConversationTab = (props: {
 	const [cloneURLType, setCloneURLType] = useState("https");
 	const [cloneURL, setCloneURL] = useState(pr && pr.repository ? `${pr.repository.url}.git` : "");
 	const [defaultQueries, setDefaultQueries] = React.useState({});
+	const [bottomCommentText, setBottomCommentText] = useState("");
 
 	const __onDidRender = functions => {
 		insertText = functions.insertTextAtCursor;
@@ -923,6 +924,7 @@ export const PullRequestConversationTab = (props: {
 			: {
 					statusCheckRollup: null,
 			  };
+
 	return (
 		<PRContent>
 			{isLocking && (
@@ -1380,6 +1382,8 @@ export const PullRequestConversationTab = (props: {
 				</PRComment>
 				<PullRequestBottomComment
 					pr={pr}
+					bottomCommentText={bottomCommentText}
+					bottomCommentTextCallback={setBottomCommentText}
 					setIsLoadingMessage={setIsLoadingMessage}
 					__onDidRender={__onDidRender}
 					key={Math.random().toString()}
