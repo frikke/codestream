@@ -65,6 +65,7 @@ export const PullRequestBottomComment = styled((props: Props) => {
 				api({ method: "createPullRequestComment", params: { text: replaceHtml(text) } })
 			);
 		setText("");
+		if (bottomCommentTextCallback) bottomCommentTextCallback("");
 		setIsLoadingComment(false);
 	};
 
@@ -86,6 +87,7 @@ export const PullRequestBottomComment = styled((props: Props) => {
 			type: ChangeDataType.PullRequests,
 		});
 		setText("");
+		if (bottomCommentTextCallback) bottomCommentTextCallback("");
 		setIsLoadingMessage("");
 		setTimeout(() => {
 			// create a small buffer for the provider to incorporate this change before re-fetching
@@ -111,6 +113,7 @@ export const PullRequestBottomComment = styled((props: Props) => {
 			type: ChangeDataType.PullRequests,
 		});
 		setText("");
+		if (bottomCommentTextCallback) bottomCommentTextCallback("");
 		setIsLoadingMessage("");
 		setTimeout(() => {
 			// create a small buffer for the provider to incorporate this change before re-fetching
