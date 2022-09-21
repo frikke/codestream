@@ -16,9 +16,14 @@ import {
 	CSTeam,
 	CSUser,
 } from "@codestream/protocols/api";
-
 import { RequestType } from "vscode-jsonrpc";
-import { EditorContext, IpcRoutes, SessionState, WebviewContext } from "./webview.protocol.common";
+import {
+	Collaborator,
+	EditorContext,
+	IpcRoutes,
+	SessionState,
+	WebviewContext,
+} from "./webview.protocol.common";
 
 export interface Collaborator {
 	id?: string;

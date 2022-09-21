@@ -100,7 +100,8 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 			"avg duration: ${averageDuration} | throughput: ${throughput} | error rate: ${errorsPerMinute} - since ${since}",
 			new MockSymbolLocator(),
 			observabilityService,
-			{ track: function () {} } as any
+			{ track: function () {} } as any,
+			{ getRangesForUri: function () {} } as any
 		);
 
 		stubbedExtension = sinon.stub(vscode.extensions, "getExtension").returns((<
@@ -151,7 +152,8 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 			"anythingHere",
 			new MockSymbolLocator(),
 			observabilityService,
-			{ track: function () {} } as any
+			{ track: function () {} } as any,
+			{ getRangesForUri: function () {} } as any
 		);
 
 		stubbedExtension = sinon.stub(vscode.extensions, "getExtension").returns((<
@@ -192,7 +194,8 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 			"anythingHere",
 			new MockSymbolLocator(),
 			observabilityService,
-			{ track: function () {} } as any
+			{ track: function () {} } as any,
+			{ getRangesForUri: function () {} } as any
 		);
 
 		const codeLenses = await provider.provideCodeLenses(
@@ -229,7 +232,8 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 			"anythingHere",
 			new MockSymbolLocator(),
 			observabilityService,
-			{ track: function () {} } as any
+			{ track: function () {} } as any,
+			{ getRangesForUri: function () {} } as any
 		);
 
 		const codeLenses = await provider.provideCodeLenses(
@@ -266,7 +270,8 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 			"anythingHere",
 			new MockSymbolLocator(),
 			observabilityService,
-			{ track: function () {} } as any
+			{ track: function () {} } as any,
+			{ getRangesForUri: function () {} } as any
 		);
 
 		const codeLenses = await provider.provideCodeLenses(
@@ -301,7 +306,8 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 			"anythingHere",
 			new MockSymbolLocator(),
 			observabilityService,
-			{ track: function () {} } as any
+			{ track: function () {} } as any,
+			{ getRangesForUri: function () {} } as any
 		);
 
 		const mockGetConfig: Partial<vscode.WorkspaceConfiguration> = {
@@ -354,7 +360,8 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 			"anythingHere",
 			new MockSymbolLocator(),
 			observabilityService,
-			{ track: function () {} } as any
+			{ track: function () {} } as any,
+			{ getRangesForUri: function () {} } as any
 		);
 
 		const codeLenses = await provider.provideCodeLenses(
@@ -391,7 +398,8 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 			"anythingHere",
 			new MockSymbolLocator(),
 			observabilityService,
-			{ track: function () {} } as any
+			{ track: function () {} } as any,
+			{ getRangesForUri: function () {} } as any
 		);
 
 		const codeLenses = await provider.provideCodeLenses(
@@ -440,7 +448,8 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 			"anythingHere",
 			new MockSymbolLocator(),
 			observabilityService,
-			{ track: function () {} } as any
+			{ track: function () {} } as any,
+			{ getRangesForUri: function () {} } as any
 		);
 
 		const mockGetConfig: Partial<vscode.WorkspaceConfiguration> = {

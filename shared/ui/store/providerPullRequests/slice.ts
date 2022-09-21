@@ -12,8 +12,8 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { isEmpty } from "lodash-es";
 import { createSelector } from "reselect";
 
-import { Directive } from "@codestream/webview/store/providerPullRequests/directives";
 import { Collaborator } from "@codestream/protocols/webview";
+import { Directive } from "@codestream/webview/store/providerPullRequests/directives";
 import { CodeStreamState } from "..";
 import { ContextState } from "../context/types";
 import { ProviderPullRequestsState, RepoPullRequest } from "./types";

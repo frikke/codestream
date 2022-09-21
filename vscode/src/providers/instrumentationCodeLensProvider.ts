@@ -6,7 +6,7 @@ import {
 	ViewMethodLevelTelemetryCommandArgs,
 	ViewMethodLevelTelemetryErrorCommandArgs
 } from "commands";
-import { Event, SymbolKind } from "vscode-languageclient";
+import { Event, Range, SymbolKind } from "vscode-languageclient";
 import {
 	FileLevelTelemetryRequestOptions,
 	FunctionLocator,
@@ -15,7 +15,6 @@ import {
 import { Strings } from "../system";
 import { Logger } from "../logger";
 import { InstrumentableSymbol, ISymbolLocator } from "./symbolLocator";
-import { Container } from "../container";
 import { configuration } from "../configuration";
 
 function allEmpty(arrays: (any[] | undefined)[]) {
@@ -54,7 +53,10 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 				options?: FileLevelTelemetryRequestOptions | undefined
 			): Promise<GetFileLevelTelemetryResponse>;
 		},
-		private telemetryService: { track: Function }
+		private telemetryService: { track: Function },
+		private documentMarkersService: {
+			getRangesForUri(ranges: any[], uri: string): Promise<{ ranges: Range[] }>;
+		}
 	) {}
 
 	private _onDidChangeCodeLenses = new EventEmitter<void>();
@@ -598,7 +600,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 			codeLenses = lenses.filter(_ => _ != null) as vscode.CodeLens[];
 
 			const localRanges = codeLenses.map(_ => _.range);
-			const uriRanges = await Container.agent.documentMarkers.getRangesForUri(
+			const uriRanges = await this.documentMarkersService.getRangesForUri(
 				localRanges,
 				document.uri.toString(true)
 			);

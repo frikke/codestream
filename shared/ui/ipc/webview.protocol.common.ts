@@ -5,6 +5,14 @@ import { NewPullRequestBranch } from "./webview.protocol";
 
 export const MaxRangeValue = 2147483647;
 
+export interface Collaborator {
+	id?: string;
+	username: string;
+	avatar: {
+		image?: string;
+	};
+}
+
 export interface EditorMargins {
 	top?: number;
 	right?: number;

@@ -1,8 +1,8 @@
 "use strict";
-import { ReviewDiffContentProvider } from "providers/diffContentProvider";
+import { ReviewDiffContentProvider } from "./providers/diffContentProvider";
 import { ExtensionContext, workspace } from "vscode";
-import { WebviewLike } from "webviews/webviewLike";
-import { GitContentProvider } from "providers/gitContentProvider";
+import { WebviewLike } from "./webviews/webviewLike";
+import { GitContentProvider } from "./providers/gitContentProvider";
 import { InstrumentableCodeLensController } from "controllers/instrumentableCodeLensController";
 import { BaseAgentOptions, CodeStreamAgentConnection } from "./agent/agentConnection";
 import { CodeStreamSession } from "./api/session";
