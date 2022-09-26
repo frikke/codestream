@@ -1,18 +1,18 @@
+import { CreateTeamRequest } from "@codestream/protocols/agent";
+import { CSTeam } from "@codestream/protocols/api";
 import { switchToTeam } from "@codestream/webview/store/session/thunks";
 import { useAppDispatch } from "@codestream/webview/utilities/hooks";
 import React from "react";
+import { FormattedMessage } from "react-intl";
+import { useSelector } from "react-redux";
 import styled from "styled-components";
 import { TextInput } from "../Authentication/TextInput";
 import { Button } from "../src/components/Button";
-import { FormattedMessage } from "react-intl";
 import { InlineMenu } from "../src/components/controls/InlineMenu";
-import { CodeStreamState } from "../store";
-import { useSelector, useDispatch } from "react-redux";
-import { createTeam } from "../store/teams/actions";
-import { CSTeam } from "@codestream/protocols/api";
-import { CreateTeamRequest } from "@codestream/protocols/agent";
-import { wait } from "../utils";
 import { Dialog } from "../src/components/Dialog";
+import { CodeStreamState } from "../store";
+import { createTeam } from "../store/teams/actions";
+import { wait } from "../utils";
 import { closeModal } from "./actions";
 
 const Header = styled.h3`

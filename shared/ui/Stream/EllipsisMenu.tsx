@@ -1,31 +1,29 @@
 import {
+	DeleteCompanyRequestType,
+	UpdateTeamSettingsRequestType,
+} from "@codestream/protocols/agent";
+import { OpenUrlRequestType } from "@codestream/protocols/webview";
+import {
 	logout,
 	switchToForeignCompany,
 	switchToTeam,
 } from "@codestream/webview/store/session/thunks";
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
-import React from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { CodeStreamState } from "../store";
-import { WebviewPanels, WebviewModals, WebviewPanelNames } from "../ipc/webview.protocol.common";
-import Icon from "./Icon";
-import { openPanel } from "./actions";
-import Menu from "./Menu";
-import { HostApi } from "../webview-api";
-import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { sortBy as _sortBy } from "lodash-es";
-import { EMPTY_STATUS } from "./StartWork";
-import { MarkdownText } from "./MarkdownText";
-import { setProfileUser, openModal } from "../store/context/actions";
-import { multiStageConfirmPopup } from "./MultiStageConfirm";
-import {
-	DeleteCompanyRequestType,
-	UpdateTeamSettingsRequestType,
-} from "@codestream/protocols/agent";
-import { isFeatureEnabled } from "../store/apiVersioning/reducer";
-import { setUserPreference } from "./actions";
-import { AVAILABLE_PANES, DEFAULT_PANE_SETTINGS } from "./Sidebar";
+import React from "react";
 import styled from "styled-components";
+import { WebviewModals, WebviewPanelNames, WebviewPanels } from "../ipc/webview.protocol.common";
+import { CodeStreamState } from "../store";
+import { isFeatureEnabled } from "../store/apiVersioning/reducer";
+import { openModal, setProfileUser } from "../store/context/actions";
+import { HostApi } from "../webview-api";
+import { openPanel, setUserPreference } from "./actions";
+import Icon from "./Icon";
+import { MarkdownText } from "./MarkdownText";
+import Menu from "./Menu";
+import { multiStageConfirmPopup } from "./MultiStageConfirm";
+import { AVAILABLE_PANES, DEFAULT_PANE_SETTINGS } from "./Sidebar";
+import { EMPTY_STATUS } from "./StartWork";
 
 const RegionSubtext = styled.div`
 	font-size: smaller;
@@ -111,9 +109,11 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 						if (isCurrentCompany) return;
 						if (company.host) {
 							dispatch(switchToForeignCompany(company.id));
+							HostApi.instance.track("Switched Organizations", {});
 						} else {
 							const team = userTeams.find(_ => _.companyId === company.id);
 							if (team) {
+								HostApi.instance.track("Switched Organizations", {});
 								dispatch(switchToTeam({ teamId: team.id }));
 							} else {
 								console.error(`Could not switch to a team in ${company.id}`);
