@@ -46,6 +46,8 @@ export const switchToTeam = createAppAsyncThunk<
 	const { teamId, options } = request;
 	const { accessToken } = await HostApi.instance.send(GetAccessTokenRequestType, {});
 
+	HostApi.instance.track("Switched Organizations", {});
+
 	const { configs, context, users, session } = getState(); // TODO restore codemarks
 	const user = users[session.userId!] as CSMe;
 
