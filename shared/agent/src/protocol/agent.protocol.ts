@@ -78,7 +78,7 @@ export interface AccessToken {
 	email: string;
 	url: string;
 	value: string;
-	teamId?: string;
+	teamId: string;
 	provider?: string;
 	providerAccess?: "strict";
 }

@@ -1,16 +1,14 @@
-import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
-import React, { useState, useCallback } from "react";
-import { TextInput } from "./TextInput";
-import Button from "../Stream/Button";
-import { Link } from "../Stream/Link";
-import { HostApi } from "../webview-api";
-import { FormattedMessage } from "react-intl";
-import { useDispatch, useSelector } from "react-redux";
-import { BoxedContent } from "../src/components/BoxedContent";
 import { SetPasswordRequestType } from "@codestream/protocols/agent";
-import { authenticate } from "./actions";
+import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
+import React, { useCallback, useState } from "react";
+import { FormattedMessage } from "react-intl";
+import { BoxedContent } from "../src/components/BoxedContent";
 import { CodeStreamState } from "../store";
 import { goToLogin } from "../store/context/actions";
+import Button from "../Stream/Button";
+import { HostApi } from "../webview-api";
+import { authenticate } from "./actions";
+import { TextInput } from "./TextInput";
 
 export interface MustSetPasswordProps {
 	email: string;
@@ -39,7 +37,12 @@ export const MustSetPassword = (props: MustSetPasswordProps) => {
 			// @ts-ignore - the await is necessary
 			await dispatch(
 				authenticate({
-					token: { email: props.email || "", url: serverUrl, value: response.accessToken },
+					token: {
+						email: props.email || "",
+						url: serverUrl,
+						value: response.accessToken,
+						teamId: "",
+					},
 				})
 			);
 		} catch (error) {

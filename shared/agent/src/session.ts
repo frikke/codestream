@@ -521,6 +521,7 @@ export class CodeStreamSession {
 			token: {
 				email: this._email!,
 				url: this._options.serverUrl,
+				teamId: this._teamId!,
 				value: this._codestreamAccessToken!,
 			},
 		});

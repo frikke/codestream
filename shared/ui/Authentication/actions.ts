@@ -331,6 +331,7 @@ export const completeSignup =
 				value: token,
 				email,
 				url: tokenUrl,
+				teamId,
 			},
 			teamId,
 			setEnvironment: extra.setEnvironment,
