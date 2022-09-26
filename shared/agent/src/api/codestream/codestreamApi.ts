@@ -1939,7 +1939,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 	}
 
 	async joinCompany(request: JoinCompanyRequest): Promise<JoinCompanyResponse> {
-		return this.put(`/companies/join/${request.companyId}`, {}, this._token);
+		return this.put(`/join-company/${request.companyId}`, {}, this._token);
 	}
 
 	async joinCompanyFromEnvironment(request: JoinCompanyRequest): Promise<JoinCompanyResponse> {
