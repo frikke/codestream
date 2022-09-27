@@ -93,7 +93,6 @@ export function CompanyCreation(props: {
 		dispatch(changeRegistrationEmail(props.userId!));
 	}, []);
 
-	const [organizations, setOrganizations] = React.useState<EnhancedCSCompany[]>([]);
 	const [organizationsDomain, setOrganizationsDomain] = React.useState<EnhancedCSCompany[]>([]);
 	const [organizationsInvite, setOrganizationsInvite] = React.useState<EnhancedCSCompany[]>([]);
 	const [hasOrganizations, setHasOrganizations] = React.useState<boolean>(false);
@@ -118,7 +117,6 @@ export function CompanyCreation(props: {
 			: "",
 	});
 	const [teamNameValidity, setTeamNameValidity] = useState(true);
-	const [requiresHelpText, setRequiresHelpText] = useState(false);
 
 	useDidMount(() => {
 		if (!_isUndefined(props.isWebmail)) {
@@ -126,12 +124,11 @@ export function CompanyCreation(props: {
 		}
 
 		let companiesToJoin: EnhancedCSCompany[] | undefined = undefined;
+		let organizationsByDomain = [] as EnhancedCSCompany[];
+		let organizationsByInvite = [] as EnhancedCSCompany[];
 		if (props.eligibleJoinCompanies || props.companies) {
 			setIsLoading(true);
 			let obj = {};
-			let organizationsByDomain = [] as EnhancedCSCompany[];
-			let organizationsByInvite = [] as EnhancedCSCompany[];
-
 			if (props.eligibleJoinCompanies) {
 				props.eligibleJoinCompanies.forEach(_ => {
 					obj[_.id] = { ..._, _type: "Domain" };
@@ -145,7 +142,6 @@ export function CompanyCreation(props: {
 			companiesToJoin = Object.keys(obj).map(_ => {
 				return obj[_];
 			}) as EnhancedCSCompany[];
-			setOrganizations(companiesToJoin);
 
 			if (companiesToJoin.length > 0) setHasOrganizations(true);
 
@@ -157,10 +153,8 @@ export function CompanyCreation(props: {
 				}
 			});
 
-			setOrganizations(companiesToJoin);
 			setOrganizationsDomain(organizationsByDomain);
 			setOrganizationsInvite(organizationsByInvite);
-
 			setIsLoading(false);
 		}
 
@@ -168,8 +162,8 @@ export function CompanyCreation(props: {
 			createOrganization();
 		} else {
 			HostApi.instance.track("Organization Options Presented", {
-				"Domain Orgs":
-					props.eligibleJoinCompanies && props.eligibleJoinCompanies.length ? true : false,
+				"Domain Orgs": organizationsByDomain && organizationsByDomain.length ? true : false,
+				"Invite Orgs": organizationsByInvite && organizationsByInvite.length ? true : false,
 				"Auth Provider": providerName,
 			});
 			setInitialLoad(false);
@@ -254,17 +248,22 @@ export function CompanyCreation(props: {
 				"Auth Provider": providerName,
 			});
 			dispatch(
-				completeSignup(props.email!, props.token!, result.team.id, {
-					createdTeam: false,
-					provider: props.provider,
-					byDomain: true,
-					setEnvironment: organization.host
-						? {
-								environment: organization.host.shortName,
-								serverUrl: organization.host.publicApiUrl,
-						  }
-						: undefined,
-				})
+				completeSignup(
+					props.email!,
+					result?.accessToken || props.token!,
+					result?.teamId || result?.team?.id,
+					{
+						createdTeam: false,
+						provider: props.provider,
+						byDomain: true,
+						setEnvironment: organization.host
+							? {
+									environment: organization.host.shortName,
+									serverUrl: organization.host.publicApiUrl,
+							  }
+							: undefined,
+					}
+				)
 			);
 		} catch (error) {
 			const errorMessage = typeof error === "string" ? error : error.message;

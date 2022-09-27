@@ -64,6 +64,8 @@ export interface JoinCompanyResponse {
 	company: CSCompany;
 	team: CSTeam;
 	user: CSUser;
+	teamId: string;
+	accessToken: string;
 }
 
 export const JoinCompanyRequestType = new RequestType<

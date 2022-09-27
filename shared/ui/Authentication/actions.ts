@@ -338,6 +338,7 @@ export const completeSignup =
 		});
 
 		if (isLoginFailResponse(response)) {
+			//eric here
 			logError("There was an error completing signup", response);
 			dispatch(goToLogin());
 			throw response.error;
