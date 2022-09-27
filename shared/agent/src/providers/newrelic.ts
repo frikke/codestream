@@ -596,6 +596,8 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				// unique them!
 				statements = [...new Set(statements).values()].sort();
 
+				// todo for OTel
+
 				const query = `query search($cursor:String){
 				actor {
 				  entitySearch(query: "type='APPLICATION' and (${statements.join(" or ")})") {
@@ -631,6 +633,8 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 					nextCursor = response.actor.entitySearch.results.nextCursor;
 				}
 			}
+
+			// todo for OTel
 
 			// then find any other relevant apps... try looking for MOST_RELEVANT
 			const response = await this.query<EntitySearchResult>(
@@ -845,8 +849,10 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 					// find the APPLICATION entities themselves
 					applicationAssociations = entitiesReponse?.actor?.entities?.filter(
 						_ =>
-							_?.relatedEntities?.results?.filter(r => r.source?.entity?.type === "APPLICATION")
-								.length
+							_?.relatedEntities?.results?.filter(
+								r =>
+									r.source?.entity?.type === "APPLICATION" || r.source?.entity?.type === "SERVICE"
+							).length
 					);
 					hasRepoAssociation = applicationAssociations?.length > 0;
 
@@ -891,7 +897,8 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 
 						for (const relatedResult of entity.relatedEntities.results) {
 							if (
-								relatedResult?.source?.entity?.type === "APPLICATION" &&
+								(relatedResult?.source?.entity?.type === "APPLICATION" ||
+									relatedResult?.source?.entity?.type === "SERVICE") &&
 								relatedResult?.target?.entity?.type === "REPOSITORY"
 							) {
 								// we can't use the target.tags.account since the Repo entity might have been
@@ -2690,6 +2697,8 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		entityGuid: string,
 		metricTimesliceNameMapping?: MetricTimesliceNameMapping
 	): Promise<GoldenMetricsQueryResult> {
+		// TODO for OTel
+
 		if (metricTimesliceNameMapping) {
 			return {
 				actor: {
@@ -3913,6 +3922,8 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			return cached;
 		}
 		try {
+			// TODO for OTel
+
 			const apiResult = await this.query(`{
 			actor {
 			  entitySearch(query: "type='APPLICATION'") {

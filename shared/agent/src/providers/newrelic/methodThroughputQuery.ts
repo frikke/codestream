@@ -3,6 +3,8 @@ export function generateMethodThroughputQuery(
 	metricTimesliceNames?: string[],
 	codeNamespace?: string
 ): string {
+	// TODO for OTel
+
 	const lookup = metricTimesliceNames?.length
 		? `(metricTimesliceName in ( ${metricTimesliceNames
 				.map(mtsn => `'${mtsn}'`)

@@ -25,6 +25,8 @@ export function generateMethodAverageDurationQuery(
 	metricTimesliceNames?: string[],
 	codeNamespace?: string
 ) {
+	// TODO for OTel
+
 	const mappedTimesliceNames = metricTimesliceNames?.map(_ => mapTimeslice(languageId, _));
 
 	const lookup = mappedTimesliceNames?.length

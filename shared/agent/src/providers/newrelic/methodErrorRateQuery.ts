@@ -3,6 +3,8 @@ export function generateMethodErrorRateQuery(
 	metricTimesliceNames?: string[],
 	codeNamespace?: string
 ) {
+	// TODO for OTel
+
 	const timesliceClause = metricTimesliceNames?.length
 		? `metricTimesliceName in (${metricTimesliceNames
 				.map(z => `'Errors/WebTransaction/${z}'`)

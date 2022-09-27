@@ -1444,7 +1444,7 @@ export interface Entity {
 	alertSeverity?: string;
 	guid: string;
 	name: string;
-	type?: "APPLICATION" | "REPOSITORY";
+	type?: "APPLICATION" | "REPOSITORY" | "SERVICE";
 	entityType?: EntityType;
 	tags?: {
 		key: string;
