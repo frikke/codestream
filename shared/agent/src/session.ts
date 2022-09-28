@@ -1215,6 +1215,7 @@ export class CodeStreamSession {
 				capabilities: this.api.capabilities,
 				email: this._email!,
 				environmentInfo: this._environmentInfo,
+				eligibleJoinCompanies: response.eligibleJoinCompanies,
 				serverUrl: this._options.serverUrl!,
 				teamId: this._teamId!,
 				userId: response.user.id,

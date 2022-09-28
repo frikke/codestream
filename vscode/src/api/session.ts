@@ -57,6 +57,7 @@ import {
 } from "./sessionEvents";
 import { SessionState } from "./sessionState";
 import { TokenManager } from "./tokenManager";
+import { CSEligibleJoinCompany } from "@codestream/protocols/api";
 
 export {
 	ChannelStream,
@@ -180,6 +181,7 @@ export class CodeStreamSession implements Disposable {
 	private _disposableAuthenticated: Disposable | undefined;
 
 	private _email: string | undefined;
+	private _eligibleJoinCompanies: CSEligibleJoinCompany[] | undefined;
 	private _teamId: string | undefined;
 	private _environmentInfo: CodeStreamEnvironmentInfo | undefined;
 	private _isOnPrem: boolean | undefined;
@@ -296,6 +298,10 @@ export class CodeStreamSession implements Disposable {
 
 	get email() {
 		return this._email;
+	}
+
+	get eligibleJoinCompanies() {
+		return this._eligibleJoinCompanies;
 	}
 
 	get id() {
@@ -660,6 +666,7 @@ export class CodeStreamSession implements Disposable {
 		this._email = email;
 		this._teamId = teamId;
 		this._agentCapabilities = response.state.capabilities;
+		this._eligibleJoinCompanies = response.loginResponse.eligibleJoinCompanies || [];
 
 		// Create an id for this session
 		this._id = Strings.sha1(`${instanceId}|${this.serverUrl}|${email}|${teamId}`.toLowerCase());
@@ -749,13 +756,13 @@ function createMergableDebouncedEvent<E extends MergeableEvent<SessionChangedEve
 function signedIn(target: CodeStreamSession, propertyName: string, descriptor: any) {
 	if (typeof descriptor.value === "function") {
 		const method = descriptor.value;
-		descriptor.value = function(this: CodeStreamSession, ...args: any[]) {
+		descriptor.value = function (this: CodeStreamSession, ...args: any[]) {
 			if (!this.signedIn) throw new Error("Not Logged In");
 			return method!.apply(this, args);
 		};
 	} else if (typeof descriptor.get === "function") {
 		const get = descriptor.get;
-		descriptor.get = function(this: CodeStreamSession, ...args: any[]) {
+		descriptor.get = function (this: CodeStreamSession, ...args: any[]) {
 			if (!this.signedIn) throw new Error("Not Logged In");
 			return get!.apply(this, args);
 		};

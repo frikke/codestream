@@ -275,7 +275,11 @@ export const onLogin =
 				...bootstrapCore,
 				...bootstrapData,
 				editorContext,
-				session: { ...bootstrapCore.session, userId: response.state.userId },
+				session: {
+					...bootstrapCore.session,
+					userId: response.state.userId,
+					eligibleJoinCompanies: response.loginResponse.eligibleJoinCompanies || [],
+				},
 				capabilities: response.state.capabilities,
 				context: {
 					currentTeamId: response.state.teamId,
@@ -338,7 +342,6 @@ export const completeSignup =
 		});
 
 		if (isLoginFailResponse(response)) {
-			//eric here
 			logError("There was an error completing signup", response);
 			dispatch(goToLogin());
 			throw response.error;

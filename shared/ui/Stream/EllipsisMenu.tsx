@@ -75,6 +75,7 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 			environment,
 			isProductionCloud,
 			supportsMultiRegion,
+			eligibleJoinCompanies: _sortBy(state.session.eligibleJoinCompanies, "name"),
 		};
 	});
 
@@ -102,6 +103,7 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 	const buildSwitchTeamMenuItem = () => {
 		const {
 			userCompanies,
+			eligibleJoinCompanies,
 			currentCompanyId,
 			userTeams,
 			currentHost,
