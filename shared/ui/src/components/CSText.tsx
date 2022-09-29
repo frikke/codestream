@@ -1,5 +1,5 @@
-import styled from "styled-components";
 import React, { PropsWithChildren } from "react";
+import styled from "styled-components";
 
 export const CSText = styled(
 	(
@@ -20,5 +20,5 @@ export const CSText = styled(
 
 CSText.defaultProps = {
 	as: "p",
-	align: "left"
+	align: "left",
 };

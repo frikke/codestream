@@ -57,7 +57,7 @@ export function Parser(stack: string): CSStackTraceInfo {
 			arguments: m[3] != null ? m[3].split(",").map(_ => _.trimStart()) : undefined,
 			fileFullPath: m[5],
 			line: parseInt(m[7], 10),
-			column: undefined
+			column: undefined,
 		});
 	}
 	return info;

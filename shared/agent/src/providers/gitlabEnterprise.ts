@@ -3,7 +3,7 @@
 import { URI } from "vscode-uri";
 import { GitRemoteLike } from "../git/gitService";
 import { toRepoName } from "../git/utils";
-import { log, lspProvider } from "../system";
+import { lspProvider } from "../system";
 import { GitLabProvider } from "./gitlab";
 
 @lspProvider("gitlab_enterprise")
@@ -27,7 +27,7 @@ export class GitLabEnterpriseProvider extends GitLabProvider {
 		// and https://docs.gitlab.com/11.11/ee/api/README.html
 		return {
 			"PRIVATE-TOKEN": this.accessToken!,
-			"Content-Type": "application/json"
+			"Content-Type": "application/json",
 		};
 	}
 
@@ -79,7 +79,7 @@ export class GitLabEnterpriseProvider extends GitLabProvider {
 
 		return {
 			owner: owner.join("/"),
-			name: name!
+			name: name!,
 		};
 	}
 }

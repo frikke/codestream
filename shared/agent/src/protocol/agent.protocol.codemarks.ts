@@ -4,7 +4,7 @@ import {
 	CrossPostIssueValues,
 	GetRangeScmInfoResponse,
 	PostPlus,
-	ThirdPartyProviderUser
+	ThirdPartyProviderUser,
 } from "./agent.protocol";
 import {
 	CSChannelStream,
@@ -17,7 +17,7 @@ import {
 	CSObjectStream,
 	CSReferenceLocation,
 	CSRepository,
-	CSStream
+	CSStream,
 } from "./api.protocol";
 import { Attachment } from "./api.protocol.models";
 

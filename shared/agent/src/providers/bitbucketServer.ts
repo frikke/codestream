@@ -5,7 +5,7 @@ import { toRepoName } from "../git/utils";
 import { Logger } from "../logger";
 import {
 	ProviderConfigurationData,
-	ProviderGetForkedReposResponse
+	ProviderGetForkedReposResponse,
 } from "../protocol/agent.protocol";
 import { CSBitbucketProviderInfo } from "../protocol/api.protocol";
 import { log, lspProvider } from "../system";
@@ -16,7 +16,7 @@ import {
 	ProviderCreatePullRequestResponse,
 	ProviderGetRepoInfoResponse,
 	ProviderPullRequestInfo,
-	PullRequestComment
+	PullRequestComment,
 } from "./provider";
 
 import { ThirdPartyIssueProviderBase } from "./thirdPartyIssueProviderBase";
@@ -74,7 +74,7 @@ export class BitbucketServerProvider extends ThirdPartyIssueProviderBase<CSBitbu
 	get headers() {
 		return {
 			Authorization: `Bearer ${this.accessToken}`,
-			"Content-Type": "application/json"
+			"Content-Type": "application/json",
 		};
 	}
 
@@ -83,19 +83,19 @@ export class BitbucketServerProvider extends ThirdPartyIssueProviderBase<CSBitbu
 			provider: {
 				name: this.displayName,
 				icon: this.name,
-				id: this.providerConfig.id
+				id: this.providerConfig.id,
 			},
 			subhead: `#${comment.pullRequest.id}`,
 			actions: [
 				{
 					label: "Open Comment",
-					uri: comment.url
+					uri: comment.url,
 				},
 				{
 					label: `Open Merge Request #${comment.pullRequest.id}`,
-					uri: comment.pullRequest.url
-				}
-			]
+					uri: comment.pullRequest.url,
+				},
+			],
 		};
 	}
 
@@ -150,7 +150,7 @@ export class BitbucketServerProvider extends ThirdPartyIssueProviderBase<CSBitbu
 			const name = toRepoName(split[3]);
 			return {
 				owner,
-				name
+				name,
 			};
 		} else if (split.length > 4 && split[1] === "bitbucket" && split[2] === "scm") {
 			// https://trello.com/c/qmGVBexf - has a case where path seems to be like:
@@ -165,7 +165,7 @@ export class BitbucketServerProvider extends ThirdPartyIssueProviderBase<CSBitbu
 		const name = toRepoName(split[2]);
 		return {
 			owner,
-			name
+			name,
 		};
 	}
 
@@ -178,7 +178,7 @@ export class BitbucketServerProvider extends ThirdPartyIssueProviderBase<CSBitbu
 			const repoInfo = await this.getRepoInfo({ remote: request.remote });
 			if (repoInfo && repoInfo.error) {
 				return {
-					error: repoInfo.error
+					error: repoInfo.error,
 				};
 			}
 			const { owner, name } = this.getOwnerFromRemote(request.remote);
@@ -194,22 +194,22 @@ export class BitbucketServerProvider extends ThirdPartyIssueProviderBase<CSBitbu
 						id: request.headRefName,
 						repository: {
 							project: {
-								key: repoInfo.key!
+								key: repoInfo.key!,
 							},
-							slug: name
-						}
+							slug: name,
+						},
 					},
 					toRef: {
 						id: request.baseRefName,
 						repository: {
 							project: {
-								key: split[0]!
+								key: split[0]!,
 							},
-							slug: split[1]
-						}
+							slug: split[1],
+						},
 					},
 					title: request.title,
-					description: this.createDescription(request)
+					description: this.createDescription(request),
 				});
 			} else {
 				createPullRequestResponse = await this.post<
@@ -220,22 +220,22 @@ export class BitbucketServerProvider extends ThirdPartyIssueProviderBase<CSBitbu
 						id: request.headRefName,
 						repository: {
 							project: {
-								key: repoInfo.key!
+								key: repoInfo.key!,
 							},
-							slug: name
-						}
+							slug: name,
+						},
 					},
 					toRef: {
 						id: request.baseRefName,
 						repository: {
 							project: {
-								key: repoInfo.key!
+								key: repoInfo.key!,
 							},
-							slug: name
-						}
+							slug: name,
+						},
 					},
 					title: request.title,
-					description: this.createDescription(request)
+					description: this.createDescription(request),
 				});
 			}
 			const title = `#${createPullRequestResponse.body.id} ${createPullRequestResponse.body.title}`;
@@ -245,20 +245,20 @@ export class BitbucketServerProvider extends ThirdPartyIssueProviderBase<CSBitbu
 					createPullRequestResponse.body.links.self.length
 						? createPullRequestResponse.body.links.self[0].href
 						: undefined,
-				title: title
+				title: title,
 			};
 		} catch (ex) {
 			Logger.error(ex, `${this.displayName}: createPullRequest`, {
 				remote: request.remote,
 				head: request.headRefName,
-				base: request.baseRefName
+				base: request.baseRefName,
 			});
 
 			return {
 				error: {
 					type: "PROVIDER",
-					message: `${this.displayName}: ${ex.message}`
-				}
+					message: `${this.displayName}: ${ex.message}`,
+				},
 			};
 		}
 	}
@@ -286,7 +286,7 @@ export class BitbucketServerProvider extends ThirdPartyIssueProviderBase<CSBitbu
 						id: _.id,
 						url: _.links!.self[0]!.href,
 						baseRefName: _.toRef.displayId,
-						headRefName: _.fromRef.displayId
+						headRefName: _.fromRef.displayId,
 					};
 				});
 			}
@@ -297,7 +297,7 @@ export class BitbucketServerProvider extends ThirdPartyIssueProviderBase<CSBitbu
 				isFork: repoResponse.body.origin != null,
 				key: repoResponse.body.project.key,
 				defaultBranch: defaultBranchName,
-				pullRequests: pullRequests
+				pullRequests: pullRequests,
 			};
 		} catch (ex) {
 			return this.handleProviderError(ex, request);
@@ -341,17 +341,17 @@ export class BitbucketServerProvider extends ThirdPartyIssueProviderBase<CSBitbu
 					refs: {
 						nodes: branchesByProjectId
 							.get(repoResponse.body.uuid)!
-							.map(branch => ({ name: branch.displayId }))
-					}
+							.map(branch => ({ name: branch.displayId })),
+					},
 				},
 				forks: (forksResponse?.body?.values).map((fork: any) => ({
 					nameWithOwner: `${fork.project.key}/${fork.slug}`,
 					owner: fork.slug,
 					id: fork.uuid,
 					refs: {
-						nodes: branchesByProjectId.get(fork.uuid)!.map(branch => ({ name: branch.displayId }))
-					}
-				}))
+						nodes: branchesByProjectId.get(fork.uuid)!.map(branch => ({ name: branch.displayId })),
+					},
+				})),
 			} as ProviderGetForkedReposResponse;
 			if (repoResponse.body.origin) {
 				response.parent = {
@@ -361,8 +361,8 @@ export class BitbucketServerProvider extends ThirdPartyIssueProviderBase<CSBitbu
 					refs: {
 						nodes: branchesByProjectId
 							.get(parentOrSelfProject.uuid)!
-							.map(branch => ({ name: branch.displayId }))
-					}
+							.map(branch => ({ name: branch.displayId })),
+					},
 				};
 			}
 			return response;

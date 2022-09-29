@@ -1,18 +1,29 @@
 import { emptyArray, emptyObject } from "@codestream/webview/utils";
 import { ActionType } from "../common";
 import * as actions from "./actions";
-import { ActiveIntegrationData, ActiveIntegrationsActionType, ActiveIntegrationsState } from "./types";
+import {
+	ActiveIntegrationData,
+	ActiveIntegrationsActionType,
+	ActiveIntegrationsState,
+} from "./types";
 
 type ActiveIntegrationsAction = ActionType<typeof actions>;
 
-const initialState: ActiveIntegrationsState = { issuesLoading: false, initialLoadComplete: false, integrations: {} };
+const initialState: ActiveIntegrationsState = {
+	issuesLoading: false,
+	initialLoadComplete: false,
+	integrations: {},
+};
 
 export function reduceActiveIntegrations(state = initialState, action: ActiveIntegrationsAction) {
 	switch (action.type) {
 		case ActiveIntegrationsActionType.UpdateForProvider: {
 			const nextState = { ...state };
 			const currentProvider = state.integrations[action.payload.providerId];
-			nextState.integrations[action.payload.providerId] = { ...currentProvider, ...action.payload.data };
+			nextState.integrations[action.payload.providerId] = {
+				...currentProvider,
+				...action.payload.data,
+			};
 			return nextState;
 		}
 		case ActiveIntegrationsActionType.DeleteForProvider: {
@@ -24,8 +35,7 @@ export function reduceActiveIntegrations(state = initialState, action: ActiveInt
 						delete nextState.integrations[action.payload.providerId];
 					}
 				}
-			}
-			else {
+			} else {
 				delete nextState.integrations[action.payload.providerId];
 			}
 			return nextState;

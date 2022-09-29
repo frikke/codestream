@@ -15,7 +15,7 @@ const REASON_MAP = {
 	abuse: "This comment was marked as disruptive content.",
 	"off-topic": "This comment was marked as off-topic.",
 	outdated: "This comment was marked as outdated.",
-	duplicate: "This comment has been minimized."
+	duplicate: "This comment has been minimized.",
 };
 
 export const PullRequestMinimizedComment = styled((props: Props) => {

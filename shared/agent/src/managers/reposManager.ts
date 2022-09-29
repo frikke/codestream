@@ -8,7 +8,7 @@ import {
 	FetchReposResponse,
 	GetRepoRequest,
 	GetRepoRequestType,
-	GetRepoResponse
+	GetRepoResponse,
 } from "../protocol/agent.protocol";
 import { CSRepository } from "../protocol/api.protocol";
 import { lsp, lspHandler } from "../system";

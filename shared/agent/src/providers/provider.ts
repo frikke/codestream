@@ -35,7 +35,7 @@ import {
 	ThirdPartyDisconnect,
 	ThirdPartyProviderConfig,
 	UpdateThirdPartyStatusRequest,
-	UpdateThirdPartyStatusResponse
+	UpdateThirdPartyStatusResponse,
 } from "../protocol/agent.protocol";
 import { CSMe, CSProviderInfos } from "../protocol/api.protocol";
 
@@ -57,7 +57,7 @@ export const providerDisplayNamesByNameKey = new Map<string, string>([
 	["okta", "Okta"],
 	["shortcut", "Shortcut"],
 	["linear", "Linear"],
-	["newrelic", "New Relic"]
+	["newrelic", "New Relic"],
 ]);
 
 export interface ThirdPartyProviderSupportsIssues {
@@ -325,7 +325,7 @@ export async function getOpenedRepos<R>(
 						const response = await queryFn(remote.path);
 						remoteRepo = {
 							...response.body,
-							path: gitRepo.path
+							path: gitRepo.path,
 						};
 						remoteRepos.set(remote.path, remoteRepo);
 					} catch (ex) {

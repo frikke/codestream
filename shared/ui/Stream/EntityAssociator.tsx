@@ -1,20 +1,18 @@
-import { keyBy as _keyBy } from "lodash-es";
-import React, { PropsWithChildren, useState } from "react";
-import { useDispatch } from "react-redux";
 import {
+	EntityAccount,
 	GetObservabilityEntitiesRequestType,
 	WarningOrError,
-	EntityAccount
 } from "@codestream/protocols/agent";
+import { api } from "@codestream/webview/store/codeErrors/thunks";
+import React, { PropsWithChildren, useState } from "react";
+import { logError } from "../logger";
 import { Button } from "../src/components/Button";
 import { NoContent } from "../src/components/Pane";
-import { api } from "../store/codeErrors/actions";
+import { useAppDispatch, useRequestType } from "../utilities/hooks";
 import { DropdownButton, DropdownButtonItems } from "./DropdownButton";
-import { WarningBox } from "./WarningBox";
-import Tooltip from "./Tooltip";
-import { logError } from "../logger";
-import { useRequestType } from "../utilities/hooks";
 import Icon from "./Icon";
+import Tooltip from "./Tooltip";
+import { WarningBox } from "./WarningBox";
 
 interface EntityAssociatorProps {
 	title?: string;
@@ -27,19 +25,19 @@ interface EntityAssociatorProps {
 }
 
 export const EntityAssociator = React.memo((props: PropsWithChildren<EntityAssociatorProps>) => {
-	const dispatch = useDispatch<any>();
+	const dispatch = useAppDispatch();
 	const [selected, setSelected] = useState<{ guid: string; name: string } | undefined>(undefined);
 	const [isLoading, setIsLoading] = useState(false);
 	const [warningOrErrors, setWarningOrErrors] = useState<WarningOrError[] | undefined>(undefined);
 
 	const obsEntitiesResult = useRequestType(GetObservabilityEntitiesRequestType, {
-		appName: props.remoteName
+		appName: props.remoteName,
 	});
 
 	if (obsEntitiesResult?.error) {
 		const errorMessage = typeof obsEntitiesResult.error === "string";
 		logError(`Unexpected error during entities fetch for EntityAssociator: ${errorMessage}`, {
-			appName: props.remoteName
+			appName: props.remoteName,
 		});
 	}
 
@@ -54,7 +52,7 @@ export const EntityAssociator = React.memo((props: PropsWithChildren<EntityAssoc
 						{" "}
 						<Icon
 							style={{
-								marginRight: "5px"
+								marginRight: "5px",
 							}}
 							className="spin"
 							name="sync"
@@ -63,19 +61,21 @@ export const EntityAssociator = React.memo((props: PropsWithChildren<EntityAssoc
 					</div>
 				),
 				action: () => {},
-				key: "loading"
-			}
+				key: "loading",
+			},
 		];
 	} else {
 		items = obsEntitiesResult?.data?.entities?.length
-			? ([
-					{
-						type: "search",
-						placeholder: "Search...",
-						action: "search",
-						key: "search"
-					}
-			  ] as any).concat(
+			? (
+					[
+						{
+							type: "search",
+							placeholder: "Search...",
+							action: "search",
+							key: "search",
+						},
+					] as any
+			  ).concat(
 					obsEntitiesResult?.data?.entities
 						.filter(_ => {
 							if (props.servicesToExcludeFromSearch) {
@@ -90,7 +90,7 @@ export const EntityAssociator = React.memo((props: PropsWithChildren<EntityAssoc
 								searchLabel: _.name,
 								action: () => {
 									setSelected(_);
-								}
+								},
 							};
 						})
 			  )
@@ -125,38 +125,38 @@ export const EntityAssociator = React.memo((props: PropsWithChildren<EntityAssoc
 							name: props.remoteName,
 							applicationEntityGuid: selected?.guid,
 							entityId: selected?.guid,
-							parseableAccountId: selected?.guid
+							parseableAccountId: selected?.guid,
 						};
 						dispatch(api("assignRepository", payload))
 							.then(_ => {
 								setTimeout(() => {
 									if (_?.directives) {
 										console.log("assignRepository", {
-											directives: _?.directives
+											directives: _?.directives,
 										});
 										// a little fragile, but we're trying to get the entity guid back
 										if (props.onSuccess) {
 											props.onSuccess({
 												entityGuid: _?.directives.find(d => d.type === "assignRepository")?.data
-													?.entityGuid
+													?.entityGuid,
 											});
 										}
 									} else if (_?.error) {
 										setWarningOrErrors([{ message: _.error }]);
 									} else {
 										setWarningOrErrors([
-											{ message: "Failed to direct to entity dropdown, please refresh" }
+											{ message: "Failed to direct to entity dropdown, please refresh" },
 										]);
 										console.warn("Could not find directive", {
 											_: _,
-											payload: payload
+											payload: payload,
 										});
 									}
 								}, 5000);
 							})
 							.catch(err => {
 								setWarningOrErrors([
-									{ message: "Failed to direct to entity dropdown, please refresh" }
+									{ message: "Failed to direct to entity dropdown, please refresh" },
 								]);
 								logError(`Unexpected error during assignRepository: ${err}`, {});
 							})

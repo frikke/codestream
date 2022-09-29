@@ -5,7 +5,7 @@ import path from "path";
 import {
 	AddNewRelicIncludeResponse,
 	CreateNewRelicConfigFileResponse,
-	InstallNewRelicResponse
+	InstallNewRelicResponse,
 } from "../../protocol/agent.protocol";
 import { CodeStreamSession } from "../../session";
 import { execAsync, existsAsync } from "./util";
@@ -23,7 +23,7 @@ export class NodeJSInstrumentation {
 		const files: CandidateFiles = {
 			mainFile: null,
 			indexFiles: [],
-			jsFiles: []
+			jsFiles: [],
 		};
 
 		const packageJson = path.join(dirPath, "package.json");
@@ -84,8 +84,8 @@ export class NodeJSInstrumentation {
 				cwd,
 				// /* This is what Colin needs to run this as a demo locally
 				env: {
-					PATH: `${process.env.PATH}:/Users/cstryker/dev/sandboxes/csbe/node/bin`
-				}
+					PATH: `${process.env.PATH}:/Users/cstryker/dev/sandboxes/csbe/node/bin`,
+				},
 				// */
 			});
 			return {};

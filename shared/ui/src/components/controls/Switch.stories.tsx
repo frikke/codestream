@@ -1,10 +1,10 @@
 import React from "react";
-import { Switch } from "./Switch";
 import styled from "styled-components";
+import { Switch } from "./Switch";
 
 export default {
 	title: "Inputs/Switch",
-	component: Switch
+	component: Switch,
 };
 
 const Column = styled.div`

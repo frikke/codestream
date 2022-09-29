@@ -20,7 +20,7 @@ jest.mock("../../webview-api");
 const MockedHostApi = HostApi as any;
 
 setupCommunication({
-	postMessage: function() {}
+	postMessage: function () {},
 });
 
 let container: any = undefined;
@@ -47,33 +47,33 @@ const storeFactory = () => {
 			github: {},
 			gitlab: {},
 			"gitlab*com": {
-				name: "GitLab"
+				name: "GitLab",
 			},
 			github_enterprise: {},
 			gitlab_enterprise: {},
 			bitbucket: {},
 			"bitbucket*org": {
-				name: "BitBucket"
+				name: "BitBucket",
 			},
-			bitbucket_server: {}
+			bitbucket_server: {},
 		},
 		repos: {},
 		providerPullRequests: {},
 		ide: {
-			name: "VSC"
+			name: "VSC",
 		},
 		configs: {},
 		users: {
 			"123": {
-				status: {}
-			}
+				status: {},
+			},
 		},
 		session: {
-			userId: "123"
+			userId: "123",
 		},
 		preferences: {
-			pullRequestFilesChangedMode: "files"
-		}
+			pullRequestFilesChangedMode: "files",
+		},
 	};
 };
 
@@ -82,7 +82,7 @@ it("renders default state 2", async () => {
 		send: async (a: { method: string }, b, c) => {
 			if (a.method === "codestream/scm/latestCommit") {
 				return {
-					shortMesssage: "shortMessage"
+					shortMesssage: "shortMessage",
 				};
 			} else if (a.method === "codestream/review/pr/checkPreconditions") {
 				return {
@@ -100,20 +100,20 @@ it("renders default state 2", async () => {
 								types: [
 									{
 										url: "https://bitbucket.org/TeamCodeStream/a.git",
-										type: "fetch"
+										type: "fetch",
 									},
 									{
 										url: "https://bitbucket.org/TeamCodeStream/a.git",
-										type: "push"
-									}
+										type: "push",
+									},
 								],
 								uri: {
 									$mid: 1,
 									external: "https://bitbucket.org/TeamCodeStream/a.git",
 									path: "/TeamCodeStream/a.git",
 									scheme: "https",
-									authority: "bitbucket.org"
-								}
+									authority: "bitbucket.org",
+								},
 							},
 							{
 								repoPath: "/Users/TeamCodeStream/code/a",
@@ -124,21 +124,21 @@ it("renders default state 2", async () => {
 								types: [
 									{
 										url: "https://bitbucket.org/TeamCodeStream/b.git",
-										type: "fetch"
+										type: "fetch",
 									},
 									{
 										url: "https://bitbucket.org/TeamCodeStream/b.git",
-										type: "push"
-									}
+										type: "push",
+									},
 								],
 								uri: {
 									$mid: 1,
 									external: "https://bitbucket.org/TeamCodeStream/b.git",
 									path: "/TeamCodeStream/b.git",
 									scheme: "https",
-									authority: "bitbucket.org"
-								}
-							}
+									authority: "bitbucket.org",
+								},
+							},
 						],
 						remoteBranch: "origin/foo",
 						branches: ["foo", "master", "private"],
@@ -146,21 +146,21 @@ it("renders default state 2", async () => {
 						remoteBranches: [
 							{
 								remote: "origin",
-								branch: "foo"
+								branch: "foo",
 							},
 							{
 								remote: "origin",
-								branch: "master"
+								branch: "master",
 							},
 							{
 								remote: "private",
-								branch: "asdf"
+								branch: "asdf",
 							},
 							{
 								remote: "private",
-								branch: "master"
-							}
-						]
+								branch: "master",
+							},
+						],
 					},
 					provider: {
 						id: "bitbucket*org",
@@ -169,15 +169,15 @@ it("renders default state 2", async () => {
 						pullRequestTemplatePath: "",
 
 						repo: {
-							defaultBranch: "master"
-						}
+							defaultBranch: "master",
+						},
 					},
 					review: {
 						title: "",
-						text: ""
+						text: "",
 					},
 
-					commitsBehindOriginHeadBranch: "0"
+					commitsBehindOriginHeadBranch: "0",
 				};
 			} else if (a.method === "codestream/scm/repos") {
 				return {
@@ -187,17 +187,17 @@ it("renders default state 2", async () => {
 							path: "/Users/TeamCodeStream/code/a",
 							folder: {
 								uri: "file:///Users/TeamCodeStream/code/a",
-								name: "a"
+								name: "a",
 							},
 							root: true,
-							providerId: "bitbucket*org"
-						}
-					]
+							providerId: "bitbucket*org",
+						},
+					],
 				};
 			}
 			return new Promise(resolve => resolve(true));
 		},
-		on: () => {}
+		on: () => {},
 	};
 	MockedHostApi.mockImplementation(() => {
 		return mockFoo;

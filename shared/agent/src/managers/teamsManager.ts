@@ -5,7 +5,7 @@ import {
 	FetchTeamsResponse,
 	GetTeamRequest,
 	GetTeamRequestType,
-	GetTeamResponse
+	GetTeamResponse,
 } from "../protocol/agent.protocol";
 import { CSTeam } from "../protocol/api.protocol";
 import { lsp, lspHandler } from "../system";

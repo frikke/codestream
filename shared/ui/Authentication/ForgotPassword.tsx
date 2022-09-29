@@ -1,14 +1,14 @@
-import React, { useState, useCallback } from "react";
-import { TextInput } from "./TextInput";
+import { SendPasswordResetEmailRequestType } from "@codestream/protocols/agent";
+import React, { useCallback, useState } from "react";
+import { FormattedMessage } from "react-intl";
+import { connect, useDispatch } from "react-redux";
+import { DispatchProp } from "../store/common";
+import { goToLogin } from "../store/context/actions";
 import Button from "../Stream/Button";
 import { Link } from "../Stream/Link";
 import { HostApi } from "../webview-api";
-import { SendPasswordResetEmailRequestType } from "@codestream/protocols/agent";
 import { isEmailValid } from "./Signup";
-import { FormattedMessage } from "react-intl";
-import { goToLogin } from "../store/context/actions";
-import { connect, useDispatch } from "react-redux";
-import { DispatchProp } from "../store/common";
+import { TextInput } from "./TextInput";
 
 interface Props extends DispatchProp {
 	email?: string;
@@ -29,16 +29,25 @@ export const ForgotPassword = (connect(undefined) as any)((props: Props) => {
 					<fieldset className="form-body">
 						<div className="border-bottom-box">
 							<h3>
-								<FormattedMessage id="forgotPassword.passwordReset" defaultMessage="Password Reset"/>
+								<FormattedMessage
+									id="forgotPassword.passwordReset"
+									defaultMessage="Password Reset"
+								/>
 							</h3>
 							<p>
-								<FormattedMessage id="forgotPassword.checkEmail" defaultMessage="Check your email for a link to reset your password. If you don't receive it within a
-								few minutes, check your spam folder."/>
+								<FormattedMessage
+									id="forgotPassword.checkEmail"
+									defaultMessage="Check your email for a link to reset your password. If you don't receive it within a
+								few minutes, check your spam folder."
+								/>
 							</p>
 							<div id="controls">
 								<div className="button-group">
 									<Button className="control-button" onClick={onClickGoToLogin}>
-										<FormattedMessage id="forgotPassword.returnSignIn" defaultMessage="Return to Sign In"/>
+										<FormattedMessage
+											id="forgotPassword.returnSignIn"
+											defaultMessage="Return to Sign In"
+										/>
 									</Button>
 								</div>
 							</div>
@@ -105,7 +114,7 @@ function Form(props: { email?: string; onComplete: Function }) {
 						</div>
 						<div className="button-group">
 							<Button className="control-button">
-								<FormattedMessage id="forgotPassword.sendEmail" defaultMessage="Send Email"/>
+								<FormattedMessage id="forgotPassword.sendEmail" defaultMessage="Send Email" />
 							</Button>
 						</div>
 					</div>
@@ -114,7 +123,7 @@ function Form(props: { email?: string; onComplete: Function }) {
 					<div className="footer">
 						<Link onClick={onClickGoBack}>
 							<p>
-								<FormattedMessage id="forgotPassword.back" defaultMessage={"< Back"}/>
+								<FormattedMessage id="forgotPassword.back" defaultMessage={"< Back"} />
 							</p>
 						</Link>
 					</div>

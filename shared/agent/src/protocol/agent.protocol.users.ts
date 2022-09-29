@@ -1,7 +1,7 @@
 "use strict";
 import { RequestType } from "vscode-languageserver-protocol";
-import { RepoScmStatus, Unreads } from "./agent.protocol";
-import { CSMe, CSMePreferences, CSMeStatus, CSPresenceStatus, CSUser } from "./api.protocol";
+import { Unreads } from "./agent.protocol";
+import { CSMePreferences, CSMeStatus, CSPresenceStatus, CSUser } from "./api.protocol";
 
 export interface FetchUsersRequest {
 	userIds?: string[];

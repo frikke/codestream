@@ -1,7 +1,6 @@
 import { PixieGetPodsRequestType } from "@codestream/protocols/agent";
 import { CodeStreamState } from "@codestream/webview/store";
 import { DropdownButton, DropdownButtonItems } from "@codestream/webview/Stream/DropdownButton";
-import { useDidMount } from "@codestream/webview/utilities/hooks";
 import { HostApi } from "@codestream/webview/webview-api";
 import React, { useEffect } from "react";
 import { useSelector } from "react-redux";
@@ -29,7 +28,7 @@ export const Pods = props => {
 			const response = await HostApi.instance.send(PixieGetPodsRequestType, {
 				accountId: props.account.id,
 				clusterId: props.cluster.clusterId,
-				namespace: props.namespace
+				namespace: props.namespace,
 			});
 			const newPods = response.pods.map(_ => {
 				return {
@@ -38,7 +37,7 @@ export const Pods = props => {
 					searchLabel: niceName(_.name),
 					action: () => {
 						props.onSelect(_);
-					}
+					},
 				};
 			}) as DropdownButtonItems[];
 			if (newPods.length > 5) {
@@ -46,7 +45,7 @@ export const Pods = props => {
 					{
 						label: "",
 						placeholder: "Search Accounts",
-						type: "search"
+						type: "search",
 					},
 					{ label: "-" }
 				);

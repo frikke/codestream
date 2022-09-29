@@ -1,5 +1,4 @@
-import { Dispatch, Middleware } from "redux";
-import { CodeStreamState } from ".";
+import { Middleware } from "redux";
 import { Disposable } from "../utils";
 
 /**
@@ -12,7 +11,7 @@ class MiddlewareInjector {
 
 	// Create the root middleware that is used during creation of the redux store
 	createMiddleware() {
-		const middleware: Middleware<any, CodeStreamState, Dispatch> = _store => {
+		const middleware: Middleware = _store => {
 			return next => action => {
 				let result = action;
 
@@ -49,7 +48,7 @@ class MiddlewareInjector {
 		return {
 			dispose: () => {
 				middlewareForType!.delete(fn);
-			}
+			},
 		};
 	}
 }

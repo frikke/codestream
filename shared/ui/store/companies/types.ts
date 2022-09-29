@@ -7,5 +7,5 @@ export interface CompaniesState {
 export enum CompaniesActionsType {
 	Bootstrap = "@companies/Bootstrap",
 	Add = "ADD_COMPANIES",
-	Update = "@companies/Update"
+	Update = "@companies/Update",
 }

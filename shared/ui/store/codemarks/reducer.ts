@@ -1,13 +1,13 @@
-import { createSelector } from "reselect";
-import { toMapBy, mapFilter } from "../../utils";
-import { ActionType } from "../common";
-import * as actions from "./actions";
-import { CodemarksActionsTypes, CodemarksState } from "./types";
 import { CodemarkPlus } from "@codestream/protocols/agent";
-import { CodemarkType, CSReview, CodemarkStatus } from "@codestream/protocols/api";
+import { CodemarkStatus, CodemarkType, CSReview } from "@codestream/protocols/api";
+import { createSelector } from "reselect";
 import { CodeStreamState } from "..";
+import { mapFilter, toMapBy } from "../../utils";
+import { ActionType } from "../common";
 import { getThreadPosts } from "../posts/reducer";
 import { isPending } from "../posts/types";
+import * as actions from "./actions";
+import { CodemarksActionsTypes, CodemarksState } from "./types";
 
 type CodemarksActions = ActionType<typeof actions>;
 

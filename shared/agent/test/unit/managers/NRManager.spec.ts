@@ -28,7 +28,7 @@ describe("NRManager", () => {
 			"/Users/johnd/code/error-tracking-sample-java/src/main/java/com/newrelic/errortrackingsamplejava/LowThroughputExceptionService.java",
 			"/Users/johnd/code/error-tracking-sample-java/src/main/java/com/newrelic/errortrackingsamplejava/VariableThroughputExceptionService.java",
 			"/Users/johnd/code/error-tracking-sample-java/src/main/java/com/newrelic/errortrackingsamplejava/status/ErrorTrackingSampleJavaHealthCheck.java",
-			"/Users/johnd/code/error-tracking-sample-java/src/test/java/com/newrelic/errortrackingsamplejava/ErrorTrackingSampleJavaApplicationTest.java"
+			"/Users/johnd/code/error-tracking-sample-java/src/test/java/com/newrelic/errortrackingsamplejava/ErrorTrackingSampleJavaApplicationTest.java",
 		];
 		let result = NRManager.getBestMatchingPath(
 			"HighThroughputStackTraceExceptionService.java",

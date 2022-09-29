@@ -4,6 +4,7 @@ import { describe, expect, it } from "@jest/globals";
 import { Dictionary } from "lodash";
 import {
 	Entity,
+	GetEntityCountResponse,
 	GetReposScmResponse,
 	ObservabilityRepo,
 	RelatedEntity,
@@ -16,7 +17,6 @@ import {
 	GraphqlNrqlErrorResponse,
 	GraphqlNrqlTimeoutError,
 	isGetFileLevelTelemetryResponse,
-	isGraphqlNrqlError,
 } from "../../../../src/providers/newrelic.types";
 import {
 	MetricQueryRequest,
@@ -750,7 +750,7 @@ describe("NewRelicProvider", () => {
 		provider.sessionServiceContainer = serviceLocatorStub;
 
 		const results = await provider.getFileLevelTelemetry({
-			filePath: "/foo.py",
+			fileUri: "/foo.py",
 			languageId: "python",
 			options: {
 				includeAverageDuration: true,
@@ -805,7 +805,7 @@ describe("NewRelicProvider", () => {
 		provider.sessionServiceContainer = serviceLocatorStub;
 
 		const results = await provider.getFileLevelTelemetry({
-			filePath: "/foo2.py",
+			fileUri: "/foo2.py",
 			languageId: "python",
 			options: {
 				includeAverageDuration: true,
@@ -999,8 +999,8 @@ class NewRelicProviderStubBase extends NewRelicProvider {
 		return true;
 	}
 
-	protected async getEntityCount(): Promise<number> {
-		return 1;
+	public async getEntityCount(): Promise<GetEntityCountResponse> {
+		return { entityCount: 1 };
 	}
 
 	protected async getObservabilityEntityRepos(
@@ -1581,8 +1581,8 @@ class NewRelicProviderStub extends NewRelicProviderStubBase {
 		return true;
 	}
 
-	protected async getEntityCount(): Promise<number> {
-		return 1;
+	public async getEntityCount(): Promise<GetEntityCountResponse> {
+		return { entityCount: 1 };
 	}
 
 	protected async getObservabilityEntityRepos(

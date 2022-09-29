@@ -120,14 +120,14 @@ export class PubnubHistory {
 				before: "",
 				after: timetoken,
 				reason,
-				cla
+				cla,
 			});
 		}
 		const response: any = await (this._pubnub! as any).fetchMessages({
 			channels,
 			end: timetoken,
 			count: 25,
-			stringifiedTimeToken: true
+			stringifiedTimeToken: true,
 		});
 
 		// look for any channels that have 25 messages ... for these, we assume there are more
@@ -187,14 +187,14 @@ export class PubnubHistory {
 				before: before.toString(),
 				after,
 				reason,
-				cla
+				cla,
 			});
 		}
 		const response: any = await (this._pubnub! as any).history({
 			channel,
 			start: before.toString(),
 			end: after,
-			stringifiedTimeToken: true
+			stringifiedTimeToken: true,
 		});
 		this._debug(`Pubnub.history returned ${response.messages.length} messages`);
 		this._allMessages.push(...response.messages);

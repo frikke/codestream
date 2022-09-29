@@ -7,7 +7,7 @@ import {
 	CSMarker,
 	CSMarkerLocation,
 	CSMarkerLocations,
-	CSPost
+	CSPost,
 } from "./api.protocol";
 
 export interface CreateMarkerLocationRequest {

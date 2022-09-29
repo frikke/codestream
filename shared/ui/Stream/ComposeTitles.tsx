@@ -91,7 +91,7 @@ const ComposeTitles = {
 		<span className="compose-title">
 			<span className="function">Add Reaction</span>
 		</span>
-	)
+	),
 };
 
 export const ComposeKeybindings = {
@@ -142,7 +142,7 @@ export const ComposeKeybindings = {
 			<span className="keybinding extra-pad">{modifier}</span>
 			<span className="keybinding extra-pad">⇧ p</span>
 		</span>
-	)
+	),
 };
 
 export default ComposeTitles;

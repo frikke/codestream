@@ -180,7 +180,7 @@ import {
 	UpdateStreamMembershipResponse,
 	UpdateUserRequest,
 	UpdateUserResponse,
-	VerifyConnectivityResponse
+	VerifyConnectivityResponse,
 } from "../protocol/agent.protocol";
 import {
 	CSApiCapabilities,
@@ -205,7 +205,7 @@ import {
 	CSUser,
 	ProviderType,
 	TriggerMsTeamsProactiveMessageRequest,
-	TriggerMsTeamsProactiveMessageResponse
+	TriggerMsTeamsProactiveMessageResponse,
 } from "../protocol/api.protocol";
 
 export type ApiProviderLoginResponse = CSLoginResponse & { token: AccessToken };
@@ -263,7 +263,7 @@ export enum MessageType {
 	Teams = "teams",
 	Unreads = "unreads",
 	Users = "users",
-	Echo = "echo"
+	Echo = "echo",
 }
 
 export interface CompaniesRTMessage {

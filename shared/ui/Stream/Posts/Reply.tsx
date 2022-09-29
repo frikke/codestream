@@ -1,37 +1,37 @@
-import styled from "styled-components";
-import cx from "classnames";
-import { CSPost, CSUser } from "@codestream/protocols/api";
 import { PostPlus } from "@codestream/protocols/agent";
-import React from "react";
+import { CSPost, CSUser } from "@codestream/protocols/api";
 import { Headshot } from "@codestream/webview/src/components/Headshot";
-import { KebabIcon, MetaDescriptionForTags } from "../Codemark/BaseCodemark";
-import Icon from "../Icon";
-import Timestamp from "../Timestamp";
-import { getCodemark } from "@codestream/webview/store/codemarks/reducer";
+import { ProfileLink } from "@codestream/webview/src/components/ProfileLink";
 import { CodeStreamState } from "@codestream/webview/store";
-import { useSelector, useDispatch } from "react-redux";
-import { Post, isPending } from "@codestream/webview/store/posts/types";
-import Menu from "../Menu";
-import { confirmPopup } from "../Confirm";
-import { deletePost, editPost } from "../actions";
-import { RepliesToPostContext } from "./RepliesToPost";
+import { getCodemark } from "@codestream/webview/store/codemarks/reducer";
+import { editCodemark } from "@codestream/webview/store/codemarks/thunks";
 import { getPost } from "@codestream/webview/store/posts/reducer";
-import { MarkdownText } from "../MarkdownText";
-import MarkerActions from "../MarkerActions";
-import MessageInput from "../MessageInput";
-import Button from "../Button";
-import { Dispatch } from "@codestream/webview/store/common";
-import { replaceHtml, escapeHtml } from "@codestream/webview/utils";
+import { isPending, Post } from "@codestream/webview/store/posts/types";
 import {
 	findMentionedUserIds,
 	getTeamMembers,
-	getTeamTagsHash
+	getTeamTagsHash,
 } from "@codestream/webview/store/users/reducer";
-import { editCodemark } from "@codestream/webview/store/codemarks/actions";
-import Tag from "../Tag";
-import { ProfileLink } from "@codestream/webview/src/components/ProfileLink";
-import { AddReactionIcon, Reactions } from "../Reactions";
+import { useAppDispatch } from "@codestream/webview/utilities/hooks";
+import { escapeHtml, replaceHtml } from "@codestream/webview/utils";
+import cx from "classnames";
+import React from "react";
+import { useSelector } from "react-redux";
+import styled from "styled-components";
+import { deletePost, editPost } from "../actions";
 import { Attachments } from "../Attachments";
+import Button from "../Button";
+import { KebabIcon, MetaDescriptionForTags } from "../Codemark/BaseCodemark";
+import { confirmPopup } from "../Confirm";
+import Icon from "../Icon";
+import { MarkdownText } from "../MarkdownText";
+import MarkerActions from "../MarkerActions";
+import Menu from "../Menu";
+import MessageInput from "../MessageInput";
+import { AddReactionIcon, Reactions } from "../Reactions";
+import Tag from "../Tag";
+import Timestamp from "../Timestamp";
+import { RepliesToPostContext } from "./RepliesToPost";
 
 export interface ReplyProps {
 	author: Partial<CSUser>;
@@ -191,7 +191,7 @@ const ReviewMarkerActionsWrapper = styled.div`
 `;
 
 const ComposeWrapper = styled.div.attrs(() => ({
-	className: "compose codemark-compose"
+	className: "compose codemark-compose",
 }))`
 	&&& {
 		padding: 0 !important;
@@ -200,7 +200,7 @@ const ComposeWrapper = styled.div.attrs(() => ({
 `;
 
 export const Reply = (props: ReplyProps) => {
-	const dispatch = useDispatch<Dispatch>();
+	const dispatch = useAppDispatch();
 	const { setEditingPostId, setReplyingToPostId } = React.useContext(RepliesToPostContext);
 	const [menuState, setMenuState] = React.useState<{
 		open: boolean;
@@ -390,7 +390,7 @@ export const Reply = (props: ReplyProps) => {
 								style={{
 									// fixed width to handle the isLoading case
 									width: "80px",
-									margin: "10px 10px"
+									margin: "10px 10px",
 								}}
 								onClick={reset}
 							>
@@ -400,7 +400,7 @@ export const Reply = (props: ReplyProps) => {
 								style={{
 									// fixed width to handle the isLoading case
 									width: "80px",
-									margin: "10px 0"
+									margin: "10px 0",
 								}}
 								className={cx("control-button", { cancel: newReplyText.length === 0 })}
 								type="submit"
@@ -455,7 +455,7 @@ const NestedReply = (props: {
 	editingPostId?: string;
 	lastNestedReply?: boolean;
 }) => {
-	const dispatch = useDispatch();
+	const dispatch = useAppDispatch();
 	const { setReplyingToPostId, setEditingPostId } = React.useContext(RepliesToPostContext);
 	const author = useSelector((state: CodeStreamState) => state.users[props.post.creatorId]);
 	const currentUserId = useSelector((state: CodeStreamState) => state.session.userId);
@@ -466,7 +466,7 @@ const NestedReply = (props: {
 		menuItems.push({
 			label: "Reply",
 			key: "reply",
-			action: () => setReplyingToPostId(props.threadId)
+			action: () => setReplyingToPostId(props.threadId),
 		});
 
 		if (props.post.creatorId === currentUserId) {
@@ -493,11 +493,11 @@ const NestedReply = (props: {
 											isPending(props.post) ? undefined : props.post.sharedTo
 										)
 									);
-								}
-							}
-						]
+								},
+							},
+						],
 					});
-				}
+				},
 			});
 		}
 

@@ -1,12 +1,12 @@
-import { ActionType } from "../common";
-import { ApiVersioningActionsType, ApiVersioningState } from "./types";
-import * as actions from "./actions";
 import { CodeStreamState } from "..";
+import { ActionType } from "../common";
+import * as actions from "./actions";
+import { ApiVersioningActionsType, ApiVersioningState } from "./types";
 
 const initialState: ApiVersioningState = {
 	type: ApiVersioningActionsType.ApiOk,
 	apiCapabilities: {},
-	missingCapabilities: {}
+	missingCapabilities: {},
 };
 
 type ApiVersioningActions = ActionType<typeof actions>;
@@ -19,7 +19,7 @@ export function reduceApiVersioning(state = initialState, action: ApiVersioningA
 			return {
 				...state,
 				type: ApiVersioningActionsType.ApiUpgradeRecommended,
-				missingCapabilities: { ...action.payload }
+				missingCapabilities: { ...action.payload },
 			};
 		case ApiVersioningActionsType.ApiOk:
 			return { ...state, type: ApiVersioningActionsType.ApiOk };

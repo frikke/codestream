@@ -6,7 +6,7 @@ describe("clm query generation", () => {
 		it("removes Nested/ path for ruby Controller", () => {
 			const query = generateMethodAverageDurationQuery("ruby", "blah", [
 				"Nested/Controller/agents/show",
-				"Nested/Controller/agents/update"
+				"Nested/Controller/agents/update",
 			]);
 			expect(query).toContain(
 				"metricTimesliceName in ('Controller/agents/show','Controller/agents/update')"
@@ -16,7 +16,7 @@ describe("clm query generation", () => {
 		it("adds WebTransaction/ path for python", () => {
 			const query = generateMethodAverageDurationQuery("python", "blah", [
 				"Function/routes.app:db_call",
-				"Function/routes.app:some_call"
+				"Function/routes.app:some_call",
 			]);
 			expect(query).toContain(
 				"metricTimesliceName in ('WebTransaction/Function/routes.app:db_call','WebTransaction/Function/routes.app:some_call')"
@@ -26,7 +26,7 @@ describe("clm query generation", () => {
 		it("preserves /Nested path for ruby functions", () => {
 			const query = generateMethodAverageDurationQuery("ruby", "blah", [
 				"Nested/OtherTransaction/Background/Custom::Helpers/custom_class_method",
-				"Nested/OtherTransaction/Background/Custom::Helpers/custom_class_method2"
+				"Nested/OtherTransaction/Background/Custom::Helpers/custom_class_method2",
 			]);
 			expect(query).toContain(
 				"metricTimesliceName in ('Nested/OtherTransaction/Background/Custom::Helpers/custom_class_method','Nested/OtherTransaction/Background/Custom::Helpers/custom_class_method2')"
@@ -60,7 +60,7 @@ describe("clm query generation", () => {
 
 		it("generates namespace only locator query using equals", () => {
 			const response = generateSpanQuery("nrGuid", "locator", "equals", undefined, {
-				namespace: "blah"
+				namespace: "blah",
 			});
 			// console.log(response);
 			expect(response).toContain(
@@ -70,7 +70,7 @@ describe("clm query generation", () => {
 
 		it("generates namespace only locator query using like", () => {
 			const response = generateSpanQuery("nrGuid", "locator", "like", undefined, {
-				namespace: "blah"
+				namespace: "blah",
 			});
 			// console.log(response);
 			expect(response).toContain(
@@ -81,7 +81,7 @@ describe("clm query generation", () => {
 		it("generates namespace and function locator query using equals", () => {
 			const response = generateSpanQuery("nrGuid", "locator", "equals", undefined, {
 				namespace: "blah",
-				functionName: "foo"
+				functionName: "foo",
 			});
 			// console.log(response);
 			expect(response).toContain(
@@ -92,7 +92,7 @@ describe("clm query generation", () => {
 		it("generates namespace and function locator query using like", () => {
 			const response = generateSpanQuery("nrGuid", "locator", "like", undefined, {
 				namespace: "blah",
-				functionName: "foo"
+				functionName: "foo",
 			});
 			// console.log(response);
 			expect(response).toContain(

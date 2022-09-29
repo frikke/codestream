@@ -1,13 +1,13 @@
-import MarkdownIt from "markdown-it";
-import markdownItSlack from "markdown-it-slack";
-import markdownItEmoji from "markdown-it-emoji-mart";
 import { prettyPrintOne } from "code-prettify";
-import { logError } from "../logger";
-import { escapeHtml } from "../utils";
-import { useSelector, shallowEqual } from "react-redux";
-import { getUsernames } from "../store/users/reducer";
+import MarkdownIt from "markdown-it";
+import markdownItEmoji from "markdown-it-emoji-mart";
+import markdownItSlack from "markdown-it-slack";
 import React from "react";
+import { shallowEqual, useSelector } from "react-redux";
+import { logError } from "../logger";
 import { CodeStreamState } from "../store";
+import { getUsernames } from "../store/users/reducer";
+import { escapeHtml } from "../utils";
 
 interface MarkdownOptions {
 	/**
@@ -26,15 +26,15 @@ interface MarkdownOptions {
 const md = new MarkdownIt({
 	breaks: true,
 	linkify: true,
-	highlight: function(str, lang) {
+	highlight: function (str, lang) {
 		const codeHTML = prettyPrintOne(escapeHtml(str), lang, true);
 		return `<pre class="code prettyprint" data-scrollable="true">${codeHTML}</pre>`;
-	}
+	},
 })
 	.use(markdownItSlack)
 	.use(markdownItEmoji);
 
-md.renderer.rules.emoji = function(token, idx) {
+md.renderer.rules.emoji = function (token, idx) {
 	return '<span class="emoji">' + token[idx].content + "</span>";
 };
 
@@ -45,15 +45,15 @@ export const emojify = text => {
 const mdPlain = new MarkdownIt({
 	breaks: true,
 	linkify: true,
-	highlight: function(str, lang) {
+	highlight: function (str, lang) {
 		const codeHTML = prettyPrintOne(escapeHtml(str), lang, true);
 		return `<pre class="code prettyprint" data-scrollable="true">${codeHTML}</pre>`;
-	}
+	},
 })
 	.use(markdownItSlack)
 	.use(markdownItEmoji);
 
-mdPlain.renderer.rules.emoji = function(token, idx) {
+mdPlain.renderer.rules.emoji = function (token, idx) {
 	return token[idx].content;
 };
 

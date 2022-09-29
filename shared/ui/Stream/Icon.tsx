@@ -1,7 +1,7 @@
-import React from "react";
-import createClassString from "classnames";
-import Icons8 from "./Icons8";
 import octicons from "@primer/octicons";
+import createClassString from "classnames";
+import React from "react";
+import Icons8 from "./Icons8";
 import Tooltip, { Placement, Trigger } from "./Tooltip";
 
 interface Props {
@@ -40,14 +40,14 @@ export const Icon = React.forwardRef<any, Props>((props, ref) => {
 			className={createClassString("icon", props.className, {
 				spin: props.loading,
 				clickable: props.clickable,
-				muted: props.muted
+				muted: props.muted,
 			})}
 			data-testid={props["data-testid"]}
 			onClick={props.onClick}
 			onMouseDown={props.onMouseDown}
 			style={props.style}
 			dangerouslySetInnerHTML={{
-				__html: props.src ? `<img src="${props.src}" />` : icon.toSVG()
+				__html: props.src ? `<img src="${props.src}" />` : icon.toSVG(),
 			}}
 			ref={ref}
 			tabIndex={props.tabIndex}
@@ -74,7 +74,7 @@ Icon.defaultProps = {
 	clickable: false,
 	muted: false,
 	className: "",
-	onClick: event => event.preventDefault()
+	onClick: event => event.preventDefault(),
 };
 
 export default Icon;

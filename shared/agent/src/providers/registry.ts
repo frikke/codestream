@@ -62,12 +62,12 @@ import {
 	RemoveEnterpriseProviderRequestType,
 	UpdateThirdPartyStatusRequest,
 	UpdateThirdPartyStatusRequestType,
-	UpdateThirdPartyStatusResponse
+	UpdateThirdPartyStatusResponse,
 } from "../protocol/agent.protocol";
 import {
 	CSMe,
 	CSMePreferences,
-	CSNotificationDeliveryPreference
+	CSNotificationDeliveryPreference,
 } from "../protocol/api.protocol.models";
 import { CodeStreamSession } from "../session";
 import { Functions, getProvider, getRegisteredProviders, log, lsp, lspHandler } from "../system";
@@ -80,7 +80,7 @@ import {
 	ThirdPartyPostProvider,
 	ThirdPartyProvider,
 	ThirdPartyProviderSupportsPullRequests,
-	ThirdPartyProviderSupportsViewingPullRequests
+	ThirdPartyProviderSupportsViewingPullRequests,
 } from "./provider";
 
 const PR_QUERIES: PRProviderQueries = {
@@ -88,50 +88,50 @@ const PR_QUERIES: PRProviderQueries = {
 		{
 			providerId: "gitlab*com",
 			name: "is waiting on your review",
-			query: `state=opened&reviewer_username=@me&scope=all`
+			query: `state=opened&reviewer_username=@me&scope=all`,
 		},
 		{
 			providerId: "gitlab*com",
 			name: "was assigned to you",
-			query: `state=opened&scope=assigned_to_me`
-		}
+			query: `state=opened&scope=assigned_to_me`,
+		},
 	],
 	"gitlab/enterprise": [
 		{
 			providerId: "gitlab/enterprise",
 			name: "is waiting on your review",
-			query: `state=opened&reviewer_username=@me&scope=all`
+			query: `state=opened&reviewer_username=@me&scope=all`,
 		},
 		{
 			providerId: "gitlab/enterprise",
 			name: "was assigned to you",
-			query: `state=opened&scope=assigned_to_me`
-		}
+			query: `state=opened&scope=assigned_to_me`,
+		},
 	],
 	"github*com": [
 		{
 			providerId: "github*com",
 			name: "is waiting on your review",
-			query: `is:pr is:open review-requested:@me -author:@me`
+			query: `is:pr is:open review-requested:@me -author:@me`,
 		},
 		{
 			providerId: "github*com",
 			name: "was assigned to you",
-			query: `is:pr is:open assignee:@me -author:@me`
-		}
+			query: `is:pr is:open assignee:@me -author:@me`,
+		},
 	],
 	"github/enterprise": [
 		{
 			providerId: "github/enterprise",
 			name: "is waiting on your review",
-			query: `is:pr is:open review-requested:@me -author:@me`
+			query: `is:pr is:open review-requested:@me -author:@me`,
 		},
 		{
 			providerId: "github/enterprise",
 			name: "was assigned to you",
-			query: `is:pr is:open assignee:@me -author:@me`
-		}
-	]
+			query: `is:pr is:open assignee:@me -author:@me`,
+		},
+	],
 };
 
 interface ProviderPullRequests {
@@ -165,17 +165,19 @@ export class ThirdPartyProviderRegistry {
 		const user = await SessionContainer.instance().users.getMe();
 		if (!user) return;
 
-		const providers = this.getConnectedProviders(user, (p): p is ThirdPartyIssueProvider &
-			ThirdPartyProviderSupportsViewingPullRequests => {
-			const thirdPartyIssueProvider = p as ThirdPartyIssueProvider;
-			const name = thirdPartyIssueProvider.getConfig().name;
-			return (
-				name === "github" ||
-				name === "github_enterprise" ||
-				name === "gitlab" ||
-				name === "gitlab_enterprise"
-			);
-		});
+		const providers = this.getConnectedProviders(
+			user,
+			(p): p is ThirdPartyIssueProvider & ThirdPartyProviderSupportsViewingPullRequests => {
+				const thirdPartyIssueProvider = p as ThirdPartyIssueProvider;
+				const name = thirdPartyIssueProvider.getConfig().name;
+				return (
+					name === "github" ||
+					name === "github_enterprise" ||
+					name === "gitlab" ||
+					name === "gitlab_enterprise"
+				);
+			}
+		);
 		const providersPullRequests: ProviderPullRequests[] = [];
 
 		let succeededCount = 0;
@@ -188,13 +190,13 @@ export class ThirdPartyProviderRegistry {
 				const queries = PR_QUERIES[provider.getConfig().id];
 				if (queries.length) {
 					const pullRequests = await provider.getMyPullRequests({
-						prQueries: queries
+						prQueries: queries,
 					});
 
 					if (pullRequests) {
 						providersPullRequests.push({
 							providerId: provider.getConfig().id,
-							queriedPullRequests: pullRequests
+							queriedPullRequests: pullRequests,
 						});
 						succeededCount++;
 					}
@@ -241,7 +243,7 @@ export class ThirdPartyProviderRegistry {
 				);
 				return {
 					providerId: providerPRs.providerId,
-					ageLimit
+					ageLimit,
 				};
 			});
 			return [];
@@ -276,7 +278,7 @@ export class ThirdPartyProviderRegistry {
 
 			newProvidersPRs.push({
 				providerId: providerPRs.providerId,
-				queriedPullRequests
+				queriedPullRequests,
 			});
 		});
 
@@ -291,7 +293,7 @@ export class ThirdPartyProviderRegistry {
 				prNotificationMessages.push(
 					...pullRequests.map(pullRequest => ({
 						queryName: PR_QUERIES[_.providerId][queryIndex].name!,
-						pullRequest
+						pullRequest,
 					}))
 				);
 			})
@@ -300,7 +302,7 @@ export class ThirdPartyProviderRegistry {
 		if (prNotificationMessages.length > 0) {
 			SessionContainer.instance().session.agent.sendNotification(DidChangeDataNotificationType, {
 				type: ChangeDataType.PullRequests,
-				data: prNotificationMessages
+				data: prNotificationMessages,
 			});
 		} else {
 			Logger.log("Will not notify of new PRs - no changes detected");
@@ -643,7 +645,7 @@ export class ThirdPartyProviderRegistry {
 	}
 
 	@log({
-		prefix: (context, args) => `${context.prefix}:${args.method}`
+		prefix: (context, args) => `${context.prefix}:${args.method}`,
 	})
 	@lspHandler(ExecuteThirdPartyRequestUntypedType)
 	async executeMethod(request: ExecuteThirdPartyRequest) {
@@ -667,7 +669,7 @@ export class ThirdPartyProviderRegistry {
 			result = await response;
 		} catch (ex) {
 			Logger.error(ex, "executeMethod failed", {
-				method: request.method
+				method: request.method,
 			});
 			throw ex;
 		}
@@ -675,7 +677,7 @@ export class ThirdPartyProviderRegistry {
 	}
 
 	@log({
-		prefix: (context, args) => `${context.prefix}:${args.method}`
+		prefix: (context, args) => `${context.prefix}:${args.method}`,
 	})
 	@lspHandler(QueryThirdPartyRequestType)
 	async queryThirdParty(request: QueryThirdPartyRequest) {
@@ -716,19 +718,19 @@ export class ThirdPartyProviderRegistry {
 							`queryThirdParty: found matching provider for ${uri.authority}. providerId=${id}`
 						);
 						return {
-							providerId: id
+							providerId: id,
 						};
 					}
 				} catch (err) {
 					// only warn the log here as `fn` might fail.
 					Logger.warn(err, "queryThirdParty: provider failed", {
-						url: request.url
+						url: request.url,
 					});
 				}
 			}
 		} catch (ex) {
 			Logger.error(ex, "queryThirdParty: generic failure", {
-				url: request.url
+				url: request.url,
 			});
 		}
 
@@ -747,125 +749,154 @@ export class ThirdPartyProviderRegistry {
 					providerId: "github*com",
 					name: WAITING_ON_REVIEW,
 					query: `is:pr is:open involves:@me`,
-					hidden: false
+					hidden: false,
 				},
 				{
 					providerId: "github*com",
 					name: ASSIGNED_TO_ME,
 					query: `is:pr is:open assignee:@me`,
-					hidden: false
+					hidden: false,
 				},
 				{
 					providerId: "github*com",
 					name: CREATED_BY_ME,
 					query: `is:pr is:open author:@me`,
-					hidden: false
+					hidden: false,
 				},
 				{
 					providerId: "github*com",
 					name: RECENT,
 					query: `recent`,
-					hidden: false
-				}
+					hidden: false,
+				},
 			],
 			"github/enterprise": [
 				{
 					providerId: "github/enterprise",
 					name: WAITING_ON_REVIEW,
 					query: `is:pr is:open involves:@me`,
-					hidden: false
+					hidden: false,
 				},
 				{
 					providerId: "github/enterprise",
 					name: ASSIGNED_TO_ME,
 					query: `is:pr is:open assignee:@me`,
-					hidden: false
+					hidden: false,
 				},
 				{
 					providerId: "github/enterprise",
 					name: CREATED_BY_ME,
 					query: `is:pr is:open author:@me`,
-					hidden: false
+					hidden: false,
 				},
 				{
 					providerId: "github/enterprise",
 					name: RECENT,
 					query: `recent`,
-					hidden: false
-				}
+					hidden: false,
+				},
 			],
 			"gitlab*com": [
 				{
 					providerId: "gitlab*com",
 					name: WAITING_ON_REVIEW,
 					query: `state=opened&reviewer_username=@me&scope=all`,
-					hidden: false
+					hidden: false,
 				},
 				{
 					providerId: "gitlab*com",
 					name: ASSIGNED_TO_ME,
 					query: `state=opened&scope=assigned_to_me`,
-					hidden: false
+					hidden: false,
 				},
 				{
 					providerId: "gitlab*com",
 					name: CREATED_BY_ME,
 					query: `state=opened&scope=created_by_me`,
-					hidden: false
+					hidden: false,
 				},
 				{
 					providerId: "gitlab*com",
 					name: RECENT,
 					query: `scope=created_by_me&per_page=5`,
-					hidden: false
-				}
+					hidden: false,
+				},
 			],
 			"gitlab/enterprise": [
 				{
 					providerId: "gitlab/enterprise",
 					name: WAITING_ON_REVIEW,
 					query: `state=opened&reviewer_username=@me&scope=all`,
-					hidden: false
+					hidden: false,
 				},
 				{
 					providerId: "gitlab/enterprise",
 					name: ASSIGNED_TO_ME,
 					query: `state=opened&scope=assigned_to_me`,
-					hidden: false
+					hidden: false,
 				},
 				{
 					providerId: "gitlab/enterprise",
 					name: CREATED_BY_ME,
 					query: `state=opened&scope=created_by_me`,
-					hidden: false
+					hidden: false,
 				},
 				{
 					providerId: "gitlab/enterprise",
 					name: RECENT,
 					query: `scope=created_by_me&per_page=5`,
-					hidden: false
-				}
-			]
+					hidden: false,
+				},
+			],
+			"bitbucket*org": [
+				//https://api.bitbucket.org//2.0/
+				// {
+				// 	providerId: "bitbucket*org",
+				// 	name: "Waiting on my Review",
+				// 	// TODO - @me @workspace @repo
+				// 	query: ``,
+				// 	hidden: false
+				// },
+				// {
+				// 	providerId: "bitbucket*org",
+				// 	name: "Assigned to Me",
+				// 	// TODO - how should this be formatted?
+				// 	query: `repositories/<foo>>/<bar>/pullrequests/<number>?fields=reviewers`, //this is per pullrequest
+				// 	hidden: false
+				// },
+				{
+					providerId: "bitbucket*org",
+					name: "Created by Me",
+					query: `state=OPEN`,
+					hidden: false,
+				},
+				{
+					providerId: "bitbucket*org",
+					name: "Recent",
+					query: `sort=updated_on&state=OPEN&state=MERGED&state=DECLINED&state=SUPERSEDED&pagelen=5`,
+					hidden: false,
+				},
+			],
 		};
 		try {
 			const user = await SessionContainer.instance().users.getMe();
 			const providers = await this.getConnectedPullRequestProviders(user!);
 			const gitlabEnterprise = providers?.find(_ => _.getConfig().id === "gitlab/enterprise");
 			if (gitlabEnterprise) {
-				const version = await ((gitlabEnterprise as any) as GitLabEnterpriseProvider).getVersion();
+				const version = await (gitlabEnterprise as any as GitLabEnterpriseProvider).getVersion();
 				if (version && version.version && semver.lt(version.version, "13.8.0")) {
 					// if doesn't support reviewers, change the first query
 					response["gitlab/enterprise"][0] = {
 						providerId: "gitlab/enterprise",
 						name: "All Open MRs",
 						query: `state:opened scope:all`,
-						hidden: false
+						hidden: false,
 					};
 				}
 			}
 		} catch (ex) {
 			Logger.warn("getProviderDefaultPullRequestQueries", {
-				error: ex
+				error: ex,
 			});
 		}
 		return response;
@@ -930,19 +961,21 @@ export class ThirdPartyProviderRegistry {
 	async getConnectedPullRequestProviders(
 		user: CSMe
 	): Promise<(ThirdPartyProvider & ThirdPartyProviderSupportsPullRequests)[]> {
-		const connectedProviders = this.getConnectedProviders(user, (p): p is ThirdPartyProvider &
-			ThirdPartyProviderSupportsPullRequests => {
-			const thirdPartyProvider = p as ThirdPartyProvider;
-			const name = thirdPartyProvider.getConfig().name;
-			return (
-				name === "github" ||
-				name === "gitlab" ||
-				name === "github_enterprise" ||
-				name === "gitlab_enterprise" ||
-				name === "bitbucket" ||
-				name === "bitbucket_server"
-			);
-		});
+		const connectedProviders = this.getConnectedProviders(
+			user,
+			(p): p is ThirdPartyProvider & ThirdPartyProviderSupportsPullRequests => {
+				const thirdPartyProvider = p as ThirdPartyProvider;
+				const name = thirdPartyProvider.getConfig().name;
+				return (
+					name === "github" ||
+					name === "gitlab" ||
+					name === "github_enterprise" ||
+					name === "gitlab_enterprise" ||
+					name === "bitbucket" ||
+					name === "bitbucket_server"
+				);
+			}
+		);
 		return connectedProviders;
 	}
 }

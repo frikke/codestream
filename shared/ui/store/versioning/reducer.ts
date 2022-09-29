@@ -1,7 +1,7 @@
 import { VersioningActionsType, VersioningState } from "./types";
 
 const initialState: VersioningState = {
-	type: VersioningActionsType.Ok
+	type: VersioningActionsType.Ok,
 };
 
 export function reduceVersioning(state = initialState, { type }: VersioningState) {

@@ -1,26 +1,29 @@
-import React from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { CodeStreamState } from "../store";
-import { WebviewPanels, WebviewModals, WebviewPanelNames } from "../ipc/webview.protocol.common";
-import Icon from "./Icon";
-import { openPanel } from "./actions";
-import Menu from "./Menu";
-import { HostApi } from "../webview-api";
-import { OpenUrlRequestType } from "@codestream/protocols/webview";
-import { sortBy as _sortBy } from "lodash-es";
-import { logout, switchToForeignCompany, switchToTeam } from "../store/session/actions";
-import { EMPTY_STATUS } from "./StartWork";
-import { MarkdownText } from "./MarkdownText";
-import { setProfileUser, openModal } from "../store/context/actions";
-import { multiStageConfirmPopup } from "./MultiStageConfirm";
 import {
 	DeleteCompanyRequestType,
-	UpdateTeamSettingsRequestType
+	UpdateTeamSettingsRequestType,
 } from "@codestream/protocols/agent";
-import { isFeatureEnabled } from "../store/apiVersioning/reducer";
-import { setUserPreference } from "./actions";
-import { AVAILABLE_PANES, DEFAULT_PANE_SETTINGS } from "./Sidebar";
+import { OpenUrlRequestType } from "@codestream/protocols/webview";
+import {
+	logout,
+	switchToForeignCompany,
+	switchToTeam,
+} from "@codestream/webview/store/session/thunks";
+import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
+import { sortBy as _sortBy } from "lodash-es";
+import React from "react";
 import styled from "styled-components";
+import { WebviewModals, WebviewPanelNames, WebviewPanels } from "../ipc/webview.protocol.common";
+import { CodeStreamState } from "../store";
+import { isFeatureEnabled } from "../store/apiVersioning/reducer";
+import { openModal, setProfileUser } from "../store/context/actions";
+import { HostApi } from "../webview-api";
+import { openPanel, setUserPreference } from "./actions";
+import Icon from "./Icon";
+import { MarkdownText } from "./MarkdownText";
+import Menu from "./Menu";
+import { multiStageConfirmPopup } from "./MultiStageConfirm";
+import { AVAILABLE_PANES, DEFAULT_PANE_SETTINGS } from "./Sidebar";
+import { EMPTY_STATUS } from "./StartWork";
 
 const RegionSubtext = styled.div`
 	font-size: smaller;
@@ -35,8 +38,8 @@ interface EllipsisMenuProps {
 const EMPTY_HASH = {};
 
 export function EllipsisMenu(props: EllipsisMenuProps) {
-	const dispatch = useDispatch();
-	const derivedState = useSelector((state: CodeStreamState) => {
+	const dispatch = useAppDispatch();
+	const derivedState = useAppSelector((state: CodeStreamState) => {
 		const teamId = state.context.currentTeamId;
 		const team = state.teams[teamId];
 		const user = state.users[state.session.userId!];
@@ -71,7 +74,7 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 			hasMultipleEnvironments: environmentHosts && environmentHosts.length > 1,
 			environment,
 			isProductionCloud,
-			supportsMultiRegion
+			supportsMultiRegion,
 		};
 	});
 
@@ -82,7 +85,7 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 			userTeams,
 			currentHost,
 			hasMultipleEnvironments,
-			supportsMultiRegion
+			supportsMultiRegion,
 		} = derivedState;
 
 		const buildSubmenu = () => {
@@ -106,15 +109,17 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 						if (isCurrentCompany) return;
 						if (company.host) {
 							dispatch(switchToForeignCompany(company.id));
+							HostApi.instance.track("Switched Organizations", {});
 						} else {
 							const team = userTeams.find(_ => _.companyId === company.id);
 							if (team) {
-								dispatch(switchToTeam(team.id));
+								HostApi.instance.track("Switched Organizations", {});
+								dispatch(switchToTeam({ teamId: team.id }));
 							} else {
 								console.error(`Could not switch to a team in ${company.id}`);
 							}
 						}
-					}
+					},
 				};
 			}) as any;
 
@@ -126,7 +131,7 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 					label: "Create New Organization",
 					action: () => {
 						dispatch(openModal(WebviewModals.CreateCompany));
-					}
+					},
 				}
 			);
 
@@ -135,7 +140,7 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 
 		return {
 			label: "Switch Organization",
-			submenu: buildSubmenu()
+			submenu: buildSubmenu(),
 		};
 	};
 
@@ -149,7 +154,7 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 	const changeXray = async value => {
 		await HostApi.instance.send(UpdateTeamSettingsRequestType, {
 			teamId: derivedState.team.id,
-			settings: { xray: value }
+			settings: { xray: value },
 		});
 	};
 
@@ -167,9 +172,9 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 						{
 							label: "Delete Organization",
 							className: "delete",
-							advance: true
-						}
-					]
+							advance: true,
+						},
+					],
 				},
 				{
 					title: "Are you sure?",
@@ -183,14 +188,14 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 							wait: true,
 							action: async () => {
 								await HostApi.instance.send(DeleteCompanyRequestType, {
-									companyId: currentCompanyId
+									companyId: currentCompanyId,
 								});
 								dispatch(logout());
-							}
-						}
-					]
-				}
-			]
+							},
+						},
+					],
+				},
+			],
 		});
 	};
 
@@ -203,20 +208,20 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 				{
 					label: "Change Organization Name",
 					key: "change-company-name",
-					action: () => dispatch(openModal(WebviewModals.ChangeCompanyName))
+					action: () => dispatch(openModal(WebviewModals.ChangeCompanyName)),
 				},
 				{ label: "-" },
 				{
 					label: "Onboarding Settings...",
 					key: "onboarding-settings",
 					action: () => dispatch(openModal(WebviewModals.TeamSetup)),
-					disabled: !derivedState.autoJoinSupported
+					disabled: !derivedState.autoJoinSupported,
 				},
 				{
 					label: "Feedback Request Settings...",
 					key: "feedback-request-settings",
 					action: () => dispatch(openModal(WebviewModals.ReviewSettings)),
-					disabled: !derivedState.multipleReviewersApprove
+					disabled: !derivedState.multipleReviewersApprove,
 				},
 				// {
 				// 	label: "Live View Settings",
@@ -251,12 +256,12 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 				{ label: "-" },
 				{ label: "Export Data", action: () => go(WebviewPanels.Export) },
 				{ label: "-" },
-				{ label: "Delete Organization", action: deleteOrganization }
+				{ label: "Delete Organization", action: deleteOrganization },
 			];
 			return {
 				label: "Organization Admin",
 				key: "admin",
-				submenu
+				submenu,
 			};
 		} else return null;
 	};
@@ -277,7 +282,7 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 					<MarkdownText text={currentUserStatus.label} inline={true}></MarkdownText>
 				</>
 			),
-			key: "status"
+			key: "status",
 		});
 	}
 
@@ -291,15 +296,15 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 					action: () => {
 						dispatch(setProfileUser(derivedState.currentUserId));
 						popup(WebviewModals.Profile);
-					}
+					},
 				},
 				{ label: "Change Profile Photo", action: () => popup(WebviewModals.ChangeAvatar) },
 				{ label: "Change Email", action: () => popup(WebviewModals.ChangeEmail) },
 				{ label: "Change Username", action: () => popup(WebviewModals.ChangeUsername) },
 				{ label: "Change Full Name", action: () => popup(WebviewModals.ChangeFullName) },
 				{ label: "-" },
-				{ label: "Sign Out", action: () => dispatch(logout()) }
-			]
+				{ label: "Sign Out", action: () => dispatch(logout()) },
+			],
 		},
 		{
 			label: "View",
@@ -314,20 +319,25 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 						label: WebviewPanelNames[id],
 						checked: !settings.removed,
 						action: () => {
-							dispatch(setUserPreference(["sidebarPanes", id, "removed"], !settings.removed));
+							dispatch(
+								setUserPreference({
+									prefPath: ["sidebarPanes", id, "removed"],
+									value: !settings.removed,
+								})
+							);
 							if (!settings.removed) {
 								HostApi.instance.track("Sidebar Adjusted", {
 									Section: id,
-									Adjustment: "Hidden"
+									Adjustment: "Hidden",
 								});
 							}
-						}
+						},
 					};
-				})
+				}),
 		},
 		{
 			label: "Notifications",
-			action: () => dispatch(openModal(WebviewModals.Notifications))
+			action: () => dispatch(openModal(WebviewModals.Notifications)),
 		}
 	);
 
@@ -345,7 +355,7 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 				),
 				key: "companyHeader",
 				noHover: true,
-				disabled: true
+				disabled: true,
 			},
 			// {
 			// 	label: `Invite people to ${derivedState.team.name}`,
@@ -353,7 +363,7 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 			// },
 			buildAdminTeamMenuItem(),
 			buildSwitchTeamMenuItem(),
-			{ label: "-" }
+			{ label: "-" },
 		].filter(Boolean)
 	);
 
@@ -372,12 +382,12 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		{
 			label: "New Relic Setup",
 			key: "onboard-newrelic",
-			action: () => go(WebviewPanels.OnboardNewRelic)
+			action: () => go(WebviewPanels.OnboardNewRelic),
 		},
 		{ label: "-" },
 		{
 			label: "Feedback",
-			action: () => openUrl("https://github.com/TeamCodeStream/codestream/issues")
+			action: () => openUrl("https://github.com/TeamCodeStream/codestream/issues"),
 		},
 		{
 			label: "Help",
@@ -386,17 +396,17 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 				{
 					label: "Documentation",
 					key: "documentation",
-					action: () => openUrl("https://docs.newrelic.com/docs/codestream")
+					action: () => openUrl("https://docs.newrelic.com/docs/codestream"),
 				},
 				{
 					label: "Video Library",
 					key: "videos",
-					action: () => openUrl("https://www.codestream.com/video-library")
+					action: () => openUrl("https://www.codestream.com/video-library"),
 				},
 				{
 					label: "Keybindings",
 					key: "keybindings",
-					action: () => dispatch(openModal(WebviewModals.Keybindings))
+					action: () => dispatch(openModal(WebviewModals.Keybindings)),
 				},
 				// {
 				// 	label: "Getting Started Guide",
@@ -406,20 +416,20 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 				{
 					label: "CodeStream Flow",
 					key: "flow",
-					action: () => dispatch(openPanel(WebviewPanels.Flow))
+					action: () => dispatch(openPanel(WebviewPanels.Flow)),
 				},
 				// { label: "Onboard", key: "onboard", action: () => go(WebviewPanels.Onboard) },
 				{
 					label: "What's New",
 					key: "whats-new",
-					action: () => openUrl("https://www.codestream.com/blog")
+					action: () => openUrl("https://www.codestream.com/blog"),
 				},
 				{
 					label: "Report an Issue",
 					key: "issue",
-					action: () => openUrl("https://github.com/TeamCodeStream/codestream/issues")
-				}
-			]
+					action: () => openUrl("https://github.com/TeamCodeStream/codestream/issues"),
+				},
+			],
 		},
 		{ label: "-" }
 	);

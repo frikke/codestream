@@ -1,5 +1,4 @@
-import { useState, useCallback, PropsWithChildren } from "react";
-import React from "react";
+import React, { PropsWithChildren, useCallback, useState } from "react";
 import { AnyObject } from "../utils";
 
 interface TextInputProps extends Pick<React.HTMLAttributes<HTMLInputElement>, "onPaste"> {
@@ -16,7 +15,7 @@ interface TextInputProps extends Pick<React.HTMLAttributes<HTMLInputElement>, "o
 	hasError?: boolean;
 }
 
-export const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(function(
+export const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(function (
 	props: PropsWithChildren<TextInputProps>,
 	ref: React.Ref<HTMLInputElement>
 ) {

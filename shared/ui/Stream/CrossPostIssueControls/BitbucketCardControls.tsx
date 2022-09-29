@@ -1,25 +1,25 @@
-import React from "react";
-import AsyncSelect from "react-select/async";
-import Icon from "../Icon";
-import Menu from "../Menu";
 import {
-	CodeDelimiterStyles,
-	ThirdPartyProviderConfig,
 	BitbucketBoard,
+	CodeDelimiterStyles,
+	FetchAssignableUsersRequestType,
 	FetchThirdPartyBoardsRequestType,
-	FetchAssignableUsersRequestType
+	ThirdPartyProviderConfig,
 } from "@codestream/protocols/agent";
-import { useDispatch, useSelector } from "react-redux";
 import { CodeStreamState } from "@codestream/webview/store";
+import { updateForProvider } from "@codestream/webview/store/activeIntegrations/actions";
 import { getIntegrationData } from "@codestream/webview/store/activeIntegrations/reducer";
 import { BitbucketIntegrationData } from "@codestream/webview/store/activeIntegrations/types";
-import { updateForProvider } from "@codestream/webview/store/activeIntegrations/actions";
-import { CrossPostIssueContext } from "../CodemarkForm";
-import { emptyArray, mapFilter } from "@codestream/webview/utils";
-import { useDidMount } from "@codestream/webview/utilities/hooks";
-import { HostApi } from "@codestream/webview/webview-api";
 import { setIssueProvider } from "@codestream/webview/store/context/actions";
+import { useDidMount } from "@codestream/webview/utilities/hooks";
+import { emptyArray, mapFilter } from "@codestream/webview/utils";
+import { HostApi } from "@codestream/webview/webview-api";
+import React from "react";
 import ReactDOM from "react-dom";
+import { useDispatch, useSelector } from "react-redux";
+import AsyncSelect from "react-select/async";
+import { CrossPostIssueContext } from "../CodemarkForm";
+import Icon from "../Icon";
+import Menu from "../Menu";
 
 export function BitbucketCardControls(
 	props: React.PropsWithChildren<{ provider: ThirdPartyProviderConfig }>
@@ -58,7 +58,7 @@ export function BitbucketCardControls(
 		}
 		if (!data.isLoading) {
 			updateDataState({
-				isLoading: true
+				isLoading: true,
 			});
 		}
 
@@ -66,18 +66,18 @@ export function BitbucketCardControls(
 
 		const fetchBoards = async () => {
 			let response = await HostApi.instance.send(FetchThirdPartyBoardsRequestType, {
-				providerId: props.provider.id
+				providerId: props.provider.id,
 			});
 
 			if (!isValid) return;
 
 			crossPostIssueContext.setValues({
-				codeDelimiterStyle: CodeDelimiterStyles.TRIPLE_BACK_QUOTE
+				codeDelimiterStyle: CodeDelimiterStyles.TRIPLE_BACK_QUOTE,
 			});
 			selectRepoForCodeBlock(response.boards as BitbucketBoard[]);
 			updateDataState({
 				isLoading: false,
-				repos: response.boards as BitbucketBoard[]
+				repos: response.boards as BitbucketBoard[],
 			});
 		};
 
@@ -100,7 +100,7 @@ export function BitbucketCardControls(
 		setRepoMenuState({ open: false, target: undefined });
 		if (repo) {
 			updateDataState({
-				currentRepo: repo
+				currentRepo: repo,
 			});
 			crossPostIssueContext.setValues({ boardName: repo.name });
 		}
@@ -112,7 +112,7 @@ export function BitbucketCardControls(
 
 			const { users } = await HostApi.instance.send(FetchAssignableUsersRequestType, {
 				providerId: props.provider.id,
-				boardId: data.currentRepo.apiIdentifier
+				boardId: data.currentRepo.apiIdentifier,
 			});
 
 			return mapFilter(users, u => {
@@ -183,7 +183,7 @@ export function BitbucketCardControls(
 							items={(data.repos || emptyArray).map(board => ({
 								label: board.name,
 								key: board.id,
-								action: board
+								action: board,
 							}))}
 							action={selectRepo}
 						/>

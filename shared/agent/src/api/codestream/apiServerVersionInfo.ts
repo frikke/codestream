@@ -22,8 +22,8 @@ export const APIServerVersionInfo = {
 		sample: {
 			description: "SAMPLE",
 			url: "http://path.to.blog.describing.feature",
-			version: "1.0.0"
-		}
+			version: "1.0.0",
+		},
 
 		// add new features here, following the template above
 		// the hash key is the agreed-upon tag name, and must
@@ -31,5 +31,5 @@ export const APIServerVersionInfo = {
 		// the description will be shown to the user, along with
 		// an optional url to a blog page where they can read
 		// more about the feature
-	}
+	},
 };

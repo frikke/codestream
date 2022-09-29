@@ -105,7 +105,7 @@ export class SocketClusterHistory {
 		const historyMessage = {
 			requestId: this._requestId,
 			channels,
-			since
+			since,
 		} as SocketClusterHistoryAPIInput;
 
 		let response: any;

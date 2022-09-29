@@ -1,19 +1,15 @@
 import { GetPostRequestType, PostPlus } from "@codestream/protocols/agent";
+import { HostApi } from "@codestream/webview/webview-api";
 import { AnyAction, Middleware } from "redux";
 import { ThunkDispatch } from "redux-thunk";
 import { CodeStreamState } from "..";
-import { HostApi } from "@codestream/webview/webview-api";
 import { saveCodemarks } from "../codemarks/actions";
 import { addPosts, savePosts } from "../posts/actions";
 import { getPost } from "../posts/reducer";
 import { PostsActionsType } from "../posts/types";
 import { addNewActivity } from "./actions";
 
-export const activityFeedMiddleware: Middleware<
-	{},
-	CodeStreamState,
-	ThunkDispatch<CodeStreamState, unknown, AnyAction>
-> = store => next => async action => {
+export const activityFeedMiddleware: Middleware = store => next => async action => {
 	const { bootstrapped } = store.getState();
 
 	if (bootstrapped && action.type === PostsActionsType.Add) {
@@ -25,6 +21,7 @@ export const activityFeedMiddleware: Middleware<
 			if (post.version === 1) {
 				if (post.parentPostId != null) {
 					// ensure we have the parent post
+					// @ts-ignore
 					store.dispatch(fetchPostForActivity(post.parentPostId, post.streamId));
 				} else if (post.codemark != null && post.codemark.reviewId == null) {
 					store.dispatch(addNewActivity("codemark", [post.codemark]));
@@ -40,29 +37,31 @@ export const activityFeedMiddleware: Middleware<
 	return next(action);
 };
 
-const fetchPostForActivity = (postId: string, streamId: string) => async (
-	dispatch: ThunkDispatch<CodeStreamState, unknown, AnyAction>,
-	getState: () => CodeStreamState
-) => {
-	let post: PostPlus | undefined = getPost(getState().posts, streamId, postId);
-	if (post == undefined) {
-		const response = await HostApi.instance.send(GetPostRequestType, {
-			postId,
-			streamId
-		});
-		post = response.post;
+const fetchPostForActivity =
+	(postId: string, streamId: string) =>
+	async (
+		dispatch: ThunkDispatch<CodeStreamState, unknown, AnyAction>,
+		getState: () => CodeStreamState
+	) => {
+		let post: PostPlus | undefined = getPost(getState().posts, streamId, postId);
+		if (post == undefined) {
+			const response = await HostApi.instance.send(GetPostRequestType, {
+				postId,
+				streamId,
+			});
+			post = response.post;
 
-		dispatch(savePosts([post]));
-		if (post.codemark) {
-			dispatch(saveCodemarks([post.codemark]));
+			dispatch(savePosts([post]));
+			if (post.codemark) {
+				dispatch(saveCodemarks([post.codemark]));
+			}
 		}
-	}
 
-	if (post.parentPostId != null) {
-		return dispatch(fetchPostForActivity(post.parentPostId, post.streamId));
-	}
+		if (post.parentPostId != null) {
+			return dispatch(fetchPostForActivity(post.parentPostId, post.streamId));
+		}
 
-	if (post.codemark) dispatch(addNewActivity("codemark", [post.codemark]));
-	if (post.review) dispatch(addNewActivity("review", [post.review]));
-	if (post.codeError) dispatch(addNewActivity("codeError", [post.codeError]));
-};
+		if (post.codemark) dispatch(addNewActivity("codemark", [post.codemark]));
+		if (post.review) dispatch(addNewActivity("review", [post.review]));
+		if (post.codeError) dispatch(addNewActivity("codeError", [post.codeError]));
+	};

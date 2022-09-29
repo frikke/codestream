@@ -1,10 +1,10 @@
-import { readableColor, rgba, lighten, darken } from "polished";
+import { darken, lighten, readableColor, rgba } from "polished";
 
 export type PropsWithTheme<P = any> = { theme: CSTheme } & P;
 
 const Colors = {
 	White: "#ffffff",
-	Black: "#1e1e1e"
+	Black: "#1e1e1e",
 } as const;
 
 export const lightTheme: CSTheme = {
@@ -19,13 +19,13 @@ export const lightTheme: CSTheme = {
 		grey2: "#787878",
 		white: "#ffffff",
 		success: "#7aba5d",
-		error: "#d9634f"
+		error: "#d9634f",
 	},
 	fontSizes: {
 		normal: "16px",
 		small: "14px",
-		large: "18px"
-	}
+		large: "18px",
+	},
 };
 
 export const darkTheme: CSTheme = {
@@ -40,13 +40,13 @@ export const darkTheme: CSTheme = {
 		grey2: "#343a40",
 		white: "#f8f9fa",
 		success: "#7aba5d",
-		error: "#d9634f"
+		error: "#d9634f",
 	},
 	fontSizes: {
 		normal: "16px",
 		small: "14px",
-		large: "18px"
-	}
+		large: "18px",
+	},
 };
 
 export interface CSTheme {
@@ -104,13 +104,13 @@ export function createTheme(): CSTheme {
 			baseBackground:
 				computedStyle.getPropertyValue("--base-background-color").trim() ||
 				darkTheme.colors.baseBackground,
-			baseBorder: computedStyle.getPropertyValue("--base-border-color").trim()
+			baseBorder: computedStyle.getPropertyValue("--base-border-color").trim(),
 		},
 		fontSizes: {
 			large: `${fontSize + 2}px`,
 			normal: `${fontSize}px`,
-			small: `${fontSize - 2}px`
-		}
+			small: `${fontSize - 2}px`,
+		},
 	};
 }
 

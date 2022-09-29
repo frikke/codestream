@@ -53,11 +53,11 @@ export class GitAuthorParser {
 				if (sha === prevSha) {
 					author = {
 						...author,
-						lines: parseInt(line.substring(index), 10)
+						lines: parseInt(line.substring(index), 10),
 					} as AuthorEntry;
 				} else {
 					author = {
-						lines: parseInt(line.substring(index), 10)
+						lines: parseInt(line.substring(index), 10),
 					} as AuthorEntry;
 				}
 

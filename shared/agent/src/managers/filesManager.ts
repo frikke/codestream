@@ -10,7 +10,7 @@ import {
 	FetchFileStreamsResponse,
 	GetFileStreamRequest,
 	GetFileStreamRequestType,
-	GetFileStreamResponse
+	GetFileStreamResponse,
 } from "../protocol/agent.protocol";
 import { CSFileStream, StreamType } from "../protocol/api.protocol";
 import { lsp, lspHandler } from "../system";
@@ -27,8 +27,8 @@ export class FilesManager extends EntityManagerBase<CSFileStream> {
 			{
 				fields: ["repoId"],
 				type: IndexType.Group,
-				fetchFn: this.fetchByRepoId.bind(this)
-			}
+				fetchFn: this.fetchByRepoId.bind(this),
+			},
 		];
 	}
 

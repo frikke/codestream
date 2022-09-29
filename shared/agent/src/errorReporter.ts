@@ -7,7 +7,7 @@ import {
 	ReportMessageRequest,
 	ReportMessageRequestType,
 	WebviewErrorRequest,
-	WebviewErrorRequestType
+	WebviewErrorRequestType,
 } from "./protocol/agent.protocol";
 import { CodeStreamSession } from "./session";
 import { lsp, lspHandler, Strings } from "./system";
@@ -48,8 +48,10 @@ export class ErrorReporter {
 	}
 }
 
-class NewRelicErrorReporterProvider extends ErrorReporterProviderBase
-	implements IErrorReporterProvider {
+class NewRelicErrorReporterProvider
+	extends ErrorReporterProviderBase
+	implements IErrorReporterProvider
+{
 	constructor(private agent: CodeStreamAgent, session: CodeStreamSession) {
 		super(session);
 	}
@@ -73,7 +75,7 @@ class NewRelicErrorReporterProvider extends ErrorReporterProviderBase
 
 		if (this._errorCache.has(cacheKey)) {
 			Logger.warn("Ignoring duplicate error", {
-				key: cacheKey
+				key: cacheKey,
 			});
 			return;
 		}
@@ -100,7 +102,7 @@ class NewRelicErrorReporterProvider extends ErrorReporterProviderBase
 			}
 			if (!error) {
 				Logger.warn("Failed to create error for reportMessage", {
-					request
+					request,
 				});
 				return;
 			}
@@ -111,11 +113,11 @@ class NewRelicErrorReporterProvider extends ErrorReporterProviderBase
 					typeof request.extra === "object" ? JSON.stringify(request.extra) : request.extra || "",
 				type: request.type,
 				source: request.source || "agent",
-				stack: stack || undefined
+				stack: stack || undefined,
 			});
 		} catch (ex) {
 			Logger.warn("Failed to reportMessage", {
-				error: ex
+				error: ex,
 			});
 		}
 	}

@@ -115,7 +115,7 @@ export namespace Arrays {
 			name: "",
 			relativePath: "",
 			children: Object.create(null),
-			descendants: []
+			descendants: [],
 		};
 
 		const hierarchy = values.reduce((root: IHierarchicalItem<T>, value) => {
@@ -136,7 +136,7 @@ export namespace Arrays {
 						relativePath: relativePath,
 						// parent: folder,
 						children: undefined,
-						descendants: undefined
+						descendants: undefined,
 					};
 				}
 

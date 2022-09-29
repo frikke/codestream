@@ -7,7 +7,7 @@ import {
 	CreateThirdPartyPostResponse,
 	FetchThirdPartyChannelsRequest,
 	FetchThirdPartyChannelsResponse,
-	ThirdPartyDisconnect
+	ThirdPartyDisconnect,
 } from "../protocol/agent.protocol";
 import { CSMSTeamsProviderInfo } from "../protocol/api.protocol";
 import { log, lspProvider } from "../system";
@@ -26,7 +26,7 @@ export class MSTeamsProvider extends ThirdPartyPostProviderBase<CSMSTeamsProvide
 	get headers() {
 		return {
 			// this is unused
-			Authorization: ""
+			Authorization: "",
 		};
 	}
 
@@ -34,7 +34,7 @@ export class MSTeamsProvider extends ThirdPartyPostProviderBase<CSMSTeamsProvide
 
 	onConnecting() {
 		void SessionContainer.instance().session.agent.sendRequest(AgentOpenUrlRequestType, {
-			url: "https://teams.microsoft.com/l/app/7cf49ab7-8b65-4407-b494-f02b525eef2b"
+			url: "https://teams.microsoft.com/l/app/7cf49ab7-8b65-4407-b494-f02b525eef2b",
 		});
 	}
 	protected async onConnected(providerInfo: CSMSTeamsProviderInfo) {
@@ -65,20 +65,20 @@ export class MSTeamsProvider extends ThirdPartyPostProviderBase<CSMSTeamsProvide
 	): Promise<FetchThirdPartyChannelsResponse> {
 		// fetching the channels will check to see if it's connected or not
 		const response = await this.session.api.fetchMsTeamsConversations({
-			tenantId: request.providerTeamId
+			tenantId: request.providerTeamId,
 		});
 		const channels = sortBy(
 			response.msteams_conversations.map((_: any) => {
 				return {
 					id: _.conversationId,
 					name: `${_.teamName}/${_.channelName}`,
-					type: "channel"
+					type: "channel",
 				};
 			}),
 			[_ => _.name]
 		);
 		return {
-			channels: channels
+			channels: channels,
 		};
 	}
 
@@ -89,11 +89,11 @@ export class MSTeamsProvider extends ThirdPartyPostProviderBase<CSMSTeamsProvide
 				codemarkId: request.codemark && request.codemark.id,
 				reviewId: request.review && request.review.id,
 				providerTeamId: request.providerTeamId,
-				channelId: request.channelId
+				channelId: request.channelId,
 			});
 		}
 		return {
-			post: undefined
+			post: undefined,
 		};
 	}
 }

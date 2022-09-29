@@ -1,5 +1,4 @@
 "use strict";
-import { Marker } from "../api/extensions";
 import { SessionContainer } from "../container";
 import {
 	AddMarkersRequest,
@@ -13,7 +12,7 @@ import {
 	GetMarkerResponse,
 	MoveMarkerRequest,
 	MoveMarkerRequestType,
-	MoveMarkerResponse
+	MoveMarkerResponse,
 } from "../protocol/agent.protocol";
 import { CSMarker, CSStream, StreamType } from "../protocol/api.protocol";
 import { lsp, lspHandler } from "../system";
@@ -40,8 +39,8 @@ export class MarkersManager extends EntityManagerBase<CSMarker> {
 			{
 				fields: ["fileStreamId"],
 				type: IndexType.Group,
-				fetchFn: this.fetchByStreamId.bind(this)
-			}
+				fetchFn: this.fetchByStreamId.bind(this),
+			},
 		];
 	}
 
@@ -111,8 +110,8 @@ export class MarkersManager extends EntityManagerBase<CSMarker> {
 					{
 						location: marker.locationWhenCreated,
 						commitHash: marker.commitHashWhenCreated,
-						flags: { canonical: true }
-					}
+						flags: { canonical: true },
+					},
 				];
 			}
 		}
@@ -129,7 +128,7 @@ export class MarkersManager extends EntityManagerBase<CSMarker> {
 		);
 		return await this.session.api.moveMarker({
 			oldMarkerId: request.markerId,
-			newMarker: createMarkerRequest
+			newMarker: createMarkerRequest,
 		});
 	}
 
@@ -142,7 +141,7 @@ export class MarkersManager extends EntityManagerBase<CSMarker> {
 		}
 		return await this.session.api.addMarkers({
 			codemarkId: request.codemarkId,
-			newMarkers: markers
+			newMarkers: markers,
 		});
 	}
 

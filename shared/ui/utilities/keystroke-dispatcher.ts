@@ -1,14 +1,14 @@
-import { logWarning } from '../logger';
+import { logWarning } from "../logger";
 
 interface HandlerOptions {
 	/**
 	 * Provides an optional source name to see where this handler came from
 	 */
 	source?: string | undefined;
-	/** 
-	* level for which this handler runs, -1 or undefined will attach it to the current level
-	*/
-	level?: number | undefined
+	/**
+	 * level for which this handler runs, -1 or undefined will attach it to the current level
+	 */
+	level?: number | undefined;
 }
 
 interface Handler {
@@ -30,7 +30,7 @@ class KeystrokeDispatcher {
 	$root: Element | null;
 	level: number = 0;
 	// hash of keyboard keys (shortcuts) to callback handlers
-	handlers: { [key: string]: Handler[] }
+	handlers: { [key: string]: Handler[] };
 
 	constructor() {
 		this.$root = document.querySelector("body.codestream");
@@ -47,12 +47,12 @@ class KeystrokeDispatcher {
 
 		// capture the handlers length
 		// the callback could add another handler for this key
-		const length = handlers.length;		
+		const length = handlers.length;
 		for (let i = 0; i < length; i++) {
 			const handler = handlers[i];
 			if (this.level === handler.options.level) {
 				this.log(`handler src=${handler.options.source}`);
-				if (handler.fn.call(this, e) === false) {					
+				if (handler.fn.call(this, e) === false) {
 					this.log(`stopping dispatcher with src=${handler.options.source}`);
 					break;
 				}
@@ -73,8 +73,8 @@ class KeystrokeDispatcher {
 					this.level--;
 				}
 				this.log(`done. level=${this.level}`);
-			}
-		}
+			},
+		};
 	}
 
 	/**
@@ -91,16 +91,15 @@ class KeystrokeDispatcher {
 	levelDown() {
 		if (this.level > 0) {
 			this.level--;
-		}
-		else {
+		} else {
 			this.level = 0;
 		}
 		this.log(`levelDown=${this.level}`);
 	}
-	
+
 	/**
 	 * Adds a keydown handler
-	 * 
+	 *
 	 * @param  {string} key the keyboard key name to listen on
 	 * @param  {(KeyboardEvent)=>void} fn the callback function
 	 * @param  {HandlerOptions={}} options
@@ -111,14 +110,13 @@ class KeystrokeDispatcher {
 			return {
 				dispose: () => {
 					// noop
-				}
+				},
 			};
 		}
 		if (options.level === undefined) {
 			options.level = 0;
-		}
-		else if (options.level === -1) {
-			options.level = this.level
+		} else if (options.level === -1) {
+			options.level = this.level;
 		}
 		this.log(`onKeyDown binding key=${key} options=${JSON.stringify(options)}`);
 		if (this.$root) {
@@ -129,20 +127,20 @@ class KeystrokeDispatcher {
 			this.handlers[key].push({
 				id: id,
 				fn: fn,
-				options: options
+				options: options,
 			});
 			this.log(`onKeyDown handlers`, this.handlers);
 			return {
 				dispose: () => {
 					// remove handlers for this scope
 					this.handlers[key] = this.handlers[key].filter(_ => _ && _.id != id);
-				}
+				},
 			};
 		}
 		return {
 			dispose: () => {
 				// noop
-			}
+			},
 		};
 	}
 

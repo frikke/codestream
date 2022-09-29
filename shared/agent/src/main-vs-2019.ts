@@ -6,35 +6,35 @@ import {
 	InitializeResult,
 	ProposedFeatures,
 	TextDocuments,
-	TextDocumentSyncKind
+	TextDocumentSyncKind,
 } from "vscode-languageserver";
-import { CodeStreamAgent, FileLspLogger, NullLspLogger } from "./agent";
+import { CodeStreamAgent, FileLspLogger } from "./agent";
 import { Logger } from "./logger";
 import { AgentOptions, LogoutReason } from "./protocol/agent.protocol";
 
-export * from "./providers/trello";
-export * from "./providers/jira";
-export * from "./providers/jiraserver";
+export * from "./providers/asana";
+export * from "./providers/azuredevops";
+export * from "./providers/bitbucket";
+export * from "./providers/bitbucketServer";
 export * from "./providers/github";
 export * from "./providers/githubEnterprise";
 export * from "./providers/gitlab";
 export * from "./providers/gitlabEnterprise";
-export * from "./providers/asana";
-export * from "./providers/bitbucket";
-export * from "./providers/bitbucketServer";
-export * from "./providers/youtrack";
-export * from "./providers/azuredevops";
-export * from "./providers/slack";
+export * from "./providers/jira";
+export * from "./providers/jiraserver";
+export * from "./providers/linear";
 export * from "./providers/msteams";
+export * from "./providers/newrelic";
 export * from "./providers/okta";
 export * from "./providers/shortcut";
-export * from "./providers/linear";
-export * from "./providers/newrelic";
+export * from "./providers/slack";
+export * from "./providers/trello";
+export * from "./providers/youtrack";
 
 process.title = "CodeStream";
 
 let logPath;
-process.argv.forEach(function(val, index, array) {
+process.argv.forEach(function (val, index, array) {
 	if (val && val.indexOf("--log=") === 0) {
 		logPath = val.substring(6);
 	}
@@ -63,15 +63,15 @@ const agentConfig = {
 
 		return {
 			capabilities: {
-				textDocumentSync: TextDocumentSyncKind.Full
+				textDocumentSync: TextDocumentSyncKind.Full,
 			},
-			result: null
+			result: null,
 		} as InitializeResult;
 	},
 	// This doesn't get called by Visual Studio, so just ignore it
 	onInitialized: (e: InitializedParams) => {
 		Logger.log("onInitialized");
-	}
+	},
 };
 
 let agent = new CodeStreamAgent(connection, agentConfig);
@@ -85,7 +85,7 @@ connection.onRequest("codestream/onInitialized", async (agentOptions: AgentOptio
 
 	const params = {
 		...initializeParams,
-		initializationOptions: agentOptions
+		initializationOptions: agentOptions,
 	} as InitializeParams;
 
 	let response;
@@ -102,8 +102,8 @@ connection.onRequest("codestream/onInitialized", async (agentOptions: AgentOptio
 
 		response = {
 			result: {
-				error: ex.message
-			}
+				error: ex.message,
+			},
 		};
 	}
 

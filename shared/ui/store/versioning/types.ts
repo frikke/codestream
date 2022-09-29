@@ -5,5 +5,5 @@ export interface VersioningState {
 export enum VersioningActionsType {
 	Ok = "Ok",
 	UpgradeRecommended = "UpgradeRecommended",
-	UpgradeRequired = "UpgradeRequired"
+	UpgradeRequired = "UpgradeRequired",
 }

@@ -35,12 +35,12 @@ export function Parser(stack: string): CSStackTraceInfo {
 			arguments: undefined,
 			fileFullPath: m[1],
 			line: m[2] !== null ? parseInt(m[2], 10) : undefined,
-			column: undefined
+			column: undefined,
 		});
 	}
 	if (!info.lines.length) {
 		Logger.warn("Could not parse python stack trace", {
-			stackTrace: stack
+			stackTrace: stack,
 		});
 	}
 	return info;

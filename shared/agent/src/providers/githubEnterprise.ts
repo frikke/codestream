@@ -7,7 +7,7 @@ import { GitRemoteLike } from "../git/models/remote";
 import { Logger } from "../logger";
 import {
 	ProviderConfigurationData,
-	ThirdPartyDisconnect
+	ThirdPartyDisconnect,
 } from "../protocol/agent.protocol.providers";
 import { lspProvider } from "../system";
 import { GitHubProvider } from "./github";
@@ -61,12 +61,12 @@ export class GitHubEnterpriseProvider extends GitHubProvider {
 			if (this._version == null) {
 				// this GET call should be very fast, so 5s here should be plenty
 				const response = await this.get<{ installed_version: string }>("/meta", undefined, {
-					timeout: 5000
+					timeout: 5000,
 				});
 				const installedVersion = response.body.installed_version;
 				this._version = {
 					version: installedVersion,
-					asArray: (installedVersion || "0.0.0").split(".").map(Number)
+					asArray: (installedVersion || "0.0.0").split(".").map(Number),
 				};
 				Logger.log(
 					`GitHubEnterprise getVersion - ${this.providerConfig.id} version=${this._version.version}`
@@ -74,8 +74,8 @@ export class GitHubEnterpriseProvider extends GitHubProvider {
 				Container.instance().errorReporter.reportBreadcrumb({
 					message: `GitHubEnterprise getVersion`,
 					data: {
-						version: this._version
-					}
+						version: this._version,
+					},
 				});
 			}
 		} catch (ex) {

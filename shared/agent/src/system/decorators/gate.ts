@@ -42,13 +42,13 @@ export function gate() {
 
 		const gateKey = `$gate$${key}`;
 
-		descriptor.value = function(this: any, ...args: any[]) {
+		descriptor.value = function (this: any, ...args: any[]) {
 			if (!this.hasOwnProperty(gateKey)) {
 				Object.defineProperty(this, gateKey, {
 					configurable: false,
 					enumerable: false,
 					writable: true,
-					value: undefined
+					value: undefined,
 				});
 			}
 

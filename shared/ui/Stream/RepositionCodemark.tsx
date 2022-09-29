@@ -1,22 +1,25 @@
+import {
+	CodemarkPlus,
+	GetRangeScmInfoRequestType,
+	MoveMarkerRequestType,
+} from "@codestream/protocols/agent";
+import { CSMarker } from "@codestream/protocols/api";
 import cx from "classnames";
 import * as Path from "path-browserify";
-import { Range } from "vscode-languageserver-types";
 import React, { useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import Icon from "./Icon";
-import Button from "./Button";
-import { CodemarkPlus, GetRangeScmInfoRequestType } from "@codestream/protocols/agent";
-import { HostApi } from "../webview-api";
-import { MoveMarkerRequestType } from "@codestream/protocols/agent";
-import { CodeStreamState } from "../store";
-import { getCurrentSelection } from "../store/editorContext/reducer";
-import { getDocumentFromMarker } from "./api-functions";
-import { setCurrentCodemark } from "../store/context/actions";
-import { CSMarker } from "@codestream/protocols/api";
+import { useDispatch, useSelector } from "react-redux";
+import { Range } from "vscode-languageserver-types";
 import { URI } from "vscode-uri";
+import { CodeStreamState } from "../store";
+import { setCurrentCodemark } from "../store/context/actions";
+import { getCurrentSelection } from "../store/editorContext/reducer";
 import { useDidMount } from "../utilities/hooks";
 import { areRangesEqual, isRangeEmpty } from "../utils";
-import CancelButton from './CancelButton';
+import { HostApi } from "../webview-api";
+import { getDocumentFromMarker } from "./api-functions";
+import Button from "./Button";
+import CancelButton from "./CancelButton";
+import Icon from "./Icon";
 
 interface Props {
 	codemark: CodemarkPlus;
@@ -39,7 +42,7 @@ export const RepositionCodemark = (props: Props) => {
 		const scmInfo = await HostApi.instance.send(GetRangeScmInfoRequestType, {
 			uri: textEditorUri,
 			gitSha: textEditorGitSha,
-			range: textEditorSelection!
+			range: textEditorSelection!,
 		});
 		if (scmInfo && scmInfo.scm) {
 			let location = "Same File";
@@ -52,7 +55,7 @@ export const RepositionCodemark = (props: Props) => {
 				code: scmInfo.contents,
 				range: textEditorSelection,
 				documentId: { uri: textEditorUri },
-				source: scmInfo.scm
+				source: scmInfo.scm,
 			};
 			console.log("Payload: ", payload);
 			HostApi.instance.send(MoveMarkerRequestType, payload);
@@ -188,20 +191,17 @@ export const RepositionCodemark = (props: Props) => {
 								marginTop: "5px",
 								float: "right",
 								width: "auto",
-								marginRight: 0
+								marginRight: 0,
 							}}
 						>
-						<CancelButton 							
-							onClick={cancel}
- 							mode="button"
-						/>							 
+							<CancelButton onClick={cancel} mode="button" />
 							<Button
 								key="submit"
 								style={{
 									paddingLeft: "10px",
 									paddingRight: "10px",
 									marginRight: 0,
-									width: "12em" // fixed width to accomodate spinner
+									width: "12em", // fixed width to accomodate spinner
 								}}
 								className="control-button"
 								type="submit"

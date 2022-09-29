@@ -1,26 +1,25 @@
-import React from "react";
-import { useDispatch, useSelector } from "react-redux";
-import styled from "styled-components";
-import Icon from "./Icon";
-import { closeModal, openModal } from "./actions";
-import { CodeStreamState } from "../store";
-import { keyFilter, mapFilter } from "../utils";
-import { confirmPopup } from "./Confirm";
-import { isFeatureEnabled } from "../store/apiVersioning/reducer";
-import { getActiveMemberIds } from "../store/users/reducer";
-import { Dialog } from "../src/components/Dialog";
-import { SelectPeople } from "../src/components/SelectPeople";
-import { HostApi } from "../webview-api";
 import {
 	AddBlameMapRequestType,
 	DeleteBlameMapRequestType,
-	GetLatestCommittersRequestType
+	GetLatestCommittersRequestType,
 } from "@codestream/protocols/agent";
 import { CSUser } from "@codestream/protocols/api";
-import { HeadshotName } from "../src/components/HeadshotName";
+import { sortBy as _sortBy } from "lodash-es";
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
+import styled from "styled-components";
 import { InlineMenu } from "../src/components/controls/InlineMenu";
+import { Dialog } from "../src/components/Dialog";
+import { HeadshotName } from "../src/components/HeadshotName";
+import { SelectPeople } from "../src/components/SelectPeople";
+import { CodeStreamState } from "../store";
+import { isFeatureEnabled } from "../store/apiVersioning/reducer";
+import { getActiveMemberIds } from "../store/users/reducer";
 import { useDidMount } from "../utilities/hooks";
-import { difference as _difference, sortBy as _sortBy } from "lodash-es";
+import { keyFilter, mapFilter } from "../utils";
+import { HostApi } from "../webview-api";
+import { closeModal } from "./actions";
+import Icon from "./Icon";
 
 const EMAIL_REGEX = new RegExp(
 	"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
@@ -85,7 +84,7 @@ export function BlameMap() {
 			autoJoinSupported: isFeatureEnabled(state, "autoJoin"),
 			dontSuggestInvitees,
 			members: [currentUser, ..._sortBy(teammates, m => (m.fullName || "").toLowerCase())],
-			invited
+			invited,
 		};
 	});
 
@@ -139,12 +138,12 @@ export function BlameMap() {
 			await HostApi.instance.send(AddBlameMapRequestType, {
 				teamId: derivedState.teamId,
 				userId,
-				email
+				email,
 			});
 		} else {
 			await HostApi.instance.send(DeleteBlameMapRequestType, {
 				teamId: derivedState.teamId,
-				email
+				email,
 			});
 		}
 		setBlameMapEmail("");
@@ -188,8 +187,8 @@ export function BlameMap() {
 												icon: <Icon name="trash" />,
 												label: "Delete Mapping",
 												key: "remove",
-												action: () => onBlameMapUserChange(email)
-											}
+												action: () => onBlameMapUserChange(email),
+											},
 									  ]
 									: undefined
 							}
@@ -228,7 +227,7 @@ export function BlameMap() {
 						<input
 							style={{
 								width: "calc(100% - 10px)",
-								paddingRight: suggested.length > 0 ? "30px !important" : "5px"
+								paddingRight: suggested.length > 0 ? "30px !important" : "5px",
 							}}
 							className="input-text"
 							id="blame-map-email"
@@ -245,7 +244,7 @@ export function BlameMap() {
 									items={suggested.map(suggestion => {
 										return {
 											label: suggestion.email,
-											action: () => setBlameMapEmail(suggestion.email)
+											action: () => setBlameMapEmail(suggestion.email),
 										};
 									})}
 								></InlineMenu>

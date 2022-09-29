@@ -11,7 +11,7 @@ import {
 	ReadTextFileResponse,
 	WriteTextFileRequest,
 	WriteTextFileRequestType,
-	WriteTextFileResponse
+	WriteTextFileResponse,
 } from "../protocol/agent.protocol.textFiles";
 import { log, lsp, lspHandler } from "../system";
 import { xfs } from "../xfs";
@@ -50,13 +50,13 @@ export class TextFilesManager {
 			await xfs.writeTextAtomic(contents, file);
 			Logger.debug(`Saved contents ${contents} to ${file}`);
 			return {
-				success: true
+				success: true,
 			};
 		} catch (ex) {
 			Logger.error(ex);
 		}
 		return {
-			success: false
+			success: false,
 		};
 	}
 
@@ -68,13 +68,13 @@ export class TextFilesManager {
 			await xfs.deleteFile(file);
 			Logger.debug(`Deleted ${file}`);
 			return {
-				success: true
+				success: true,
 			};
 		} catch (ex) {
 			Logger.error(ex);
 		}
 		return {
-			success: false
+			success: false,
 		};
 	}
 }

@@ -1,12 +1,12 @@
+import createClassString from "classnames";
+import { filter as _filter } from "lodash-es";
 import React, { Component } from "react";
 import ReactDOM from "react-dom";
-import createClassString from "classnames";
-import Icon from "./Icon";
-import { filter as _filter } from "lodash-es";
-import { ModalContext } from "./Modal";
-import { shortUuid } from "../utils";
-import KeystrokeDispatcher from "../utilities/keystroke-dispatcher";
 import { logWarning } from "../logger";
+import KeystrokeDispatcher from "../utilities/keystroke-dispatcher";
+import { shortUuid } from "../utils";
+import Icon from "./Icon";
+import { ModalContext } from "./Modal";
 
 /**
  * Modal menu that attaches to #modal-root
@@ -20,7 +20,7 @@ export default class Menu extends Component {
 		this.state = {
 			selected: props.selected || "",
 			isShiftHolded: false,
-			itemsRange: props.itemsRange || []
+			itemsRange: props.itemsRange || [],
 		};
 		this.el = document.createElement("div");
 		this.count = 0;
@@ -389,7 +389,7 @@ export default class Menu extends Component {
 					hover: selected && !item.noHover && !item.customHover,
 					"range-hover": this.state.isShiftHolded,
 					"custom-hover": selected && item.customHover,
-					"has-submenu": item.submenu ? true : false
+					"has-submenu": item.submenu ? true : false,
 				})}
 				id={`li-item-${key}`}
 				key={key}
@@ -500,7 +500,7 @@ export default class Menu extends Component {
 					popup,
 					"center-title": this.props.centerTitle,
 					"limit-width": this.props.limitWidth,
-					"full-width": this.props.fullWidth && !parentItem
+					"full-width": this.props.fullWidth && !parentItem,
 				})}
 			>
 				{this.props.title && !parentItem && !grandParentItem && !grandGrandParentItem && (

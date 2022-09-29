@@ -8,7 +8,7 @@ import {
 	CSLoginResponse,
 	CSRegisterRequest,
 	CSSetPasswordResponse,
-	LoginResult
+	LoginResult,
 } from "./api.protocol";
 import { CSCompany } from "./api.protocol.models";
 

@@ -1,31 +1,31 @@
-import React from "react";
-import { Modal, ModalProps } from "./Modal";
-import { BoxedContent } from "../src/components/BoxedContent";
-import { Headshot } from "../src/components/Headshot";
-import { SharingControls, SharingAttributes } from "./SharingControls";
-import styled from "styled-components";
-import { Spacer } from "./SpatialView/PRInfoModal";
-import { Button } from "../src/components/Button";
 import {
 	CodemarkPlus,
 	CreateThirdPartyPostRequestType,
 	NewRelicErrorGroup,
 	ReviewPlus,
-	UpdatePostSharingDataRequestType
+	UpdatePostSharingDataRequestType,
 } from "@codestream/protocols/agent";
-import { HostApi } from "@codestream/webview/webview-api";
-import { useSelector, useStore } from "react-redux";
-import { CodeStreamState } from "../store";
-import { Card, CardBody } from "../src/components/Card";
-import Timestamp from "./Timestamp";
-import { findMentionedUserIds, getTeamMembers } from "../store/users/reducer";
-import { uniq } from "lodash-es";
-import { logError } from "../logger";
-import { useMarkdownifyToHtml } from "./Markdowner";
-import { getConnectedProviders } from "../store/providers/reducer";
-import { capitalize } from "../utils";
 import { CSCodeError, CSPost } from "@codestream/protocols/api";
+import { HostApi } from "@codestream/webview/webview-api";
+import { uniq } from "lodash-es";
+import React from "react";
+import { useSelector, useStore } from "react-redux";
+import styled from "styled-components";
+import { logError } from "../logger";
+import { BoxedContent } from "../src/components/BoxedContent";
+import { Button } from "../src/components/Button";
+import { Card, CardBody } from "../src/components/Card";
 import { Dialog } from "../src/components/Dialog";
+import { Headshot } from "../src/components/Headshot";
+import { CodeStreamState } from "../store";
+import { getConnectedProviders } from "../store/providers/reducer";
+import { findMentionedUserIds, getTeamMembers } from "../store/users/reducer";
+import { capitalize } from "../utils";
+import { useMarkdownifyToHtml } from "./Markdowner";
+import { Modal, ModalProps } from "./Modal";
+import { SharingAttributes, SharingControls } from "./SharingControls";
+import { Spacer } from "./SpatialView/PRInfoModal";
+import Timestamp from "./Timestamp";
 
 const StyledCard = styled(Card)``;
 
@@ -122,11 +122,11 @@ export function SharingModal(props: SharingModalProps) {
 		author: state.users[shareTarget.creatorId],
 		mentionedUserIds: uniq([
 			...findMentionedUserIds(getTeamMembers(state), shareTarget.text || ""),
-			...findMentionedUserIds(getTeamMembers(state), shareTarget.title || "")
-		])
+			...findMentionedUserIds(getTeamMembers(state), shareTarget.title || ""),
+		]),
 	}));
 
-	const store = useStore();
+	const store = useStore<CodeStreamState>();
 	const getProviderName = providerId => {
 		return capitalize(
 			getConnectedProviders(store.getState()).find(config => config.id === providerId)!.name
@@ -135,7 +135,7 @@ export function SharingModal(props: SharingModalProps) {
 
 	const valuesRef = React.useRef<SharingAttributes>();
 	const [state, setState] = React.useState<{ name: FormStateType; message?: string }>({
-		name: "not-ready"
+		name: "not-ready",
 	});
 
 	const handleValues = React.useCallback(
@@ -167,7 +167,7 @@ export function SharingModal(props: SharingModalProps) {
 					codemark: props.codemark,
 					review: props.review,
 					codeError: props.codeError,
-					mentionedUserIds
+					mentionedUserIds,
 				}
 			);
 			if (props.post && ts) {
@@ -184,7 +184,7 @@ export function SharingModal(props: SharingModalProps) {
 							? valuesRef.current!.channelName
 							: "Direct Message") || "",
 					postId: ts,
-					url: permalink || ""
+					url: permalink || "",
 				};
 
 				const sharedTo = props.post.sharedTo || [];
@@ -192,13 +192,13 @@ export function SharingModal(props: SharingModalProps) {
 
 				const a = await HostApi.instance.send(UpdatePostSharingDataRequestType, {
 					postId: props.post.id,
-					sharedTo
+					sharedTo,
 				});
 			}
 
 			const trackingData = {
 				Destination: getProviderName(valuesRef.current!.providerId),
-				[`${shareTargetType} Status`]: "Existing"
+				[`${shareTargetType} Status`]: "Existing",
 			};
 			if (
 				props.codeError &&
@@ -213,7 +213,7 @@ export function SharingModal(props: SharingModalProps) {
 		} catch (error) {
 			setState({ name: "failure", message: error.message });
 			logError(`Failed to share an existing ${shareTargetType.toLowerCase()}`, {
-				message: error.message
+				message: error.message,
 			});
 		}
 	};
@@ -248,7 +248,7 @@ export function SharingModal(props: SharingModalProps) {
 						<CardTitle>
 							<LinkifiedText
 								dangerouslySetInnerHTML={{
-									__html: markdownifyToHtml(shareTarget.title || shareTarget.text || "")
+									__html: markdownifyToHtml(shareTarget.title || shareTarget.text || ""),
 								}}
 							/>
 						</CardTitle>

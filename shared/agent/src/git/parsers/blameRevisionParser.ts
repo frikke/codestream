@@ -74,7 +74,7 @@ export class GitBlameRevisionParser {
 							date,
 							authorName,
 							authorEmail,
-							summary
+							summary,
 						} as RevisionEntry);
 					}
 					break;

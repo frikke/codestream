@@ -1,11 +1,11 @@
+import { isEqual as _isEqual } from "lodash-es";
 import React from "react";
 import { connect } from "react-redux";
-import { isEqual as _isEqual } from "lodash-es";
-import { getPostsForStream } from "../store/posts/reducer";
-import { fetchPosts, fetchThread } from "./actions";
-import { safe } from "../utils";
-import { Loading } from "../Container/Loading";
 import { DelayedRender } from "../Container/DelayedRender";
+import { Loading } from "../Container/Loading";
+import { getPostsForStream } from "../store/posts/reducer";
+import { safe } from "../utils";
+import { fetchPosts, fetchThread } from "./actions";
 
 const mapStateToProps = (state, props) => {
 	const { streamId, isThread, threadId } = props.childProps;
@@ -19,7 +19,7 @@ const mapStateToProps = (state, props) => {
 		isThread,
 		posts,
 		postIds: posts.map(p => p.id),
-		lastReadForStream: state.umis.lastReads[streamId]
+		lastReadForStream: state.umis.lastReads[streamId],
 	};
 };
 
@@ -29,13 +29,13 @@ export default Child => {
 
 	const DataProvider = connect(mapStateToProps, {
 		fetchPosts,
-		fetchThread
+		fetchThread,
 	})(
 		class Provider extends React.Component {
 			state = { isFetching: false, isInitialized: false, posts: [], hasMore: true };
 
 			static defaultProps = {
-				onDidInitialize() {}
+				onDidInitialize() {},
 			};
 			componentDidMount() {
 				this.initialize();
@@ -74,7 +74,7 @@ export default Child => {
 					this.setState({
 						isInitialized: true,
 						posts: this._prunePosts(),
-						hasMore: false
+						hasMore: false,
 					});
 				} else {
 					if (this.props.posts.length < initializeCount) {
@@ -85,13 +85,13 @@ export default Child => {
 						this.setState({
 							isInitialized: true,
 							posts: this._prunePosts(),
-							hasMore: more
+							hasMore: more,
 						});
 					} else {
 						this.setState({
 							isInitialized: true,
 							posts: this._prunePosts(),
-							hasMore: useCache ? false : true
+							hasMore: useCache ? false : true,
 						});
 					}
 				}
@@ -131,14 +131,14 @@ export default Child => {
 					streamId,
 					teamId,
 					limit: batchCount,
-					before: seqNum
+					before: seqNum,
 				});
 
 				this.onScrollStop(() => {
 					this.setState({
 						posts: this._prunePosts(),
 						isFetching: false,
-						hasMore: more
+						hasMore: more,
 					});
 				});
 			};
@@ -187,7 +187,7 @@ export default Child => {
 							onDidScrollToTop: this.onDidScrollToTop,
 							onScroll: this.onScroll,
 							isFetchingMore: this.state.isFetching,
-							hasMore: this.state.hasMore
+							hasMore: this.state.hasMore,
 						}}
 					/>
 				);

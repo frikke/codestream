@@ -1,26 +1,24 @@
-import React from "react";
-import Button from "../Stream/Button";
-import Icon from "../Stream/Icon";
-import { connect } from "react-redux";
-import { FormattedMessage } from "react-intl";
-import { CodeStreamState } from "../store";
-import { goToLogin, goToJoinTeam, goToSignup } from "../store/context/actions";
-import { DispatchProp } from "../store/common";
-import { HostApi, Server } from "../webview-api";
-import { SignupType } from "./actions";
-import { JoinTeam } from "./JoinTeam";
-import { useDidMount } from "../utilities/hooks";
-import { CSRepository, CSTeam, CSUser } from "../protocols/agent/api.protocol.models";
-import { SmartFormattedList } from "../Stream/SmartFormattedList";
-import { Headshot } from "../src/components/Headshot";
-import styled from "styled-components";
-import { Link } from "../Stream/Link";
-import { Loading } from "../Container/Loading";
 import {
 	GetWorkspaceAutoJoinInfoRequestType,
-	GetWorkspaceAutoJoinInfoResponse
+	GetWorkspaceAutoJoinInfoResponse,
 } from "@codestream/protocols/agent";
-import { PresentTOS } from "./PresentTOS";
+import React from "react";
+import { FormattedMessage } from "react-intl";
+import { connect } from "react-redux";
+import styled from "styled-components";
+import { Loading } from "../Container/Loading";
+import { Headshot } from "../src/components/Headshot";
+import { CodeStreamState } from "../store";
+import { DispatchProp } from "../store/common";
+import { goToLogin, goToSignup } from "../store/context/actions";
+import Button from "../Stream/Button";
+import Icon from "../Stream/Icon";
+import { Link } from "../Stream/Link";
+import { SmartFormattedList } from "../Stream/SmartFormattedList";
+import { useDidMount } from "../utilities/hooks";
+import { HostApi } from "../webview-api";
+import { SignupType } from "./actions";
+import { JoinTeam } from "./JoinTeam";
 
 const JoinTitle = styled.div`
 	font-size: 14px;
@@ -95,7 +93,7 @@ export const NewUserEntry = (connect(mapStateToProps) as any)((props: Props) => 
 		picker < 0.5 ? (tosType = "Interstitial") : (tosType = "Links");
 		HostApi.instance.track("Reg Path Selected", {
 			"Reg Path": "Create Team",
-			"TOS Type": tosType
+			"TOS Type": tosType,
 		});
 		props.dispatch(goToSignup({ type: SignupType.CreateTeam, tosType }));
 	};
@@ -115,7 +113,7 @@ export const NewUserEntry = (connect(mapStateToProps) as any)((props: Props) => 
 		picker < 0.5 ? (tosType = "Interstitial") : (tosType = "Links");
 		HostApi.instance.track("Reg Path Selected", {
 			"Reg Path": "Auto Join Team",
-			"TOS Type": tosType
+			"TOS Type": tosType,
 		});
 		const info = autoJoinInfo.find(info => info.team.id === teamId);
 		if (info) {

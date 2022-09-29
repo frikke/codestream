@@ -1,11 +1,11 @@
-import { action } from "../common";
-import { EditorContextState, EditorContextActionsType } from "./types";
-import { HostApi } from "@codestream/webview/webview-api";
 import {
-	EditorSelectRangeRequestType,
+	EditorLayout,
 	EditorSelection,
-	EditorLayout
+	EditorSelectRangeRequestType,
 } from "@codestream/protocols/webview";
+import { HostApi } from "@codestream/webview/webview-api";
+import { action } from "../common";
+import { EditorContextActionsType, EditorContextState } from "./types";
 
 export const reset = () => action("RESET");
 
@@ -19,7 +19,7 @@ export const changeSelection = (uri: string, range: EditorSelection) => async di
 	await HostApi.instance.send(EditorSelectRangeRequestType, {
 		uri,
 		selection: range,
-		preserveFocus: true
+		preserveFocus: true,
 	});
 
 	dispatch(setEditorContext({ textEditorSelections: [range] }));

@@ -6,12 +6,12 @@ import {
 	OperationDefinitionNode,
 	print,
 	SelectionNode,
-	SelectionSetNode
+	SelectionSetNode,
 } from "graphql";
 import semver from "semver";
 import { Logger } from "../../logger";
-import { ProviderVersion } from "../types";
 import { gate } from "../../system/decorators/gate";
+import { ProviderVersion } from "../types";
 
 interface Leaf {
 	value: {
@@ -55,8 +55,8 @@ export class GraphqlQueryBuilder {
 	 */
 	private store: any = {
 		"0.0.0": {
-			emptyQueryName: ""
-		}
+			emptyQueryName: "",
+		},
 	};
 	/**
 	 *
@@ -64,7 +64,7 @@ export class GraphqlQueryBuilder {
 	constructor(private providerId: string) {}
 
 	private supportMatrix: any = {
-		"0.0.0": {}
+		"0.0.0": {},
 	};
 
 	public static lowestSupportedVersion = "13.6.4";
@@ -73,7 +73,7 @@ export class GraphqlQueryBuilder {
 		const version = providerVersion.version;
 		if (!version || version === "0.0.0") {
 			return {
-				version: providerVersion
+				version: providerVersion,
 			};
 		}
 		const versionedQuery = this.supportMatrix[version];
@@ -96,7 +96,7 @@ export class GraphqlQueryBuilder {
 			approvedBy: isGte1364,
 			currentUserTodos: isGte1364,
 			// whether we supports draft mode (or old workInProgress)
-			draft: semver.gte(version, "14.5.0")
+			draft: semver.gte(version, "14.5.0"),
 		};
 		this.supportMatrix[version] = supports;
 
@@ -111,22 +111,22 @@ export class GraphqlQueryBuilder {
 					head: {
 						value: {
 							key: "discussionFragment",
-							removals: ["resolved", "resolvable", "resolvedAt", "resolvedBy"]
+							removals: ["resolved", "resolvable", "resolvedAt", "resolvedBy"],
 						},
 						next: {
 							value: {
-								key: "notes"
+								key: "notes",
 							},
 							next: {
 								value: {
 									key: "nodes",
-									removals: ["resolved", "systemNoteIconName"]
-								}
-							}
-						}
-					}
-				}
-			}
+									removals: ["resolved", "systemNoteIconName"],
+								},
+							},
+						},
+					},
+				},
+			},
 		],
 		CreateMergeRequestNote: [
 			{
@@ -135,22 +135,22 @@ export class GraphqlQueryBuilder {
 					head: {
 						value: {
 							key: "discussionFragment",
-							removals: ["resolved", "resolvable", "resolvedAt", "resolvedBy"]
+							removals: ["resolved", "resolvable", "resolvedAt", "resolvedBy"],
 						},
 						next: {
 							value: {
-								key: "notes"
+								key: "notes",
 							},
 							next: {
 								value: {
 									key: "nodes",
-									removals: ["resolved", "systemNoteIconName"]
-								}
-							}
-						}
-					}
-				}
-			}
+									removals: ["resolved", "systemNoteIconName"],
+								},
+							},
+						},
+					},
+				},
+			},
 		],
 		GetPullRequest: [
 			{
@@ -158,21 +158,21 @@ export class GraphqlQueryBuilder {
 				query: {
 					head: {
 						value: {
-							key: "GetPullRequest"
+							key: "GetPullRequest",
 						},
 						next: {
 							value: {
-								key: "project"
+								key: "project",
 							},
 							next: {
 								value: {
 									key: "mergeRequest",
-									removals: ["draft"]
-								}
-							}
-						}
-					}
-				}
+									removals: ["draft"],
+								},
+							},
+						},
+					},
+				},
 			},
 			{
 				// this was supposed to be in 13.7, but a user with 13.7.9 ran into not having it
@@ -181,21 +181,21 @@ export class GraphqlQueryBuilder {
 				query: {
 					head: {
 						value: {
-							key: "GetPullRequest"
+							key: "GetPullRequest",
 						},
 						next: {
 							value: {
-								key: "project"
+								key: "project",
 							},
 							next: {
 								value: {
 									key: "mergeRequest",
-									removals: ["reviewers"]
-								}
-							}
-						}
-					}
-				}
+									removals: ["reviewers"],
+								},
+							},
+						},
+					},
+				},
 			},
 
 			{
@@ -204,11 +204,11 @@ export class GraphqlQueryBuilder {
 				query: {
 					head: {
 						value: {
-							key: "GetPullRequest"
+							key: "GetPullRequest",
 						},
 						next: {
 							value: {
-								key: "project"
+								key: "project",
 							},
 							next: {
 								value: {
@@ -220,40 +220,40 @@ export class GraphqlQueryBuilder {
 										"currentUserTodos",
 										"mergedAt",
 										"userDiscussionsCount",
-										"conflicts"
-									]
+										"conflicts",
+									],
 								},
 								next: {
 									value: {
 										key: "userPermissions",
-										removals: ["canMerge"]
-									}
-								}
-							}
-						}
-					}
-				}
+										removals: ["canMerge"],
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 			{
 				selector: (currentVersion: string) => semver.lt(currentVersion, "13.6.4"),
 				query: {
 					head: {
 						value: {
-							key: "discussionFragment"
+							key: "discussionFragment",
 						},
 						next: {
 							value: {
-								key: "notes"
+								key: "notes",
 							},
 							next: {
 								value: {
 									key: "nodes",
-									removals: ["resolved"]
-								}
-							}
-						}
-					}
-				}
+									removals: ["resolved"],
+								},
+							},
+						},
+					},
+				},
 			},
 			{
 				selector: (currentVersion: string) => semver.lt(currentVersion, "13.8.0"),
@@ -261,22 +261,22 @@ export class GraphqlQueryBuilder {
 					head: {
 						value: {
 							key: "discussionFragment",
-							removals: ["resolved", "resolvable", "resolvedAt", "resolvedBy"]
+							removals: ["resolved", "resolvable", "resolvedAt", "resolvedBy"],
 						},
 						next: {
 							value: {
-								key: "notes"
+								key: "notes",
 							},
 							next: {
 								value: {
 									key: "nodes",
-									removals: ["systemNoteIconName"]
-								}
-							}
-						}
-					}
-				}
-			}
+									removals: ["systemNoteIconName"],
+								},
+							},
+						},
+					},
+				},
+			},
 		],
 
 		GetPullRequest1: [
@@ -286,26 +286,26 @@ export class GraphqlQueryBuilder {
 				query: {
 					head: {
 						value: {
-							key: "GetPullRequest"
+							key: "GetPullRequest",
 						},
 						next: {
 							value: {
-								key: "project"
+								key: "project",
 							},
 							next: {
 								value: {
-									key: "mergeRequest"
+									key: "mergeRequest",
 								},
 								next: {
 									value: {
 										key: "headPipeline",
-										removals: ["stages"]
-									}
-								}
-							}
-						}
-					}
-				}
+										removals: ["stages"],
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 			{
 				// this is one of our internal GL versions
@@ -313,23 +313,23 @@ export class GraphqlQueryBuilder {
 				query: {
 					head: {
 						value: {
-							key: "GetPullRequest"
+							key: "GetPullRequest",
 						},
 						next: {
 							value: {
-								key: "project"
+								key: "project",
 							},
 							next: {
 								value: {
 									key: "mergeRequest",
-									removals: ["currentUserTodos"]
-								}
-							}
-						}
-					}
-				}
-			}
-		]
+									removals: ["currentUserTodos"],
+								},
+							},
+						},
+					},
+				},
+			},
+		],
 	};
 
 	/**
@@ -385,9 +385,11 @@ export class GraphqlQueryBuilder {
 					const debugging: any[] = [];
 					const headData = config.query.head;
 
-					let lastSelectionSet: SelectionSetNode | undefined = (documentClone.definitions.find(
-						(_: any) => _.name && _.name.value === headData!.value.key
-					) as OperationDefinitionNode | FragmentDefinitionNode)?.selectionSet;
+					let lastSelectionSet: SelectionSetNode | undefined = (
+						documentClone.definitions.find(
+							(_: any) => _.name && _.name.value === headData!.value.key
+						) as OperationDefinitionNode | FragmentDefinitionNode
+					)?.selectionSet;
 					// this adds support for removals at the head node level
 					// used by fragments like discussionFragment
 					if (lastSelectionSet && headData.value.removals) {
@@ -419,13 +421,13 @@ export class GraphqlQueryBuilder {
 					let head = config.query.head.next;
 					while (head != null) {
 						debugging.push(head.value);
-						const currentSelectionSet:
-							| SelectionSetNode
-							| undefined = (lastSelectionSet?.selections?.find((_: SelectionNode) => {
-							// OMG Typescript, UGH
-							const node = _ as FieldNode;
-							return node.name && node.name.value === head!.value.key;
-						}) as FieldNode)?.selectionSet;
+						const currentSelectionSet: SelectionSetNode | undefined = (
+							lastSelectionSet?.selections?.find((_: SelectionNode) => {
+								// OMG Typescript, UGH
+								const node = _ as FieldNode;
+								return node.name && node.name.value === head!.value.key;
+							}) as FieldNode
+						)?.selectionSet;
 
 						if (currentSelectionSet && head.value.removals) {
 							for (const removalName of head.value.removals) {
@@ -476,7 +478,7 @@ export class GraphqlQueryBuilder {
 			Logger.warn(`GraphqlQueryStore.build ${this.providerId} error`, {
 				error: ex,
 				version: version,
-				queryKey: queryKey
+				queryKey: queryKey,
 			});
 			return print(document);
 		}

@@ -5,7 +5,7 @@ import {
 	EditorSelection,
 	EditorSidebarLocation,
 	IpcRoutes,
-	WebviewConfigs
+	WebviewConfigs,
 } from "./webview.protocol.common";
 
 /* The following events are expected to be provided from the extension */
@@ -101,10 +101,10 @@ export enum RouteControllerType {
 	StartWork = "startWork",
 	NewRelic = "newrelic",
 	CodeError = "codeerror",
-	File = "file"
+	File = "file",
 }
 export enum RouteActionType {
-	Open = "open"
+	Open = "open",
 }
 export interface Route extends RouteWithQuery<any> {}
 

@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import { PropsWithTheme, isDarkTheme } from "../themes";
+import { isDarkTheme, PropsWithTheme } from "../themes";
 
 export interface CardProps {
 	onClick?: React.MouseEventHandler;
@@ -13,7 +13,7 @@ export const getCardProps = (props: CardProps & { [k: string]: any }): CardProps
 	onClick: props.onClick,
 	hoverEffect: props.hoverEffect,
 	className: props.className,
-	noCard: props.noCard
+	noCard: props.noCard,
 });
 
 const Root = styled.div<{ noCard?: boolean }>(

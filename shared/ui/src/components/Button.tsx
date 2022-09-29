@@ -1,6 +1,6 @@
+import Icon from "@codestream/webview/Stream/Icon";
 import React, { PropsWithChildren } from "react";
 import styled from "styled-components";
-import Icon from "@codestream/webview/Stream/Icon";
 
 type ButtonSize = "default" | "xl" | "large" | "compact" | "compactwide" | "subcompact";
 
@@ -68,95 +68,113 @@ const getColors = (variant = "primary", fullOpacity = false, isDone = false) => 
 			return `
 			background-color: inherit;
 			color: var(--text-color);
-				${!fullOpacity &&
+				${
+					!fullOpacity &&
 					`:hover {
 					color: var(--text-color-highlight);
 				}
-			`}`;
+			`
+				}`;
 		}
 		case "secondary": {
 			return `
 				background-color: rgba(127, 127, 127, 0.1);
 				color: var(--text-color);
-				${!fullOpacity &&
+				${
+					!fullOpacity &&
 					`:hover {
 					background-color: rgba(127, 127, 127, 0.15);
 					color: var(--text-color-highlight);
 				}
-			`}`;
+			`
+				}`;
 		}
 		case "destructive": {
 			return `
 				background-color: #c00;
 				color: white;
-				${!fullOpacity &&
+				${
+					!fullOpacity &&
 					`:hover {
 					opacity: 0.85;
 				}
-			`}`;
+			`
+				}`;
 		}
 		case "success": {
 			return `
 			background-color: #17ca65;
 			background-color: #24A100;
 			color: white;
-			${!fullOpacity &&
+			${
+				!fullOpacity &&
 				`:hover {
 					opacity: 0.85;
 				}
-			`}`;
+			`
+			}`;
 		}
 		case "warning": {
 			return `
 				background-color: #ffaa2c;
 				color: white;
-				${!fullOpacity &&
+				${
+					!fullOpacity &&
 					`:hover {
 					opacity: 0.85;
 				}
-			`}`;
+			`
+				}`;
 		}
 		case "merged": {
 			return `
 				background-color: #6f42c1;
 				// background-color: #b87cda;
 				color: white;
-				${!fullOpacity &&
+				${
+					!fullOpacity &&
 					`:hover {
 					opacity: 0.85;
 				}
-			`}`;
+			`
+				}`;
 		}
 		case "neutral": {
 			return `
 				background-color: rgb(127, 127, 127);
 				color: white;
-				${!fullOpacity &&
+				${
+					!fullOpacity &&
 					`:hover {
 					opacity: 0.85;
 				}
-			`}`;
+			`
+				}`;
 		}
 		case "new-relic": {
 			return `
 				background-color: #008996;
 				color: white;
-				${!fullOpacity &&
+				${
+					!fullOpacity &&
 					`:hover {
 						background-color: #1dcad3;
 					}
-			`}`;
+			`
+				}`;
 		}
 		case "primary":
 		default: {
 			return `
 				background-color: var(--button-background-color);
 				color: var(--button-foreground-color);
-				${!fullOpacity &&
+				${
+					!fullOpacity &&
 					`:hover {
 					background-color: var(--button-background-color-hover);
 				}
-			`}`;
+			`
+				}`;
 		}
 	}
 };
@@ -245,7 +263,7 @@ export function getButtonProps<P extends ButtonProps>(props: P): ButtonProps {
 		appendIcon: props.appendIcon,
 		onClick: props.onClick,
 		fillParent: props.fillParent,
-		narrow: props.narrow
+		narrow: props.narrow,
 	};
 }
 

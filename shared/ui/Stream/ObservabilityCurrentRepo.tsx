@@ -1,14 +1,13 @@
-import { forEach as _forEach } from "lodash-es";
+import { GetFileScmInfoRequestType, GetReposScmRequestType } from "@codestream/protocols/agent";
 import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 import { CodeStreamState } from "../store";
-import { useDidMount } from "../utilities/hooks";
-import { isNotOnDisk } from "../utils";
+import { fetchDocumentMarkers } from "../store/documentMarkers/actions";
 import { setEditorContext } from "../store/editorContext/actions";
 import { getFileScmError, mapFileScmErrorForTelemetry } from "../store/editorContext/reducer";
-import { fetchDocumentMarkers } from "../store/documentMarkers/actions";
-import { GetFileScmInfoRequestType, GetReposScmRequestType } from "@codestream/protocols/agent";
+import { useDidMount } from "../utilities/hooks";
+import { isNotOnDisk } from "../utils";
 import { HostApi } from "../webview-api";
 import Icon from "./Icon";
 
@@ -27,7 +26,7 @@ export const ObservabilityCurrentRepo = React.memo((props: Props) => {
 		return {
 			sessionStart: state.context.sessionStart,
 			textEditorUri: state.editorContext.textEditorUri,
-			scmInfo: state.editorContext.scmInfo
+			scmInfo: state.editorContext.scmInfo,
 		};
 	}, shallowEqual);
 
@@ -71,12 +70,12 @@ export const ObservabilityCurrentRepo = React.memo((props: Props) => {
 		if (!scmInfo || scmInfo.uri !== textEditorUri || checkBranchUpdate || currentRepoName) {
 			if (textEditorUri) {
 				scmInfo = await HostApi.instance.send(GetFileScmInfoRequestType, {
-					uri: textEditorUri
+					uri: textEditorUri,
 				});
 			}
 
 			const reposResponse = await HostApi.instance.send(GetReposScmRequestType, {
-				inEditorOnly: true
+				inEditorOnly: true,
 			});
 
 			const currentRepo = reposResponse.repositories?.find(

@@ -11,13 +11,13 @@ import {
 	TestAgent,
 	TestConnection,
 	TestSession,
-	trimUndefined
+	trimUndefined,
 } from "./helpers";
 
 async function runApiServerTest(dir: string, ctx: any) {
 	const { agentOptions, agentRequests, csApiRequests, slackApiRequests } = await loadTestData(dir);
 
-	const slackApiCall = async function(fnOrMethod: any, request: any, name: string) {
+	const slackApiCall = async function (fnOrMethod: any, request: any, name: string) {
 		const method = typeof fnOrMethod === "string" ? fnOrMethod : name;
 		const slackApiRequest = getRequest(method, slackApiRequests);
 		console.log(`Slack API request: ${method} OK`);
@@ -25,7 +25,11 @@ async function runApiServerTest(dir: string, ctx: any) {
 		expect(request).to.deep.equal(slackApiRequest.request);
 		return slackApiRequest.response;
 	};
-	const csApiFetch = async function(url: string, init?: RequestInit, token?: string): Promise<any> {
+	const csApiFetch = async function (
+		url: string,
+		init?: RequestInit,
+		token?: string
+	): Promise<any> {
 		const csApiRequest = getRequest(url, csApiRequests);
 		console.log(`CS API request: ${url} OK`);
 		const bodyString = init!.body;
@@ -64,18 +68,18 @@ async function runApiServerTest(dir: string, ctx: any) {
 	// expect(csApiRequests).to.be.empty;
 }
 
-describe("CodeStream backend", function() {
-	beforeEach(async function() {
+describe("CodeStream backend", function () {
+	beforeEach(async function () {
 		this.agent = new TestAgent();
-		this.csAgent = (this.agent as unknown) as CodeStreamAgent;
-		this.connection = (new TestConnection() as unknown) as Connection;
+		this.csAgent = this.agent as unknown as CodeStreamAgent;
+		this.connection = new TestConnection() as unknown as Connection;
 	});
 
-	afterEach(async function() {
+	afterEach(async function () {
 		await this.api.dispose();
 	});
 
-	it("logs in", async function() {
+	it("logs in", async function () {
 		await runApiServerTest("cs_login", this);
 	});
 

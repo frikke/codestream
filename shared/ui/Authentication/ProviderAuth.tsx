@@ -1,15 +1,14 @@
-import React, { useState, useCallback } from "react";
-import { Link } from "../Stream/Link";
-import { connect } from "react-redux";
+import { LoginResult } from "@codestream/protocols/api";
+import React, { useCallback, useState } from "react";
 import { FormattedMessage } from "react-intl";
-import { goToSignup, SupportedSSOProvider, goToLogin } from "../store/context/actions";
-import { useInterval, useRetryingCallback, useTimeout } from "../utilities/hooks";
+import { connect, useDispatch } from "react-redux";
 import { DispatchProp } from "../store/common";
+import { goToLogin, goToSignup, SupportedSSOProvider } from "../store/context/actions";
+import { PROVIDER_MAPPINGS } from "../Stream/CrossPostIssueControls/types";
+import { Link } from "../Stream/Link";
+import { useInterval, useRetryingCallback, useTimeout } from "../utilities/hooks";
 import { inMillis } from "../utils";
 import { SignupType, startIDESignin, startSSOSignin, validateSignup } from "./actions";
-import { PROVIDER_MAPPINGS } from "../Stream/CrossPostIssueControls/types";
-import { LoginResult } from "@codestream/protocols/api";
-import { useDispatch } from "react-redux";
 
 const noop = () => Promise.resolve();
 
@@ -52,7 +51,7 @@ export const ProviderAuth = (connect(undefined) as any)((props: Props) => {
 								type: props.type,
 								inviteCode: props.inviteCode,
 								fromSignup: props.fromSignup,
-								useIDEAuth: true
+								useIDEAuth: true,
 						  }
 						: undefined
 				)
@@ -66,7 +65,7 @@ export const ProviderAuth = (connect(undefined) as any)((props: Props) => {
 								type: props.type,
 								inviteCode: props.inviteCode,
 								hostUrl: props.hostUrl,
-								fromSignup: props.fromSignup
+								fromSignup: props.fromSignup,
 						  }
 						: undefined
 				)

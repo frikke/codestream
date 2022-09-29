@@ -47,7 +47,7 @@ export const PROVIDER_MAPPINGS: { [provider: string]: ProviderDisplay } = {
 		listLabel: "section",
 		cardLabel: "task",
 		hasFilters: true,
-		supportsStartWork: true
+		supportsStartWork: true,
 	},
 	bitbucket: {
 		displayName: "Bitbucket",
@@ -55,7 +55,7 @@ export const PROVIDER_MAPPINGS: { [provider: string]: ProviderDisplay } = {
 		boardLabel: "project",
 		listLabel: "list",
 		cardLabel: "issue",
-		supportsStartWork: true
+		supportsStartWork: true,
 	},
 	bitbucket_server: {
 		displayName: "Bitbucket Server",
@@ -64,22 +64,22 @@ export const PROVIDER_MAPPINGS: { [provider: string]: ProviderDisplay } = {
 		urlPlaceholder: "https://bitbucket.myorg.com",
 		helpUrl:
 			"https://confluence.atlassian.com/bitbucketserver/personal-access-tokens-939515499.html",
-		invalidHosts: ["bitbucket.org"]
+		invalidHosts: ["bitbucket.org"],
 	},
 	shortcut: {
 		displayName: "Shortcut",
 		icon: "shortcut",
 		helpUrl: "https://help.shortcut.com/hc/en-us/articles/205701199-Clubhouse-API-Tokens",
-		supportsStartWork: true
+		supportsStartWork: true,
 	},
 	linear: {
 		displayName: "Linear",
 		icon: "linear",
-		supportsStartWork: true
+		supportsStartWork: true,
 	},
 	codestream: {
 		displayName: "CodeStream",
-		icon: "codestream"
+		icon: "codestream",
 	},
 	github: {
 		displayName: "GitHub",
@@ -104,8 +104,8 @@ export const PROVIDER_MAPPINGS: { [provider: string]: ProviderDisplay } = {
 		directPAT: {
 			path: "settings/tokens/new",
 			descriptionParam: "description",
-			scopesParam: "scopes"
-		}
+			scopesParam: "scopes",
+		},
 	},
 	github_enterprise: {
 		displayName: "GitHub Enterprise",
@@ -131,8 +131,8 @@ export const PROVIDER_MAPPINGS: { [provider: string]: ProviderDisplay } = {
 		directPAT: {
 			path: "settings/tokens/new",
 			descriptionParam: "description",
-			scopesParam: "scopes"
-		}
+			scopesParam: "scopes",
+		},
 	},
 	gitlab: {
 		displayName: "GitLab",
@@ -150,7 +150,7 @@ export const PROVIDER_MAPPINGS: { [provider: string]: ProviderDisplay } = {
 			"https://docs.newrelic.com/docs/codestream/how-use-codestream/pull-requests#gitlab",
 		supportsStartWork: true,
 		supportsPRManagement: true,
-		helpPATUrl: "https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html"
+		helpPATUrl: "https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html",
 	},
 	gitlab_enterprise: {
 		displayName: "GitLab Self-Managed",
@@ -173,7 +173,7 @@ export const PROVIDER_MAPPINGS: { [provider: string]: ProviderDisplay } = {
 		supportsPRManagement: true,
 		versionMinimum: "12.10",
 		checkVersionUrl: "https://docs.newrelic.com/docs/codestream/troubleshooting/glsm-version/",
-		invalidHosts: ["gitlab.com"]
+		invalidHosts: ["gitlab.com"],
 	},
 	jira: {
 		displayName: "Jira",
@@ -187,7 +187,7 @@ export const PROVIDER_MAPPINGS: { [provider: string]: ProviderDisplay } = {
 		customFilterHelp:
 			'See <a href="https://confluence.atlassian.com/jirasoftwareserver/advanced-searching-939938733.html">Jira Advanced Searching</a> for documentation on JQL. ',
 		hasCardBasedWorkflow: true,
-		namePAT: "API Token"
+		namePAT: "API Token",
 	},
 	jiraserver: {
 		displayName: "Jira Server",
@@ -207,7 +207,7 @@ export const PROVIDER_MAPPINGS: { [provider: string]: ProviderDisplay } = {
 		checkVersionUrl:
 			"https://docs.newrelic.com/docs/codestream/troubleshooting/jira-server-version/",
 		helpUrl:
-			"https://confluence.atlassian.com/enterprise/using-personal-access-tokens-1026032365.html"
+			"https://confluence.atlassian.com/enterprise/using-personal-access-tokens-1026032365.html",
 	},
 	trello: {
 		displayName: "Trello",
@@ -216,7 +216,7 @@ export const PROVIDER_MAPPINGS: { [provider: string]: ProviderDisplay } = {
 		listLabel: "list",
 		cardLabel: "card",
 		hasFilters: true,
-		supportsStartWork: true
+		supportsStartWork: true,
 	},
 	youtrack: {
 		displayName: "YouTrack",
@@ -225,7 +225,7 @@ export const PROVIDER_MAPPINGS: { [provider: string]: ProviderDisplay } = {
 		boardLabel: "project",
 		listLabel: "type",
 		cardLabel: "issue",
-		supportsStartWork: true
+		supportsStartWork: true,
 	},
 	azuredevops: {
 		displayName: "Azure DevOps",
@@ -234,7 +234,7 @@ export const PROVIDER_MAPPINGS: { [provider: string]: ProviderDisplay } = {
 		boardLabel: "project",
 		listLabel: "list",
 		cardLabel: "work item",
-		supportsStartWork: true
+		supportsStartWork: true,
 	},
 	slack: { displayName: "Slack", icon: "slack", groupName: "Workspace" },
 	msteams: { displayName: "Microsoft Teams", icon: "msteams", groupName: "Organization" },
@@ -242,8 +242,8 @@ export const PROVIDER_MAPPINGS: { [provider: string]: ProviderDisplay } = {
 	newrelic: {
 		displayName: "New Relic",
 		icon: "newrelic",
-		getUrl: "https://newrelic.com"
-	}
+		getUrl: "https://newrelic.com",
+	},
 };
 
 const ucFirst = (string = "") => string.charAt(0).toUpperCase() + string.slice(1);

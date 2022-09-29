@@ -58,8 +58,8 @@ export class ApiRequester {
 						"content-type": "application/json",
 						"x-cs-block-email-sends": "true",
 						"x-cs-block-tracking": "true",
-						"x-cs-for-testing": "true"
-					}
+						"x-cs-for-testing": "true",
+					},
 				};
 				let token;
 				if (options.token) {

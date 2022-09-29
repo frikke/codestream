@@ -1,33 +1,29 @@
-import React from "react";
-import styled from "styled-components";
+import { FetchThirdPartyChannelsRequestType, ThirdPartyChannel } from "@codestream/protocols/agent";
+import { CSTeamSettings } from "@codestream/protocols/api";
 import { last as getLast } from "lodash-es";
-import Icon from "./Icon";
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
+import styled from "styled-components";
 import { Button } from "../src/components/Button";
-import { HostApi } from "../webview-api";
-import {
-	FetchThirdPartyChannelsRequestType,
-	CreateThirdPartyPostRequest,
-	ThirdPartyChannel
-} from "@codestream/protocols/agent";
+import { InlineMenu } from "../src/components/controls/InlineMenu";
+import { Tab, Tabs } from "../src/components/Tabs";
 import { CodeStreamState } from "../store";
-import { useSelector, useDispatch } from "react-redux";
-import {
-	isConnected,
-	getProviderConfig,
-	getConnectedSharingTargets
-} from "../store/providers/reducer";
-import { connectProvider } from "../store/providers/actions";
-import { getIntegrationData } from "../store/activeIntegrations/reducer";
 import { updateForProvider } from "../store/activeIntegrations/actions";
+import { getIntegrationData } from "../store/activeIntegrations/reducer";
 import { ActiveIntegrationData, SlackV2IntegrationData } from "../store/activeIntegrations/types";
 import { setContext } from "../store/context/actions";
+import { connectProvider } from "../store/providers/actions";
+import {
+	getConnectedSharingTargets,
+	getProviderConfig,
+	isConnected,
+} from "../store/providers/reducer";
+import { useAppDispatch, useAppSelector, useDidMount, useUpdates } from "../utilities/hooks";
 import { safe } from "../utils";
-import { useDidMount, useUpdates } from "../utilities/hooks";
+import { HostApi } from "../webview-api";
 import { setUserPreference } from "./actions";
+import Icon from "./Icon";
 import { Modal } from "./Modal";
-import { InlineMenu } from "../src/components/controls/InlineMenu";
-import { Tabs, Tab } from "../src/components/Tabs";
-import { CSTeamSettings } from "@codestream/protocols/api";
 
 const TextButton = styled.span`
 	color: ${props => props.theme.colors.textHighlight};
@@ -89,7 +85,7 @@ function useActiveIntegrationData<T extends ActiveIntegrationData>(providerId: s
 			},
 			set(fn: (data: T) => T) {
 				dispatch(updateForProvider(providerId, fn(data)));
-			}
+			},
 		};
 	}, [data]);
 }
@@ -105,7 +101,7 @@ function useDataForTeam(providerId: string, providerTeamId: string = "") {
 			},
 			set(fn: (currentTeamData: typeof teamData) => typeof teamData) {
 				data.set(d => ({ ...d, [providerTeamId]: fn(teamData) }));
-			}
+			},
 		};
 	}, [teamData]);
 }
@@ -137,9 +133,9 @@ export const SharingControls = React.memo(
 		showToggle?: boolean;
 		repoId?: string;
 	}) => {
-		const dispatch = useDispatch();
+		const dispatch = useAppDispatch();
 
-		const derivedState = useSelector((state: CodeStreamState) => {
+		const derivedState = useAppSelector((state: CodeStreamState) => {
 			const currentTeamId = state.context.currentTeamId;
 			const preferencesForTeam = state.preferences[currentTeamId] || {};
 
@@ -178,7 +174,7 @@ export const SharingControls = React.memo(
 				defaultChannelId: defaultChannel && defaultChannel.channelId,
 				defaultChannels,
 				teamSettings,
-				slackServerProviderData
+				slackServerProviderData,
 			};
 		});
 		const [authenticationState, setAuthenticationState] = React.useState<{
@@ -206,7 +202,12 @@ export const SharingControls = React.memo(
 				!derivedState.selectedShareTarget ||
 				(!derivedState.isConnectedToSlack && !derivedState.isConnectedToMSTeams)
 			) {
-				dispatch(setUserPreference([derivedState.currentTeamId, "shareCodemarkEnabled"], false));
+				dispatch(
+					setUserPreference({
+						prefPath: [derivedState.currentTeamId, "shareCodemarkEnabled"],
+						value: false,
+					})
+				);
 			}
 		});
 
@@ -224,7 +225,9 @@ export const SharingControls = React.memo(
 		);
 
 		const setCheckbox = value =>
-			dispatch(setUserPreference([derivedState.currentTeamId, "shareCodemarkEnabled"], value));
+			dispatch(
+				setUserPreference({ prefPath: [derivedState.currentTeamId, "shareCodemarkEnabled"], value })
+			);
 
 		const toggleCheckbox = () => setCheckbox(!derivedState.on);
 
@@ -257,7 +260,7 @@ export const SharingControls = React.memo(
 					try {
 						const response = await HostApi.instance.send(FetchThirdPartyChannelsRequestType, {
 							providerId: selectedShareTarget.providerId,
-							providerTeamId: selectedShareTarget.teamId
+							providerTeamId: selectedShareTarget.teamId,
 						});
 						/*
 							if we know the channel the user last selected for this target
@@ -282,7 +285,7 @@ export const SharingControls = React.memo(
 							...teamData,
 							channels: response.channels,
 							members: members,
-							lastSelectedChannel: channelToSelect || teamData.lastSelectedChannel
+							lastSelectedChannel: channelToSelect || teamData.lastSelectedChannel,
 						}));
 						setCurrentChannel(undefined);
 					} catch (error) {
@@ -327,13 +330,16 @@ export const SharingControls = React.memo(
 					providerTeamName: shareTarget.teamName,
 					channelId: selectedChannel && selectedChannel.id,
 					channelName: selectedChannel && formatChannelName(selectedChannel),
-					botUserId
+					botUserId,
 				});
 				dispatch(
-					setUserPreference([derivedState.currentTeamId, "lastShareAttributes"], {
-						channelId: selectedChannel.id,
-						providerId: shareTarget.providerId,
-						providerTeamId: shareTarget.teamId
+					setUserPreference({
+						prefPath: [derivedState.currentTeamId, "lastShareAttributes"],
+						value: {
+							channelId: selectedChannel.id,
+							providerId: shareTarget.providerId,
+							providerTeamId: shareTarget.teamId,
+						},
 					})
 				);
 			} else if (
@@ -363,7 +369,7 @@ export const SharingControls = React.memo(
 					providerTeamName: shareTarget.teamName,
 					userIds: checkedUsers,
 					channelName,
-					botUserId
+					botUserId,
 				});
 			} else props.onChangeValues(undefined);
 		}, [
@@ -374,7 +380,7 @@ export const SharingControls = React.memo(
 			// hack[?] for asserting this hook runs after the data has changed.
 			// for some reason selectedChannel updating is not making this hook
 			// re-run
-			isFetchingData
+			isFetchingData,
 		]);
 
 		const { teamSettings } = derivedState;
@@ -387,7 +393,7 @@ export const SharingControls = React.memo(
 				key: target.teamId,
 				icon: <Icon name={target.icon} />,
 				label: target.teamName,
-				action: () => setSelectedShareTarget(target)
+				action: () => setSelectedShareTarget(target),
 			}));
 			if (derivedState.slackConfig || derivedState.msTeamsConfig) {
 				targetItems.push({ label: "-" } as any);
@@ -398,7 +404,7 @@ export const SharingControls = React.memo(
 						label: "Add Slack workspace",
 						action: (() => {
 							authenticateWithSlack();
-						}) as any
+						}) as any,
 					});
 				if (showTeams && derivedState.msTeamsConfig) {
 					targetItems.push({
@@ -407,7 +413,7 @@ export const SharingControls = React.memo(
 						label: "Add Teams organization",
 						action: (() => {
 							authenticateWithMSTeams();
-						}) as any
+						}) as any,
 					} as any);
 				}
 			}
@@ -427,7 +433,7 @@ export const SharingControls = React.memo(
 								borderBottom:
 									channelOrDirect === "channel"
 										? "1px solid var(--text-color)"
-										: "1px solid rgba(127, 127, 127, 0.2)"
+										: "1px solid rgba(127, 127, 127, 0.2)",
 							}}
 						>
 							Channel
@@ -441,14 +447,14 @@ export const SharingControls = React.memo(
 								borderBottom:
 									channelOrDirect === "direct"
 										? "1px solid var(--text-color)"
-										: "1px solid rgba(127, 127, 127, 0.2)"
+										: "1px solid rgba(127, 127, 127, 0.2)",
 							}}
 						>
 							DM
 						</Tab>
 					</Tabs>
-				)
-			}
+				),
+			},
 		];
 
 		const getChannelMenuItems = (action, showTabBar: boolean) => {
@@ -469,7 +475,7 @@ export const SharingControls = React.memo(
 						key: channel.name,
 						label: channelName,
 						searchLabel: channelName,
-						action: () => action(channel)
+						action: () => action(channel),
 					};
 					if (channel.type === "direct") {
 						group.dms.push(item);
@@ -499,7 +505,7 @@ export const SharingControls = React.memo(
 				searchLabel: user.name,
 				checked: checkedUsers.includes(user.id),
 				disabled: checkedUsers.length >= 7 && !checkedUsers.includes(user.id),
-				action: () => toggleUserChecked(user.id)
+				action: () => toggleUserChecked(user.id),
 			});
 
 			const tabBar = getMenuTabBar();
@@ -614,7 +620,12 @@ export const SharingControls = React.memo(
 
 		const setDefaultChannel = (repoId, providerTeamId, channelId) => {
 			const value = { providerTeamId, channelId };
-			dispatch(setUserPreference([derivedState.currentTeamId, "defaultChannel", repoId], value));
+			dispatch(
+				setUserPreference({
+					prefPath: [derivedState.currentTeamId, "defaultChannel", repoId],
+					value,
+				})
+			);
 		};
 
 		const getChannelById = id => {

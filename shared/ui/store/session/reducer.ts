@@ -1,7 +1,7 @@
+import { uuid } from "@codestream/webview/utils";
 import { ActionType } from "../common";
 import * as actions from "./actions";
 import { SessionActionType, SessionState } from "./types";
-import { uuid } from "@codestream/webview/utils";
 
 type SessionActions = ActionType<typeof actions>;
 

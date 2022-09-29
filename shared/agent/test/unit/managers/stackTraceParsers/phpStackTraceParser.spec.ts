@@ -47,182 +47,182 @@ in Acme\\Foundation\\Http\\Kernel::handle called at /var/www/public/index.php (5
 				{
 					method: "Acme\\Foundation\\Bootstrap\\HandleExceptions::handleError",
 					fileFullPath: "?",
-					line: undefined
+					line: undefined,
 				},
 				{
 					method: "file_put_contents",
 					fileFullPath: "/var/www/vendor/foocorp/framework/src/Acme/Filesystem/Filesystem.php",
-					line: 133
+					line: 133,
 				},
 				{
 					method: "Acme\\Filesystem\\Filesystem::put",
 					fileFullPath: "/var/www/vendor/foocorp/framework/src/Acme/Session/FileSessionHandler.php",
-					line: 83
+					line: 83,
 				},
 				{
 					method: "Acme\\Session\\FileSessionHandler::write",
 					fileFullPath: "/var/www/vendor/foocorp/framework/src/Acme/Session/Store.php",
-					line: 129
+					line: 129,
 				},
 				{
 					method: "Acme\\Session\\Store::save",
 					fileFullPath:
 						"/var/www/vendor/foocorp/framework/src/Acme/Session/Middleware/StartSession.php",
-					line: 170
+					line: 170,
 				},
 				{
 					method: "Acme\\Session\\Middleware\\StartSession::saveSession",
 					fileFullPath:
 						"/var/www/vendor/foocorp/framework/src/Acme/Session/Middleware/StartSession.php",
-					line: 65
+					line: 65,
 				},
 				{
 					method: "Acme\\Session\\Middleware\\StartSession::handle",
 					fileFullPath: "/var/www/vendor/foocorp/framework/src/Acme/Pipeline/Pipeline.php",
-					line: 167
+					line: 167,
 				},
 				{
 					method: "Acme\\Pipeline\\Pipeline::Acme\\Pipeline\\{closure}",
 					fileFullPath:
 						"/var/www/vendor/foocorp/framework/src/Acme/Cookie/Middleware/AddQueuedCookiesToResponse.php",
-					line: 37
+					line: 37,
 				},
 				{
 					method: "Acme\\Cookie\\Middleware\\AddQueuedCookiesToResponse::handle",
 					fileFullPath: "/var/www/vendor/foocorp/framework/src/Acme/Pipeline/Pipeline.php",
-					line: 167
+					line: 167,
 				},
 				{
 					method: "Acme\\Pipeline\\Pipeline::Acme\\Pipeline\\{closure}",
 					fileFullPath:
 						"/var/www/vendor/foocorp/framework/src/Acme/Cookie/Middleware/EncryptCookies.php",
-					line: 66
+					line: 66,
 				},
 				{
 					method: "Acme\\Cookie\\Middleware\\EncryptCookies::handle",
 					fileFullPath: "/var/www/vendor/foocorp/framework/src/Acme/Pipeline/Pipeline.php",
-					line: 167
+					line: 167,
 				},
 				{
 					method: "Acme\\Pipeline\\Pipeline::Acme\\Pipeline\\{closure}",
 					fileFullPath: "/var/www/vendor/foocorp/framework/src/Acme/Pipeline/Pipeline.php",
-					line: 103
+					line: 103,
 				},
 				{
 					method: "Acme\\Pipeline\\Pipeline::then",
 					fileFullPath: "/var/www/vendor/foocorp/framework/src/Acme/Routing/Router.php",
-					line: 687
+					line: 687,
 				},
 				{
 					method: "Acme\\Routing\\Router::runRouteWithinStack",
 					fileFullPath: "/var/www/vendor/foocorp/framework/src/Acme/Routing/Router.php",
-					line: 662
+					line: 662,
 				},
 				{
 					method: "Acme\\Routing\\Router::runRoute",
 					fileFullPath: "/var/www/vendor/foocorp/framework/src/Acme/Routing/Router.php",
-					line: 628
+					line: 628,
 				},
 				{
 					method: "Acme\\Routing\\Router::dispatchToRoute",
 					fileFullPath: "/var/www/vendor/foocorp/framework/src/Acme/Routing/Router.php",
-					line: 617
+					line: 617,
 				},
 				{
 					method: "Acme\\Routing\\Router::dispatch",
 					fileFullPath: "/var/www/vendor/foocorp/framework/src/Acme/Foundation/Http/Kernel.php",
-					line: 165
+					line: 165,
 				},
 				{
 					method: "Acme\\Foundation\\Http\\Kernel::Acme\\Foundation\\Http\\{closure}",
 					fileFullPath: "/var/www/vendor/foocorp/framework/src/Acme/Pipeline/Pipeline.php",
-					line: 128
+					line: 128,
 				},
 				{
 					method: "Acme\\Pipeline\\Pipeline::Acme\\Pipeline\\{closure}",
 					fileFullPath:
 						"/var/www/vendor/foocorp/framework/src/Acme/Foundation/Http/Middleware/TransformsRequest.php",
-					line: 21
+					line: 21,
 				},
 				{
 					method: "Acme\\Foundation\\Http\\Middleware\\TransformsRequest::handle",
 					fileFullPath: "/var/www/vendor/foocorp/framework/src/Acme/Pipeline/Pipeline.php",
-					line: 167
+					line: 167,
 				},
 				{
 					method: "Acme\\Pipeline\\Pipeline::Acme\\Pipeline\\{closure}",
 					fileFullPath:
 						"/var/www/vendor/foocorp/framework/src/Acme/Foundation/Http/Middleware/TransformsRequest.php",
-					line: 21
+					line: 21,
 				},
 				{
 					method: "Acme\\Foundation\\Http\\Middleware\\TransformsRequest::handle",
 					fileFullPath: "/var/www/vendor/foocorp/framework/src/Acme/Pipeline/Pipeline.php",
-					line: 167
+					line: 167,
 				},
 				{
 					method: "Acme\\Pipeline\\Pipeline::Acme\\Pipeline\\{closure}",
 					fileFullPath:
 						"/var/www/vendor/foocorp/framework/src/Acme/Foundation/Http/Middleware/ValidatePostSize.php",
-					line: 27
+					line: 27,
 				},
 				{
 					method: "Acme\\Foundation\\Http\\Middleware\\ValidatePostSize::handle",
 					fileFullPath: "/var/www/vendor/foocorp/framework/src/Acme/Pipeline/Pipeline.php",
-					line: 167
+					line: 167,
 				},
 				{
 					method: "Acme\\Pipeline\\Pipeline::Acme\\Pipeline\\{closure}",
 					fileFullPath:
 						"/var/www/vendor/foocorp/framework/src/Acme/Foundation/Http/Middleware/CheckForMaintenanceMode.php",
-					line: 63
+					line: 63,
 				},
 				{
 					method: "Acme\\Foundation\\Http\\Middleware\\CheckForMaintenanceMode::handle",
 					fileFullPath: "/var/www/vendor/foocorp/framework/src/Acme/Pipeline/Pipeline.php",
-					line: 167
+					line: 167,
 				},
 				{
 					fileFullPath: "/var/www/vendor/fruitcake/foocorp-cors/src/HandleCors.php",
 					line: 36,
-					method: "Acme\\Pipeline\\Pipeline::Acme\\Pipeline\\{closure}"
+					method: "Acme\\Pipeline\\Pipeline::Acme\\Pipeline\\{closure}",
 				},
 				{
 					method: "Fruitcake\\Cors\\HandleCors::handle",
 					fileFullPath: "/var/www/vendor/foocorp/framework/src/Acme/Pipeline/Pipeline.php",
-					line: 167
+					line: 167,
 				},
 				{
 					method: "Acme\\Pipeline\\Pipeline::Acme\\Pipeline\\{closure}",
 					fileFullPath: "/var/www/vendor/fideloper/proxy/src/TrustProxies.php",
-					line: 57
+					line: 57,
 				},
 				{
 					method: "Fideloper\\Proxy\\TrustProxies::handle",
 					fileFullPath: "/var/www/vendor/foocorp/framework/src/Acme/Pipeline/Pipeline.php",
-					line: 167
+					line: 167,
 				},
 				{
 					method: "Acme\\Pipeline\\Pipeline::Acme\\Pipeline\\{closure}",
 					fileFullPath: "/var/www/vendor/foocorp/framework/src/Acme/Pipeline/Pipeline.php",
-					line: 103
+					line: 103,
 				},
 				{
 					method: "Acme\\Pipeline\\Pipeline::then",
 					fileFullPath: "/var/www/vendor/foocorp/framework/src/Acme/Foundation/Http/Kernel.php",
-					line: 140
+					line: 140,
 				},
 				{
 					method: "Acme\\Foundation\\Http\\Kernel::sendRequestThroughRouter",
 					fileFullPath: "/var/www/vendor/foocorp/framework/src/Acme/Foundation/Http/Kernel.php",
-					line: 109
+					line: 109,
 				},
 				{
 					method: "Acme\\Foundation\\Http\\Kernel::handle",
 					fileFullPath: "/var/www/public/index.php",
-					line: 55
-				}
-			]
+					line: 55,
+				},
+			],
 		});
 	});
 });

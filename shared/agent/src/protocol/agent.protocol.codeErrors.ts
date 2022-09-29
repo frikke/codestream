@@ -12,7 +12,7 @@ import {
 	CSRepository,
 	CSStream,
 	CSUpdateCodeErrorRequest,
-	CSUpdateCodeErrorResponse
+	CSUpdateCodeErrorResponse,
 } from "./api.protocol";
 import { CSObjectStream, CSPost } from "./api.protocol.models";
 

@@ -1,8 +1,8 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
+import { setUserPreference } from "./actions";
 import Icon from "./Icon";
 import Menu from "./Menu";
-import { setUserPreference } from "./actions";
 
 export class SimpleFilter extends Component {
 	constructor(props) {

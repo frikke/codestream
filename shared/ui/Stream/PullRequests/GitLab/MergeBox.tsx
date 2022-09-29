@@ -1,23 +1,22 @@
-import Tooltip from "../../Tooltip";
-import React, { useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import Icon from "../../Icon";
+import { GitLabMergeRequest, GitLabMergeRequestWrapper } from "@codestream/protocols/agent";
 import { Button, ButtonVariant } from "@codestream/webview/src/components/Button";
-import { OutlineBox, FlexRow } from "./PullRequest";
 import { Checkbox } from "@codestream/webview/src/components/Checkbox";
 import { CodeStreamState } from "@codestream/webview/store";
-// import { setUserPreference } from "../../actions";
-import { Link } from "../../Link";
-import { CommandLineInstructions } from "./CommandLineInstructions";
+import { useAppDispatch, useAppSelector, useDidMount } from "@codestream/webview/utilities/hooks";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { api } from "../../../store/providerPullRequests/actions";
 import {
 	getCurrentProviderPullRequestObject,
-	getCurrentProviderPullRequestRootObject
-} from "../../../store/providerPullRequests/reducer";
-import { GitLabMergeRequest, GitLabMergeRequestWrapper } from "@codestream/protocols/agent";
-import { useDidMount } from "@codestream/webview/utilities/hooks";
+	getCurrentProviderPullRequestRootObject,
+} from "../../../store/providerPullRequests/slice";
+import { api } from "../../../store/providerPullRequests/thunks";
+import Icon from "../../Icon";
+// import { setUserPreference } from "../../actions";
+import { Link } from "../../Link";
 import Timestamp from "../../Timestamp";
+import Tooltip from "../../Tooltip";
+import { CommandLineInstructions } from "./CommandLineInstructions";
+import { FlexRow, OutlineBox } from "./PullRequest";
 
 export const IconButton = styled.div`
 	flex-grow: 0;
@@ -34,13 +33,15 @@ export const IconButton = styled.div`
 `;
 
 export const MergeBox = props => {
-	const dispatch = useDispatch();
-	const derivedState = useSelector((state: CodeStreamState) => {
+	const dispatch = useAppDispatch();
+	const derivedState = useAppSelector((state: CodeStreamState) => {
 		const pr = getCurrentProviderPullRequestObject(state) as GitLabMergeRequest;
 		return {
 			pr: pr,
 			pipeline: pr.headPipeline,
-			prRoot: getCurrentProviderPullRequestRootObject(state) as GitLabMergeRequestWrapper
+			prRoot: getCurrentProviderPullRequestRootObject(
+				state
+			) as unknown as GitLabMergeRequestWrapper, // TODO fix typing
 		};
 	});
 
@@ -90,11 +91,14 @@ export const MergeBox = props => {
 			derivedState.pipeline && derivedState.pipeline.status === "RUNNING";
 		try {
 			await dispatch(
-				api("mergePullRequest", {
-					message: message,
-					deleteSourceBranch: deleteBranch,
-					squashCommits: squashChecked,
-					mergeWhenPipelineSucceeds: mergeWhenPipelineSucceeds
+				api({
+					method: "mergePullRequest",
+					params: {
+						message: message,
+						deleteSourceBranch: deleteBranch,
+						squashCommits: squashChecked,
+						mergeWhenPipelineSucceeds: mergeWhenPipelineSucceeds,
+					},
 				})
 			);
 		} catch (ex) {
@@ -105,15 +109,18 @@ export const MergeBox = props => {
 	};
 
 	const cancelMergeWhenPipelineSucceeds = async (e: any) => {
-		dispatch(api("cancelMergeWhenPipelineSucceeds", {}));
+		dispatch(api({ method: "cancelMergeWhenPipelineSucceeds", params: {} }));
 	};
 
 	const toggleWorkInProgress = async () => {
 		const onOff = !props.pr.isDraft;
 		props.setIsLoadingMessage(onOff ? "Marking as draft..." : "Marking as ready...");
 		await dispatch(
-			api("setWorkInProgressOnPullRequest", {
-				onOff
+			api({
+				method: "setWorkInProgressOnPullRequest",
+				params: {
+					onOff,
+				},
 			})
 		);
 		props.setIsLoadingMessage("");
@@ -457,7 +464,7 @@ export const MergeBox = props => {
 							borderTop: "1px solid var(--base-border-color)",
 							borderBottom: "1px solid var(--base-border-color)",
 							flexWrap: "nowrap",
-							cursor: "pointer"
+							cursor: "pointer",
 						}}
 					>
 						{modifyCommit ? (
@@ -513,7 +520,7 @@ export const MergeBox = props => {
 						background: "var(--base-background-color)",
 						borderTop: "1px solid var(--base-border-color)",
 						borderBottom: "1px solid var(--base-border-color)",
-						flexWrap: "nowrap"
+						flexWrap: "nowrap",
 					}}
 				>
 					<div style={{ paddingLeft: "40px" }}>{commitsLabel}</div>

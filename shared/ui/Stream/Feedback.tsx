@@ -2,14 +2,14 @@ import cx from "classnames";
 import React from "react";
 import ReactDOM from "react-dom";
 import { connect } from "react-redux";
-import Icon from "./Icon";
+import { OpenUrlRequestType } from "../ipc/host.protocol";
+import { CodeStreamState } from "../store";
+import { setShowFeedbackSmiley } from "../store/context/actions";
+import KeystrokeDispatcher from "../utilities/keystroke-dispatcher";
+import { HostApi } from "../webview-api";
 import Button from "./Button";
 import CancelButton from "./CancelButton";
-import { HostApi } from "../webview-api";
-import { OpenUrlRequestType } from "../ipc/host.protocol";
-import { setShowFeedbackSmiley } from "../store/context/actions";
-import { CodeStreamState } from "../store";
-import KeystrokeDispatcher from "../utilities/keystroke-dispatcher";
+import Icon from "./Icon";
 
 interface State {
 	emotion: "happy" | "sad";
@@ -38,7 +38,7 @@ export class Feedback extends React.Component<Props, State> {
 			emotion: "happy",
 			dialogOpen: false,
 			charsLeft: 240,
-			tweet: ""
+			tweet: "",
 		};
 		this.el = document.createElement("div");
 	}
@@ -106,7 +106,7 @@ export class Feedback extends React.Component<Props, State> {
 							Tell us why?{" "}
 							<span
 								className={cx({
-									warn: this.state.charsLeft < 5
+									warn: this.state.charsLeft < 5,
 								})}
 							>
 								({this.state.charsLeft} characters left)
@@ -122,7 +122,7 @@ export class Feedback extends React.Component<Props, State> {
 									paddingRight: "15px",
 									width: "auto",
 									float: "right",
-									fontSize: "15px"
+									fontSize: "15px",
 								}}
 								className="control-button"
 								type="submit"
@@ -211,10 +211,10 @@ export class Feedback extends React.Component<Props, State> {
 
 const mapStateToProps = ({ context }: CodeStreamState) => {
 	return {
-		showFeedbackSmiley: context.showFeedbackSmiley
+		showFeedbackSmiley: context.showFeedbackSmiley,
 	};
 };
 
 export default connect(mapStateToProps, {
-	setShowFeedbackSmiley: setShowFeedbackSmiley
+	setShowFeedbackSmiley: setShowFeedbackSmiley,
 })(Feedback);

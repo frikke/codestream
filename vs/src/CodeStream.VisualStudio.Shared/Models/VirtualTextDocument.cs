@@ -6,19 +6,19 @@ using CodeStream.VisualStudio.Core.Models;
 
 namespace CodeStream.VisualStudio.Shared.Models {
 	public class VirtualTextDocument : IVirtualTextDocument {
-		private readonly ITextDocument _textDocument;
+		
 		private VirtualTextDocument(ITextDocument textDocument) {
-			_textDocument = textDocument;
-			if (CodeStreamDiffUri.TryParse(_textDocument.FilePath, out CodeStreamDiffUri uri)) {
-				Uri = uri.Uri;
-				Id = uri.Uri.ToLocalPath();
-				FileName = uri.FileName;
+			if (DiffExtensions.IsTempFile(textDocument.FilePath))
+			{
+				Uri = new Uri(textDocument.FilePath);
+				Id = new Uri(textDocument.FilePath).ToLocalPath();
+				FileName = new Uri(textDocument.FilePath).ToFileName();
 				SupportsMarkers = SupportsMargins = false;
 			}
 			else {
-				Uri = _textDocument.FilePath.ToUri();
+				Uri = textDocument.FilePath.ToUri();
 				Id = Uri?.ToLocalPath();
-				FileName = Path.GetFileName(_textDocument.FilePath);
+				FileName = Path.GetFileName(textDocument.FilePath);
 				SupportsMarkers = SupportsMargins = true;
 			}
 		}
@@ -27,7 +27,7 @@ namespace CodeStream.VisualStudio.Shared.Models {
 			Uri = uri;
 			Id = uri.ToLocalPath();
 			FileName = Id;
-			SupportsMarkers = SupportsMargins = uri.Scheme != "codestream-diff";
+			SupportsMarkers = SupportsMargins = !DiffExtensions.IsTempFile(uri.ToLocalPath());
 		}
 
 		public static VirtualTextDocument FromTextDocument(ITextDocument textDocument) {

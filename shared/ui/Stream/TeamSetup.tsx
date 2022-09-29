@@ -1,15 +1,14 @@
-import React, { useCallback, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { HostApi } from "../webview-api";
 import { UpdateCompanyRequestType } from "@codestream/protocols/agent";
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Button } from "../src/components/Button";
-import { Dialog, ButtonRow } from "../src/components/Dialog";
+import { ButtonRow, Dialog } from "../src/components/Dialog";
+import { HostApi } from "../webview-api";
 
 import styled from "styled-components";
-import { closeModal } from "./actions";
-import { CodeStreamState } from "../store";
 import { logError } from "../logger";
-import { difference as _difference, sortBy as _sortBy } from "lodash-es";
+import { CodeStreamState } from "../store";
+import { closeModal } from "./actions";
 
 const Form = styled.form`
 	h3 {
@@ -52,7 +51,7 @@ export const TeamSetup = (props: Props) => {
 			currentTeamId: state.context.currentTeamId,
 			serverUrl: state.configs.serverUrl,
 			company: state.companies[team.companyId] || {},
-			team
+			team,
 		};
 	});
 
@@ -89,7 +88,7 @@ export const TeamSetup = (props: Props) => {
 				}
 				await HostApi.instance.send(UpdateCompanyRequestType, {
 					companyId: derivedState.company.id!,
-					domainJoining: domainsArray
+					domainJoining: domainsArray,
 				});
 				HostApi.instance.track("Domain Joining Updated");
 			} catch (ex) {

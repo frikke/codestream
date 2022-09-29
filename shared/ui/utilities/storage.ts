@@ -11,8 +11,8 @@ function polyfillLocalStorage() {
 			},
 			removeItem(key: string) {
 				delete _localStorage[key];
-			}
-		}
+			},
+		},
 	});
 }
 

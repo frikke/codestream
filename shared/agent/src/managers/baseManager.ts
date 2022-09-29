@@ -53,7 +53,7 @@ function getCacheUpdateAction(
 export abstract class ManagerBase<T> {
 	protected readonly cache: BaseCache<T> = new BaseCache<T>({
 		idxFields: this.getIndexedFields(),
-		entityName: this.getEntityName()
+		entityName: this.getEntityName(),
 	});
 
 	protected forceFetchToResolveOnCacheMiss = false;
@@ -130,8 +130,8 @@ export abstract class ManagerBase<T> {
 							data,
 							error: e,
 							type: message.type,
-							entityName: this.getEntityName()
-						}
+							entityName: this.getEntityName(),
+						},
 					});
 				}
 

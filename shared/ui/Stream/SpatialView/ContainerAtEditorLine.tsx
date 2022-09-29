@@ -1,12 +1,12 @@
-import React, { ReactNode } from "react";
-import { useSelector, shallowEqual } from "react-redux";
-import {
-	getVisibleRanges,
-	getVisibleLineCount,
-	getLine0ForEditorLine
-} from "@codestream/webview/store/editorContext/reducer";
 import { CodeStreamState } from "@codestream/webview/store";
+import {
+	getLine0ForEditorLine,
+	getVisibleLineCount,
+	getVisibleRanges,
+} from "@codestream/webview/store/editorContext/reducer";
 import { useRect, useUpdates } from "@codestream/webview/utilities/hooks";
+import React, { ReactNode } from "react";
+import { shallowEqual, useSelector } from "react-redux";
 
 // TODO: figure out how to handle if there is no editor context
 export default function ContainerAtEditorLine(props: {
@@ -24,7 +24,7 @@ export default function ContainerAtEditorLine(props: {
 		return {
 			logicalVisibleLineCount: getVisibleLineCount(visibleRanges),
 			line0: getLine0ForEditorLine(visibleRanges, props.lineNumber, props.repositionToFit),
-			lineHeight
+			lineHeight,
 		};
 	}, shallowEqual);
 
@@ -115,7 +115,7 @@ export default function ContainerAtEditorLine(props: {
 					props.className && props.className.includes("cs-hidden")
 						? // tag: codemark-width
 						  `translate(calc(100% - 10px), ${adjustedPosition || position}px)`
-						: `translateY(${adjustedPosition || position}px)`
+						: `translateY(${adjustedPosition || position}px)`,
 			}}
 			data-top={adjustedPosition || position}
 		>

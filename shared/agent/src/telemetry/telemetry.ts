@@ -45,7 +45,7 @@ export class TelemetryService {
 		const props = {
 			...opts,
 			Endpoint: session.versionInfo.ide.name,
-			"Endpoint Detail": session.versionInfo.ide.detail
+			"Endpoint Detail": session.versionInfo.ide.detail,
 		};
 		this._superProps = props;
 		this._hasOptedOut = hasOptedOut;
@@ -107,7 +107,7 @@ export class TelemetryService {
 			this._segmentInstance.identify({
 				userId: this._distinctId,
 				anonymousId: this._anonymousId,
-				traits: props
+				traits: props,
 			});
 			this._segmentInstance.flush();
 		} catch (ex) {
@@ -123,7 +123,7 @@ export class TelemetryService {
 			Logger.debug(`Telemetry setAnonymousId ${id}`);
 			this._anonymousId = id;
 			this._segmentInstance.identify({
-				anonymousId: id
+				anonymousId: id,
 			});
 			this._segmentInstance.flush();
 		} catch (ex) {
@@ -142,7 +142,7 @@ export class TelemetryService {
 	addSuperProps(props: { [key: string]: string | number | boolean }) {
 		this._superProps = {
 			...this._superProps,
-			...props
+			...props,
 		};
 	}
 
@@ -184,7 +184,7 @@ export class TelemetryService {
 				userId: this._distinctId,
 				anonymousId: this._anonymousId,
 				event,
-				properties: payload
+				properties: payload,
 			});
 			this._segmentInstance.flush();
 		} catch (ex) {

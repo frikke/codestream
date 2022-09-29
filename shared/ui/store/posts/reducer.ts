@@ -1,16 +1,16 @@
 import { CSPost } from "@codestream/protocols/api";
-import { ActionType } from "../common";
-import * as actions from "./actions";
-import { isPending, PostsActionsType, PostsState, Post } from "./types";
 import { sortBy as _sortBy } from "lodash-es";
 import { createSelector } from "reselect";
 import { CodeStreamState } from "..";
+import { ActionType } from "../common";
+import * as actions from "./actions";
+import { isPending, Post, PostsActionsType, PostsState } from "./types";
 
 type PostsActions = ActionType<typeof actions>;
 
 const initialState = {
 	byStream: {},
-	pending: []
+	pending: [],
 };
 
 const addPost = (byStream, post: CSPost) => {
@@ -28,7 +28,7 @@ export function reducePosts(state: PostsState = initialState, action: PostsActio
 
 			const nextState = {
 				pending: [...state.pending],
-				byStream: { ...state.byStream }
+				byStream: { ...state.byStream },
 			};
 			action.payload.forEach(post => {
 				if (isPending(post)) nextState.pending.push(post);
@@ -47,13 +47,13 @@ export function reducePosts(state: PostsState = initialState, action: PostsActio
 
 			return {
 				...state,
-				byStream: { ...state.byStream, [streamId]: streamPosts }
+				byStream: { ...state.byStream, [streamId]: streamPosts },
 			};
 		}
 		case PostsActionsType.Update:
 			return {
 				...state,
-				byStream: addPost(state.byStream, action.payload)
+				byStream: addPost(state.byStream, action.payload),
 			};
 		case PostsActionsType.AddPendingPost: {
 			return { ...state, pending: [...state.pending, action.payload] };
@@ -62,7 +62,7 @@ export function reducePosts(state: PostsState = initialState, action: PostsActio
 			const { pendingId, post } = action.payload;
 			return {
 				byStream: addPost(state.byStream, post),
-				pending: state.pending.filter(post => post.id !== pendingId)
+				pending: state.pending.filter(post => post.id !== pendingId),
 			};
 		}
 		case PostsActionsType.FailPendingPost: {
@@ -70,13 +70,13 @@ export function reducePosts(state: PostsState = initialState, action: PostsActio
 				...state,
 				pending: state.pending.map(post => {
 					return post.id === action.payload ? { ...post, error: true } : post;
-				})
+				}),
 			};
 		}
 		case PostsActionsType.CancelPendingPost: {
 			return {
 				...state,
-				pending: state.pending.filter(post => post.id !== action.payload)
+				pending: state.pending.filter(post => post.id !== action.payload),
 			};
 		}
 		case PostsActionsType.Delete: {
@@ -86,7 +86,7 @@ export function reducePosts(state: PostsState = initialState, action: PostsActio
 
 			return {
 				...state,
-				byStream: { ...state.byStream, [streamId]: streamPosts }
+				byStream: { ...state.byStream, [streamId]: streamPosts },
 			};
 		}
 		case "RESET":
@@ -105,7 +105,7 @@ export const getPostsForStream = createSelector(
 		const pendingForStream = state.pending.filter(it => it.streamId === streamId);
 		return [
 			..._sortBy(state.byStream[streamId], "seqNum").filter(p => !p.deactivated),
-			...pendingForStream
+			...pendingForStream,
 		];
 	}
 );

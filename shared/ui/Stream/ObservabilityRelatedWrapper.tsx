@@ -1,10 +1,8 @@
-import { forEach as _forEach } from "lodash-es";
 import React, { useState } from "react";
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import Icon from "./Icon";
-import { GetNewRelicRelatedEntitiesRequestType } from "@codestream/protocols/agent";
-import { ObservabilityRelatedCalls } from "./ObservabilityRelatedCalls";
 import { ObservabilityRelatedCalledBy } from "./ObservabilityRelatedCalledBy";
+import { ObservabilityRelatedCalls } from "./ObservabilityRelatedCalls";
 
 interface Props {
 	currentRepoId: string;
@@ -18,7 +16,7 @@ export const ObservabilityRelatedWrapper = React.memo((props: Props) => {
 		<>
 			<Row
 				style={{
-					padding: "2px 10px 2px 30px"
+					padding: "2px 10px 2px 30px",
 				}}
 				className={"pr-row"}
 				onClick={() => setExpanded(!expanded)}

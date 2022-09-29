@@ -1,6 +1,4 @@
 import React from "react";
-import Icon from "./Icon";
-import Menu from "./Menu";
 
 interface Props {
 	openCodemarkForm?: Function;
@@ -60,7 +58,7 @@ export class PostCompose extends React.Component<Props, State> {
 			{ label: "Add Comment", action: "comment" },
 			{ label: "Create Issue", action: "issue" },
 			{ label: "Create Bookmark", action: "bookmark" },
-			{ label: "Get Permalink", action: "link" }
+			{ label: "Get Permalink", action: "link" },
 		];
 
 		return (
@@ -87,7 +85,7 @@ export class PostCompose extends React.Component<Props, State> {
 					placeholder: this.props.placeholder,
 					multiCompose: false,
 					onChange: this.handleChange,
-					onSubmit: this.handleSubmit
+					onSubmit: this.handleSubmit,
 				})}
 			</React.Fragment>
 		);

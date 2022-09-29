@@ -29,11 +29,11 @@ SOFTWARE.
 /**
  * Modifications Copyright CodeStream Inc. under the Apache 2.0 License (Apache-2.0)
  */
-"use strict";
+("use strict");
 
 export enum GitRemoteType {
 	Fetch = "fetch",
-	Push = "push"
+	Push = "push",
 }
 
 export class GitRemote implements GitRemoteLike {

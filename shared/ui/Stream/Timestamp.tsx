@@ -1,5 +1,4 @@
-import React from "react";
-import { PropsWithChildren } from "react";
+import React, { PropsWithChildren } from "react";
 import styled from "styled-components";
 import Tooltip, { Placement } from "./Tooltip";
 
@@ -115,7 +114,7 @@ export const distanceOfTimeInWords = (
 	}
 };
 
-const prettyDateDay = function(time, abbreviated?: boolean) {
+const prettyDateDay = function (time, abbreviated?: boolean) {
 	if (time === 0 || time === null || time === undefined) return "";
 	try {
 		var now = new Date().getTime();
@@ -131,14 +130,14 @@ const prettyDateDay = function(time, abbreviated?: boolean) {
 		if (time + ELEVEN_MONTHS > now) {
 			return new Intl.DateTimeFormat("en", {
 				day: "numeric",
-				month: "short"
+				month: "short",
 			}).format(time);
 		} else {
 			if (abbreviated) {
 				return new Intl.DateTimeFormat("en", {
 					day: "numeric",
 					month: "short",
-					year: "2-digit"
+					year: "2-digit",
 				})
 					.format(time)
 					.replace(/(\d\d)$/, `'$1`);
@@ -146,7 +145,7 @@ const prettyDateDay = function(time, abbreviated?: boolean) {
 				return new Intl.DateTimeFormat("en", {
 					day: "numeric",
 					month: "short",
-					year: "numeric"
+					year: "numeric",
 				}).format(time);
 			}
 		}
@@ -156,7 +155,7 @@ const prettyDateDay = function(time, abbreviated?: boolean) {
 	}
 };
 
-const prettyDateDayTime = function(time, abbreviated?: boolean) {
+const prettyDateDayTime = function (time, abbreviated?: boolean) {
 	if (time === 0 || time === null || time === undefined) return "";
 	try {
 		return new Intl.DateTimeFormat("en", {
@@ -165,7 +164,7 @@ const prettyDateDayTime = function(time, abbreviated?: boolean) {
 			year: "numeric",
 			hour: "numeric",
 			minute: "2-digit",
-			timeZoneName: "short"
+			timeZoneName: "short",
 		}).format(time);
 	} catch (ex) {
 		console.error(ex, time);
@@ -173,7 +172,7 @@ const prettyDateDayTime = function(time, abbreviated?: boolean) {
 	}
 };
 
-const prettyTime = function(time) {
+const prettyTime = function (time) {
 	try {
 		var prettyTime;
 		// time = this.adjustedTime(time, options.timezone_info);

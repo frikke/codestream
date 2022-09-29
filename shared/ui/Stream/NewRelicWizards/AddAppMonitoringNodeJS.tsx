@@ -1,5 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { NewRelicOptions, RepoProjectType } from "@codestream/protocols/agent";
+import * as path from "path-browserify";
+import React, { useEffect, useState } from "react";
+import { FormattedMessage } from "react-intl";
 import { useDispatch, useSelector } from "react-redux";
+import { Position, Range } from "vscode-languageserver-types";
+import { TextInput } from "../../Authentication/TextInput";
+import { logError } from "../../logger";
 import {
 	AddNewRelicIncludeRequestType,
 	AddNewRelicIncludeResponse,
@@ -8,25 +14,19 @@ import {
 	FindCandidateMainFilesRequestType,
 	FindCandidateMainFilesResponse,
 	InstallNewRelicRequestType,
-	InstallNewRelicResponse
+	InstallNewRelicResponse,
 } from "../../protocols/agent/agent.protocol.nr";
-import { logError } from "../../logger";
+import { Button } from "../../src/components/Button";
 import { InlineMenu } from "../../src/components/controls/InlineMenu";
-import * as path from "path-browserify";
-import { Position, Range } from "vscode-languageserver-types";
-import { highlightRange } from "../../Stream/api-functions";
-import { NewRelicOptions, RepoProjectType } from "@codestream/protocols/agent";
+import { Dialog } from "../../src/components/Dialog";
 import { CodeStreamState } from "../../store";
+import { highlightRange } from "../../Stream/api-functions";
 import { HostApi } from "../../webview-api";
 import { closeModal } from "../actions";
+import Icon from "../Icon";
+import { Link } from "../Link";
 import { SkipLink, Step } from "../Onboard";
 import { InstallRow, StepNumber } from "../OnboardNewRelic";
-import { Dialog } from "../../src/components/Dialog";
-import { FormattedMessage } from "react-intl";
-import { Button } from "../../src/components/Button";
-import { Link } from "../Link";
-import Icon from "../Icon";
-import { TextInput } from "../../Authentication/TextInput";
 
 export const AddAppMonitoringNodeJS = (props: {
 	className: string;
@@ -58,7 +58,7 @@ export const AddAppMonitoringNodeJS = (props: {
 			if (repoPath) {
 				const response = (await HostApi.instance.send(FindCandidateMainFilesRequestType, {
 					type: RepoProjectType.NodeJS,
-					path: repoPath
+					path: repoPath,
 				})) as FindCandidateMainFilesResponse;
 				if (!response.error) {
 					setFiles(response.files);
@@ -79,7 +79,7 @@ export const AddAppMonitoringNodeJS = (props: {
 		setInstallingLibrary(true);
 		const response = (await HostApi.instance.send(InstallNewRelicRequestType, {
 			type: RepoProjectType.NodeJS,
-			cwd: repoPath!
+			cwd: repoPath!,
 		})) as InstallNewRelicResponse;
 		if (response.error) {
 			logError(`Unable to install New Relic module: ${response.error}`);
@@ -98,7 +98,7 @@ export const AddAppMonitoringNodeJS = (props: {
 			type: RepoProjectType.NodeJS,
 			filePath: repoPath!,
 			appName,
-			licenseKey
+			licenseKey,
 		})) as CreateNewRelicConfigFileResponse;
 		if (response.error) {
 			logError(`Unable to create New Relic config file: ${response.error}`);
@@ -116,7 +116,7 @@ export const AddAppMonitoringNodeJS = (props: {
 		const response = (await HostApi.instance.send(AddNewRelicIncludeRequestType, {
 			type: RepoProjectType.NodeJS,
 			file: selectedFile || files[0],
-			dir: repoPath!
+			dir: repoPath!,
 		})) as AddNewRelicIncludeResponse;
 		if (response.error) {
 			logError(`Unable to add New Relic include to ${selectedFile}: ${response.error}`);
@@ -134,7 +134,7 @@ export const AddAppMonitoringNodeJS = (props: {
 		highlightRange({
 			uri: `file://${includeFile}`,
 			range,
-			highlight: true
+			highlight: true,
 		});
 	};
 
@@ -144,7 +144,7 @@ export const AddAppMonitoringNodeJS = (props: {
 			label: file,
 			checked: selectedFile === file,
 			default: i === 0,
-			action: () => setSelectedFile(file)
+			action: () => setSelectedFile(file),
 		};
 	});
 

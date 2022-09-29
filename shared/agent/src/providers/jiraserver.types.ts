@@ -1,5 +1,3 @@
-import { JiraCard } from "../protocol/agent.protocol.jira";
-
 export interface JiraPaginate {
 	maxResults: number;
 	startAt: number;

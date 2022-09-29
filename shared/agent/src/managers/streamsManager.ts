@@ -50,14 +50,14 @@ import {
 	UnarchiveStreamResponse,
 	UpdateStreamMembershipRequest,
 	UpdateStreamMembershipRequestType,
-	UpdateStreamMembershipResponse
+	UpdateStreamMembershipResponse,
 } from "../protocol/agent.protocol";
 import {
 	CSChannelStream,
 	CSDirectStream,
 	CSObjectStream,
 	CSStream,
-	StreamType
+	StreamType,
 } from "../protocol/api.protocol";
 import { lsp, lspHandler } from "../system";
 import { KeyValue } from "./cache/baseCache";
@@ -112,7 +112,7 @@ export class StreamsManager extends CachedEntityManagerBase<
 		return {
 			streams: response.streams.filter(s =>
 				CodeStreamApiProvider.isStreamSubscriptionRequired(s, this.session.userId, teamId)
-			)
+			),
 		};
 	}
 

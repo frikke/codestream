@@ -1,6 +1,5 @@
 import { Connection, Emitter, Event } from "vscode-languageserver";
 import { CodeStreamAgent } from "../../src/agent";
-import { CodeStreamApiProvider } from "../../src/api/codestream/codestreamApi";
 import { AgentOptions } from "../../src/protocol/agent.protocol";
 import { CodeStreamSession } from "../../src/session";
 import { xfs } from "../../src/xfs";
@@ -44,7 +43,7 @@ export class TestAgent {
 		onDidChangeContent() {},
 		onDidSave() {},
 		onDidClose() {},
-		onDidOpen() {}
+		onDidOpen() {},
 	};
 
 	sendNotification() {}
@@ -131,7 +130,7 @@ export async function loadTestData(dir: string): Promise<TestData> {
 		agentOptions: agentOptions!,
 		agentRequests,
 		csApiRequests,
-		slackApiRequests
+		slackApiRequests,
 	};
 }
 

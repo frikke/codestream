@@ -1,8 +1,8 @@
-import styled from "styled-components";
 import React from "react";
-import CancelButton from "../CancelButton";
 import { useDispatch } from "react-redux";
+import styled from "styled-components";
 import { closePanel } from "../actions";
+import CancelButton from "../CancelButton";
 import { Link } from "../Link";
 const Root = styled.div``;
 
@@ -15,7 +15,7 @@ const MissingExtensionBase: React.FC = props => {
 				style={{
 					display: "flex",
 					alignItems: "center",
-					width: "100%"
+					width: "100%",
 				}}
 			>
 				<div style={{ marginLeft: "auto", marginRight: "13px", whiteSpace: "nowrap", flexGrow: 0 }}>

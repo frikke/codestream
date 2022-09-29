@@ -45,7 +45,7 @@ export class RepositoryLocator {
 			try {
 				const e = {
 					added: await this.session.getWorkspaceFolders(),
-					removed: []
+					removed: [],
 				} as WorkspaceFoldersChangeEvent;
 
 				Logger.log(`startCore: Starting repository search in ${e.added.length} folders`);
@@ -154,17 +154,17 @@ export class RepositoryLocator {
 			const [files, search] = await workspace.getConfiguration([
 				{
 					section: "files.exclude",
-					scopeUri: folderUri.toString()
+					scopeUri: folderUri.toString(),
 				},
 				{
 					section: "search.exclude",
-					scopeUri: folderUri.toString()
-				}
+					scopeUri: folderUri.toString(),
+				},
 			]);
 
 			excludes = {
 				...(files || {}),
-				...(search || {})
+				...(search || {}),
 			};
 
 			const excludedPaths = [
@@ -172,7 +172,7 @@ export class RepositoryLocator {
 					if (!value) return undefined;
 					if (key.startsWith("**/")) return key.substring(3);
 					return key;
-				})
+				}),
 			];
 
 			excludes = excludedPaths.reduce((accumulator, current) => {

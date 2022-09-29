@@ -70,7 +70,7 @@ export abstract class MarkersBuilder {
 			branchWhenCreated: this.source?.branch,
 			remotes: remotes,
 			remoteCodeUrl,
-			...repoIdentifier
+			...repoIdentifier,
 		};
 
 		Logger.log(`MarkersBuilder: marker descriptor created`);
@@ -105,7 +105,7 @@ export abstract class MarkersBuilder {
 		if (stream && stream.id) {
 			Logger.log(`MarkersBuilder: stream id=${stream.id}`);
 			return {
-				fileStreamId: stream.id
+				fileStreamId: stream.id,
 			};
 		}
 
@@ -133,7 +133,7 @@ export abstract class MarkersBuilder {
 				uri: this.documentId.uri,
 				range: this.range,
 				contents: this.code,
-				skipBlame: true
+				skipBlame: true,
 			});
 
 			if (remotes !== undefined && scmResponse.scm !== undefined && scmResponse.scm.revision) {
@@ -185,7 +185,7 @@ class DefaultMarkersBuilder extends MarkersBuilder {
 
 	private getLocationInfoWithoutSource() {
 		return {
-			referenceLocations: []
+			referenceLocations: [],
 		};
 	}
 
@@ -215,12 +215,12 @@ class DefaultMarkersBuilder extends MarkersBuilder {
 						canonical: true,
 						uncommitted: true,
 						baseCommit: repoHead,
-						diff
+						diff,
 					},
-					location: MarkerLocation.toArray(this.location)
-				}
+					location: MarkerLocation.toArray(this.location),
+				},
 			],
-			fileCurrentCommitSha: repoHead
+			fileCurrentCommitSha: repoHead,
 		};
 	}
 
@@ -232,12 +232,12 @@ class DefaultMarkersBuilder extends MarkersBuilder {
 			commitHash: this.source!.revision,
 			location: MarkerLocation.toArray(this.location),
 			flags: {
-				canonical: true
-			}
+				canonical: true,
+			},
 		};
 		return {
 			referenceLocations: [location],
-			fileCurrentCommitSha: this.source!.revision
+			fileCurrentCommitSha: this.source!.revision,
 		};
 	}
 
@@ -254,7 +254,7 @@ class DefaultMarkersBuilder extends MarkersBuilder {
 		const {
 			diffCommittedToContents,
 			diffContentsToCommitted,
-			location: locationAtCurrentCommit
+			location: locationAtCurrentCommit,
 		} = await SessionContainer.instance().markerLocations.backtrackLocation(
 			this.getFileURI(repoPath),
 			fileContents,
@@ -272,14 +272,14 @@ class DefaultMarkersBuilder extends MarkersBuilder {
 			// it expects 0-based ranges
 			startLine: locationAtCurrentCommit.lineStart - 1,
 			endLine: locationAtCurrentCommit.lineEnd - 1,
-			retryWithTrimmedEndOnFailure: true
+			retryWithTrimmedEndOnFailure: true,
 		});
 
 		const remoteDefaultBranchRevisionsPromises = git.getRemoteDefaultBranchHeadRevisions(repoPath);
 		const backtrackShas = [
 			...(await blameRevisionsPromises).map(revision => revision.sha),
-			...(await remoteDefaultBranchRevisionsPromises)
-		].filter(function(sha, index, self) {
+			...(await remoteDefaultBranchRevisionsPromises),
+		].filter(function (sha, index, self) {
 			return sha !== fileCurrentCommitSha && index === self.indexOf(sha);
 		});
 		Logger.log(`MarkersBuilder: backtracking location to ${backtrackShas.length} revisions`);
@@ -297,8 +297,8 @@ class DefaultMarkersBuilder extends MarkersBuilder {
 				commitHash: sha,
 				location: locationArray,
 				flags: {
-					backtracked: true
-				}
+					backtracked: true,
+				},
 			};
 		});
 
@@ -310,16 +310,16 @@ class DefaultMarkersBuilder extends MarkersBuilder {
 						canonical: true,
 						uncommitted: true,
 						baseCommit: fileCurrentCommitSha,
-						diff: diffCommittedToContents
+						diff: diffCommittedToContents,
 					},
-					location: MarkerLocation.toArray(this.location)
+					location: MarkerLocation.toArray(this.location),
 			  }
 			: {
 					commitHash: fileCurrentCommitSha,
 					location: MarkerLocation.toArray(locationAtCurrentCommit),
 					flags: {
-						canonical: true
-					}
+						canonical: true,
+					},
 			  };
 		const backtrackedLocations = await Promise.all(promises);
 		const referenceLocations: CSReferenceLocation[] = [canonicalLocation, ...backtrackedLocations];
@@ -328,7 +328,7 @@ class DefaultMarkersBuilder extends MarkersBuilder {
 
 		return {
 			referenceLocations,
-			fileCurrentCommitSha
+			fileCurrentCommitSha,
 		};
 	}
 
@@ -436,26 +436,26 @@ class ReviewDiffMarkersBuilder extends MarkersBuilder {
 					canonical: true,
 					uncommitted: true,
 					baseCommit: latestCommitSha,
-					diff: fromLatestCommitDiff
+					diff: fromLatestCommitDiff,
 				},
-				location: MarkerLocation.toArray(this.location)
+				location: MarkerLocation.toArray(this.location),
 			});
 		}
 
 		referenceLocations.push({
 			commitHash: latestCommitSha,
 			flags: { canonical: toLatestCommitDiff == null },
-			location: MarkerLocation.toArray(latestCommitLocation)
+			location: MarkerLocation.toArray(latestCommitLocation),
 		});
 		referenceLocations.push({
 			commitHash: diffCheckpoint.diff.rightBaseSha,
 			flags: { backtracked: true },
-			location: MarkerLocation.toArray(baseCommitLocation)
+			location: MarkerLocation.toArray(baseCommitLocation),
 		});
 
 		return {
 			referenceLocations,
-			fileCurrentCommitSha: latestCommitSha
+			fileCurrentCommitSha: latestCommitSha,
 		};
 	}
 }
@@ -469,7 +469,7 @@ interface RepoIdentifier {
 
 const remoteNameValues = new Map([
 	["upstream", 1],
-	["origin", 2]
+	["origin", 2],
 ]);
 
 export const compareRemotes = (r1: { name: string }, r2: { name: string }) => {

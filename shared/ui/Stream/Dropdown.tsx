@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
+import styled from "styled-components";
 import Icon from "./Icon";
 import Menu from "./Menu";
-import styled from "styled-components";
 
 const DropdownItemsContainer = styled.div`
 	position: absolute;
@@ -85,7 +85,7 @@ export const Dropdown = (props: Props) => {
 										if (typeof _.action === "function") {
 											_.action();
 										}
-									}
+									},
 								};
 							})}
 							action={() => setMenuOpen(undefined)}

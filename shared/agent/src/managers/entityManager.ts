@@ -16,7 +16,7 @@ export abstract class EntityManagerBase<T extends CSEntity> extends ManagerBase<
 	protected readonly cache: EntityCache<T> = new EntityCache<T>({
 		idxFields: this.getIndexedFields(),
 		fetchFn: this.fetch.bind(this),
-		entityName: this.getEntityName()
+		entityName: this.getEntityName(),
 	});
 
 	constructor(session: CodeStreamSession) {

@@ -18,8 +18,8 @@ describe("GitRepository", () => {
 					[
 						{
 							type: GitRemoteType.Fetch,
-							url: "https://example.com/foo"
-						}
+							url: "https://example.com/foo",
+						},
 					]
 				),
 				new GitRemote(
@@ -32,10 +32,10 @@ describe("GitRepository", () => {
 					[
 						{
 							type: GitRemoteType.Fetch,
-							url: "https://example.com/upstream/foo"
-						}
+							url: "https://example.com/upstream/foo",
+						},
 					]
-				)
+				),
 			];
 
 			expect(
@@ -62,8 +62,8 @@ describe("GitRepository", () => {
 					[
 						{
 							type: GitRemoteType.Fetch,
-							url: "https://example.com/upstream/cheese"
-						}
+							url: "https://example.com/upstream/cheese",
+						},
 					]
 				),
 				new GitRemote(
@@ -76,8 +76,8 @@ describe("GitRepository", () => {
 					[
 						{
 							type: GitRemoteType.Fetch,
-							url: "https://example.com/foo"
-						}
+							url: "https://example.com/foo",
+						},
 					]
 				),
 				new GitRemote(
@@ -90,8 +90,8 @@ describe("GitRepository", () => {
 					[
 						{
 							type: GitRemoteType.Fetch,
-							url: "https://example.com/upstream/cheese"
-						}
+							url: "https://example.com/upstream/cheese",
+						},
 					]
 				),
 				new GitRemote(
@@ -104,10 +104,10 @@ describe("GitRepository", () => {
 					[
 						{
 							type: GitRemoteType.Fetch,
-							url: "https://example.com/upstream/foo"
-						}
+							url: "https://example.com/upstream/foo",
+						},
 					]
-				)
+				),
 			];
 
 			expect(
@@ -134,8 +134,8 @@ describe("GitRepository", () => {
 					[
 						{
 							type: GitRemoteType.Fetch,
-							url: "https://example.com/foo"
-						}
+							url: "https://example.com/foo",
+						},
 					]
 				),
 				new GitRemote(
@@ -148,8 +148,8 @@ describe("GitRepository", () => {
 					[
 						{
 							type: GitRemoteType.Fetch,
-							url: "https://example.com/upstream/foo"
-						}
+							url: "https://example.com/upstream/foo",
+						},
 					]
 				),
 				new GitRemote(
@@ -162,8 +162,8 @@ describe("GitRepository", () => {
 					[
 						{
 							type: GitRemoteType.Fetch,
-							url: "https://example.com/upstream/foo"
-						}
+							url: "https://example.com/upstream/foo",
+						},
 					]
 				),
 				new GitRemote(
@@ -176,10 +176,10 @@ describe("GitRepository", () => {
 					[
 						{
 							type: GitRemoteType.Fetch,
-							url: "https://example.com/origin/foo"
-						}
+							url: "https://example.com/origin/foo",
+						},
 					]
-				)
+				),
 			];
 
 			expect(

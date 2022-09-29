@@ -1,6 +1,6 @@
-import styled from "styled-components";
-import React, { PropsWithChildren } from "react";
 import Icon from "@codestream/webview/Stream/Icon";
+import React, { PropsWithChildren } from "react";
+import styled from "styled-components";
 
 interface Props extends PropsWithChildren<{}> {
 	className?: string;
@@ -28,5 +28,5 @@ export const LoadingMessage = React.forwardRef((props: Props, ref: React.Ref<HTM
 });
 
 LoadingMessage.defaultProps = {
-	align: "center"
+	align: "center",
 };

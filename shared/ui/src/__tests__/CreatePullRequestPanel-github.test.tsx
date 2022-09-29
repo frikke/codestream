@@ -12,8 +12,8 @@ import { waitFor } from "@testing-library/react";
 import { setupCommunication } from "../../index";
 import { CreatePullRequestPanel } from "../../Stream/CreatePullRequestPanel";
 
-import { HostApi } from "../../webview-api";
 import { CheckPullRequestPreconditionsResponse } from "@codestream/protocols/agent";
+import { HostApi } from "../../webview-api";
 // HostApi is now a mock constructor
 jest.mock("../../webview-api");
 
@@ -21,7 +21,7 @@ jest.mock("../../webview-api");
 const MockedHostApi = HostApi as any;
 
 setupCommunication({
-	postMessage: function() {}
+	postMessage: function () {},
 });
 
 let container: any = undefined;
@@ -47,31 +47,31 @@ const storeFactory = () => {
 		providers: {
 			github: {},
 			"github*com": {
-				name: "GitHub"
+				name: "GitHub",
 			},
 			gitlab: {},
 			github_enterprise: {},
 			gitlab_enterprise: {},
 			bitbucket: {},
-			bitbucket_server: {}
+			bitbucket_server: {},
 		},
 		repos: {},
 		providerPullRequests: {},
 		ide: {
-			name: "VSC"
+			name: "VSC",
 		},
 		configs: {},
 		users: {
 			"123": {
-				status: {}
-			}
+				status: {},
+			},
 		},
 		session: {
-			userId: "123"
+			userId: "123",
 		},
 		preferences: {
-			pullRequestFilesChangedMode: "files"
-		}
+			pullRequestFilesChangedMode: "files",
+		},
 	};
 };
 
@@ -81,7 +81,7 @@ it("renders default state", async () => {
 			//	console.warn(a, a.method, b, c);
 			if (a.method === "codestream/scm/latestCommit") {
 				return {
-					shortMesssage: "shortMessage"
+					shortMesssage: "shortMessage",
 				};
 			} else if (a.method === "codestream/review/pr/checkPreconditions") {
 				return {
@@ -90,27 +90,27 @@ it("renders default state", async () => {
 						branch: "feature/foo",
 						branches: [],
 						remoteBranch: "origin/feature/foo",
-						commitsBehindOriginHeadBranch: "0"
+						commitsBehindOriginHeadBranch: "0",
 					},
 					provider: {
 						repo: {
 							defaultBranch: "main",
-							isFork: false
-						}
-					}
+							isFork: false,
+						},
+					},
 				} as CheckPullRequestPreconditionsResponse;
 			} else if (a.method === "codestream/scm/repos") {
 				return {
-					repositories: []
+					repositories: [],
 				};
 			}
 			return new Promise(resolve => resolve(true));
 		},
 		on: () => {
 			return {
-				dispose: function() {}
+				dispose: function () {},
 			};
-		}
+		},
 	};
 	MockedHostApi.mockImplementation(() => {
 		return mockHostApi;
@@ -140,7 +140,7 @@ it("renders default state 2", async () => {
 		send: async (a: { method: string }, b, c) => {
 			if (a.method === "codestream/scm/latestCommit") {
 				return {
-					shortMesssage: "shortMessage"
+					shortMesssage: "shortMessage",
 				};
 			} else if (a.method === "codestream/review/pr/checkPreconditions") {
 				return {
@@ -155,21 +155,21 @@ it("renders default state 2", async () => {
 						remoteBranches: [
 							{
 								remote: "origin",
-								branch: "foo"
+								branch: "foo",
 							},
 							{
 								remote: "origin",
-								branch: "master"
+								branch: "master",
 							},
 							{
 								remote: "private",
-								branch: "asdf"
+								branch: "asdf",
 							},
 							{
 								remote: "private",
-								branch: "master"
-							}
-						]
+								branch: "master",
+							},
+						],
 					},
 					provider: {
 						id: "github*com",
@@ -177,14 +177,14 @@ it("renders default state 2", async () => {
 						pullRequestTemplateNames: [],
 						pullRequestTemplatePath: "/Users/TeamCodeStream/code/a/.gitlab/merge_request_templates",
 						repo: {
-							defaultBranch: "master"
-						}
+							defaultBranch: "master",
+						},
 					},
 					review: {
 						title: "",
-						text: ""
+						text: "",
 					},
-					commitsBehindOriginHeadBranch: "0"
+					commitsBehindOriginHeadBranch: "0",
 				} as CheckPullRequestPreconditionsResponse;
 			} else if (a.method === "codestream/scm/repos") {
 				return {
@@ -194,17 +194,17 @@ it("renders default state 2", async () => {
 							path: "/Users/TeamCodeStream/code/a",
 							folder: {
 								uri: "file:///Users/TeamCodeStream/code/a",
-								name: "a"
+								name: "a",
 							},
 							root: true,
-							providerId: "github*com"
-						}
-					]
+							providerId: "github*com",
+						},
+					],
 				};
 			}
 			return new Promise(resolve => resolve(true));
 		},
-		on: () => {}
+		on: () => {},
 	};
 	MockedHostApi.mockImplementation(() => {
 		return mockHostApi;
@@ -234,28 +234,28 @@ it("ALREADY_HAS_PULL_REQUEST", async () => {
 		send: async (a: { method: string }, b, c) => {
 			if (a.method === "codestream/scm/latestCommit") {
 				return {
-					shortMesssage: "shortMessage"
+					shortMesssage: "shortMessage",
 				};
 			} else if (a.method === "codestream/review/pr/checkPreconditions") {
 				return {
 					success: false,
 					error: {
 						type: "ALREADY_HAS_PULL_REQUEST",
-						url: "asdf.com"
-					}
+						url: "asdf.com",
+					},
 				};
 			} else if (a.method === "codestream/scm/repos") {
 				return {
-					repositories: []
+					repositories: [],
 				};
 			}
 			return new Promise(resolve => resolve(true));
 		},
 		on: () => {
 			return {
-				dispose: function() {}
+				dispose: function () {},
 			};
-		}
+		},
 	};
 	MockedHostApi.mockImplementation(() => {
 		return mockHostApi;
@@ -285,23 +285,23 @@ it("REQUIRES_PROVIDER", async () => {
 		send: async (a: { method: string }, b, c) => {
 			if (a.method === "codestream/scm/latestCommit") {
 				return {
-					shortMesssage: "shortMessage"
+					shortMesssage: "shortMessage",
 				};
 			} else if (a.method === "codestream/review/pr/checkPreconditions") {
 				return {
 					success: false,
 					error: {
-						type: "REQUIRES_PROVIDER"
-					}
+						type: "REQUIRES_PROVIDER",
+					},
 				};
 			} else if (a.method === "codestream/scm/repos") {
 				return {
-					repositories: []
+					repositories: [],
 				};
 			}
 			return new Promise(resolve => resolve(true));
 		},
-		on: () => {}
+		on: () => {},
 	};
 	MockedHostApi.mockImplementation(() => {
 		return mockHostApi;
@@ -331,25 +331,25 @@ it("REPO_NOT_FOUND", async () => {
 		send: async (a: { method: string }, b, c) => {
 			if (a.method === "codestream/scm/latestCommit") {
 				return {
-					shortMesssage: "shortMessage"
+					shortMesssage: "shortMessage",
 				};
 			}
 			if (a.method === "codestream/review/pr/checkPreconditions") {
 				return {
 					success: false,
 					error: {
-						type: "REPO_NOT_FOUND"
-					}
+						type: "REPO_NOT_FOUND",
+					},
 				};
 			}
 			if (a.method === "codestream/scm/repos") {
 				return {
-					repositories: []
+					repositories: [],
 				};
 			}
 			return true;
 		},
-		on: () => {}
+		on: () => {},
 	};
 	MockedHostApi.mockImplementation(() => {
 		return mockHostApi;
@@ -379,25 +379,25 @@ it("HAS_LOCAL_MODIFICATIONS", async () => {
 		send: async (a: { method: string }, b, c) => {
 			if (a.method === "codestream/scm/latestCommit") {
 				return {
-					shortMesssage: "shortMessage"
+					shortMesssage: "shortMessage",
 				};
 			}
 			if (a.method === "codestream/review/pr/checkPreconditions") {
 				return {
 					success: false,
 					error: {
-						type: "HAS_LOCAL_MODIFICATIONS"
-					}
+						type: "HAS_LOCAL_MODIFICATIONS",
+					},
 				};
 			}
 			if (a.method === "codestream/scm/repos") {
 				return {
-					repositories: []
+					repositories: [],
 				};
 			}
 			return true;
 		},
-		on: () => {}
+		on: () => {},
 	};
 	MockedHostApi.mockImplementation(() => {
 		return mockHostApi;

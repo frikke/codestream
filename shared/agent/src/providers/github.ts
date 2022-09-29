@@ -43,7 +43,7 @@ import {
 	ReportingMessageType,
 	ThirdPartyDisconnect,
 	ThirdPartyProviderCard,
-	ThirdPartyProviderConfig
+	ThirdPartyProviderConfig,
 } from "../protocol/agent.protocol";
 import { CSGitHubProviderInfo, CSRepository } from "../protocol/api.protocol";
 import { Dates, Functions, log, lspProvider } from "../system";
@@ -58,8 +58,9 @@ import {
 	ProviderGetRepoInfoResponse,
 	PullRequestComment,
 	ThirdPartyProviderSupportsIssues,
-	ThirdPartyProviderSupportsPullRequests
+	ThirdPartyProviderSupportsPullRequests,
 } from "./provider";
+import { QueryLogger, RateLimit } from "./queryLogger";
 import { WAITING_ON_REVIEW } from "./registry";
 import { ThirdPartyIssueProviderBase } from "./thirdPartyIssueProviderBase";
 import { ProviderVersion } from "./types";
@@ -133,41 +134,13 @@ interface PRResponse {
 	};
 }
 
-interface RateLimit {
-	rateLimit: number;
-	rateLimitUsed: number;
-	rateLimitRemaining: number;
-	rateLimitResetTime: Date;
-	rateLimitResource: string;
-}
-
-interface CallStats {
-	count: number;
-	cumulativeCost: number;
-	averageCost: number;
-}
-
-interface QueryLogger {
-	restApi: {
-		rateLimits: Record<string, RateLimit>;
-		fns: Record<string, CallStats>;
-	};
-	graphQlApi: {
-		rateLimit?: {
-			remaining: number;
-			resetAt: string;
-			resetInMinutes: number;
-			last?: { name: string; cost: number };
-		};
-		fns: Record<string, CallStats>;
-	};
-}
-
 const diffHunkRegex = /^@@ -([\d]+)(?:,([\d]+))? \+([\d]+)(?:,([\d]+))? @@/;
 
 @lspProvider("github")
-export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProviderInfo>
-	implements ThirdPartyProviderSupportsIssues, ThirdPartyProviderSupportsPullRequests {
+export class GitHubProvider
+	extends ThirdPartyIssueProviderBase<CSGitHubProviderInfo>
+	implements ThirdPartyProviderSupportsIssues, ThirdPartyProviderSupportsPullRequests
+{
 	constructor(
 		public readonly session: CodeStreamSession,
 		protected readonly providerConfig: ThirdPartyProviderConfig
@@ -177,7 +150,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 
 	_queryLogger: QueryLogger = {
 		graphQlApi: { fns: {} },
-		restApi: { rateLimits: {}, fns: {} }
+		restApi: { rateLimits: {}, fns: {} },
 	};
 
 	async getRemotePaths(repo: any, _projectsByRemotePath: any): Promise<string[] | undefined> {
@@ -215,7 +188,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 		return {
 			Authorization: `token ${this.accessToken}`,
 			"user-agent": "CodeStream",
-			Accept: "application/vnd.github.v3+json, application/vnd.github.inertia-preview+json"
+			Accept: "application/vnd.github.v3+json, application/vnd.github.inertia-preview+json",
 		};
 	}
 
@@ -224,7 +197,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			provider: {
 				name: this.displayName,
 				icon: "mark-github",
-				id: this.providerConfig.id
+				id: this.providerConfig.id,
 			},
 			subhead: `#${comment.pullRequest.id}`,
 			externalId: comment.pullRequest.externalId,
@@ -232,7 +205,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			externalType: "PullRequest",
 			title: comment.pullRequest.title,
 			diffHunk: comment.diffHunk,
-			actions: []
+			actions: [],
 		};
 	}
 
@@ -257,7 +230,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 		// could be cached in the _client instance.
 		this._client.setHeaders({
 			Authorization: `Bearer ${this.accessToken}`,
-			Accept: "application/vnd.github.merge-info-preview+json"
+			Accept: "application/vnd.github.merge-info-preview+json",
 		});
 
 		return this._client;
@@ -293,7 +266,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				// paths when using the semver package
 				this._version = {
 					version: "999.0.0",
-					asArray: [999, 0, 0]
+					asArray: [999, 0, 0],
 				};
 				Logger.log(
 					`GitHub getVersion - ${this.providerConfig.id} version=${this._version.version}`
@@ -340,7 +313,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 								new Date().getTime()) /
 								1000 /
 								60
-						)
+						),
 					};
 					const e = new Error();
 					if (e.stack) {
@@ -361,13 +334,13 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 						}
 						this._queryLogger.graphQlApi.rateLimit.last = {
 							name: functionName,
-							cost: response.rateLimit.cost
+							cost: response.rateLimit.cost,
 						};
 						if (!this._queryLogger.graphQlApi.fns[functionName]) {
 							this._queryLogger.graphQlApi.fns[functionName] = {
 								count: 1,
 								cumulativeCost: response.rateLimit.cost,
-								averageCost: response.rateLimit.cost
+								averageCost: response.rateLimit.cost,
 							};
 						} else {
 							const existing = this._queryLogger.graphQlApi.fns[functionName];
@@ -442,7 +415,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				rateLimitUsed,
 				rateLimitRemaining,
 				rateLimitResetTime,
-				rateLimitResource
+				rateLimitResource,
 			};
 		} catch (e) {
 			Logger.warn("Error getting rate limit stats", e);
@@ -451,12 +424,8 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 	}
 
 	_traceRestRateLimits(rateLimitHeaders: RateLimit, httpMethod: "restPost" | "restGet") {
-		const {
-			rateLimitResource,
-			rateLimitResetTime,
-			rateLimitRemaining,
-			rateLimit
-		} = rateLimitHeaders;
+		const { rateLimitResource, rateLimitResetTime, rateLimitRemaining, rateLimit } =
+			rateLimitHeaders;
 		Logger.log(
 			`${rateLimitResource} limit used ${rateLimitRemaining} of ${rateLimit}, reset at ${rateLimitResetTime}`
 		);
@@ -483,7 +452,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 					this._queryLogger.restApi.fns[functionName] = {
 						count: 1,
 						averageCost: 0,
-						cumulativeCost: 0
+						cumulativeCost: 0,
 					};
 				} else {
 					const existing = this._queryLogger.restApi.fns[functionName];
@@ -499,8 +468,8 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 					source: "agent",
 					message: "GH rate limit exceeded",
 					extra: {
-						stats: this._queryLogger
-					}
+						stats: this._queryLogger,
+					},
 				});
 			} else if (Logger.level === TraceLevel.Debug || remainingPercent < 15) {
 				Logger.log(JSON.stringify(this._queryLogger, null, 2));
@@ -542,7 +511,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				id: r.id,
 				name: r.full_name,
 				apiIdentifier: r.full_name,
-				path: r.path
+				path: r.path,
 			}));
 
 		if (boards.length === 0) {
@@ -567,14 +536,14 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 							...repo,
 							id: repo.id,
 							name: repo.full_name,
-							apiIdentifier: repo.full_name
+							apiIdentifier: repo.full_name,
 						};
 					})
 			);
 		}
 
 		return {
-			boards
+			boards,
 		};
 	}
 
@@ -604,7 +573,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 					tokenId: card.number,
 					idBoard: card.repository ? card.repository.id : "",
 					comments: card.comments,
-					body: card.body
+					body: card.body,
 				};
 			});
 			return { cards };
@@ -716,14 +685,14 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				let prWithAllFiles: GitHubFiles = {
 					pageInfo: {},
 					nodes: [],
-					totalCount: 0
+					totalCount: 0,
 				};
 				do {
 					response2 = await this.getPullRequestQuery(
 						{
 							owner: repoOwner,
 							name: repoName,
-							pullRequestNumber: pullRequestNumber
+							pullRequestNumber: pullRequestNumber,
 						},
 						version,
 						response2 && response2?.repository?.pullRequest?.files?.pageInfo?.endCursor
@@ -753,7 +722,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 						const prForkPointSha = await scmManager.getForkPointRequestType({
 							repoId: prRepo.id,
 							baseSha: response.repository.pullRequest.baseRefOid,
-							headSha: response.repository.pullRequest.headRefOid
+							headSha: response.repository.pullRequest.headRefOid,
 						});
 
 						response.repository.pullRequest.forkPointSha = prForkPointSha?.sha;
@@ -777,24 +746,24 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				response.repository.pullRequest.providerId = this.providerConfig.id;
 				response.repository.providerId = this.providerConfig.id;
 				response.repository.pullRequest.supports = {
-					version: version
+					version: version,
 				};
 				this._pullRequestCache.set(request.pullRequestId, response);
 			}
 		} catch (ex) {
 			Logger.error(ex, "getPullRequest", {
-				request: request
+				request: request,
 			});
 			return {
 				error: {
-					message: ex.message
-				}
+					message: ex.message,
+				},
 			} as any;
 		}
 
 		Logger.log("getPullRequest returning", {
 			id: request.pullRequestId,
-			repository: response.repository.pullRequest.repository
+			repository: response.repository.pullRequest.repository,
 		});
 		return response;
 	}
@@ -877,7 +846,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 					owner: request.owner,
 					name: request.name,
 					pullRequestNumber: request.pullRequestNumber,
-					cursor: cursor
+					cursor: cursor,
 				}
 			)) as FetchThirdPartyPullRequestResponse;
 		} else {
@@ -952,7 +921,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 					owner: request.owner,
 					name: request.name,
 					pullRequestNumber: request.pullRequestNumber,
-					cursor: cursor
+					cursor: cursor,
 				}
 			)) as FetchThirdPartyPullRequestResponse;
 		}
@@ -970,7 +939,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			{
 				title: data.title,
 				body: data.description,
-				assignees: (data.assignees! || []).map(a => a.login)
+				assignees: (data.assignees! || []).map(a => a.login),
 			}
 		);
 		return { ...response.body, url: response.body.html_url };
@@ -1008,15 +977,15 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 					...u,
 					id: u.id,
 					displayName: u.login,
-					avatarUrl: u.avatar_url
-				}))
+					avatarUrl: u.avatar_url,
+				})),
 			};
 		} catch (ex) {
 			// can't get assignable users for repos you don't have access to
 			Logger.warn(ex);
 		}
 		return {
-			users: []
+			users: [],
 		};
 	}
 
@@ -1036,8 +1005,8 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				return {
 					error: {
 						type: "UNKNOWN",
-						message: "PR Api is not compatible"
-					}
+						message: "PR Api is not compatible",
+					},
 				};
 			}
 
@@ -1086,7 +1055,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 					headRefName: request.isFork
 						? `${request.headRefRepoOwner}:${request.headRefName}`
 						: request.headRefName,
-					body: this.createDescription(request)
+					body: this.createDescription(request),
 				}
 			);
 			const pullRequest = createPullRequestResponse.createPullRequest.pullRequest;
@@ -1094,13 +1063,13 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			return {
 				url: pullRequest.url,
 				id: pullRequest.id,
-				title: `#${pullRequest.number} ${pullRequest.title}`
+				title: `#${pullRequest.number} ${pullRequest.title}`,
 			};
 		} catch (ex) {
 			Logger.error(ex, `${this.displayName}: createPullRequest`, {
 				remote: request.remote,
 				baseRefName: request.baseRefName,
-				headRefName: request.headRefName
+				headRefName: request.headRefName,
 			});
 			let errorMessage =
 				ex.response && ex.response.errors ? ex.response.errors[0].message : "Unknown error";
@@ -1108,8 +1077,8 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			return {
 				error: {
 					type: "PROVIDER",
-					message: errorMessage
-				}
+					message: errorMessage,
+				},
 			};
 		}
 	}
@@ -1152,7 +1121,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			  `,
 				{
 					owner: owner,
-					name: name
+					name: name,
 				}
 			);
 			const result = {
@@ -1162,10 +1131,10 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				defaultBranch: response.repository.defaultBranchRef.name,
 				pullRequests: response.repository.pullRequests.nodes.map((_: any) => ({
 					..._,
-					nameWithOwner: _.headRepository.nameWithOwner
+					nameWithOwner: _.headRepository.nameWithOwner,
 				})),
 				owner: owner,
-				name: name
+				name: name,
 			};
 			return result;
 		} catch (ex) {
@@ -1234,7 +1203,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			  `,
 				{
 					owner: owner,
-					name: name
+					name: name,
 				}
 			);
 
@@ -1245,7 +1214,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				return {
 					parent: result.parent,
 					forks: result.forks,
-					self: { ...response.repository, owner: owner }
+					self: { ...response.repository, owner: owner },
 				};
 			}
 
@@ -1257,7 +1226,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			return {
 				parent: response.repository,
 				forks: forks.map((_: any) => ({ ..._, owner: _.owner.login })),
-				self: response.repository
+				self: response.repository,
 			};
 		} catch (ex) {
 			return this.handleProviderError(ex, request);
@@ -1272,7 +1241,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 		const name = toRepoName(split[2]);
 		return {
 			owner,
-			name
+			name,
 		};
 	}
 
@@ -1293,7 +1262,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 					result.push({
 						id: pr.node_id,
 						title: pr.title,
-						url: pr.html_url
+						url: pr.html_url,
 					});
 				}
 			} catch (ex) {
@@ -1353,7 +1322,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			  }`,
 			{
 				owner: request.owner,
-				name: request.repo
+				name: request.repo,
 			}
 		);
 		return response.repository.labels.nodes;
@@ -1382,7 +1351,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			  }`,
 			{
 				owner: request.owner,
-				name: request.repo
+				name: request.repo,
 			}
 		);
 		return query.repository.projects.edges.map((_: any) => _.node);
@@ -1413,7 +1382,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			  }`,
 			{
 				owner: request.owner,
-				name: request.repo
+				name: request.repo,
 			}
 		);
 		return query.repository.milestones.edges.map((_: any) => _.node);
@@ -1469,7 +1438,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			{
 				owner: request.owner,
 				name: request.repo,
-				cursor: cursor
+				cursor: cursor,
 			}
 		);
 
@@ -1487,16 +1456,16 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 
 		await this.mutate<any>(query, {
 			pullRequestId: request.pullRequestId,
-			path: request.path
+			path: request.path,
 		});
 
 		return this.handleResponse(request.pullRequestId, {
 			directives: [
 				{
 					type: "updatePullRequestFileNode",
-					data: { path: request.path, viewerViewedState: request.onOff ? "VIEWED" : "UNVIEWED" }
-				}
-			]
+					data: { path: request.path, viewerViewedState: request.onOff ? "VIEWED" : "UNVIEWED" },
+				},
+			],
 		});
 	}
 
@@ -1517,14 +1486,14 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 					}
 				  }`,
 				{
-					pullRequestId: request.pullRequestId
+					pullRequestId: request.pullRequestId,
 				}
 			);
 
 			return this.handleResponse(request.pullRequestId, {
 				directives: [
-					{ type: "updatePullRequest", data: response.markPullRequestReadyForReview.pullRequest }
-				]
+					{ type: "updatePullRequest", data: response.markPullRequestReadyForReview.pullRequest },
+				],
 			});
 		} else {
 			// const query = `mutation UpdateDraft($pullRequestId:ID!, $isDraft:Boolean!) {
@@ -1603,7 +1572,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 
 		const response = await this.mutate<any>(query, {
 			labelableId: request.pullRequestId,
-			labelIds: request.labelId
+			labelIds: request.labelId,
 		});
 
 		return this.handleResponse(request.pullRequestId, {
@@ -1612,11 +1581,11 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 					type: "updatePullRequest",
 					data: {
 						labels: response[method].labelable.labels,
-						updatedAt: response[method].labelable.updatedAt
-					}
+						updatedAt: response[method].labelable.updatedAt,
+					},
 				},
-				{ type: "addNode", data: response[method].labelable.timelineItems.nodes[0] }
-			]
+				{ type: "addNode", data: response[method].labelable.timelineItems.nodes[0] },
+			],
 		});
 	}
 
@@ -1685,7 +1654,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 
 		const response = await this.mutate<any>(query, {
 			assignableId: request.pullRequestId,
-			assigneeIds: request.assigneeId
+			assigneeIds: request.assigneeId,
 		});
 
 		return this.handleResponse(request.pullRequestId, {
@@ -1694,14 +1663,14 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 					type: "updatePullRequest",
 					data: {
 						assignees: response[method].assignable.assignees,
-						updatedAt: response[method].assignable.updatedAt
-					}
+						updatedAt: response[method].assignable.updatedAt,
+					},
 				},
 				{
 					type: "addNode",
-					data: response[method].assignable.timelineItems.nodes[0]
-				}
-			]
+					data: response[method].assignable.timelineItems.nodes[0],
+				},
+			],
 		});
 	}
 
@@ -1717,7 +1686,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 
 		const response = await this.mutate<any>(query, {
 			assignableId: request.issueId,
-			assigneeIds: request.assigneeId
+			assigneeIds: request.assigneeId,
 		});
 		return response;
 	}
@@ -1774,16 +1743,16 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 
 		const response = await this.mutate<any>(query, {
 			subjectId: request.subjectId,
-			content: request.content
+			content: request.content,
 		});
 
 		return this.handleResponse(request.pullRequestId, {
 			directives: [
 				{
 					type: request.onOff ? "addReaction" : "removeReaction",
-					data: response[method]
-				}
-			]
+					data: response[method],
+				},
+			],
 		});
 	}
 
@@ -1806,14 +1775,14 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			  }`,
 			{
 				subscribableId: request.pullRequestId,
-				state: request.onOff ? "SUBSCRIBED" : "UNSUBSCRIBED"
+				state: request.onOff ? "SUBSCRIBED" : "UNSUBSCRIBED",
 			}
 		);
 
 		return this.handleResponse(request.pullRequestId, {
 			directives: [
-				{ type: "updatePullRequest", data: response.updateSubscription.subscribable.pullRequest }
-			]
+				{ type: "updatePullRequest", data: response.updateSubscription.subscribable.pullRequest },
+			],
 		});
 	}
 
@@ -1837,7 +1806,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			  }`,
 			{
 				id: request.id,
-				body: request.body
+				body: request.body,
 			}
 		);
 
@@ -1845,9 +1814,9 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			directives: [
 				{
 					type: "updateNode",
-					data: response.updateIssueComment.issueComment
-				}
-			]
+					data: response.updateIssueComment.issueComment,
+				},
+			],
 		});
 	}
 
@@ -1875,7 +1844,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 		  `,
 			{
 				pullRequestReviewCommentId: request.id,
-				body: request.body
+				body: request.body,
 			}
 		);
 
@@ -1883,13 +1852,13 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			directives: [
 				{
 					type: "updatePullRequestReviewThreadComment",
-					data: response.updatePullRequestReviewComment.pullRequestReviewComment
+					data: response.updatePullRequestReviewComment.pullRequestReviewComment,
 				},
 				{
 					type: "updatePullRequestReviewCommentNode",
-					data: response.updatePullRequestReviewComment.pullRequestReviewComment
-				}
-			]
+					data: response.updatePullRequestReviewComment.pullRequestReviewComment,
+				},
+			],
 		});
 	}
 
@@ -1913,7 +1882,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			  }`,
 			{
 				pullRequestReviewId: request.id,
-				body: request.body
+				body: request.body,
 			}
 		);
 
@@ -1921,9 +1890,9 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			directives: [
 				{
 					type: "updatePullRequestReview",
-					data: response.updatePullRequestReview.pullRequestReview
-				}
-			]
+					data: response.updatePullRequestReview.pullRequestReview,
+				},
+			],
 		});
 	}
 
@@ -1947,18 +1916,16 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			  }`,
 			{
 				pullRequestId: request.id,
-				body: request.body
+				body: request.body,
 			}
 		);
 
 		return this.handleResponse(request.pullRequestId, {
-			directives: [{ type: "updatePullRequest", data: response.updatePullRequest.pullRequest }]
+			directives: [{ type: "updatePullRequest", data: response.updatePullRequest.pullRequest }],
 		});
 	}
 
-	protected async addPullRequestReview(request: {
-		pullRequestId: string;
-	}): Promise<{
+	protected async addPullRequestReview(request: { pullRequestId: string }): Promise<{
 		addPullRequestReview: {
 			pullRequestReview: {
 				id: string;
@@ -1975,7 +1942,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 		  }
 		}`,
 			{
-				pullRequestId: request.pullRequestId
+				pullRequestId: request.pullRequestId,
 			}
 		);
 		return response;
@@ -1985,7 +1952,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 	 * Returns the reviewId (if it exists) for the specificed pull request (there can only be 1 review per pull request per user)
 	 * @param request
 	 */
-	async getPullRequestReviewId(request: { pullRequestId: string }) {
+	async getPullRequestReviewId(request: { pullRequestId: string }): Promise<string | undefined> {
 		const cachedPR = this._pullRequestCache.get(request.pullRequestId);
 		if (cachedPR?.repository?.pullRequest) {
 			return cachedPR.repository.pullRequest.pendingReview?.id;
@@ -2068,7 +2035,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 
 		Logger.log(`commenting:createPullRequestReviewComment`, {
 			query: query,
-			request: request
+			request: request,
 		});
 
 		void (await this.mutate<any>(query, request));
@@ -2083,9 +2050,9 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				type: "updatePullRequest",
 				data: {
 					updatedAt: graphResults.repository.pullRequest.updatedAt,
-					pendingReview: graphResults.repository.pullRequest.pendingReview
-				} as any
-			}
+					pendingReview: graphResults.repository.pullRequest.pendingReview,
+				} as any,
+			},
 		] as any;
 
 		if (graphResults?.repository?.pullRequest) {
@@ -2094,36 +2061,36 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				const review = pr.reviews.nodes.find((_: any) => _.id === request.pullRequestReviewId);
 				directives.push({
 					type: "addReview",
-					data: review
+					data: review,
 				});
 				directives.push({
 					type: "updateReviewCommentsCount",
-					data: review
+					data: review,
 				});
 				if (review) {
 					directives.push({
 						type: "addReviewThreads",
-						data: pr.reviewThreads.edges
+						data: pr.reviewThreads.edges,
 					});
 				}
 			}
 			if (pr.timelineItems) {
 				directives.push({
 					type: "addReviewCommentNodes",
-					data: pr.timelineItems.nodes
+					data: pr.timelineItems.nodes,
 				});
 			}
 		}
 
 		this.updateCache(request.pullRequestId, {
-			directives: directives
+			directives: directives,
 		});
 		this.session.agent.sendNotification(DidChangePullRequestCommentsNotificationType, {
 			pullRequestId: request.pullRequestId,
-			filePath: request.filePath
+			filePath: request.filePath,
 		});
 		return {
-			directives: directives
+			directives: directives,
 		};
 	}
 
@@ -2195,13 +2162,13 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 		if (!response?.addPullRequestReviewThread?.thread?.id) {
 			Logger.warn("addPullRequestReviewThread:response", {
 				response,
-				version: v
+				version: v,
 			});
 			throw new Error("Unable to add comment");
 		} else {
 			Logger.log("addPullRequestReviewThread:response", {
 				response,
-				version: v
+				version: v,
 			});
 		}
 
@@ -2215,9 +2182,9 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				type: "updatePullRequest",
 				data: {
 					updatedAt: graphResults.repository.pullRequest.updatedAt,
-					pendingReview: graphResults.repository.pullRequest.pendingReview
-				} as any
-			}
+					pendingReview: graphResults.repository.pullRequest.pendingReview,
+				} as any,
+			},
 		] as any;
 
 		if (graphResults?.repository?.pullRequest) {
@@ -2226,36 +2193,36 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				const review = pr.reviews.nodes.find((_: any) => _.id === request.pullRequestReviewId);
 				directives.push({
 					type: "addReview",
-					data: review
+					data: review,
 				});
 				directives.push({
 					type: "updateReviewCommentsCount",
-					data: review
+					data: review,
 				});
 				if (review) {
 					directives.push({
 						type: "addReviewThreads",
-						data: pr.reviewThreads.edges
+						data: pr.reviewThreads.edges,
 					});
 				}
 			}
 			if (pr.timelineItems) {
 				directives.push({
 					type: "addReviewCommentNodes",
-					data: pr.timelineItems.nodes
+					data: pr.timelineItems.nodes,
 				});
 			}
 		}
 
 		this.updateCache(request.pullRequestId, {
-			directives: directives
+			directives: directives,
 		});
 		this.session.agent.sendNotification(DidChangePullRequestCommentsNotificationType, {
 			pullRequestId: request.pullRequestId,
-			filePath: request.filePath
+			filePath: request.filePath,
 		});
 		return {
-			directives: directives
+			directives: directives,
 		};
 	}
 
@@ -2604,7 +2571,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			}
 		  }`,
 			{
-				pullRequestReviewId: request.pullRequestReviewId
+				pullRequestReviewId: request.pullRequestReviewId,
 			}
 		);
 
@@ -2612,37 +2579,35 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			{
 				type: "updatePullRequest",
 				data: {
-					updatedAt: Dates.toUtcIsoNow()
-				}
+					updatedAt: Dates.toUtcIsoNow(),
+				},
 			},
 			{
 				type: "removePendingReview",
-				data: null
+				data: null,
 			},
 			{
 				type: "removePullRequestReview",
 				data: {
-					id: request.pullRequestReviewId
-				}
-			}
+					id: request.pullRequestReviewId,
+				},
+			},
 		];
 
 		this.updateCache(request.pullRequestId, {
-			directives: directives
+			directives: directives,
 		});
 
 		this.session.agent.sendNotification(DidChangePullRequestCommentsNotificationType, {
-			pullRequestId: request.pullRequestId
+			pullRequestId: request.pullRequestId,
 		});
 
 		return {
-			directives: directives
+			directives: directives,
 		};
 	}
 
-	async getPendingReview(request: {
-		pullRequestId: string;
-	}): Promise<
+	async getPendingReview(request: { pullRequestId: string }): Promise<
 		| {
 				pullRequestReviewId: string;
 		  }
@@ -2671,7 +2636,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 		 	 }
 		  `,
 			{
-				pullRequestId: request.pullRequestId
+				pullRequestId: request.pullRequestId,
 			}
 		);
 
@@ -2714,11 +2679,11 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 					}
 			  	}`,
 				{
-					pullRequestId: request.pullRequestId
+					pullRequestId: request.pullRequestId,
 				}
 			);
 			existingReview = {
-				pullRequestReviewId: existingReviewResponse.addPullRequestReview.pullRequestReview.id
+				pullRequestReviewId: existingReviewResponse.addPullRequestReview.pullRequestReview.id,
 			};
 		}
 
@@ -2753,7 +2718,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				{
 					pullRequestReviewId: existingReview.pullRequestReviewId,
 					body: request.text,
-					eventName: request.eventType
+					eventName: request.eventType,
 				}
 			);
 		} else {
@@ -2786,7 +2751,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				{
 					pullRequestId: request.pullRequestId,
 					body: request.text,
-					eventName: request.eventType
+					eventName: request.eventType,
 				}
 			);
 		}
@@ -2949,49 +2914,49 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				{
 					type: "updatePullRequest",
 					data: {
-						updatedAt: Dates.toUtcIsoNow()
-					}
+						updatedAt: Dates.toUtcIsoNow(),
+					},
 				},
 				{
 					type: "addNodes",
-					data: updatedPullRequest.repository.pullRequest.timelineItems.nodes
+					data: updatedPullRequest.repository.pullRequest.timelineItems.nodes,
 				},
 				{
 					type: "updateReviewThreads",
-					data: updatedPullRequest.repository.pullRequest.reviewThreads.edges
+					data: updatedPullRequest.repository.pullRequest.reviewThreads.edges,
 				},
 				{
 					type: "updateReview",
-					data: submitReviewResponse.submitPullRequestReview.pullRequestReview
+					data: submitReviewResponse.submitPullRequestReview.pullRequestReview,
 				},
 				{
 					type: "reviewSubmitted",
 					data: {
 						pullRequestReview: {
-							id: existingReview.pullRequestReviewId
+							id: existingReview.pullRequestReviewId,
 						},
 						updates: {
 							body: reviewTimelineItem.body,
 							bodyHTML: reviewTimelineItem.bodyHTML,
 							bodyText: reviewTimelineItem.bodyText,
-							state: reviewTimelineItem.state
+							state: reviewTimelineItem.state,
 						},
 						comments: reviewTimelineItem?.comments.nodes.map((_: any) => {
 							return {
 								id: _.id,
-								state: _.state
+								state: _.state,
 							};
-						})
-					}
+						}),
+					},
 				},
 				{ type: "removePendingReview", data: null },
 				{
 					type: "removeRequestedReviewer",
 					data: {
-						login: updatedPullRequest.viewer?.login
-					}
-				}
-			]
+						login: updatedPullRequest.viewer?.login,
+					},
+				},
+			],
 		});
 	}
 
@@ -3151,7 +3116,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 
 		const queriesSafe = request.prQueries.map(query => ({
 			...query,
-			query: query.query.replace(/["']/g, '\\"')
+			query: query.query.replace(/["']/g, '\\"'),
 		}));
 
 		// NOTE: there is also `reviewed-by` which `review-requested` translates to after the user
@@ -3257,7 +3222,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 					.map(pr => ({
 						...pr,
 						providerId: providerId,
-						createdAt: new Date(pr.createdAt).getTime()
+						createdAt: new Date(pr.createdAt).getTime(),
 					}));
 				if (!queries[index].query.match(/\bsort:/)) {
 					response[index] = response[index].sort(
@@ -3292,12 +3257,12 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 						}
 				  }`,
 			{
-				pullRequestId: request.pullRequestId
+				pullRequestId: request.pullRequestId,
 			}
 		);
 		return {
 			updatedAt: response && response.node ? response.node.updatedAt : undefined,
-			mergeable: response && response.node ? response.node.mergeable : undefined
+			mergeable: response && response.node ? response.node.mergeable : undefined,
 		};
 	}
 
@@ -3326,7 +3291,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			{
 				owner: owner,
 				name: repo,
-				pullRequestNumber: pullRequestNumber
+				pullRequestNumber: pullRequestNumber,
 			}
 		);
 		try {
@@ -3369,7 +3334,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			{
 				owner: owner,
 				name: repo,
-				issueNumber: issueNumber
+				issueNumber: issueNumber,
 			}
 		);
 		// Logger.log("Fired off a query: ", JSON.stringify(issueInfo, null, 4));
@@ -3385,7 +3350,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			title: issue.title,
 			body: issue.body,
 			url: request.url,
-			providerIcon: "mark-github"
+			providerIcon: "mark-github",
 		};
 		return { ...card, viewer: issueInfo.viewer };
 	}
@@ -3442,17 +3407,17 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 		// remove it by setting it to null
 		const response = await this.mutate<any>(query, {
 			pullRequestId: request.pullRequestId,
-			milestoneId: request.onOff ? request.milestoneId : null
+			milestoneId: request.onOff ? request.milestoneId : null,
 		});
 
 		return this.handleResponse(request.pullRequestId, {
 			directives: [
 				{
 					type: "updatePullRequest",
-					data: { milestone: response.updatePullRequest.pullRequest.milestone }
+					data: { milestone: response.updatePullRequest.pullRequest.milestone },
 				},
-				{ type: "addNode", data: response.updatePullRequest.pullRequest.timelineItems.nodes[0] }
-			]
+				{ type: "addNode", data: response.updatePullRequest.pullRequest.timelineItems.nodes[0] },
+			],
 		});
 	}
 
@@ -3490,7 +3455,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 
 		const response = await this.mutate<any>(query, {
 			pullRequestId: request.pullRequestId,
-			projectIds: [...projectIds]
+			projectIds: [...projectIds],
 		});
 
 		return this.handleResponse(request.pullRequestId, {
@@ -3499,10 +3464,10 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 					type: "updatePullRequest",
 					data: {
 						projectCards: response.updatePullRequest.pullRequest.projectCards,
-						updatedAt: response.updatePullRequest.pullRequest.updatedAt
-					}
-				}
-			]
+						updatedAt: response.updatePullRequest.pullRequest.updatedAt,
+					},
+				},
+			],
 		});
 	}
 
@@ -3522,16 +3487,16 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 
 		const response = await this.mutate<any>(query, {
 			pullRequestId: request.pullRequestId,
-			title: request.title
+			title: request.title,
 		});
 
 		return this.handleResponse(request.pullRequestId, {
 			directives: [
 				{
 					type: "updatePullRequest",
-					data: response.updatePullRequest.pullRequest
-				}
-			]
+					data: response.updatePullRequest.pullRequest,
+				},
+			],
 		});
 	}
 
@@ -3613,7 +3578,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				}
 			  }`;
 		const response = await this.mutate<any>(query, {
-			pullRequestId: request.pullRequestId
+			pullRequestId: request.pullRequestId,
 		});
 
 		const pullRequestData = {
@@ -3623,14 +3588,14 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			merged: response.mergePullRequest.pullRequest.merged,
 			mergedAt: response.mergePullRequest.pullRequest.mergedAt,
 			state: response.mergePullRequest.pullRequest.state,
-			updatedAt: response.mergePullRequest.pullRequest.updatedAt
+			updatedAt: response.mergePullRequest.pullRequest.updatedAt,
 		};
 
 		return this.handleResponse(request.pullRequestId, {
 			directives: [
 				{ type: "updatePullRequest", data: pullRequestData },
-				{ type: "addNodes", data: response.mergePullRequest.pullRequest.timelineItems.nodes }
-			]
+				{ type: "addNodes", data: response.mergePullRequest.pullRequest.timelineItems.nodes },
+			],
 		});
 	}
 
@@ -3654,7 +3619,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			  }`,
 			{
 				lockableId: request.pullRequestId,
-				lockReason: request.lockReason
+				lockReason: request.lockReason,
 			}
 		);
 
@@ -3662,9 +3627,9 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			directives: [
 				{
 					type: "updatePullRequest",
-					data: response.lockLockable.lockedRecord
-				}
-			]
+					data: response.lockLockable.lockedRecord,
+				},
+			],
 		});
 	}
 
@@ -3683,7 +3648,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				}
 			  }`,
 			{
-				pullRequestId: request.pullRequestId
+				pullRequestId: request.pullRequestId,
 			}
 		);
 
@@ -3691,9 +3656,9 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			directives: [
 				{
 					type: "updatePullRequest",
-					data: response.unlockLockable.unlockedRecord
-				}
-			]
+					data: response.unlockLockable.unlockedRecord,
+				},
+			],
 		});
 	}
 
@@ -3730,7 +3695,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			{
 				name: ownerData.name,
 				owner: ownerData.owner,
-				pullRequestNumber: ownerData.pullRequestNumber
+				pullRequestNumber: ownerData.pullRequestNumber,
 			}
 		);
 		return response?.repository?.pullRequest?.reviewRequests?.edges.map(
@@ -3787,7 +3752,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 		  }`,
 			{
 				pullRequestId: request.pullRequestId,
-				userIds: (currentReviewers || []).concat(request.userId)
+				userIds: (currentReviewers || []).concat(request.userId),
 			}
 		);
 
@@ -3795,17 +3760,17 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			directives: [
 				{
 					type: "updatePullRequest",
-					data: { updatedAt: response.requestReviews.pullRequest.updatedAt }
+					data: { updatedAt: response.requestReviews.pullRequest.updatedAt },
 				},
 				{
 					type: "updatePullRequestReviewers",
-					data: response.requestReviews.pullRequest.reviewRequests.nodes
+					data: response.requestReviews.pullRequest.reviewRequests.nodes,
 				},
 				{
 					type: "addNode",
-					data: response.requestReviews.pullRequest.timelineItems.nodes[0]
-				}
-			]
+					data: response.requestReviews.pullRequest.timelineItems.nodes[0],
+				},
+			],
 		});
 	}
 
@@ -3837,7 +3802,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 		  }`,
 			{
 				pullRequestId: request.pullRequestId,
-				userIds: (currentReviewers || []).filter((_: string) => _ !== request.userId)
+				userIds: (currentReviewers || []).filter((_: string) => _ !== request.userId),
 			}
 		);
 
@@ -3845,13 +3810,13 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			directives: [
 				{
 					type: "updatePullRequest",
-					data: { updatedAt: response.requestReviews.pullRequest.updatedAt }
+					data: { updatedAt: response.requestReviews.pullRequest.updatedAt },
 				},
 				{
 					type: "updatePullRequestReviewers",
-					data: response.requestReviews.pullRequest.reviewRequests.nodes
-				}
-			]
+					data: response.requestReviews.pullRequest.reviewRequests.nodes,
+				},
+			],
 		});
 	}
 
@@ -3902,13 +3867,13 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			  }`,
 				{
 					pullRequestId: request.pullRequestId,
-					body: request.text
+					body: request.text,
 				}
 			);
 
 			directives.push({
 				type: "addNode",
-				data: response1.addComment.timelineEdge.node
+				data: response1.addComment.timelineEdge.node,
 			});
 		}
 
@@ -3939,7 +3904,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				}
 			}`,
 			{
-				pullRequestId: request.pullRequestId
+				pullRequestId: request.pullRequestId,
 			}
 		);
 
@@ -3950,16 +3915,16 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				merged: response2.closePullRequest.pullRequest.merged,
 				mergedAt: response2.closePullRequest.pullRequest.mergedAt,
 				state: response2.closePullRequest.pullRequest.state,
-				updatedAt: response2.closePullRequest.pullRequest.updatedAt
-			}
+				updatedAt: response2.closePullRequest.pullRequest.updatedAt,
+			},
 		});
 		directives.push({
 			type: "addNodes",
-			data: response2.closePullRequest.pullRequest.timelineItems.nodes
+			data: response2.closePullRequest.pullRequest.timelineItems.nodes,
 		});
 
 		return this.handleResponse(request.pullRequestId, {
-			directives: directives
+			directives: directives,
 		});
 	}
 
@@ -4010,13 +3975,13 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			  }`,
 				{
 					pullRequestId: request.pullRequestId,
-					body: request.text
+					body: request.text,
 				}
 			);
 
 			directives.push({
 				type: "addNode",
-				data: response1.addComment.timelineEdge.node
+				data: response1.addComment.timelineEdge.node,
 			});
 		}
 
@@ -4047,7 +4012,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				}
 			}`,
 			{
-				pullRequestId: request.pullRequestId
+				pullRequestId: request.pullRequestId,
 			}
 		);
 		directives.push({
@@ -4057,16 +4022,16 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				merged: response2.reopenPullRequest.pullRequest.merged,
 				mergedAt: response2.reopenPullRequest.pullRequest.mergedAt,
 				state: response2.reopenPullRequest.pullRequest.state,
-				updatedAt: response2.reopenPullRequest.pullRequest.updatedAt
-			}
+				updatedAt: response2.reopenPullRequest.pullRequest.updatedAt,
+			},
 		});
 		directives.push({
 			type: "addNodes",
-			data: response2.reopenPullRequest.pullRequest.timelineItems.nodes
+			data: response2.reopenPullRequest.pullRequest.timelineItems.nodes,
 		});
 
 		return this.handleResponse(request.pullRequestId, {
-			directives: directives
+			directives: directives,
 		});
 	}
 
@@ -4087,7 +4052,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				}
 			}`,
 			{
-				threadId: request.threadId
+				threadId: request.threadId,
 			}
 		);
 		const thread = response.resolveReviewThread.thread;
@@ -4099,10 +4064,10 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 						isResolved: thread.isResolved,
 						viewerCanResolve: thread.viewerCanResolve,
 						viewerCanUnresolve: thread.viewerCanUnresolve,
-						threadId: thread.id
-					}
-				}
-			]
+						threadId: thread.id,
+					},
+				},
+			],
 		});
 	}
 
@@ -4123,7 +4088,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				}
 			}`,
 			{
-				threadId: request.threadId
+				threadId: request.threadId,
 			}
 		);
 		const thread = response.unresolveReviewThread.thread;
@@ -4136,10 +4101,10 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 						isResolved: thread.isResolved,
 						viewerCanResolve: thread.viewerCanResolve,
 						viewerCanUnresolve: thread.viewerCanUnresolve,
-						threadId: thread.id
-					}
-				}
-			]
+						threadId: thread.id,
+					},
+				},
+			],
 		});
 	}
 
@@ -4188,7 +4153,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			}`,
 			{
 				subjectId: request.subjectId,
-				body: request.text
+				body: request.text,
 			}
 		);
 
@@ -4197,14 +4162,14 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				{
 					type: "updatePullRequest",
 					data: {
-						updatedAt: Dates.toUtcIsoNow()
-					}
+						updatedAt: Dates.toUtcIsoNow(),
+					},
 				},
 				{
 					type: "addNode",
-					data: response.addComment.timelineEdge.node
-				}
-			]
+					data: response.addComment.timelineEdge.node,
+				},
+			],
 		});
 	}
 
@@ -4230,7 +4195,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				body: request.text,
 				commit_id: request.sha,
 				path: request.path,
-				position: request.position!
+				position: request.position!,
 			} as any;
 		} else {
 			// enterprise 2.20.X and beyond allows this
@@ -4239,7 +4204,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				body: request.text,
 				commit_id: request.sha,
 				side: "RIGHT",
-				path: request.path
+				path: request.path,
 			} as any;
 			if (request.endLine != null && request.endLine !== request.startLine) {
 				payload.start_line = request.startLine;
@@ -4252,7 +4217,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 		Logger.log(`commenting:createCommitComment`, {
 			ownerData: ownerData,
 			request: request,
-			payload: payload
+			payload: payload,
 		});
 
 		const data = await this.restPost<any, any>(
@@ -4267,9 +4232,9 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			{
 				type: "updatePullRequest",
 				data: {
-					updatedAt: graphResults.repository.pullRequest.updatedAt
-				}
-			}
+					updatedAt: graphResults.repository.pullRequest.updatedAt,
+				},
+			},
 		] as any;
 
 		if (graphResults?.repository?.pullRequest) {
@@ -4280,32 +4245,32 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				);
 				directives.push({
 					type: "addReview",
-					data: review
+					data: review,
 				});
 
 				if (review) {
 					directives.push({
 						type: "addReviewThreads",
-						data: pr.reviewThreads.edges
+						data: pr.reviewThreads.edges,
 					});
 				}
 			}
 			if (pr.timelineItems) {
 				directives.push({
 					type: "addNodes",
-					data: pr.timelineItems.nodes
+					data: pr.timelineItems.nodes,
 				});
 			}
 		}
 		this.updateCache(request.pullRequestId, {
-			directives: directives
+			directives: directives,
 		});
 		this.session.agent.sendNotification(DidChangePullRequestCommentsNotificationType, {
-			pullRequestId: request.pullRequestId
+			pullRequestId: request.pullRequestId,
 		});
 
 		return {
-			directives: directives
+			directives: directives,
 		};
 	}
 
@@ -4325,7 +4290,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				commit_id: request.sha,
 				side: "RIGHT",
 				path: request.path,
-				position: request.position
+				position: request.position,
 			}
 		);
 		return data.body;
@@ -4340,13 +4305,13 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			"CONFUSED",
 			"HEART",
 			"ROCKET",
-			"EYES"
+			"EYES",
 		].map(type => {
 			return {
 				content: type,
 				users: {
-					nodes: []
-				}
+					nodes: [],
+				},
 			};
 		});
 	}
@@ -4362,7 +4327,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 		const data = await this.restPost<any, any>(
 			`/repos/${ownerData.owner}/${ownerData.name}/pulls/${ownerData.pullRequestNumber}/comments/${request.commentId}/replies`,
 			{
-				body: request.text
+				body: request.text,
 			}
 		);
 		// GH doesn't provide a way to add comment replies via the graphQL api
@@ -4375,8 +4340,8 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				{
 					type: "updatePullRequest",
 					data: {
-						updatedAt: Dates.toUtcIsoNow()
-					}
+						updatedAt: Dates.toUtcIsoNow(),
+					},
 				},
 				{
 					type: "addLegacyCommentReply",
@@ -4386,7 +4351,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 						_inReplyToId: body.in_reply_to_id,
 						author: {
 							login: body.user.login,
-							avatarUrl: body.user.avatar_url
+							avatarUrl: body.user.avatar_url,
 						},
 						authorAssociation: body.author_association,
 						body: body.body,
@@ -4394,15 +4359,15 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 						createdAt: body.created_at,
 						id: body.node_id,
 						replyTo: {
-							id: body.node_id
+							id: body.node_id,
 						},
 						reactionGroups: this._createReactionGroups(),
 						viewerCanUpdate: true,
 						viewerCanReact: true,
-						viewerCanDelete: true
-					}
-				}
-			]
+						viewerCanDelete: true,
+					},
+				},
+			],
 		});
 	}
 
@@ -4458,7 +4423,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 
 		const response = await this.mutate<any>(query, {
 			subjectId: request.pullRequestId,
-			body: request.text
+			body: request.text,
 		});
 
 		// NOTE must use the commentEdge to get the PR
@@ -4469,13 +4434,13 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			directives: [
 				{
 					type: "updatePullRequest",
-					data: response.addComment.commentEdge.node.pullRequest
+					data: response.addComment.commentEdge.node.pullRequest,
 				},
 				{
 					type: "addNode",
-					data: response.addComment.timelineEdge.node
-				}
-			]
+					data: response.addComment.timelineEdge.node,
+				},
+			],
 		});
 	}
 
@@ -4493,7 +4458,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			text: request.text || "",
 			path: request.filePath,
 			startLine: request.startLine,
-			position: request.position
+			position: request.position,
 		});
 
 		return result;
@@ -4509,7 +4474,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			pullRequestId: request.pullRequestId,
 			text: request.text || "",
 			filePath: request.filePath,
-			position: request.position
+			position: request.position,
 		});
 
 		return result;
@@ -4530,23 +4495,23 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			  }`;
 
 		await this.mutate<any>(query, {
-			id: request.id
+			id: request.id,
 		});
 
 		const directives = [
 			{
 				type: "updatePullRequest",
 				data: {
-					updatedAt: Dates.toUtcIsoNow()
-				}
-			}
+					updatedAt: Dates.toUtcIsoNow(),
+				},
+			},
 		] as any;
 		if (request.type === "REVIEW_COMMENT") {
 			directives.push({
 				type: "removeComment",
 				data: {
-					id: request.id
-				}
+					id: request.id,
+				},
 			});
 			const ownerData = await this.getRepoOwnerFromPullRequestId(request.pullRequestId);
 			const pendingReviews = await this.fetchPendingReviews(ownerData);
@@ -4557,33 +4522,33 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			if (!myPendingReview) {
 				directives.push({
 					type: "removePendingReview",
-					data: null
+					data: null,
 				});
 			} else {
 				directives.push({
 					type: "updateReviewCommentsCount",
-					data: myPendingReview
+					data: myPendingReview,
 				});
 			}
 		} else {
 			directives.push({
 				type: "removeNode",
 				data: {
-					id: request.id
-				}
+					id: request.id,
+				},
 			});
 		}
 		this.updateCache(request.pullRequestId, {
-			directives: directives
+			directives: directives,
 		});
 
 		this.session.agent.sendNotification(DidChangePullRequestCommentsNotificationType, {
 			pullRequestId: request.pullRequestId,
-			commentId: request.id
+			commentId: request.id,
 		});
 
 		return {
-			directives: directives
+			directives: directives,
 		};
 	}
 
@@ -4603,9 +4568,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 		}
 	>();
 
-	async getRepoOwnerFromPullRequestId(
-		pullRequestId: string
-	): Promise<{
+	async getRepoOwnerFromPullRequestId(pullRequestId: string): Promise<{
 		pullRequestNumber: number;
 		name: string;
 		owner: string;
@@ -4634,13 +4597,13 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			}
 		  }`;
 		const response = await this.query<any>(query, {
-			id: pullRequestId
+			id: pullRequestId,
 		});
 
 		const data = {
 			pullRequestNumber: response.nodes[0].number,
 			name: response.nodes[0].repository.name,
-			owner: response.nodes[0].repository.owner.login
+			owner: response.nodes[0].repository.owner.login,
 		};
 		this._pullRequestIdCache.set(pullRequestId, data);
 
@@ -4665,14 +4628,12 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			}
 		  }`;
 		const response = await this.query<any>(query, {
-			id: id
+			id: id,
 		});
 		return response.node.number;
 	}
 
-	async getPullRequestMetadata(
-		id: string
-	): Promise<{
+	async getPullRequestMetadata(id: string): Promise<{
 		number: number;
 		milestone: { id: string };
 		projectCards: {
@@ -4710,7 +4671,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 		  }
 		  `;
 		const response = await this.query<any>(query, {
-			id: id
+			id: id,
 		});
 		return {
 			number: response.node.number,
@@ -4718,7 +4679,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			projectCards:
 				response.node.projectCards && response.node.projectCards.nodes
 					? response.node.projectCards.nodes
-					: []
+					: [],
 		};
 	}
 
@@ -4752,7 +4713,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 						delete _.previous_filename;
 						return {
 							..._,
-							previousFilename: previousFilename
+							previousFilename: previousFilename,
 						};
 					})
 				);
@@ -5294,7 +5255,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			  avatarUrl
 			}
 			createdAt
-		  }`
+		  }`,
 			// 	`... on UnmarkedAsDuplicateEvent {
 			// 	__typename
 			//   }`,
@@ -5565,7 +5526,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 				owner: owner,
 				name: repo,
 				pullRequestNumber: pullRequestNumber,
-				cursor: cursor
+				cursor: cursor,
 			})) as FetchThirdPartyPullRequestResponse;
 			if (response.rateLimit) {
 				Logger.debug("GH rateLimit", response.rateLimit);
@@ -5573,7 +5534,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 					cost: response.rateLimit.cost,
 					limit: response.rateLimit.limit,
 					remaining: response.rateLimit.remaining,
-					resetAt: new Date(response.rateLimit.resetAt)
+					resetAt: new Date(response.rateLimit.resetAt),
 				};
 			}
 
@@ -5595,7 +5556,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 
 	async getPullRequestCommits(
 		request: FetchThirdPartyPullRequestCommitsRequest
-	): Promise<FetchThirdPartyPullRequestCommitsResponse> {
+	): Promise<FetchThirdPartyPullRequestCommitsResponse[]> {
 		const data = await this.getRepoOwnerFromPullRequestId(request.pullRequestId);
 		const pullRequestNumber = await this.getPullRequestNumber(request.pullRequestId);
 
@@ -5647,7 +5608,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			{
 				owner: data.owner,
 				name: data.name,
-				pullRequestNumber
+				pullRequestNumber,
 			}
 		);
 		return query.repository.pullRequest.commits.nodes.map((_: any) => _.commit);
@@ -5746,7 +5707,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 			const response = await this.query<GetPullRequestsResponse>(query, {
 				owner: owner,
 				repo: repo,
-				cursor: cursor
+				cursor: cursor,
 			});
 
 			if (response.rateLimit) {
@@ -5754,7 +5715,7 @@ export class GitHubProvider extends ThirdPartyIssueProviderBase<CSGitHubProvider
 					cost: response.rateLimit.cost,
 					limit: response.rateLimit.limit,
 					remaining: response.rateLimit.remaining,
-					resetAt: new Date(response.rateLimit.resetAt)
+					resetAt: new Date(response.rateLimit.resetAt),
 				};
 			}
 

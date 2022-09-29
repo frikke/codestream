@@ -7,7 +7,7 @@ export interface Disposable {
 export namespace Disposables {
 	export function from(...disposables: { dispose(): any }[]): Disposable {
 		return {
-			dispose: function() {
+			dispose: function () {
 				if (disposables) {
 					for (const disposable of disposables) {
 						if (disposable && typeof disposable.dispose === "function") {
@@ -16,7 +16,7 @@ export namespace Disposables {
 					}
 					disposables = undefined!;
 				}
-			}
+			},
 		};
 	}
 }

@@ -19,7 +19,7 @@ import {
 	ReportingMessageType,
 	ThirdPartyDisconnect,
 	ThirdPartyProviderCard,
-	TransitionsEntity
+	TransitionsEntity,
 } from "../protocol/agent.protocol";
 import { CSJiraProviderInfo } from "../protocol/api.protocol";
 import { Iterables, log, lspProvider } from "../system";
@@ -92,7 +92,7 @@ export const makeCardFromJira = (
 			transition =>
 				({
 					name: transition.name,
-					id: transition.id
+					id: transition.id,
 				} as TransitionsEntity)
 		),
 		priorityName: fields.priority ? fields.priority.name : "",
@@ -100,7 +100,7 @@ export const makeCardFromJira = (
 		typeIcon: fields.issuetype ? fields.issuetype.iconUrl : "",
 		subtasks,
 		parentId,
-		projectId: card?.fields?.project?.id
+		projectId: card?.fields?.project?.id,
 	};
 };
 
@@ -130,7 +130,7 @@ export class JiraProvider extends ThirdPartyIssueProviderBase<CSJiraProviderInfo
 	get headers() {
 		const headers: { [key: string]: string } = {
 			Accept: "application/json",
-			"Content-Type": "application/json"
+			"Content-Type": "application/json",
 		};
 		if (this._providerInfo?.isApiToken) {
 			const email = this._providerInfo?.data?.email || SessionContainer.instance().session.email;
@@ -167,7 +167,7 @@ export class JiraProvider extends ThirdPartyIssueProviderBase<CSJiraProviderInfo
 			Container.instance().errorReporter.reportMessage({
 				type: ReportingMessageType.Error,
 				message: "Jira access does not include any jira sites",
-				source: "agent"
+				source: "agent",
 			});
 			throw new Error("Jira access does not include any jira sites");
 		}
@@ -242,8 +242,8 @@ export class JiraProvider extends ThirdPartyIssueProviderBase<CSJiraProviderInfo
 							nextPage,
 							pageNum,
 							baseUrl: this.baseUrl,
-							workspaces: this._workspaces
-						}
+							workspaces: this._workspaces,
+						},
 					});
 					Logger.error(e, message);
 					Logger.debug("Jira: Stopping project search");
@@ -265,8 +265,8 @@ export class JiraProvider extends ThirdPartyIssueProviderBase<CSJiraProviderInfo
 				extra: {
 					message: error.message,
 					baseUrl: this.baseUrl,
-					workspaces: this._workspaces
-				}
+					workspaces: this._workspaces,
+				},
 			});
 			Logger.error(error, "Error fetching jira boards");
 			return { boards: [] };
@@ -279,7 +279,7 @@ export class JiraProvider extends ThirdPartyIssueProviderBase<CSJiraProviderInfo
 			const response = await this.get<JiraProjectsMetaResponse>(
 				`/rest/api/2/issue/createmeta?${qs.stringify({
 					projectIds: projects.map(p => p.id).join(","),
-					expand: "projects.issuetypes.fields"
+					expand: "projects.issuetypes.fields",
 				})}`
 			);
 			return this.getCompatibleBoards(response.body);
@@ -291,8 +291,8 @@ export class JiraProvider extends ThirdPartyIssueProviderBase<CSJiraProviderInfo
 				extra: {
 					message: error.message,
 					baseUrl: this.baseUrl,
-					workspaces: this._workspaces
-				}
+					workspaces: this._workspaces,
+				},
 			});
 			Logger.error(
 				error,
@@ -355,7 +355,7 @@ export class JiraProvider extends ThirdPartyIssueProviderBase<CSJiraProviderInfo
 					request.customFilter ||
 					"assignee=currentuser() AND NOT((status in (Closed, Done, Resolved)) OR resolution != Unresolved)",
 				expand: "transitions,names",
-				fields: "summary,description,updated,subtasks,status,issuetype,priority,assignee"
+				fields: "summary,description,updated,subtasks,status,issuetype,priority,assignee",
 			});
 			let nextPage: string | undefined = `/rest/api/2/search?${queryString}`;
 			let errorMessage: string | undefined;
@@ -386,8 +386,8 @@ export class JiraProvider extends ThirdPartyIssueProviderBase<CSJiraProviderInfo
 							nextPage,
 							pageNum,
 							baseUrl: this.baseUrl,
-							workspaces: this._workspaces
-						}
+							workspaces: this._workspaces,
+						},
 					});
 					Logger.error(e, errorMessage);
 					Logger.debug("Jira: Stopping card search");
@@ -413,8 +413,8 @@ export class JiraProvider extends ThirdPartyIssueProviderBase<CSJiraProviderInfo
 				extra: {
 					message,
 					baseUrl: this.baseUrl,
-					workspaces: this._workspaces
-				}
+					workspaces: this._workspaces,
+				},
 			});
 			Logger.error(error, "Uncaught error fetching jira cards");
 			return { cards: [] };
@@ -428,14 +428,14 @@ export class JiraProvider extends ThirdPartyIssueProviderBase<CSJiraProviderInfo
 		const body: { [k: string]: any } = {
 			fields: {
 				project: {
-					id: data.project
+					id: data.project,
 				},
 				issuetype: {
-					name: data.issueType
+					name: data.issueType,
 				},
 				summary: data.summary,
-				description: data.description
-			}
+				description: data.description,
+			},
 		};
 
 		if (data.assignees && data.assignees.length > 0) {
@@ -447,7 +447,7 @@ export class JiraProvider extends ThirdPartyIssueProviderBase<CSJiraProviderInfo
 		);
 		return {
 			id: response.body.id,
-			url: `${this._webUrl}/browse/${response.body.key}`
+			url: `${this._webUrl}/browse/${response.body.key}`,
 		};
 	}
 
@@ -456,7 +456,7 @@ export class JiraProvider extends ThirdPartyIssueProviderBase<CSJiraProviderInfo
 		try {
 			Logger.debug("Jira: moving card");
 			const response = await this.post(`/rest/api/2/issue/${request.cardId}/transitions`, {
-				transition: { id: request.listId }
+				transition: { id: request.listId },
 			});
 			// Logger.debug("Got a response: " + JSON.stringify(response, null, 4));
 			return response;
@@ -469,8 +469,8 @@ export class JiraProvider extends ThirdPartyIssueProviderBase<CSJiraProviderInfo
 				extra: {
 					message: error.message,
 					baseUrl: this.baseUrl,
-					workspaces: this._workspaces
-				}
+					workspaces: this._workspaces,
+				},
 			});
 			Logger.error(error, "Error moving jira card");
 			return {};
@@ -484,7 +484,7 @@ export class JiraProvider extends ThirdPartyIssueProviderBase<CSJiraProviderInfo
 		const { body } = await this.get<JiraUser[]>(
 			`/rest/api/2/user/assignable/search?${new URLSearchParams({
 				project: request.boardId,
-				maxResults: "1000"
+				maxResults: "1000",
 			}).toString()}`
 		);
 		return { users: body.map(u => ({ ...u, id: u.accountId })) };
@@ -498,7 +498,7 @@ export class JiraProvider extends ThirdPartyIssueProviderBase<CSJiraProviderInfo
 			`/rest/api/2/user/assignable/search?${qs.stringify({
 				query: request.search,
 				project: request.boardId,
-				maxResults: 50
+				maxResults: 50,
 			})}`
 		);
 		return { users: body.map(u => ({ ...u, id: u.accountId })) };

@@ -14,7 +14,7 @@ export class DocumentEventHandler {
 			this.documentManager.onDidChangeContent(this.onDocumentDidChangeContent, this),
 			this.documentManager.onDidSave(this.onDocumentDidSave, this),
 			this.documentManager.onDidClose(this.onDocumentDidClose, this),
-			this.documentManager.onDidOpen(this.onDocumentDidOpen, this)
+			this.documentManager.onDidOpen(this.onDocumentDidOpen, this),
 		];
 		this._disposable = Disposables.from(...disposables);
 	}
@@ -27,9 +27,9 @@ export class DocumentEventHandler {
 				reason: "changed",
 				document: {
 					isDirty: false,
-					uri: e.document.uri
-				}
-			}
+					uri: e.document.uri,
+				},
+			},
 		});
 	}
 
@@ -40,9 +40,9 @@ export class DocumentEventHandler {
 				reason: "removed",
 				document: {
 					isDirty: undefined,
-					uri: e.document.uri
-				}
-			}
+					uri: e.document.uri,
+				},
+			},
 		});
 	}
 
@@ -53,9 +53,9 @@ export class DocumentEventHandler {
 				reason: "saved",
 				document: {
 					isDirty: false,
-					uri: e.document.uri
-				}
-			}
+					uri: e.document.uri,
+				},
+			},
 		});
 	}
 
@@ -76,9 +76,9 @@ export class DocumentEventHandler {
 				reason: isSame ? "saved" : "changed",
 				document: {
 					isDirty: isSame ? false : true,
-					uri: e.document.uri
-				}
-			}
+					uri: e.document.uri,
+				},
+			},
 		});
 	}
 

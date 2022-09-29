@@ -1,60 +1,63 @@
-import { CompareLocalFilesRequestType } from "@codestream/protocols/webview";
-import {
-	getProviderPullRequestCollaborators,
-	getProviderPullRequestRepo
-} from "@codestream/webview/store/providerPullRequests/reducer";
-import {
-	PRComment,
-	PRCommentCard,
-	PRCommentHeader,
-	PRAuthor,
-	PRActionIcons,
-	PRCommentBody,
-	PRTimelineItem,
-	PRTimelineItemBody,
-	PRBranch,
-	PRActionCommentCard,
-	PRCodeComment,
-	PRThreadedCommentCard,
-	PRCodeCommentPatch,
-	PRKebabIcon,
-	PRIconOutdated
-} from "./PullRequestComponents";
-import React, { PropsWithChildren, useState } from "react";
-import { PRHeadshot } from "../src/components/Headshot";
-import Timestamp from "./Timestamp";
-import Icon from "./Icon";
-import { MarkdownText } from "./MarkdownText";
 import {
 	FetchThirdPartyPullRequestPullRequest,
-	GetReposScmRequestType
+	GetReposScmRequestType,
 } from "@codestream/protocols/agent";
-import Tag from "./Tag";
-import { Link } from "./Link";
-import { PRHeadshotName } from "../src/components/HeadshotName";
-import { PRAuthorBadges } from "./PullRequestConversationTab";
-import * as Path from "path-browserify";
-import { PullRequestReactButton, PullRequestReactions } from "./PullRequestReactions";
-import { HostApi } from "../webview-api";
-import { useSelector } from "react-redux";
-import { CodeStreamState } from "../store";
 import { CSMe } from "@codestream/protocols/api";
-import { SmartFormattedList } from "./SmartFormattedList";
+import {
+	CompareLocalFilesRequest,
+	CompareLocalFilesRequestType,
+	EditorRevealRangeRequestType,
+} from "@codestream/protocols/webview";
+import {
+	getProviderPullRequestCollaborators,
+	getProviderPullRequestRepo,
+} from "@codestream/webview/store/providerPullRequests/slice";
+import * as Path from "path-browserify";
+import * as path from "path-browserify";
+import React, { PropsWithChildren, useState } from "react";
+import { useSelector } from "react-redux";
+import { Range } from "vscode-languageserver-types";
+import { PRHeadshot } from "../src/components/Headshot";
+import { PRHeadshotName } from "../src/components/HeadshotName";
+import { CodeStreamState } from "../store";
+import { HostApi } from "../webview-api";
+import Icon from "./Icon";
+import { Link } from "./Link";
+import { MarkdownText } from "./MarkdownText";
+import { PullRequestCodeComment } from "./PullRequestCodeComment";
 import { PullRequestCommentMenu } from "./PullRequestCommentMenu";
+import {
+	PRActionCommentCard,
+	PRActionIcons,
+	PRAuthor,
+	PRBranch,
+	PRCodeComment,
+	PRCodeCommentPatch,
+	PRComment,
+	PRCommentBody,
+	PRCommentCard,
+	PRCommentHeader,
+	PRIconOutdated,
+	PRKebabIcon,
+	PRThreadedCommentCard,
+	PRTimelineItem,
+	PRTimelineItemBody,
+} from "./PullRequestComponents";
+import { PRAuthorBadges } from "./PullRequestConversationTab";
+import { PullRequestEditingComment } from "./PullRequestEditingComment";
+import { PullRequestFinishReview } from "./PullRequestFinishReview";
 import { PullRequestMinimizedComment } from "./PullRequestMinimizedComment";
 import { PullRequestPatch } from "./PullRequestPatch";
-import { PullRequestFinishReview } from "./PullRequestFinishReview";
-import { PullRequestEditingComment } from "./PullRequestEditingComment";
-import { PullRequestCodeComment } from "./PullRequestCodeComment";
-import * as path from "path-browserify";
-import { Range } from "vscode-languageserver-types";
-import { EditorRevealRangeRequestType } from "@codestream/protocols/webview";
+import { PullRequestReactButton, PullRequestReactions } from "./PullRequestReactions";
+import { SmartFormattedList } from "./SmartFormattedList";
+import Tag from "./Tag";
+import Timestamp from "./Timestamp";
 import Tooltip from "./Tooltip";
 
 export const GHOST = {
 	login: "ghost",
 	avatarUrl:
-		"https://avatars2.githubusercontent.com/u/10137?s=460&u=b1951d34a583cf12ec0d3b0781ba19be97726318&v=4"
+		"https://avatars2.githubusercontent.com/u/10137?s=460&u=b1951d34a583cf12ec0d3b0781ba19be97726318&v=4",
 };
 
 const ReviewIcons = {
@@ -62,7 +65,7 @@ const ReviewIcons = {
 	CHANGES_REQUESTED: <Icon name="plus-minus" className="circled red" />,
 	COMMENTED: <Icon name="eye" className="circled" />,
 	DISMISSED: <Icon name="x" className="circled" />,
-	PENDING: <Icon name="eye" className="circled" />
+	PENDING: <Icon name="eye" className="circled" />,
 };
 
 interface Props {
@@ -87,25 +90,25 @@ export const PullRequestTimelineItems = (props: PropsWithChildren<Props>) => {
 	const handleTextInputFocus = async (databaseCommentId: number) => {
 		setOpenComments({
 			...openComments,
-			[databaseCommentId]: true
+			[databaseCommentId]: true,
 		});
 	};
 
 	const setEditingComment = (comment, value) => {
 		setEditingComments({
 			...editingComments,
-			[comment.id]: value
+			[comment.id]: value,
 		});
 		setPendingComments({
 			...pendingComments,
-			[comment.id]: value ? comment.body : ""
+			[comment.id]: value ? comment.body : "",
 		});
 	};
 
 	const expandComment = id => {
 		setExpandedComments({
 			...expandedComments,
-			[id]: !expandedComments[id]
+			[id]: !expandedComments[id],
 		});
 	};
 
@@ -114,7 +117,7 @@ export const PullRequestTimelineItems = (props: PropsWithChildren<Props>) => {
 		return {
 			currentUser,
 			currentRepo: getProviderPullRequestRepo(state),
-			collaborators: getProviderPullRequestCollaborators(state)
+			collaborators: getProviderPullRequestCollaborators(state),
 		};
 	});
 
@@ -376,7 +379,7 @@ export const PullRequestTimelineItems = (props: PropsWithChildren<Props>) => {
 												let repoRoot = currentRepoRoot;
 												if (!repoRoot) {
 													const response = await HostApi.instance.send(GetReposScmRequestType, {
-														inEditorOnly: false
+														inEditorOnly: false,
 													});
 													if (!response.repositories) return;
 													const currentRepoInfo = response.repositories.find(
@@ -390,7 +393,7 @@ export const PullRequestTimelineItems = (props: PropsWithChildren<Props>) => {
 
 												const result = await HostApi.instance.send(EditorRevealRangeRequestType, {
 													uri: path.join("file://", repoRoot, filePath),
-													range: Range.create(startLine, 0, startLine, 0)
+													range: Range.create(startLine, 0, startLine, 0),
 												});
 
 												// if (!result.success) {
@@ -398,12 +401,12 @@ export const PullRequestTimelineItems = (props: PropsWithChildren<Props>) => {
 												// }
 
 												HostApi.instance.track("PR File Viewed From Timeline", {
-													Host: props.pr && props.pr.providerId
+													Host: props.pr && props.pr.providerId,
 												});
 											};
 
 											const goDiff = async filePath => {
-												const request = {
+												const request: CompareLocalFilesRequest = {
 													baseBranch: pr.baseRefName,
 													baseSha: pr.forkPointSha || "",
 													headBranch: props.pr.headRefName,
@@ -415,10 +418,10 @@ export const PullRequestTimelineItems = (props: PropsWithChildren<Props>) => {
 																pullRequest: {
 																	providerId: props.pr.providerId,
 																	id: props.pr.id,
-																	collaborators: derivedState.collaborators
-																}
+																	collaborators: derivedState.collaborators!,
+																},
 														  }
-														: undefined
+														: undefined,
 												};
 
 												try {
@@ -717,7 +720,7 @@ export const PullRequestTimelineItems = (props: PropsWithChildren<Props>) => {
 							OFF_TOPIC: "off-topic",
 							SPAM: "spam",
 							TOO_HEATED: "too heated",
-							RESOLVED: "resolved"
+							RESOLVED: "resolved",
 						};
 						return (
 							<PRTimelineItem key={index} className="tall">

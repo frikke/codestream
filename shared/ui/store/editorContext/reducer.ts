@@ -1,13 +1,13 @@
-import { EditorContextState, EditorContextActionsType } from "./types";
-import { Range } from "vscode-languageserver-types";
-import * as actions from "./actions";
-import { ActionType } from "../common";
-import { createSelector } from "reselect";
-import { range } from "@codestream/webview/utils";
-import { EditorContext, EditorMetrics, EditorScrollMode } from "@codestream/protocols/webview";
 import { GetFileScmInfoResponse, GetRangeScmInfoResponse } from "@codestream/protocols/agent";
+import { EditorContext, EditorMetrics, EditorScrollMode } from "@codestream/protocols/webview";
+import { range } from "@codestream/webview/utils";
+import { createSelector } from "reselect";
+import { Range } from "vscode-languageserver-types";
 import { CodeStreamState } from "..";
+import { ActionType } from "../common";
 import { IdeState } from "../ide/types";
+import * as actions from "./actions";
+import { EditorContextActionsType, EditorContextState } from "./types";
 
 type EditorContextActions = ActionType<typeof actions>;
 
@@ -20,9 +20,9 @@ const initialState: EditorContextState = {
 		fontSize: 12,
 		lineHeight: 18,
 		scrollMode: EditorScrollMode.Lines,
-		scrollRatio: 1
+		scrollRatio: 1,
 	},
-	scmInfo: undefined
+	scmInfo: undefined,
 };
 
 export function reduceEditorContext(state = initialState, action: EditorContextActions) {
@@ -63,7 +63,7 @@ export function reduceEditorContext(state = initialState, action: EditorContextA
 		case EditorContextActionsType.ClearProcessBuffer: {
 			return {
 				...state,
-				buffer: undefined
+				buffer: undefined,
 			};
 		}
 		case EditorContextActionsType.AppendProcessBuffer: {
@@ -73,7 +73,7 @@ export function reduceEditorContext(state = initialState, action: EditorContextA
 			}
 			return {
 				...state,
-				buffer: payload
+				buffer: payload,
 			};
 		}
 		case "RESET":
@@ -162,7 +162,7 @@ export const getVisibleLineCount = createSelector(
 export enum ScmError {
 	NoRepo = "NoRepo",
 	NoGit = "NoGit",
-	NoRemotes = "NoRemotes"
+	NoRemotes = "NoRemotes",
 }
 
 export const getFileScmError = (scmInfo: GetFileScmInfoResponse | GetRangeScmInfoResponse) => {

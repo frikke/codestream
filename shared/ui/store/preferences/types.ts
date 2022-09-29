@@ -4,7 +4,7 @@ export interface PreferencesState extends CSMePreferences {}
 
 export enum PreferencesActionsType {
 	Update = "UPDATE_PREFERENCES",
-	Set = "SET_PREFERENCES"
+	Set = "SET_PREFERENCES",
 }
 
 // These represent the filters a user can save

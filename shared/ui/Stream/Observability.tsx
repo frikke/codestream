@@ -1,41 +1,40 @@
 import {
-	forEach as _forEach,
-	isEmpty as _isEmpty,
-	isNil as _isNil,
-	keyBy as _keyBy,
-	head as _head,
-} from "lodash-es";
-import React, { useEffect, useState } from "react";
-import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import styled, { withTheme } from "styled-components";
-
-import {
 	DidChangeObservabilityDataNotificationType,
 	EntityAccount,
+	ERROR_GENERIC_USE_ERROR_MESSAGE,
 	ERROR_NR_INSUFFICIENT_API_KEY,
-	GetObservabilityEntitiesRequestType,
+	GetAlertViolationsResponse,
+	GetEntityCountRequestType,
 	GetObservabilityErrorAssignmentsRequestType,
 	GetObservabilityErrorAssignmentsResponse,
 	GetObservabilityErrorsRequestType,
 	GetObservabilityReposRequestType,
 	GetObservabilityReposResponse,
+	GetServiceLevelTelemetryRequestType,
+	GoldenMetricsResult,
 	ObservabilityErrorCore,
 	ObservabilityRepo,
 	ObservabilityRepoError,
-	ERROR_GENERIC_USE_ERROR_MESSAGE,
-	GetServiceLevelTelemetryRequestType,
-	GoldenMetricsResult,
-	GetAlertViolationsResponse,
 } from "@codestream/protocols/agent";
 import {
 	HostDidChangeWorkspaceFoldersNotificationType,
 	OpenUrlRequestType,
 } from "@codestream/protocols/webview";
 import { RefreshEditorsCodeLensRequestType } from "@codestream/webview/ipc/host.protocol";
+import { CurrentMethodLevelTelemetry } from "@codestream/webview/store/context/types";
+import cx from "classnames";
+import {
+	forEach as _forEach,
+	head as _head,
+	isEmpty as _isEmpty,
+	isNil as _isNil,
+} from "lodash-es";
+import React, { useEffect, useState } from "react";
+import { shallowEqual } from "react-redux";
+import styled from "styled-components";
 
 import { WebviewPanels } from "../ipc/webview.protocol.common";
 import { Button } from "../src/components/Button";
-import { InlineMenu } from "../src/components/controls/InlineMenu";
 import {
 	NoContent,
 	PaneBody,
@@ -45,27 +44,31 @@ import {
 	PaneState,
 } from "../src/components/Pane";
 import { CodeStreamState } from "../store";
-import { configureAndConnectProvider, disconnectProvider } from "../store/providers/actions";
+import { configureAndConnectProvider } from "../store/providers/actions";
 import { isConnected } from "../store/providers/reducer";
-import { useDidMount, useInterval, usePrevious } from "../utilities/hooks";
+import {
+	useAppDispatch,
+	useAppSelector,
+	useDidMount,
+	useInterval,
+	usePrevious,
+} from "../utilities/hooks";
 import { HostApi } from "../webview-api";
 import { openPanel, setUserPreference } from "./actions";
-import cx from "classnames";
+import { ALERT_SEVERITY_COLORS } from "./CodeError/index";
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import { EntityAssociator } from "./EntityAssociator";
 import Icon from "./Icon";
 import { Provider } from "./IntegrationsPanel";
 import { Link } from "./Link";
+import { ObservabilityAddAdditionalService } from "./ObservabilityAddAdditionalService";
+import { ObservabilityCurrentRepo } from "./ObservabilityCurrentRepo";
+import { ObservabilityErrorWrapper } from "./ObservabilityErrorWrapper";
+import { ObservabilityGoldenMetricDropdown } from "./ObservabilityGoldenMetricDropdown";
+import { ObservabilityRelatedWrapper } from "./ObservabilityRelatedWrapper";
 import Timestamp from "./Timestamp";
 import Tooltip from "./Tooltip";
 import { WarningBox } from "./WarningBox";
-import { CurrentMethodLevelTelemetry } from "@codestream/webview/store/context/types";
-import { ALERT_SEVERITY_COLORS } from "./CodeError/index";
-import { ObservabilityCurrentRepo } from "./ObservabilityCurrentRepo";
-import { ObservabilityGoldenMetricDropdown } from "./ObservabilityGoldenMetricDropdown";
-import { ObservabilityErrorWrapper } from "./ObservabilityErrorWrapper";
-import { ObservabilityRelatedWrapper } from "./ObservabilityRelatedWrapper";
-import { ObservabilityAddAdditionalService } from "./ObservabilityAddAdditionalService";
 
 interface Props {
 	paneState: PaneState;
@@ -148,7 +151,7 @@ export const ErrorRow = (props: {
 	onClick?: Function;
 	customPadding?: any;
 }) => {
-	const derivedState = useSelector((state: CodeStreamState) => {
+	const derivedState = useAppSelector((state: CodeStreamState) => {
 		return {
 			ideName: encodeURIComponent(state.ide.name || ""),
 		};
@@ -205,8 +208,8 @@ const EMPTY_ARRAY = [];
 let hasLoadedOnce = false;
 
 export const Observability = React.memo((props: Props) => {
-	const dispatch = useDispatch();
-	const derivedState = useSelector((state: CodeStreamState) => {
+	const dispatch = useAppDispatch();
+	const derivedState = useAppSelector((state: CodeStreamState) => {
 		const { providers = {}, preferences } = state;
 		const newRelicIsConnected =
 			providers["newrelic*com"] && isConnected(state, { id: "newrelic*com" });
@@ -323,7 +326,7 @@ export const Observability = React.memo((props: Props) => {
 			});
 	};
 
-	const _useDidMount = async (force: boolean = false) => {
+	const _useDidMount = async (force = false) => {
 		if (!derivedState.newRelicIsConnected) return;
 
 		setGenericError(undefined);
@@ -334,7 +337,7 @@ export const Observability = React.memo((props: Props) => {
 		let repoIds: string[] = [];
 		let reposResponse: GetObservabilityReposResponse | undefined;
 		try {
-			reposResponse = await HostApi.instance.send(GetObservabilityReposRequestType, {});
+			reposResponse = await HostApi.instance.send(GetObservabilityReposRequestType, { force });
 			setObservabilityRepos(reposResponse.repos || []);
 			repoIds = reposResponse.repos?.filter(r => r.repoId).map(r => r.repoId!) || [];
 
@@ -350,16 +353,9 @@ export const Observability = React.memo((props: Props) => {
 		}
 
 		try {
-			const entitiesResponse = await HostApi.instance.send(GetObservabilityEntitiesRequestType, {
-				// if we found repos in the IDE, try to find entities based on repo names
-				appNames:
-					reposResponse?.repos && repoIds.length
-						? reposResponse.repos.filter(r => repoIds.includes(r.repoId)).map(r => r.repoName)
-						: [],
-				resetCache: force,
-			});
+			const { entityCount } = await HostApi.instance.send(GetEntityCountRequestType, {});
 
-			setHasEntities(!_isEmpty(entitiesResponse.entities));
+			setHasEntities(entityCount > 0);
 		} catch (err) {
 			setGenericError(err?.message || GENERIC_ERROR_MESSAGE);
 		} finally {
@@ -501,13 +497,14 @@ export const Observability = React.memo((props: Props) => {
 		}
 	};
 
-	const fetchObservabilityRepos = (entityGuid?: string, repoId?) => {
+	const fetchObservabilityRepos = (entityGuid?: string, repoId?, force = false) => {
 		loading(repoId, true);
 		setLoadingEntities(true);
 
 		return HostApi.instance
 			.send(GetObservabilityReposRequestType, {
 				filters: [{ repoId: repoId, entityGuid: entityGuid }],
+				force,
 			})
 			.then(response => {
 				if (response?.repos) {
@@ -556,7 +553,11 @@ export const Observability = React.memo((props: Props) => {
 			});
 	};
 
-	const fetchGoldenMetrics = async (entityGuid?: string | null, noLoadingSpinner?: boolean) => {
+	const fetchGoldenMetrics = async (
+		entityGuid?: string | null,
+		noLoadingSpinner?: boolean,
+		force = false
+	) => {
 		if (entityGuid) {
 			if (!noLoadingSpinner) {
 				setLoadingGoldenMetrics(true);
@@ -589,10 +590,10 @@ export const Observability = React.memo((props: Props) => {
 
 		Object.keys(filteredPaneNodes).map(function (key) {
 			if (filteredPaneNodes[key] === false) {
-				dispatch(setUserPreference(["hiddenPaneNodes"], { [key]: true }));
+				dispatch(setUserPreference({ prefPath: ["hiddenPaneNodes"], value: { [key]: true } }));
 			}
 		});
-		dispatch(setUserPreference(["hiddenPaneNodes"], { [id]: !collapsed }));
+		dispatch(setUserPreference({ prefPath: ["hiddenPaneNodes"], value: { [id]: !collapsed } }));
 
 		if (entityGuid === expandedEntity) {
 			setExpandedEntity(null);
@@ -628,7 +629,7 @@ export const Observability = React.memo((props: Props) => {
 			repoId: currentRepoId,
 			entityGuid: entityGuid,
 		});
-		dispatch(setUserPreference(["observabilityRepoEntities"], newPreferences));
+		dispatch(setUserPreference({ prefPath: ["observabilityRepoEntities"], value: newPreferences }));
 
 		// update the IDEs
 		setTimeout(() => {
@@ -657,7 +658,7 @@ export const Observability = React.memo((props: Props) => {
 				// Only triggers conditional occurs during _useOnMount
 				if (_isEmpty(_entityGuid) && currentEntityAccountIndex) {
 					let __entityGuid = _currentEntityAccounts[currentEntityAccountIndex]?.entityGuid;
-					fetchGoldenMetrics(__entityGuid);
+					fetchGoldenMetrics(__entityGuid, true);
 					setExpandedEntity(__entityGuid);
 					setCurrentEntityAccountIndex(null);
 					// Set user observabilityRepoEntities preference to expanded entity if one doesnt exist
@@ -675,7 +676,7 @@ export const Observability = React.memo((props: Props) => {
 
 				if (!_isEmpty(_entityGuid)) {
 					fetchObservabilityErrors(_entityGuid, currentRepoId);
-					fetchGoldenMetrics(_entityGuid);
+					fetchGoldenMetrics(_entityGuid, true);
 				}
 			}
 		}
@@ -765,7 +766,7 @@ export const Observability = React.memo((props: Props) => {
 			const currentRepo = _head(observabilityRepos.filter(_ => _.repoId === currentRepoId));
 			if (!currentRepo) {
 				HostApi.instance
-					.send(GetObservabilityReposRequestType, {})
+					.send(GetObservabilityReposRequestType, { force: true })
 					.then((_: GetObservabilityReposResponse) => {
 						setObservabilityRepos(_.repos || []);
 					});
@@ -861,7 +862,12 @@ export const Observability = React.memo((props: Props) => {
 														},
 													]}
 													dismissCallback={e => {
-														dispatch(setUserPreference(["hideCodeLevelMetricsInstructions"], true));
+														dispatch(
+															setUserPreference({
+																prefPath: ["hideCodeLevelMetricsInstructions"],
+																value: true,
+															})
+														);
 													}}
 												/>
 											)}
@@ -906,13 +912,21 @@ export const Observability = React.memo((props: Props) => {
 																<>
 																	<PaneNodeName
 																		title={
-																			<div style={{ display: "flex", alignItems: "center" }}>
+																			<div
+																				style={{
+																					display: "flex",
+																					alignItems: "center",
+																				}}
+																			>
 																				<EntityHealth backgroundColor={alertSeverityColor} />
 																				<div>
 																					<span>{ea.entityName}</span>
 																					<span
 																						className="subtle"
-																						style={{ fontSize: "11px", verticalAlign: "bottom" }}
+																						style={{
+																							fontSize: "11px",
+																							verticalAlign: "bottom",
+																						}}
 																					>
 																						{ea.accountName && ea.accountName.length > 25
 																							? ea.accountName.substr(0, 25) + "..."
@@ -1050,13 +1064,15 @@ export const Observability = React.memo((props: Props) => {
 																	)}
 																</>
 															);
-														} else return null;
+														} else {
+															return null;
+														}
 													})}
 												<>
 													{currentObsRepo && (
 														<ObservabilityAddAdditionalService
 															onSuccess={async e => {
-																_useDidMount();
+																_useDidMount(true);
 															}}
 															remote={currentObsRepo.repoRemote}
 															remoteName={currentObsRepo.repoName}
@@ -1091,7 +1107,8 @@ export const Observability = React.memo((props: Props) => {
 
 																await fetchObservabilityRepos(
 																	e.entityGuid,
-																	repoForEntityAssociator.repoId
+																	repoForEntityAssociator.repoId,
+																	true
 																);
 																fetchObservabilityErrors(
 																	e.entityGuid,

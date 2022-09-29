@@ -1,15 +1,15 @@
 import React from "react";
+import { logWarning } from "../logger";
+import { useDidMount } from "../utilities/hooks";
+import KeystrokeDispatcher from "../utilities/keystroke-dispatcher";
 import Button from "./Button";
 import Icon from "./Icon";
 import Tooltip from "./Tooltip";
-import KeystrokeDispatcher from "../utilities/keystroke-dispatcher";
-import { useDidMount } from "../utilities/hooks";
-import { logWarning } from "../logger";
 
 CancelButton.defaultProps = {
 	className: "",
 	disabled: false,
-	placement: "bottomRight"
+	placement: "bottomRight",
 };
 
 export default function CancelButton({
@@ -28,9 +28,7 @@ export default function CancelButton({
 	useDidMount(() => {
 		if (onClick && typeof onClick === "function") {
 			if (incrementKeystrokeLevel) {
-				disposables.push(
-					KeystrokeDispatcher.withLevel()
-				)
+				disposables.push(KeystrokeDispatcher.withLevel());
 			}
 			disposables.push(
 				KeystrokeDispatcher.onKeyDown(
@@ -46,7 +44,7 @@ export default function CancelButton({
 					},
 					{ source: "CancelButton.js", level: -1 }
 				)
-			)
+			);
 		} else {
 			logWarning("CancelButton missing onClick handler");
 		}
@@ -70,7 +68,7 @@ export default function CancelButton({
 					style={{
 						paddingLeft: "10px",
 						paddingRight: "10px",
-						width: "auto"
+						width: "auto",
 					}}
 					className="control-button cancel"
 					type="submit"

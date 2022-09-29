@@ -1,12 +1,12 @@
 import { Picker, store } from "emoji-mart";
 import React, { Component } from "react";
 import ReactDOM from "react-dom";
-import * as actions from "./actions";
-import { safe, shortUuid } from "../utils";
 import { connect } from "react-redux";
-import { ModalContext } from "./Modal";
-import KeystrokeDispatcher from "../utilities/keystroke-dispatcher";
 import { logWarning } from "../logger";
+import KeystrokeDispatcher from "../utilities/keystroke-dispatcher";
+import { safe, shortUuid } from "../utils";
+import * as actions from "./actions";
+import { ModalContext } from "./Modal";
 
 /**
  * Modal emoji picker that attaches to #modal-root
@@ -27,7 +27,7 @@ export class SimpleEmojiPicker extends Component {
 
 			setter: (key, value) => {
 				this.props.setUserPreference(["emojiPicker-" + key], value);
-			}
+			},
 		});
 	}
 
@@ -145,10 +145,10 @@ export class SimpleEmojiPicker extends Component {
 const mapStateToProps = ({ session, users }) => {
 	const currentUser = users[session.userId];
 	return {
-		currentUser
+		currentUser,
 	};
 };
 
 export default connect(mapStateToProps, {
-	...actions
+	...actions,
 })(SimpleEmojiPicker);

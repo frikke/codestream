@@ -1,63 +1,63 @@
-import React, { Component } from "react";
-import { connect } from "react-redux";
-import Icon from "./Icon";
-import { isNotOnDisk, ComponentUpdateEmitter, uriToFilePath } from "../utils";
-import { HostApi } from "../webview-api";
-import { NewCodemarkNotificationType, WebviewPanels } from "../ipc/webview.protocol";
 import {
-	DocumentMarker,
-	DidChangeDocumentMarkersNotificationType,
-	GetFileScmInfoResponse,
-	GetFileScmInfoRequestType,
-	MarkerNotLocated,
+	ChangeDataType,
 	CodemarkPlus,
 	DidChangeDataNotificationType,
-	ChangeDataType,
-	GetReposScmRequestType
+	DidChangeDocumentMarkersNotificationType,
+	DocumentMarker,
+	GetFileScmInfoRequestType,
+	GetFileScmInfoResponse,
+	GetReposScmRequestType,
+	MarkerNotLocated,
 } from "@codestream/protocols/agent";
+import React, { Component } from "react";
+import { connect } from "react-redux";
+import { NewCodemarkNotificationType, WebviewPanels } from "../ipc/webview.protocol";
 import { fetchDocumentMarkers } from "../store/documentMarkers/actions";
+import { ComponentUpdateEmitter, isNotOnDisk, uriToFilePath } from "../utils";
+import { HostApi } from "../webview-api";
+import Icon from "./Icon";
 
-import {
-	ScmError,
-	getFileScmError,
-	mapFileScmErrorForTelemetry
-} from "../store/editorContext/reducer";
-import { setCurrentCodemark, openPanel } from "../store/context/actions";
-import { setNewPostEntry } from "@codestream/webview/store/context/actions";
-import { setEditorContext } from "../store/editorContext/actions";
-import { CodeStreamState } from "../store";
-import Codemark from "./Codemark";
-import { PostEntryPoint } from "../store/context/types";
-import { PRInfoModal } from "./SpatialView/PRInfoModal";
-import { getPRLabel, isConnected, LabelHash } from "../store/providers/reducer";
-import * as fs from "../utilities/fs";
-import {
-	PaneHeader,
-	NoContent,
-	PaneState,
-	PaneBody,
-	PaneNode,
-	PaneNodeName
-} from "../src/components/Pane";
-import { Link } from "./Link";
-import { setUserPreference } from "./actions";
-import { InlineMenu } from "../src/components/controls/InlineMenu";
-import { withSearchableItems, WithSearchableItemsProps } from "./withSearchableItems";
-import { ReposState } from "../store/repos/types";
-import { getActiveCodemarks } from "../store/codemarks/reducer";
 import { CSMarker } from "@codestream/protocols/api";
+import { setNewPostEntry } from "@codestream/webview/store/context/actions";
+import { InlineMenu } from "../src/components/controls/InlineMenu";
+import {
+	NoContent,
+	PaneBody,
+	PaneHeader,
+	PaneNode,
+	PaneNodeName,
+	PaneState,
+} from "../src/components/Pane";
+import { CodeStreamState } from "../store";
+import { getActiveCodemarks } from "../store/codemarks/reducer";
+import { openPanel, setCurrentCodemark } from "../store/context/actions";
+import { PostEntryPoint } from "../store/context/types";
+import { setEditorContext } from "../store/editorContext/actions";
+import {
+	getFileScmError,
+	mapFileScmErrorForTelemetry,
+	ScmError,
+} from "../store/editorContext/reducer";
+import { getPRLabel, isConnected, LabelHash } from "../store/providers/reducer";
+import { ReposState } from "../store/repos/types";
+import * as fs from "../utilities/fs";
+import { setUserPreference } from "./actions";
+import Codemark from "./Codemark";
+import { Link } from "./Link";
+import { PRInfoModal } from "./SpatialView/PRInfoModal";
+import { withSearchableItems, WithSearchableItemsProps } from "./withSearchableItems";
 
 export enum CodemarkDomainType {
 	File = "file",
 	Directory = "directory",
 	Repo = "repo",
 	Team = "team",
-	Branch = "branch"
+	Branch = "branch",
 }
 
 export enum CodemarkSortType {
 	File = "file",
-	CreatedAt = "createdAt"
+	CreatedAt = "createdAt",
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -141,7 +141,7 @@ export class SimpleCodemarksForFile extends Component<Props, State> {
 			isLoading: props.documentMarkers ? props.documentMarkers.length === 0 : true,
 			problem: props.scmInfo && getFileScmError(props.scmInfo),
 			pendingPRConnection: false,
-			repoName: ""
+			repoName: "",
 		};
 
 		this.docMarkersByStartLine = {};
@@ -232,12 +232,12 @@ export class SimpleCodemarksForFile extends Component<Props, State> {
 
 			if (textEditorUri) {
 				scmInfo = await HostApi.instance.send(GetFileScmInfoRequestType, {
-					uri: textEditorUri
+					uri: textEditorUri,
 				});
 			}
 
 			const reposResponse = await HostApi.instance.send(GetReposScmRequestType, {
-				inEditorOnly: true
+				inEditorOnly: true,
 			});
 
 			const currentRepo = reposResponse.repositories?.find(
@@ -555,7 +555,7 @@ export class SimpleCodemarksForFile extends Component<Props, State> {
 			showReviews,
 			wrapComments,
 			hideTags,
-			codemarkSortType
+			codemarkSortType,
 		} = this.props;
 
 		const isDiff = textEditorUri.startsWith("codestream-diff://");
@@ -594,7 +594,7 @@ export class SimpleCodemarksForFile extends Component<Props, State> {
 				key: "file",
 				icon: <Icon name="file" />,
 				action: () => this.switchDomain(CodemarkDomainType.File),
-				checked: codemarkDomain === CodemarkDomainType.File
+				checked: codemarkDomain === CodemarkDomainType.File,
 			},
 			{
 				label: "Current Directory",
@@ -602,7 +602,7 @@ export class SimpleCodemarksForFile extends Component<Props, State> {
 				key: "directory",
 				icon: <Icon name="directory" />,
 				action: () => this.switchDomain(CodemarkDomainType.Directory),
-				checked: codemarkDomain === CodemarkDomainType.Directory
+				checked: codemarkDomain === CodemarkDomainType.Directory,
 			},
 			{
 				label: "Current Branch",
@@ -610,7 +610,7 @@ export class SimpleCodemarksForFile extends Component<Props, State> {
 				key: "branch",
 				icon: <Icon name="git-branch" />,
 				action: () => this.switchDomain(CodemarkDomainType.Branch),
-				checked: codemarkDomain === CodemarkDomainType.Branch
+				checked: codemarkDomain === CodemarkDomainType.Branch,
 			},
 			{
 				label: "Current Repository",
@@ -618,8 +618,8 @@ export class SimpleCodemarksForFile extends Component<Props, State> {
 				key: "repo",
 				icon: <Icon name="repo" />,
 				action: () => this.switchDomain(CodemarkDomainType.Repo),
-				checked: codemarkDomain === CodemarkDomainType.Repo
-			}
+				checked: codemarkDomain === CodemarkDomainType.Repo,
+			},
 		];
 
 		const settingsMenuItems = [
@@ -627,13 +627,13 @@ export class SimpleCodemarksForFile extends Component<Props, State> {
 				label: "Wrap multi-line comments",
 				key: "wrap-comments",
 				checked: wrapComments,
-				action: () => setUserPreference(["codemarksWrapComments"], !wrapComments)
+				action: () => setUserPreference(["codemarksWrapComments"], !wrapComments),
 			},
 			{
 				label: "Show Tags",
 				key: "show-tags",
 				checked: !hideTags,
-				action: () => setUserPreference(["codemarksHideTags"], !hideTags)
+				action: () => setUserPreference(["codemarksHideTags"], !hideTags),
 			},
 			{ label: "-" },
 			{
@@ -646,15 +646,15 @@ export class SimpleCodemarksForFile extends Component<Props, State> {
 						label: "Date",
 						key: "date",
 						checked: codemarkSortType === CodemarkSortType.CreatedAt,
-						action: () => setUserPreference(["codemarkSortType"], CodemarkSortType.CreatedAt)
+						action: () => setUserPreference(["codemarkSortType"], CodemarkSortType.CreatedAt),
 					},
 					{
 						label: "Line Number",
 						key: "file",
 						checked: codemarkSortType === CodemarkSortType.File,
-						action: () => setUserPreference(["codemarkSortType"], CodemarkSortType.File)
-					}
-				]
+						action: () => setUserPreference(["codemarkSortType"], CodemarkSortType.File),
+					},
+				],
 			},
 			{ label: "-" },
 			{
@@ -666,23 +666,23 @@ export class SimpleCodemarksForFile extends Component<Props, State> {
 						label: "Feedback Request comments",
 						key: "show-reviews",
 						checked: showReviews,
-						action: () => setUserPreference(["codemarksHideReviews"], showReviews)
+						action: () => setUserPreference(["codemarksHideReviews"], showReviews),
 					},
 					{ label: "-" },
 					{
 						label: "Resolved codemarks",
 						key: "show-resolved",
 						checked: showResolved,
-						action: () => setUserPreference(["codemarksHideResolved"], showResolved)
+						action: () => setUserPreference(["codemarksHideResolved"], showResolved),
 					},
 					{
 						label: "Archived codemarks",
 						key: "show-hidden",
 						checked: showHidden,
-						action: () => setUserPreference(["codemarksShowArchived"], !showHidden)
-					}
-				]
-			}
+						action: () => setUserPreference(["codemarksShowArchived"], !showHidden),
+					},
+				],
+			},
 		];
 
 		// console.warn("RENDERING CODEMARKS");
@@ -775,7 +775,7 @@ const mapStateToProps = (state: CodeStreamState, props): ConnectedProps => {
 		"bitbucket",
 		"bitbucket_enterprise",
 		"gitlab",
-		"gitlab_enterprise"
+		"gitlab_enterprise",
 	].some(name => isConnected(state, { name }));
 
 	const scmInfo = editorContext.scmInfo;
@@ -871,7 +871,7 @@ const mapStateToProps = (state: CodeStreamState, props): ConnectedProps => {
 		codemarkDomain,
 		codemarkSortType,
 		hiddenPaneNodes: preferences.hiddenPaneNodes || EMPTY_HASH_2,
-		prLabel: getPRLabel(state)
+		prLabel: getPRLabel(state),
 	};
 };
 export default withSearchableItems(
@@ -881,6 +881,6 @@ export default withSearchableItems(
 		setCurrentCodemark,
 		setEditorContext,
 		setNewPostEntry,
-		setUserPreference
+		setUserPreference,
 	})(SimpleCodemarksForFile)
 );

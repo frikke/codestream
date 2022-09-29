@@ -12,7 +12,7 @@ import {
 	BroadcasterStatusType,
 	MessageCallback,
 	MessageEvent,
-	StatusCallback
+	StatusCallback,
 } from "./broadcaster";
 import { SocketClusterHistory } from "./socketClusterHistory";
 
@@ -67,12 +67,12 @@ export class SocketClusterConnection implements BroadcasterConnection {
 			port: parseInt(this._options!.port, 10),
 			secure: !this._options.ignoreHttps,
 			autoReconnect: true,
-			wsOptions: { rejectUnauthorized: this._options!.strictSSL }
+			wsOptions: { rejectUnauthorized: this._options!.strictSSL },
 		});
 
 		await this._confirmConnection();
 		return {
-			dispose: this.disconnect.bind(this)
+			dispose: this.disconnect.bind(this),
 		};
 	}
 
@@ -149,7 +149,7 @@ export class SocketClusterConnection implements BroadcasterConnection {
 	private netHiccup() {
 		if (this._statusCallback) {
 			this._statusCallback({
-				status: BroadcasterStatusType.NetworkProblem
+				status: BroadcasterStatusType.NetworkProblem,
 			});
 		}
 	}
@@ -160,7 +160,7 @@ export class SocketClusterConnection implements BroadcasterConnection {
 		const subscribedChannels: string[] = [];
 		for (const channel of channels) {
 			const subscription = this._subscriptions[channel] || {
-				subscribed: false
+				subscribed: false,
 			};
 			this._subscriptions[channel] = subscription;
 			if (subscription.subscribed) {
@@ -173,7 +173,7 @@ export class SocketClusterConnection implements BroadcasterConnection {
 			this._debug("Already subscribed to ", subscribedChannels);
 			this._statusCallback({
 				status: BroadcasterStatusType.Connected,
-				channels: subscribedChannels
+				channels: subscribedChannels,
 			});
 		}
 		if (unsubscribedChannels.length > 0) {
@@ -221,7 +221,7 @@ export class SocketClusterConnection implements BroadcasterConnection {
 			}
 			await this._socket!.invoke("auth", {
 				token: this._options.authKey,
-				uid: this._options.userId
+				uid: this._options.userId,
 			});
 		} catch (error) {
 			const message = error instanceof Error ? error.message : JSON.stringify(error);
@@ -234,7 +234,7 @@ export class SocketClusterConnection implements BroadcasterConnection {
 		try {
 			return new SocketClusterHistory().fetchHistory({
 				socket: this._socket!,
-				...options
+				...options,
 			});
 		} catch (error) {
 			const message = error instanceof Error ? error.message : JSON.stringify(error);
@@ -272,7 +272,7 @@ export class SocketClusterConnection implements BroadcasterConnection {
 		const messageEvent: MessageEvent = {
 			receivedAt,
 			message,
-			channel
+			channel,
 		};
 		if (this._messageCallback) {
 			this._messageCallback(messageEvent);
@@ -290,7 +290,7 @@ export class SocketClusterConnection implements BroadcasterConnection {
 		if (this._statusCallback) {
 			this._statusCallback({
 				status: BroadcasterStatusType.Connected,
-				channels: [channel]
+				channels: [channel],
 			});
 		}
 	}
@@ -299,7 +299,7 @@ export class SocketClusterConnection implements BroadcasterConnection {
 		if (this._statusCallback) {
 			this._statusCallback({
 				status: BroadcasterStatusType.Failed,
-				channels: [channel]
+				channels: [channel],
 			});
 		}
 	}

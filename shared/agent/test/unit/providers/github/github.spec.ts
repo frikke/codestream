@@ -45,9 +45,9 @@ describe("getPullRequest", () => {
 						limit: 5000,
 						cost: 1,
 						remaining: 4767,
-						resetAt: "2022-07-01T22:22:27Z"
+						resetAt: "2022-07-01T22:22:27Z",
 					},
-					nodes: [null]
+					nodes: [null],
 				},
 				errors: <GraphQLError[]>(<unknown>[
 					{
@@ -56,22 +56,22 @@ describe("getPullRequest", () => {
 						locations: [
 							{
 								line: 8,
-								column: 4
-							}
+								column: 4,
+							},
 						],
-						message: "Could not resolve to a node with the global id of 'PR_kwDODOEm5M46u4DC'."
-					}
+						message: "Could not resolve to a node with the global id of 'PR_kwDODOEm5M46u4DC'.",
+					},
 				]),
 				status: 200,
-				headers: {}
+				headers: {},
 			},
 			request: {
 				query:
 					"query GetRepoIdFromPullRequestId($id: [ID!]!) { rateLimit { limit cost remaining resetAt } nodes(ids: $id) { ... on PullRequest { number repository { name owner { login } } } } }",
 				variables: {
-					id: "PR_kwABCDEm5M46u4DC"
-				}
-			}
+					id: "PR_kwABCDEm5M46u4DC",
+				},
+			},
 		};
 
 		const error = new ClientError(mockResponseBody.response, mockResponseBody.request);
@@ -82,14 +82,14 @@ describe("getPullRequest", () => {
 
 		const request: FetchThirdPartyPullRequestRequest = {
 			providerId: "github*com",
-			pullRequestId: "PR_kwABCDEm5M46u4DC"
+			pullRequestId: "PR_kwABCDEm5M46u4DC",
 		};
 
 		const response = await provider.getPullRequest(request);
 		console.info(response);
 		expect(requestSpy).toHaveBeenCalledTimes(3);
 		expect(requestSpy).toHaveBeenCalledWith(expect.stringContaining("GetRepoIdFromPullRequestId"), {
-			id: "PR_kwABCDEm5M46u4DC"
+			id: "PR_kwABCDEm5M46u4DC",
 		});
 	}, 10000);
 
@@ -102,9 +102,9 @@ describe("getPullRequest", () => {
 						limit: 5000,
 						cost: 1,
 						remaining: 4767,
-						resetAt: "2022-07-01T22:22:27Z"
+						resetAt: "2022-07-01T22:22:27Z",
 					},
-					nodes: [null]
+					nodes: [null],
 				},
 				errors: <GraphQLError[]>(<unknown>[
 					{
@@ -113,22 +113,22 @@ describe("getPullRequest", () => {
 						locations: [
 							{
 								line: 8,
-								column: 4
-							}
+								column: 4,
+							},
 						],
-						message: "Could not resolve to a node with the global id of 'PR_kwDODOEm5M46u4DC'."
-					}
+						message: "Could not resolve to a node with the global id of 'PR_kwDODOEm5M46u4DC'.",
+					},
 				]),
 				status: 200,
-				headers: {}
+				headers: {},
 			},
 			request: {
 				query:
 					"query GetRepoIdFromPullRequestId($id: [ID!]!) { rateLimit { limit cost remaining resetAt } nodes(ids: $id) { ... on PullRequest { number repository { name owner { login } } } } }",
 				variables: {
-					id: "PR_kwABCDEm5M46u4DC"
-				}
-			}
+					id: "PR_kwABCDEm5M46u4DC",
+				},
+			},
 		};
 
 		const error = new ClientError(mockResponseBody.response, mockResponseBody.request);
@@ -147,9 +147,9 @@ describe("getPullRequest", () => {
 			nodes: [
 				{
 					number: 1234,
-					repository: { name: "repoName", owner: { login: "ownerLogin" } }
-				}
-			]
+					repository: { name: "repoName", owner: { login: "ownerLogin" } },
+				},
+			],
 		});
 
 		// Make the next graphql call fail - mocking all the rest of requests / responses is not needed
@@ -159,7 +159,7 @@ describe("getPullRequest", () => {
 
 		const request: FetchThirdPartyPullRequestRequest = {
 			providerId: "github*com",
-			pullRequestId: "PR_kwABCDEm5M46u4DC"
+			pullRequestId: "PR_kwABCDEm5M46u4DC",
 		};
 
 		const response = await provider.getPullRequest(request);
@@ -167,13 +167,13 @@ describe("getPullRequest", () => {
 		expect(requestSpy).toHaveBeenCalledTimes(4);
 
 		expect(requestSpy).nthCalledWith(1, expect.stringContaining("GetRepoIdFromPullRequestId"), {
-			id: "PR_kwABCDEm5M46u4DC"
+			id: "PR_kwABCDEm5M46u4DC",
 		});
 		expect(requestSpy).nthCalledWith(2, expect.stringContaining("GetRepoIdFromPullRequestId"), {
-			id: "PR_kwABCDEm5M46u4DC"
+			id: "PR_kwABCDEm5M46u4DC",
 		});
 		expect(requestSpy).nthCalledWith(3, expect.stringContaining("GetRepoIdFromPullRequestId"), {
-			id: "PR_kwABCDEm5M46u4DC"
+			id: "PR_kwABCDEm5M46u4DC",
 		});
 		// If we got the query pr call the GetRepoIdFromPullRequestId query passed on 3rd attempt
 		expect(requestSpy).nthCalledWith(
@@ -182,7 +182,7 @@ describe("getPullRequest", () => {
 			{
 				name: "repoName",
 				owner: "ownerLogin",
-				pullRequestNumber: 1234
+				pullRequestNumber: 1234,
 			}
 		);
 	}, 10000);

@@ -9,7 +9,7 @@ import { Logger } from "../logger";
 import {
 	CommitsChangedData,
 	ReportingMessageType,
-	WorkspaceChangedData
+	WorkspaceChangedData,
 } from "../protocol/agent.protocol";
 import { MatchReposRequest, RepoMap } from "../protocol/agent.protocol.repos";
 import { CSRepository } from "../protocol/api.protocol";
@@ -107,7 +107,7 @@ export class GitRepositories {
 		let result = tree.findSubstr(normalizedFilePath);
 		if (!result) {
 			await this.repositorySearchByDocument({
-				uri: URI.file(normalizedFilePath).toString()
+				uri: URI.file(normalizedFilePath).toString(),
 			});
 			const tree = await this.getRepositoryTree();
 			result = tree.findSubstr(normalizedFilePath);
@@ -140,14 +140,14 @@ export class GitRepositories {
 				if (found) {
 					reposToMap.push({
 						repoId: repo.id,
-						path: repo.path
+						path: repo.path,
 					});
 				}
 			}
 		}
 		if (reposToMap.length) {
 			SessionContainer.instance().repositoryMappings.mapRepos({
-				repos: reposToMap
+				repos: reposToMap,
 			});
 		}
 	}
@@ -159,7 +159,7 @@ export class GitRepositories {
 		Logger.log("GitRepositories.start: session ready");
 
 		const disposables: Disposable[] = [
-			this.session.onDidChangeRepositories(this.onRepositoriesChanged, this)
+			this.session.onDidChangeRepositories(this.onRepositoriesChanged, this),
 		];
 
 		if (this.session.agent.supportsConfiguration) {
@@ -199,7 +199,7 @@ export class GitRepositories {
 				if (e === undefined) {
 					e = {
 						added: [],
-						removed: []
+						removed: [],
 					};
 					Logger.log("onWorkspaceFoldersChanged: no event - initializing");
 					initializing = true;
@@ -294,8 +294,8 @@ export class GitRepositories {
 								source: "agent",
 								message: "Bad remotes found",
 								extra: {
-									badRemotes: badRemotes
-								}
+									badRemotes: badRemotes,
+								},
 							});
 						} catch (ex) {
 							Logger.warn(ex);
@@ -311,7 +311,7 @@ export class GitRepositories {
 					if (initializing && r.id) {
 						repoMap.push({
 							repoId: r.id,
-							path: r.path
+							path: r.path,
 						});
 					}
 				}
@@ -339,7 +339,7 @@ export class GitRepositories {
 									...Iterables.map<[GitRepository, string], [GitRepository, string]>(
 										filteredTree.entries(),
 										([r, k]) => [r, r.path]
-									)
+									),
 							  ]
 							: [];
 
@@ -355,7 +355,7 @@ export class GitRepositories {
 
 				SessionContainer.instance().repositoryMappings.setRepoMappingData({
 					repos: repoMap,
-					skipRepositoryIntegration: true
+					skipRepositoryIntegration: true,
 				});
 
 				Logger.log(`onWorkspaceFoldersChanged: monitoring repositories`);
@@ -399,7 +399,7 @@ export class GitRepositories {
 
 			const repositories = await this.repoLocator.repositorySearch({
 				uri: repo.path,
-				name: path.basename(repo.path)
+				name: path.basename(repo.path),
 			});
 
 			const reposWithIds: GitRepository[] = [];
@@ -441,7 +441,7 @@ export class GitRepositories {
 			// Search for and add all repositories (nested and/or submodules)
 			const repositories = await this.repoLocator.repositorySearch({
 				uri: dir,
-				name: path.basename(document.uri)
+				name: path.basename(document.uri),
 			});
 
 			Logger.log(
@@ -496,7 +496,7 @@ export class GitRepositories {
 					dispose() {
 						watcher.close();
 						return Promise.resolve();
-					}
+					},
 				});
 			} catch (err) {
 				Logger.error(err);
@@ -548,7 +548,7 @@ export class GitRepositories {
 					".git/index",
 					".git/HEAD",
 					".git/refs/stash",
-					".gitignore"
+					".gitignore",
 				];
 				// try to add the current branch and its remote version (if any)
 				const currentGitBranch = await git.getCurrentBranch(repo.path);
@@ -566,7 +566,7 @@ export class GitRepositories {
 						// don't allow chokidar watcher to fire changes on initialization
 						// (fires lots of `add` and `addDir` events that we do not need
 						// as they can cause extensions to overload their ipc message queues)
-						ignoreInitial: true
+						ignoreInitial: true,
 					})
 					.on("ready", () => {
 						if (Logger.level === TraceLevel.Debug) {
@@ -599,8 +599,8 @@ export class GitRepositories {
 							repo: {
 								id: repo.id,
 								normalizedPath: repo.normalizedPath,
-								path: repo.path
-							}
+								path: repo.path,
+							},
 						} as CommitsChangedData);
 
 						if (eventName === "change") {
@@ -641,7 +641,7 @@ export class GitRepositories {
 
 								// using a Set for unique-ness
 								this._dynamicRefsByRepo.set(repo.path, [
-									...new Set([...dynamicRefs, ...pathsToAdd])
+									...new Set([...dynamicRefs, ...pathsToAdd]),
 								]);
 
 								// watched paths are de-duped by chokidar
@@ -658,7 +658,7 @@ export class GitRepositories {
 				this._monitors.push({
 					dispose() {
 						return watcher.close();
-					}
+					},
 				});
 			} catch (err) {
 				Logger.error(err);

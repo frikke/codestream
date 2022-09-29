@@ -13,7 +13,7 @@ import {
 	YouTrackCard,
 	YouTrackCreateCardRequest,
 	YouTrackCreateCardResponse,
-	YouTrackUser
+	YouTrackUser,
 } from "../protocol/agent.protocol";
 import { CSYouTrackProviderInfo } from "../protocol/api.protocol";
 import { log, lspProvider } from "../system";
@@ -35,7 +35,7 @@ export class YouTrackProvider extends ThirdPartyIssueProviderBase<CSYouTrackProv
 		return {
 			Authorization: `Bearer ${this.accessToken}`,
 			Accept: "application/json",
-			"Content-Type": "application/json"
+			"Content-Type": "application/json",
 		};
 	}
 
@@ -72,7 +72,7 @@ export class YouTrackProvider extends ThirdPartyIssueProviderBase<CSYouTrackProv
 		await this.ensureConnected();
 		const response = await this.get<YouTrackBoard[]>(
 			`/admin/projects?${qs.stringify({
-				fields: "id,name,shortName"
+				fields: "id,name,shortName",
 			})}`
 		);
 		return {
@@ -80,9 +80,9 @@ export class YouTrackProvider extends ThirdPartyIssueProviderBase<CSYouTrackProv
 				return {
 					id: board.id,
 					name: board.name,
-					singleAssignee: true
+					singleAssignee: true,
 				};
-			})
+			}),
 		};
 	}
 
@@ -93,7 +93,7 @@ export class YouTrackProvider extends ThirdPartyIssueProviderBase<CSYouTrackProv
 		const response = await this.get<YouTrackCard[]>(
 			`/issues?${qs.stringify({
 				fields: "id,idReadable,modified,summary,description",
-				query: "for: me state:unresolved"
+				query: "for: me state:unresolved",
 			})}`
 		);
 		const url =
@@ -108,9 +108,9 @@ export class YouTrackProvider extends ThirdPartyIssueProviderBase<CSYouTrackProv
 					title: card.summary,
 					modifiedAt: card.modified * 1000,
 					tokenId: card.idReadable,
-					body: card.description
+					body: card.description,
 				};
-			})
+			}),
 		};
 	}
 
@@ -119,14 +119,14 @@ export class YouTrackProvider extends ThirdPartyIssueProviderBase<CSYouTrackProv
 		const data = request.data as YouTrackCreateCardRequest;
 		const response = await this.post<{}, YouTrackCreateCardResponse>(
 			`/issues?${qs.stringify({
-				fields: "id,idReadable"
+				fields: "id,idReadable",
 			})}`,
 			{
 				summary: data.name,
 				description: data.description,
 				project: {
-					id: data.boardId
-				}
+					id: data.boardId,
+				},
 			}
 		);
 		const card = response.body;
@@ -143,7 +143,7 @@ export class YouTrackProvider extends ThirdPartyIssueProviderBase<CSYouTrackProv
 
 		const { body } = await this.get<YouTrackUser[]>(
 			`/admin/users/?${qs.stringify({
-				fields: "id,name,fullName"
+				fields: "id,name,fullName",
 			})}`
 		);
 		this._assignableUsers = body.map(u => ({ ...u, displayName: u.fullName }));

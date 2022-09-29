@@ -6,7 +6,7 @@ import path from "path";
 import {
 	CreateNewRelicConfigFileJavaResponse,
 	DidChangeProcessBufferNotificationType,
-	InstallNewRelicResponse
+	InstallNewRelicResponse,
 } from "../../protocol/agent.protocol";
 import { CodeStreamSession } from "../../session";
 
@@ -33,39 +33,40 @@ export class DotNetCoreInstrumentation {
 				let error = "";
 
 				child.stdout?.setEncoding("utf8");
-				child.stdout?.on("data", function(data: any) {
+				child.stdout?.on("data", function (data: any) {
 					data = data.toString();
 					scriptOutput += data;
 
 					me.session.agent.sendNotification(DidChangeProcessBufferNotificationType, {
-						text: data
+						text: data,
 					});
 				});
 
 				child.stderr?.setEncoding("utf8");
-				child.stderr?.on("data", function(data: any) {
+				child.stderr?.on("data", function (data: any) {
 					error += data.toString();
 				});
 
-				child.on("close", function(code: any) {
+				child.on("close", function (code: any) {
 					callback(scriptOutput, error, code);
 				});
 			}
 
-			run_script("dotnet", ["add", "package", "NewRelic.Agent"], { cwd: cwd }, function(
-				output: string,
-				error: string,
-				exitCode: string
-			) {
-				if (error) {
-					resolve({ error: error });
-				} else {
-					me.session.agent.sendNotification(DidChangeProcessBufferNotificationType, {
-						text: "OK"
-					});
-					resolve({});
+			run_script(
+				"dotnet",
+				["add", "package", "NewRelic.Agent"],
+				{ cwd: cwd },
+				function (output: string, error: string, exitCode: string) {
+					if (error) {
+						resolve({ error: error });
+					} else {
+						me.session.agent.sendNotification(DidChangeProcessBufferNotificationType, {
+							text: "OK",
+						});
+						resolve({});
+					}
 				}
-			});
+			);
 		});
 
 		// FIXME does this work in linux???

@@ -4,7 +4,7 @@ import { promises as fsPromises } from "fs";
 import path from "path";
 import {
 	CreateNewRelicConfigFileJavaResponse,
-	InstallNewRelicResponse
+	InstallNewRelicResponse,
 } from "../../protocol/agent.protocol";
 import { CodeStreamSession } from "../../session";
 import { execAsync, existsAsync } from "./util";
@@ -50,7 +50,7 @@ export class JavaInstrumentation {
 			await execAsync(
 				"curl -O https://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic-java.zip",
 				{
-					cwd
+					cwd,
 				}
 			);
 			return zipFile;

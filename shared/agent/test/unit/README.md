@@ -1,6 +1,6 @@
 Unit Tests
 
-To locally run the unit tests, run: 
+To locally run the unit tests, run:
 
 ```
 npm run test-unit

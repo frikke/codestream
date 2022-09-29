@@ -12,24 +12,24 @@ describe("git", () => {
 			expect(results).toEqual([
 				{
 					type: "ssh",
-					value: "git@gitlabratory.example.com:myorg/myrepo-sample-java.git"
+					value: "git@gitlabratory.example.com:myorg/myrepo-sample-java.git",
 				},
 				{
 					type: "ssh",
-					value: "ssh://git@gitlabratory.example.com:myorg/myrepo-sample-java.git"
+					value: "ssh://git@gitlabratory.example.com:myorg/myrepo-sample-java.git",
 				},
 				{
 					type: "https",
-					value: "https://gitlabratory.example.com/myorg/myrepo-sample-java.git"
+					value: "https://gitlabratory.example.com/myorg/myrepo-sample-java.git",
 				},
 				{
 					type: "https",
-					value: "https://gitlabratory.example.com/myorg/myrepo-sample-java"
+					value: "https://gitlabratory.example.com/myorg/myrepo-sample-java",
 				},
 				{
 					type: "git",
-					value: "git://gitlabratory.example.com/myorg/myrepo-sample-java.git"
-				}
+					value: "git://gitlabratory.example.com/myorg/myrepo-sample-java.git",
+				},
 			]);
 		});
 		it("ssh1", async () => {
@@ -39,24 +39,24 @@ describe("git", () => {
 			expect(results).toEqual([
 				{
 					type: "ssh",
-					value: "git@gitlabratory.example.com/myorg/myrepo-sample-java.git"
+					value: "git@gitlabratory.example.com/myorg/myrepo-sample-java.git",
 				},
 				{
 					type: "ssh",
-					value: "ssh://git@gitlabratory.example.com/myorg/myrepo-sample-java.git"
+					value: "ssh://git@gitlabratory.example.com/myorg/myrepo-sample-java.git",
 				},
 				{
 					type: "https",
-					value: "https:///.git"
+					value: "https:///.git",
 				},
 				{
 					type: "https",
-					value: "https:///"
+					value: "https:///",
 				},
 				{
 					type: "git",
-					value: "git:///.git"
-				}
+					value: "git:///.git",
+				},
 			]);
 		});
 		it("ssh2", async () => {
@@ -66,24 +66,24 @@ describe("git", () => {
 			expect(results).toEqual([
 				{
 					type: "ssh",
-					value: "git@gitlabratory.example.com:myorg/myrepo-sample-java.git"
+					value: "git@gitlabratory.example.com:myorg/myrepo-sample-java.git",
 				},
 				{
 					type: "ssh",
-					value: "ssh://git@gitlabratory.example.com:myorg/myrepo-sample-java.git"
+					value: "ssh://git@gitlabratory.example.com:myorg/myrepo-sample-java.git",
 				},
 				{
 					type: "https",
-					value: "https://gitlabratory.example.com/myorg/myrepo-sample-java.git"
+					value: "https://gitlabratory.example.com/myorg/myrepo-sample-java.git",
 				},
 				{
 					type: "https",
-					value: "https://gitlabratory.example.com/myorg/myrepo-sample-java"
+					value: "https://gitlabratory.example.com/myorg/myrepo-sample-java",
 				},
 				{
 					type: "git",
-					value: "git://gitlabratory.example.com/myorg/myrepo-sample-java.git"
-				}
+					value: "git://gitlabratory.example.com/myorg/myrepo-sample-java.git",
+				},
 			]);
 		});
 		it("ssh3", async () => {
@@ -93,24 +93,24 @@ describe("git", () => {
 			expect(results).toEqual([
 				{
 					type: "ssh",
-					value: "git@github.com:theuser/therepo.git"
+					value: "git@github.com:theuser/therepo.git",
 				},
 				{
 					type: "ssh",
-					value: "ssh://git@github.com:theuser/therepo.git"
+					value: "ssh://git@github.com:theuser/therepo.git",
 				},
 				{
 					type: "https",
-					value: "https://github.com/theuser/therepo.git"
+					value: "https://github.com/theuser/therepo.git",
 				},
 				{
 					type: "https",
-					value: "https://github.com/theuser/therepo"
+					value: "https://github.com/theuser/therepo",
 				},
 				{
 					type: "git",
-					value: "git://github.com/theuser/therepo.git"
-				}
+					value: "git://github.com/theuser/therepo.git",
+				},
 			]);
 		});
 		it("https", async () => {
@@ -120,24 +120,24 @@ describe("git", () => {
 			expect(results).toEqual([
 				{
 					type: "https",
-					value: "https://gitlabratory.example.com/myorg/myrepo-sample-java.git"
+					value: "https://gitlabratory.example.com/myorg/myrepo-sample-java.git",
 				},
 				{
 					type: "https",
-					value: "https://gitlabratory.example.com/myorg/myrepo-sample-java"
+					value: "https://gitlabratory.example.com/myorg/myrepo-sample-java",
 				},
 				{
 					type: "git",
-					value: "git://gitlabratory.example.com/myorg/myrepo-sample-java.git"
+					value: "git://gitlabratory.example.com/myorg/myrepo-sample-java.git",
 				},
 				{
 					type: "ssh",
-					value: "git@gitlabratory.example.com:myorg/myrepo-sample-java.git"
+					value: "git@gitlabratory.example.com:myorg/myrepo-sample-java.git",
 				},
 				{
 					type: "ssh",
-					value: "ssh://git@gitlabratory.example.com/myorg/myrepo-sample-java.git"
-				}
+					value: "ssh://git@gitlabratory.example.com/myorg/myrepo-sample-java.git",
+				},
 			]);
 		});
 	});

@@ -17,7 +17,7 @@ import {
 	CSReviewCheckpoint,
 	CSStream,
 	CSUpdateReviewRequest,
-	CSUpdateReviewResponse
+	CSUpdateReviewResponse,
 } from "./api.protocol";
 import { CSReviewDiffs } from "./api.protocol.models";
 

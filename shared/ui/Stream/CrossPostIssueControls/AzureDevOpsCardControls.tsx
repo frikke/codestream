@@ -1,25 +1,25 @@
-import React from "react";
-import ReactDOM from "react-dom";
-import AsyncSelect from "react-select/async";
-import Icon from "../Icon";
-import Menu from "../Menu";
 import {
-	CodeDelimiterStyles,
-	ThirdPartyProviderConfig,
-	FetchThirdPartyBoardsRequestType,
 	AzureDevOpsBoard,
-	FetchAssignableUsersRequestType
+	CodeDelimiterStyles,
+	FetchAssignableUsersRequestType,
+	FetchThirdPartyBoardsRequestType,
+	ThirdPartyProviderConfig,
 } from "@codestream/protocols/agent";
-import { useDispatch, useSelector } from "react-redux";
 import { CodeStreamState } from "@codestream/webview/store";
+import { updateForProvider } from "@codestream/webview/store/activeIntegrations/actions";
 import { getIntegrationData } from "@codestream/webview/store/activeIntegrations/reducer";
 import { AzureDevOpsIntegrationData } from "@codestream/webview/store/activeIntegrations/types";
-import { updateForProvider } from "@codestream/webview/store/activeIntegrations/actions";
-import { CrossPostIssueContext } from "../CodemarkForm";
-import { useDidMount } from "@codestream/webview/utilities/hooks";
-import { HostApi } from "@codestream/webview/webview-api";
-import { mapFilter, emptyArray } from "@codestream/webview/utils";
 import { setIssueProvider } from "@codestream/webview/store/context/actions";
+import { useDidMount } from "@codestream/webview/utilities/hooks";
+import { emptyArray, mapFilter } from "@codestream/webview/utils";
+import { HostApi } from "@codestream/webview/webview-api";
+import React from "react";
+import ReactDOM from "react-dom";
+import { useDispatch, useSelector } from "react-redux";
+import AsyncSelect from "react-select/async";
+import { CrossPostIssueContext } from "../CodemarkForm";
+import Icon from "../Icon";
+import Menu from "../Menu";
 
 export function AzureDevOpsCardControls(
 	props: React.PropsWithChildren<{ provider: ThirdPartyProviderConfig }>
@@ -39,18 +39,18 @@ export function AzureDevOpsCardControls(
 
 	useDidMount(() => {
 		crossPostIssueContext.setValues({
-			codeDelimiterStyle: CodeDelimiterStyles.HTML_MARKUP
+			codeDelimiterStyle: CodeDelimiterStyles.HTML_MARKUP,
 		});
 
 		if (data.projects && data.projects.length > 0 && data.currentProject) {
 			crossPostIssueContext.setValues({
-				board: data.currentProject || data.projects[0]
+				board: data.currentProject || data.projects[0],
 			});
 			return;
 		}
 		if (!data.isLoading) {
 			updateDataState({
-				isLoading: true
+				isLoading: true,
 			});
 		}
 
@@ -58,24 +58,26 @@ export function AzureDevOpsCardControls(
 
 		const fetchBoards = async () => {
 			let response = await HostApi.instance.send(FetchThirdPartyBoardsRequestType, {
-				providerId: props.provider.id
+				providerId: props.provider.id,
 			});
 
 			if (!isValid) return;
 
 			// make sure to persist current selections if possible
-			const newCurrentProject = (data.currentProject
-				? response.boards.find(b => b.id === data.currentProject!.id)
-				: response.boards[0]) as AzureDevOpsBoard;
+			const newCurrentProject = (
+				data.currentProject
+					? response.boards.find(b => b.id === data.currentProject!.id)
+					: response.boards[0]
+			) as AzureDevOpsBoard;
 
 			updateDataState({
 				isLoading: false,
 				projects: response.boards as AzureDevOpsBoard[],
-				currentProject: newCurrentProject
+				currentProject: newCurrentProject,
 			});
 
 			crossPostIssueContext.setValues({
-				board: newCurrentProject
+				board: newCurrentProject,
 			});
 		};
 
@@ -102,7 +104,7 @@ export function AzureDevOpsCardControls(
 		if (project) {
 			updateDataState({ currentProject: project });
 			crossPostIssueContext.setValues({
-				board: project
+				board: project,
 			});
 		}
 	}, []);
@@ -113,7 +115,7 @@ export function AzureDevOpsCardControls(
 
 			const { users } = await HostApi.instance.send(FetchAssignableUsersRequestType, {
 				providerId: props.provider.id,
-				boardId: data.currentProject.id
+				boardId: data.currentProject.id,
 			});
 			return mapFilter(users, user => {
 				if (user.displayName.toLowerCase().includes(inputValue.toLowerCase()))
@@ -185,7 +187,7 @@ export function AzureDevOpsCardControls(
 							items={(data.projects || emptyArray).map(project => ({
 								key: project.id,
 								label: project.name,
-								action: project
+								action: project,
 							}))}
 							action={selectProject}
 						/>

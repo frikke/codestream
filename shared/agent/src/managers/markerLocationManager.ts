@@ -10,7 +10,7 @@ import { Logger } from "../logger";
 import {
 	calculateLocation,
 	calculateLocations,
-	MAX_RANGE_VALUE
+	MAX_RANGE_VALUE,
 } from "../markerLocation/calculator";
 import { MarkerNotLocatedReason } from "../protocol/agent.protocol";
 import {
@@ -18,7 +18,7 @@ import {
 	CSMarker,
 	CSMarkerLocation,
 	CSMarkerLocations,
-	CSReferenceLocation
+	CSReferenceLocation,
 } from "../protocol/api.protocol";
 import { Strings } from "../system/string";
 import { xfs } from "../xfs";
@@ -60,7 +60,7 @@ export interface GetLocationsResult {
 function newGetLocationsResult(): GetLocationsResult {
 	return {
 		locations: {},
-		missingLocations: {}
+		missingLocations: {},
 	};
 }
 
@@ -87,8 +87,8 @@ export class MarkerLocationManager extends ManagerBase<CSMarkerLocations> {
 			{
 				fields: ["streamId", "commitHash"],
 				type: IndexType.Unique,
-				fetchFn: this.fetch.bind(this)
-			}
+				fetchFn: this.fetch.bind(this),
+			},
 		];
 	}
 
@@ -99,7 +99,7 @@ export class MarkerLocationManager extends ManagerBase<CSMarkerLocations> {
 		if (oldEntity) {
 			entity.locations = {
 				...oldEntity.locations,
-				...entity.locations
+				...entity.locations,
 			};
 		}
 		return super.cacheSet(entity, oldEntity);
@@ -109,7 +109,7 @@ export class MarkerLocationManager extends ManagerBase<CSMarkerLocations> {
 		const [streamId, commitHash] = getValues(criteria);
 		const response = await this.session.api.fetchMarkerLocations({
 			streamId,
-			commitHash
+			commitHash,
 		});
 		this.cacheResponse(response);
 		return response.markerLocations;
@@ -118,7 +118,7 @@ export class MarkerLocationManager extends ManagerBase<CSMarkerLocations> {
 	protected fetchCriteria(obj: CSMarkerLocations): KeyValue<CSMarkerLocations>[] {
 		return [
 			["streamId", obj.streamId],
-			["commitHash", obj.commitHash]
+			["commitHash", obj.commitHash],
 		];
 	}
 
@@ -166,17 +166,14 @@ export class MarkerLocationManager extends ManagerBase<CSMarkerLocations> {
 		Logger.log(`MARKERS: found ${markers.length} markers - retrieving current locations`);
 
 		const repoCurrentCommitHash = await git.getRepoHeadRevision(repoRoot);
-		const {
-			committedLocations,
-			uncommittedLocations,
-			futureReferences
-		} = await MarkerLocationManager.classifyLocations(
-			repoRoot,
-			markers,
-			currentCommitLocations.locations,
-			repoCurrentCommitHash,
-			fileCurrentCommitHash
-		);
+		const { committedLocations, uncommittedLocations, futureReferences } =
+			await MarkerLocationManager.classifyLocations(
+				repoRoot,
+				markers,
+				currentCommitLocations.locations,
+				repoCurrentCommitHash,
+				fileCurrentCommitHash
+			);
 
 		const doc = documents.get(documentUri);
 		Logger.log(`MARKERS: retrieving current text from document manager`);
@@ -215,7 +212,7 @@ export class MarkerLocationManager extends ManagerBase<CSMarkerLocations> {
 				const currLoc = calculatedLocations[id];
 				currLoc.meta = {
 					...commLoc.meta,
-					...currLoc.meta
+					...currLoc.meta,
 				};
 				Logger.log(
 					`MARKERS: ${id} [${commLoc.lineStart}, ${commLoc.colStart}, ${commLoc.lineEnd}, ${commLoc.colEnd}] => [${currLoc.lineStart}, ${currLoc.colStart}, ${currLoc.lineEnd}, ${currLoc.colEnd}]`
@@ -298,12 +295,8 @@ export class MarkerLocationManager extends ManagerBase<CSMarkerLocations> {
 				location.lineStart === location.lineEnd &&
 				location.colStart === location.colEnd
 			) {
-				const [
-					lineStartWhenCreated,
-					colStartWhenCreated,
-					lineEndWhenCreated,
-					colEndWhenCreated
-				] = marker.referenceLocations[0].location;
+				const [lineStartWhenCreated, colStartWhenCreated, lineEndWhenCreated, colEndWhenCreated] =
+					marker.referenceLocations[0].location;
 				if (
 					lineStartWhenCreated !== lineEndWhenCreated ||
 					colStartWhenCreated !== colEndWhenCreated
@@ -346,7 +339,7 @@ export class MarkerLocationManager extends ManagerBase<CSMarkerLocations> {
 		const result = {
 			committedLocations: {} as MarkerLocationsById,
 			uncommittedLocations: {} as UncommittedLocationsById,
-			futureReferences: {} as ReferenceLocationsById
+			futureReferences: {} as ReferenceLocationsById,
 		};
 		Logger.log(`MARKERS: retrieving uncommitted locations from local cache`);
 		const cache = await getCache(repoPath);
@@ -393,7 +386,7 @@ export class MarkerLocationManager extends ManagerBase<CSMarkerLocations> {
 		if (!revision) {
 			Logger.warn("No revision specified for backtracking");
 			return {
-				location
+				location,
 			};
 		}
 
@@ -424,7 +417,7 @@ export class MarkerLocationManager extends ManagerBase<CSMarkerLocations> {
 		return {
 			location: await calculateLocation(location, diffContentsToCommitted),
 			diffContentsToCommitted,
-			diffCommittedToContents
+			diffCommittedToContents,
 		};
 	}
 
@@ -518,8 +511,8 @@ export class MarkerLocationManager extends ManagerBase<CSMarkerLocations> {
 								streamId: fileStreamId,
 								commitHash,
 								locations: MarkerLocation.toArraysById({
-									[missingMarker.id]: calculatedLocation
-								})
+									[missingMarker.id]: calculatedLocation,
+								}),
 							});
 						}
 
@@ -563,7 +556,7 @@ export class MarkerLocationManager extends ManagerBase<CSMarkerLocations> {
 					.join(", ")}`;
 				missingLocations[missingMarker.id] = {
 					reason: MarkerNotLocatedReason.MISSING_ORIGINAL_COMMIT,
-					details
+					details,
 				};
 				Logger.warn(details);
 			}
@@ -598,13 +591,13 @@ export class MarkerLocationManager extends ManagerBase<CSMarkerLocations> {
 			await session.api.createMarkerLocation({
 				streamId: fileStreamId,
 				commitHash,
-				locations: MarkerLocation.toArraysById(calculatedLocations)
+				locations: MarkerLocation.toArraysById(calculatedLocations),
 			});
 		}
 
 		return {
 			locations: currentCommitLocations,
-			missingLocations
+			missingLocations,
 		};
 	}
 
@@ -655,7 +648,7 @@ export class MarkerLocationManager extends ManagerBase<CSMarkerLocations> {
 			await session.api.createMarkerLocation({
 				streamId: fileStream.id,
 				commitHash,
-				locations: locationArraysById
+				locations: locationArraysById,
 			});
 			Logger.log(`MARKERS: adding canonical reference location for ${id}@${commitHash}`);
 			await session.api.addReferenceLocation({
@@ -664,8 +657,8 @@ export class MarkerLocationManager extends ManagerBase<CSMarkerLocations> {
 				location: MarkerLocation.toArray(location),
 				flags: {
 					canonical: true,
-					committedAfterCreation: true
-				}
+					committedAfterCreation: true,
+				},
 			});
 			uncommittedLocations.delete(id);
 			Logger.log(`MARKERS: flushing local cache`);
@@ -680,7 +673,7 @@ export class MarkerLocationManager extends ManagerBase<CSMarkerLocations> {
 	): Promise<CSMarkerLocations | undefined> {
 		return this.cache.get([
 			["streamId", streamId],
-			["commitHash", commitHash]
+			["commitHash", commitHash],
 		]);
 	}
 
@@ -727,7 +720,7 @@ export class MarkerLocationManager extends ManagerBase<CSMarkerLocations> {
 				for (const marker of markers) {
 					orphans[marker.id] = {
 						reason: MarkerNotLocatedReason.MISSING_ORIGINAL_COMMIT,
-						details
+						details,
 					};
 				}
 
@@ -742,7 +735,7 @@ export class MarkerLocationManager extends ManagerBase<CSMarkerLocations> {
 					lineStart: location[0],
 					colStart: location[1],
 					lineEnd: location[2],
-					colEnd: location[3]
+					colEnd: location[3],
 				};
 			}
 
@@ -754,7 +747,7 @@ export class MarkerLocationManager extends ManagerBase<CSMarkerLocations> {
 
 		const locationsInCurrentCommit = {
 			locations: locations,
-			orphans: orphans
+			orphans: orphans,
 		};
 
 		const currentCommitText = await git.getFileContentForRevision(uri, currentFileRevision);
@@ -790,7 +783,7 @@ export class MarkerLocationManager extends ManagerBase<CSMarkerLocations> {
 
 		return {
 			locations: locationsInCurrentBuffer,
-			orphans: orphans
+			orphans: orphans,
 		};
 	}
 }

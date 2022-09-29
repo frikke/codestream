@@ -14,7 +14,7 @@ import {
 	GetCodeErrorResponse,
 	UpdateCodeErrorRequest,
 	UpdateCodeErrorRequestType,
-	UpdateCodeErrorResponse
+	UpdateCodeErrorResponse,
 } from "../protocol/agent.protocol";
 import { CSCodeError } from "../protocol/api.protocol";
 import { log, lsp, lspHandler } from "../system";
@@ -51,7 +51,7 @@ export class CodeErrorsManager extends CachedEntityManagerBase<CSCodeError> {
 		const updateResponse = await this.session.api.updateCodeError(request);
 		const [codeError] = await this.resolve({
 			type: MessageType.CodeErrors,
-			data: [updateResponse.codeError]
+			data: [updateResponse.codeError],
 		});
 
 		return { codeError };

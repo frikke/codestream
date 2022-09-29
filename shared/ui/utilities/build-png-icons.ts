@@ -20,7 +20,7 @@ const COLOR_MAP = {
 	red: "#d9634f",
 	purple: "#b87cda",
 	aqua: "#5abfdc",
-	gray: "#888888"
+	gray: "#888888",
 };
 
 const { convert } = require("convert-svg-to-png");
@@ -35,37 +35,37 @@ const argv = yargs
 		alias: "s",
 		description: "the size of the pngs in pixels",
 		type: "number",
-		default: 32
+		default: 32,
 	})
 	.option("color", {
 		alias: "c",
 		description: "the color of the icons",
 		type: "string",
-		default: ""
+		default: "",
 	})
 	.option("output-directory", {
 		alias: "o",
 		description: "the output directory",
 		type: "string",
-		default: "/tmp/"
+		default: "/tmp/",
 	})
 	.option("name", {
 		alias: "n",
 		description: "if you want a single icon, use its name here",
 		type: "string",
-		default: ""
+		default: "",
 	})
 	.option("editor", {
 		alias: "e",
 		description: "build all of the icons we need for the editor",
 		type: "boolean",
-		default: false
+		default: false,
 	})
 	.option("background", {
 		alias: "b",
 		description: "the background color",
 		type: "string",
-		default: "#ffffff"
+		default: "#ffffff",
 	})
 	.help()
 	.alias("help", "h").argv;
@@ -88,7 +88,7 @@ const convertIcon = async (icon, color, filename = dir + icon.name + ".png", typ
 		return console.log("Uknown image type: ", type);
 	}
 
-	await fs.writeFile(filename, imageContents, function(err) {
+	await fs.writeFile(filename, imageContents, function (err) {
 		if (err) return console.log(err);
 		console.log("The file " + filename + " was saved!");
 	});
@@ -116,7 +116,7 @@ const convertEditorIcons = async () => {
 		"pull-request",
 		"prcomment",
 		"question",
-		"trap"
+		"trap",
 	];
 	const colors = ["green", "purple", "gray", "blue", "aqua", "red", "yellow", "orange"];
 	for (let index = 0; index < icons.length; index++) {

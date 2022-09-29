@@ -1,9 +1,9 @@
+import createClassString from "classnames";
 import React, { Component } from "react";
 import ReactDOM from "react-dom";
-import createClassString from "classnames";
-import Button from "./Button";
-import KeystrokeDispatcher from "../utilities/keystroke-dispatcher";
 import { logWarning } from "../logger";
+import KeystrokeDispatcher from "../utilities/keystroke-dispatcher";
+import Button from "./Button";
 
 export default class Confirm extends Component {
 	disposables = [];
@@ -79,7 +79,7 @@ export default class Confirm extends Component {
 	render() {
 		const bodyClass = createClassString(this.props.className || "", {
 			"confirm-popup-body": true,
-			centered: this.props.centered
+			centered: this.props.centered,
 		});
 
 		return ReactDOM.createPortal(
@@ -92,7 +92,7 @@ export default class Confirm extends Component {
 							const buttonClass = createClassString(
 								{
 									"control-button": true,
-									cancel: !button.action && !button.uri && !button.className
+									cancel: !button.action && !button.uri && !button.className,
 								},
 								button.className
 							);

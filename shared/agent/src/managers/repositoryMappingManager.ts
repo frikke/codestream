@@ -13,7 +13,7 @@ import {
 	NormalizeUrlRequest,
 	NormalizeUrlRequestType,
 	NormalizeUrlResponse,
-	RepoMap
+	RepoMap,
 } from "../protocol/agent.protocol.repos";
 import { log, lsp, lspHandler } from "../system";
 
@@ -83,7 +83,7 @@ export class RepositoryMappingManager {
 						fs.writeFileSync(p, JSON.stringify(parsed, null, 1));
 						Logger.debug(`Saved repo mapping file to ${p} (skippedRepositoryIntegration)`);
 						return {
-							success: true
+							success: true,
 						};
 					}
 				} else {
@@ -91,7 +91,7 @@ export class RepositoryMappingManager {
 						request.repos.map(_ => {
 							return {
 								repoId: _.repoId,
-								path: URI.file(_.path).toString()
+								path: URI.file(_.path).toString(),
 							};
 						})
 					);
@@ -113,14 +113,14 @@ export class RepositoryMappingManager {
 							fs.writeFileSync(p, JSON.stringify(parsed, null, 1));
 							Logger.debug(`Saved repo mapping file to ${p}`);
 							return {
-								success: true
+								success: true,
 							};
 						}
 					}
 				}
 			}
 			return {
-				success: false
+				success: false,
 			};
 		} catch (ex) {
 			Logger.error(ex);
@@ -143,8 +143,8 @@ export class RepositoryMappingManager {
 			const foundRepos = await SessionContainer.instance().git.setKnownRepository([
 				{
 					repoId: repoId,
-					path: URI.file(repo.defaultPath).toString()
-				}
+					path: URI.file(repo.defaultPath).toString(),
+				},
 			]);
 			if (foundRepos && Object.keys(foundRepos).length && foundRepos[repoId]) {
 				return repo.defaultPath;
@@ -194,7 +194,7 @@ export class RepositoryMappingManager {
 				// data there but not this repo
 				repoMap.repos[addedRepo.repoId] = {
 					paths: [addedRepo.path],
-					defaultPath: addedRepo.path
+					defaultPath: addedRepo.path,
 				};
 				isChanging = true;
 			}

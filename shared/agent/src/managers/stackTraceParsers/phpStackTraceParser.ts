@@ -43,7 +43,7 @@ export function Parser(stack: string): CSStackTraceInfo {
 		stackInfo.lines.push({
 			method: className ? `${className}::${methodName}` : methodName,
 			fileFullPath: file,
-			line: lineNum
+			line: lineNum,
 		});
 	}
 

@@ -1,48 +1,42 @@
-import { Middleware } from "redux";
-import { SessionActionType } from "./types";
 import { authenticate } from "@codestream/webview/Authentication/actions";
+import { Middleware } from "redux";
+import { AppDispatch, CodeStreamState } from "..";
 import { setMaintenanceMode } from "./actions";
-import { CodeStreamState } from "..";
+import { SessionActionType } from "./types";
 
-export const sessionMiddleware: Middleware = ({
-	dispatch,
-	getState
-}: {
-	dispatch: any;
-	getState: () => CodeStreamState;
-}) => next => {
-	let pollingTask: Poller | undefined;
+export const sessionMiddleware: Middleware =
+	({ dispatch, getState }: { dispatch: AppDispatch; getState: () => CodeStreamState }) =>
+	next => {
+		let pollingTask: Poller | undefined;
 
-	return action => {
-		const result = next(action);
+		return action => {
+			const result = next(action);
 
-		if (action.type === SessionActionType.SetMaintenanceMode) {
-			const {
-				payload: enteringMaintenanceMode,
-				meta
-			}: ReturnType<typeof setMaintenanceMode> = action;
-			if (enteringMaintenanceMode && pollingTask == undefined) {
-				pollingTask = new Poller(10000, async () => {
-					if (getState().session.inMaintenanceMode) {
-						try {
-							await dispatch(authenticate(meta as any));
-							return !getState().session.inMaintenanceMode;
-						} catch (error) {
-							return;
+			if (action.type === SessionActionType.SetMaintenanceMode) {
+				const { payload: enteringMaintenanceMode, meta }: ReturnType<typeof setMaintenanceMode> =
+					action;
+				if (enteringMaintenanceMode && pollingTask == undefined) {
+					pollingTask = new Poller(10000, async () => {
+						if (getState().session.inMaintenanceMode) {
+							try {
+								await dispatch(authenticate(meta as any));
+								return !getState().session.inMaintenanceMode;
+							} catch (error) {
+								return;
+							}
+						} else {
+							return true;
 						}
-					} else {
-						return true;
-					}
-				});
+					});
 
-				pollingTask.start();
-				pollingTask.onDidStop(() => (pollingTask = undefined));
+					pollingTask.start();
+					pollingTask.onDidStop(() => (pollingTask = undefined));
+				}
 			}
-		}
 
-		return result;
+			return result;
+		};
 	};
-};
 
 /*
 	The executor will be invoked repeatedly according to the schedule until it returns `true` or
@@ -68,7 +62,7 @@ class Poller {
 	}
 
 	private schedule() {
-		this._timerId = (setTimeout(async () => {
+		this._timerId = setTimeout(async () => {
 			let result;
 
 			try {
@@ -83,7 +77,7 @@ class Poller {
 			} else {
 				this.schedule();
 			}
-		}, this._time) as unknown) as number;
+		}, this._time) as unknown as number;
 	}
 
 	stop() {

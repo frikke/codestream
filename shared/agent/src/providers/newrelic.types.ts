@@ -1,4 +1,4 @@
-import { GetFileLevelTelemetryResponse } from "../protocol/agent.protocol.providers";
+import { Entity, GetFileLevelTelemetryResponse } from "../protocol/agent.protocol.providers";
 
 export class GraphqlNrqlError extends Error {
 	errors: Array<GraphqlNrqlErrorItem>;
@@ -54,4 +54,9 @@ export interface NRErrorResponse {
 		message?: string;
 		type: NRErrorType;
 	};
+}
+
+export interface RepoEntitiesByRemotesResponse {
+	entities?: Entity[];
+	remotes?: string[];
 }

@@ -3,7 +3,7 @@ import { runCommand } from "../git/shell";
 import { Logger } from "../logger";
 
 const netUseRegex = /\w+\s+([A-Z]:)\s+([\w\\]+)/;
-const cache = new Cache();
+const cache = new Cache<MappedDrives>();
 const KEY = "netuse";
 
 export class DriveLetter {

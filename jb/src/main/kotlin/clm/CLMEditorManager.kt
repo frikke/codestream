@@ -4,6 +4,7 @@ import com.codestream.agentService
 import com.codestream.codeStream
 import com.codestream.extensions.file
 import com.codestream.extensions.lspPosition
+import com.codestream.extensions.uri
 import com.codestream.protocols.agent.FileLevelTelemetryOptions
 import com.codestream.protocols.agent.FileLevelTelemetryParams
 import com.codestream.protocols.agent.FileLevelTelemetryResult
@@ -16,6 +17,7 @@ import com.codestream.protocols.agent.MethodLevelTelemetryThroughput
 import com.codestream.protocols.agent.NOT_ASSOCIATED
 import com.codestream.protocols.agent.TelemetryParams
 import com.codestream.protocols.webview.MethodLevelTelemetryNotifications
+import com.codestream.review.LOCAL_PATH
 import com.codestream.sessionService
 import com.codestream.settings.ApplicationSettingsService
 import com.codestream.settings.GoldenSignalListener
@@ -48,6 +50,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.eclipse.lsp4j.Range
 import java.awt.Point
+import java.awt.event.FocusEvent
+import java.awt.event.FocusListener
 import java.awt.event.MouseEvent
 
 private val OPTIONS = FileLevelTelemetryOptions(true, true, true)
@@ -77,8 +81,8 @@ abstract class CLMEditorManager(
     val editor: Editor,
     private val languageId: String,
     private val lookupByClassName: Boolean
-) : DocumentListener, GoldenSignalListener, Disposable {
-    private val path = editor.document.file?.path
+) : DocumentListener, GoldenSignalListener, Disposable, FocusListener {
+    private val path = editor.document.getUserData(LOCAL_PATH) ?: editor.document.file?.path
     private val project = editor.project
     private val metricsBySymbol = mutableMapOf<MethodLevelTelemetrySymbolIdentifier, Metrics>()
     private val inlays = mutableSetOf<Inlay<CLMCustomRenderer>>()
@@ -87,17 +91,20 @@ abstract class CLMEditorManager(
     private var analyticsTracked = false
     private val appSettings = ServiceManager.getService(ApplicationSettingsService::class.java)
     private var doPoll = true
+    private var lastFetchAttempt: Long = 0
 
     private val logger = Logger.getInstance(CLMEditorManager::class.java)
 
     init {
         pollLoadInlays()
         editor.document.addDocumentListener(this)
+        editor.contentComponent.addFocusListener(this)
         project?.agentService?.onDidStart {
             project.sessionService?.onUserLoggedInChanged {
                 ApplicationManager.getApplication().invokeLater { this.updateInlays() }
             }
         }
+        appSettings.addGoldenSignalsListener(this)
     }
 
     abstract fun getLookupClassName(psiFile: PsiFile): String?
@@ -113,15 +120,16 @@ abstract class CLMEditorManager(
         }
     }
 
-    fun loadInlays(resetCache: Boolean?) {
+    fun loadInlays(resetCache: Boolean = false) {
         if (path == null) return
         if (editor !is EditorImpl) return
-
-        appSettings.addGoldenSignalsListener(this)
+        if (!isStale()) return
 
         project?.agentService?.onDidStart {
             ApplicationManager.getApplication().invokeLater {
                 if (project.isDisposed) return@invokeLater
+                // logger.debug("=== ${editor.displayPath} isShowing: ${editor.component.isShowing}")
+                if (!editor.component.isShowing) return@invokeLater
                 val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(editor.document) ?: return@invokeLater
 
                 val className = if (lookupByClassName) {
@@ -132,9 +140,11 @@ abstract class CLMEditorManager(
 
                 GlobalScope.launch {
                     try {
+                        lastFetchAttempt = System.currentTimeMillis()
+                        // logger.info("=== Calling fileLevelTelemetry for ${editor.document.uri} resetCache: $resetCache")
                         val result = project.agentService?.fileLevelTelemetry(
                             FileLevelTelemetryParams(
-                                path,
+                                editor.document.uri,
                                 languageId,
                                 FunctionLocator(className, null),
                                 null,
@@ -302,6 +312,7 @@ abstract class CLMEditorManager(
                         }
                     }
                 })
+
             val renderer = CLMCustomRenderer(referenceOnHoverPresentation)
             val inlay = editor.inlayModel.addBlockElement(range.startOffset, false, true, 1, renderer)
 
@@ -379,5 +390,20 @@ abstract class CLMEditorManager(
             ?: element
 
         return TextRange.create(start.startOffset, element.endOffset)
+    }
+
+    private fun isStale(): Boolean {
+        return System.currentTimeMillis() - lastFetchAttempt > 60 * 1000
+    }
+
+    override fun focusGained(event: FocusEvent?) {
+        if (event != null) {
+            // logger.info("=== loadInlays from focus event for ${editor.displayPath}")
+            this.loadInlays(false)
+        }
+    }
+
+    override fun focusLost(event: FocusEvent?) {
+        // Ignore
     }
 }

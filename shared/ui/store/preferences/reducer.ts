@@ -10,7 +10,7 @@ type PreferencesActions = ActionType<typeof actions>;
 
 const initialState: PreferencesState = {};
 
-const mergeCustom = function(target, source) {
+const mergeCustom = function (target, source) {
 	// don't merge arrays, just copy ... at least i hope that's the right solution
 	if (source instanceof Array) {
 		return [...source];
@@ -46,18 +46,18 @@ export const DEFAULT_FR_QUERIES: FetchRequestQuery[] = [
 	{
 		name: "Open",
 		hidden: false,
-		query: "open"
+		query: "open",
 	},
 	{
 		name: "Approved",
 		hidden: false,
 		query: "approved",
-		limit: 5
+		limit: 5,
 	},
 	{
 		name: "Changes Requested",
 		hidden: false,
 		query: "rejected",
-		limit: 5
-	}
+		limit: 5,
+	},
 ];

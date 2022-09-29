@@ -60,7 +60,7 @@ export class GitLogParser {
 		`${lb}c${rb}${sp}%ct`, // committed date
 		`${lb}s${rb}`,
 		"%B", // summary
-		`${lb}${sl}s${rb}`
+		`${lb}${sl}s${rb}`,
 	].join("%n");
 
 	static simpleFormat = `${lb}r${rb}${sp}%H`;
@@ -101,7 +101,7 @@ export class GitLogParser {
 			switch (token) {
 				case 114: // 'r': // ref
 					entry = {
-						ref: line.substring(4)
+						ref: line.substring(4),
 					};
 					break;
 

@@ -1,20 +1,18 @@
-import React, { useState, useCallback, useRef } from "react";
+import { CSMe } from "@codestream/protocols/api";
+import React, { useCallback, useState } from "react";
+import { FormattedMessage } from "react-intl";
 import { useDispatch, useSelector } from "react-redux";
-import CancelButton from "./CancelButton";
+import { TextInput } from "../Authentication/TextInput";
+import { logError } from "../logger";
+import { UpdateUserRequestType } from "../protocols/agent/agent.protocol.users";
+import { Button } from "../src/components/Button";
+import { Dialog } from "../src/components/Dialog";
+import { Headshot } from "../src/components/Headshot";
 import { CodeStreamState } from "../store";
 import { HostApi } from "../webview-api";
-import { Button } from "../src/components/Button";
-import styled from "styled-components";
-import { ButtonRow } from "./ChangeUsername";
-import { UpdateUserRequestType } from "../protocols/agent/agent.protocol.users";
-import { logError } from "../logger";
-import { FormattedMessage } from "react-intl";
-import { CSMe } from "@codestream/protocols/api";
-import { Link } from "./Link";
-import { TextInput } from "../Authentication/TextInput";
-import { Headshot } from "../src/components/Headshot";
-import { Dialog } from "../src/components/Dialog";
 import { closeModal } from "./actions";
+import { ButtonRow } from "./ChangeUsername";
+import { Link } from "./Link";
 
 // profile images can either be blank, in which case we'll fall back to
 // gravatar, and then initials if no gravatar, or they can be a URL
@@ -109,7 +107,7 @@ export const ChangeAvatar = props => {
 								style={{
 									margin: "20px -20px 0 -20px",
 									height: "1px",
-									background: "var(--base-border-color)"
+									background: "var(--base-border-color)",
 								}}
 							></div>
 							<ButtonRow>

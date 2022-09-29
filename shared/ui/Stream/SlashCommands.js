@@ -11,7 +11,7 @@ export const slashCommands = [
 		help: "add member to channel",
 		description: "@user",
 		channelOnly: true,
-		appliesTo: ["codestream", "slack"]
+		appliesTo: ["codestream", "slack"],
 	},
 	// { id: "apply", help: "apply patch last post" },
 	{ id: "archive", help: "archive channel", channelOnly: true, appliesTo: ["codestream", "slack"] },
@@ -27,7 +27,7 @@ export const slashCommands = [
 		id: "liveshare",
 		help: "start live share",
 		requires: "vsls",
-		appliesTo: ["codestream", "slack"]
+		appliesTo: ["codestream", "slack"],
 	},
 	{ id: "me", help: "emote", description: "text", appliesTo: ["codestream", "slack"] },
 	{ id: "msg", help: "message member", description: "@user text" },
@@ -40,23 +40,23 @@ export const slashCommands = [
 		help: "set purpose",
 		description: "text",
 		channelOnly: true,
-		appliesTo: ["codestream", "slack"]
+		appliesTo: ["codestream", "slack"],
 	},
 	{
 		id: "remove",
 		help: "remove from channel",
 		description: "@user",
 		channelOnly: true,
-		appliesTo: ["codestream", "slack"]
+		appliesTo: ["codestream", "slack"],
 	},
 	{
 		id: "rename",
 		help: "rename channel",
 		description: "newname",
 		channelOnly: true,
-		appliesTo: ["codestream", "slack"]
+		appliesTo: ["codestream", "slack"],
 	},
 	// { id: "slack", help: "connect to slack", codeStreamTeam: true },
 	{ id: "version", help: "show codeStream version" },
-	{ id: "who", help: "show channel members" }
+	{ id: "who", help: "show channel members" },
 ];

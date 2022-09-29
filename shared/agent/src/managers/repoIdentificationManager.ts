@@ -21,7 +21,7 @@ export class RepoIdentificationManager {
 			if (dotNetCore && dotNetCore.projects && dotNetCore.projects.length) {
 				return {
 					projectType: RepoProjectType.DotNetCore,
-					projects: dotNetCore.projects
+					projects: dotNetCore.projects,
 				};
 			} else if (await this.repoIsDotNetFramework(repo, files)) {
 				return { projectType: RepoProjectType.DotNetFramework };
@@ -89,7 +89,7 @@ export class RepoIdentificationManager {
 					projects.push({
 						path: projectPath.directory,
 						name: path.basename(projectPath.file, path.extname(projectPath.file)),
-						version: exec[1]
+						version: exec[1],
 					});
 				}
 			}

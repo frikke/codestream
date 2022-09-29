@@ -80,10 +80,7 @@ export function generateSpanQuery(
 			break;
 		}
 		case "fuzzy": {
-			const fuzzyLookup = `code.filepath like '%/${codeFilePath!
-				.split("/")
-				.slice(-2)
-				.join("/")}%'`;
+			const fuzzyLookup = `code.filepath like '%/${codeFilePath!.split("/").slice(-2).join("/")}%'`;
 
 			query = `SELECT name,\`transaction.name\`,code.lineno,code.namespace,code.function,traceId,transactionId from Span WHERE \`entity.guid\` = '${newRelicEntityGuid}' AND ${fuzzyLookup}  SINCE 30 minutes AGO LIMIT ${LIMIT}`;
 		}

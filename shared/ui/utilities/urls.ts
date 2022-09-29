@@ -1,8 +1,8 @@
 import { URI } from "vscode-uri";
 
-import { Route, RouteControllerType, RouteActionType } from "../ipc/webview.protocol";
+import { Route, RouteActionType, RouteControllerType } from "../ipc/webview.protocol";
 
-export const parseQuery = function(queryString: string) {
+export const parseQuery = function (queryString: string) {
 	var query = {};
 	var pairs = (queryString[0] === "?" ? queryString.substr(1) : queryString).split("&");
 	for (var i = 0; i < pairs.length; i++) {
@@ -12,7 +12,7 @@ export const parseQuery = function(queryString: string) {
 	return query;
 };
 
-export const parseProtocol = function(uriString: string | undefined): Route | undefined {
+export const parseProtocol = function (uriString: string | undefined): Route | undefined {
 	if (!uriString) return undefined;
 
 	let uri: URI;
@@ -26,7 +26,7 @@ export const parseProtocol = function(uriString: string | undefined): Route | un
 		return undefined;
 	}
 	// removes any empties
-	const paths = uri.path.split("/").filter(function(p) {
+	const paths = uri.path.split("/").filter(function (p) {
 		return p;
 	});
 
@@ -63,24 +63,24 @@ export const parseProtocol = function(uriString: string | undefined): Route | un
 		controller,
 		action,
 		id,
-		query: parsedQuery
+		query: parsedQuery,
 	};
 };
 
-export const parseHost = function(url: string): string | null {
-    url = url.trim();
-    if (!url) {
-        return null;
-    }
-    if (!url.startsWith("http")) {
-        url = `https://${url}`;
-    }
-    const parsed = URI.parse(url);
-    return parsed.authority ? parsed.authority : null;
+export const parseHost = function (url: string): string | null {
+	url = url.trim();
+	if (!url) {
+		return null;
+	}
+	if (!url.startsWith("http")) {
+		url = `https://${url}`;
+	}
+	const parsed = URI.parse(url);
+	return parsed.authority ? parsed.authority : null;
 };
 
-export const normalizeUrl = function(url: string): string | null {
+export const normalizeUrl = function (url: string): string | null {
 	url = url.trim().toLowerCase();
 	url = url.match(/^http/) ? url : `https://${url}`;
 	return url.replace(/\/*$/g, "");
-}
+};

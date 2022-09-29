@@ -32,7 +32,7 @@ export function Parser(stack: string): CSStackTraceInfo {
 			method: line.methodName,
 			arguments: line.arguments,
 			line: line.lineNumber === null ? undefined : line.lineNumber,
-			column: line.column === null ? undefined : line.column
+			column: line.column === null ? undefined : line.column,
 		};
 	});
 

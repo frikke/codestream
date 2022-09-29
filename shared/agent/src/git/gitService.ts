@@ -40,7 +40,7 @@ import { Logger } from "../logger";
 import { CommitsChangedData, WorkspaceChangedData } from "../protocol/agent.protocol";
 import { FileStatus } from "../protocol/api.protocol.models";
 import { CodeStreamSession } from "../session";
-import { Dates, Iterables, log, Strings } from "../system";
+import { Iterables, log, Strings } from "../system";
 import { xfs } from "../xfs";
 import { git, GitErrors, GitWarnings } from "./git";
 import { GitServiceLite } from "./gitServiceLite";
@@ -186,7 +186,7 @@ export class GitService implements IGitService, Disposable {
 						...options,
 						startLine: options.startLine && Math.min(options.startLine, maxLine),
 						endLine: maxLine,
-						retryWithTrimmedEndOnFailure: false
+						retryWithTrimmedEndOnFailure: false,
 					});
 				}
 			}
@@ -214,7 +214,7 @@ export class GitService implements IGitService, Disposable {
 						...options,
 						startLine: options.startLine && Math.min(options.startLine, maxLine),
 						endLine: maxLine,
-						retryWithTrimmedEndOnFailure: false
+						retryWithTrimmedEndOnFailure: false,
 					});
 				}
 			}
@@ -304,7 +304,7 @@ export class GitService implements IGitService, Disposable {
 		const [shas, revisionEntries] = await Promise.all([shasPromise, revisionEntriesPromise]);
 		return {
 			shas,
-			revisionEntries
+			revisionEntries,
 		};
 	}
 
@@ -340,7 +340,7 @@ export class GitService implements IGitService, Disposable {
 
 		return {
 			repoPath: possiblySymlinkedRepoRoot,
-			relativePath: fileRelativePath
+			relativePath: fileRelativePath,
 		};
 	}
 
@@ -428,7 +428,7 @@ export class GitService implements IGitService, Disposable {
 					cwd: repoPath,
 					env: { GIT_TERMINAL_PROMPT: "0" },
 					throwRawExceptions: true,
-					timeout: 10 * 1000
+					timeout: 10 * 1000,
 				},
 				"fetch",
 				"--all"
@@ -776,7 +776,7 @@ export class GitService implements IGitService, Disposable {
 	getRepoRemotes(repoPath: string, reloadMemoized?: boolean): Promise<GitRemote[]>;
 	@log({
 		exit: (result: GitRemote[]) =>
-			`returned [${result.length !== 0 ? result.map(r => r.uri.toString(true)).join(", ") : ""}]`
+			`returned [${result.length !== 0 ? result.map(r => r.uri.toString(true)).join(", ") : ""}]`,
 	})
 	getRepoRemotes(repoUriOrPath: URI | string, reloadMemoized?: boolean): Promise<GitRemote[]> {
 		const repoPath = typeof repoUriOrPath === "string" ? repoUriOrPath : repoUriOrPath.fsPath;
@@ -931,7 +931,7 @@ export class GitService implements IGitService, Disposable {
 						}
 					} else {
 						return {
-							branch: b
+							branch: b,
 						};
 					}
 				});
@@ -940,7 +940,7 @@ export class GitService implements IGitService, Disposable {
 			return {
 				branches: branches.map(_ => _.branch),
 				branchesMeta: branches,
-				current: current ? current.substr(2).trim() : ""
+				current: current ? current.substr(2).trim() : "",
 			};
 		} catch (ex) {
 			Logger.warn(ex);
@@ -967,7 +967,7 @@ export class GitService implements IGitService, Disposable {
 			if (data !== undefined && data !== "") {
 				return {
 					fullName: data,
-					shortName: data.substring(data.indexOf("/") + 1)
+					shortName: data.substring(data.indexOf("/") + 1),
 				};
 			}
 			return data === "" ? undefined : data;
@@ -1037,7 +1037,7 @@ export class GitService implements IGitService, Disposable {
 					info: val,
 					// !localCommits means that the command to find local commits failed, so we
 					// were not able to find any. for instance, when there is not an up-stream configured
-					localOnly: localCommits != undefined && localCommits.includes(key)
+					localOnly: localCommits != undefined && localCommits.includes(key),
 					// hasCommitsExclusiveToThisBranch && (!localCommits || localCommits.includes(key))
 				});
 			});
@@ -1207,7 +1207,7 @@ export class GitService implements IGitService, Disposable {
 			);
 			return [
 				...this.parseNumStat(allButDeleted),
-				...this.parseNumStat(deletedOnly, FileStatus.deleted)
+				...this.parseNumStat(deletedOnly, FileStatus.deleted),
 			];
 		} catch (err) {
 			Logger.warn(`Error getting numstat (${options}): ${err.message}`);
@@ -1236,7 +1236,7 @@ export class GitService implements IGitService, Disposable {
 							file,
 							status: presumedStatus,
 							statusX: presumedStatus,
-							statusY: presumedStatus
+							statusY: presumedStatus,
 						});
 					}
 				}
@@ -1256,18 +1256,18 @@ export class GitService implements IGitService, Disposable {
 			const suffixOrEmpty = suffix || "";
 			return {
 				oldFile: (prefixOrEmpty + oldPartOrEmpty + suffixOrEmpty).replace(/\/\//, "/"),
-				file: (prefixOrEmpty + newPartOrEmpty + suffixOrEmpty).replace(/\/\//, "/")
+				file: (prefixOrEmpty + newPartOrEmpty + suffixOrEmpty).replace(/\/\//, "/"),
 			};
 		} else if (matchAtRoot) {
 			const [, oldFile, file] = matchAtRoot;
 			return {
 				oldFile,
-				file
+				file,
 			};
 		} else {
 			return {
 				oldFile: diffPath,
-				file: diffPath
+				file: diffPath,
 			};
 		}
 	}
@@ -1354,7 +1354,7 @@ export class GitService implements IGitService, Disposable {
 							ret[file] = {
 								statusX,
 								statusY,
-								status
+								status,
 							};
 						}
 					}

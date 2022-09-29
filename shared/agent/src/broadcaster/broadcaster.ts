@@ -102,7 +102,7 @@ export enum BroadcasterStatusType {
 	// the statuses below are used only for testing, normally these are private and black-boxed
 	Confirmed = "Confirmed", // indicates subscriptions have been confirmed
 	NetworkProblem = "NetworkProblem", // indicates a network problem of some sort
-	Queued = "Queued" // indicates channels have been queued for subscribing
+	Queued = "Queued", // indicates channels have been queued for subscribing
 }
 
 // internal, maintains map of channels and whether they are yet successfully subscribed
@@ -183,7 +183,7 @@ export class Broadcaster {
 				strictSSL: options.strictSSL,
 				onMessage: this.onMessage.bind(this),
 				onStatus: this.onStatus.bind(this),
-				debug: this._debug
+				debug: this._debug,
 			});
 			this._broadcasterConnection = socketClusterConnection;
 		} else {
@@ -196,7 +196,7 @@ export class Broadcaster {
 				onMessage: this.onMessage.bind(this),
 				onStatus: this.onStatus.bind(this),
 				onFetchHistory: this.onFetchHistory.bind(this),
-				debug: this._debug
+				debug: this._debug,
 			});
 			this._broadcasterConnection = pubnubConnection;
 		}
@@ -213,7 +213,7 @@ export class Broadcaster {
 				if (this._broadcasterConnection) {
 					this._broadcasterConnection.disconnect();
 				}
-			}
+			},
 		};
 	}
 
@@ -400,7 +400,7 @@ export class Broadcaster {
 	simulateNetError(delay: number = 0) {
 		setTimeout(() => {
 			this.onStatus({
-				status: BroadcasterStatusType.NetworkProblem
+				status: BroadcasterStatusType.NetworkProblem,
 			});
 		}, delay);
 	}
@@ -456,7 +456,7 @@ export class Broadcaster {
 		for (const channel of channels) {
 			if (!this._subscriptions[channel]) {
 				this._subscriptions[channel] = {
-					subscribed: false
+					subscribed: false,
 				};
 				numAdded++;
 			}
@@ -518,7 +518,7 @@ export class Broadcaster {
 				channels: "",
 				before: "",
 				after: "",
-				reason: "minute_limit"
+				reason: "minute_limit",
 			});
 			return this.reset();
 		}
@@ -531,7 +531,7 @@ export class Broadcaster {
 				channels: "",
 				before: "",
 				after: "",
-				reason: "hour_limit"
+				reason: "hour_limit",
 			});
 			return this.reset();
 		}
@@ -584,7 +584,7 @@ export class Broadcaster {
 				since,
 				debug: this._debug,
 				reason,
-				cla: this._connectionLostAt
+				cla: this._connectionLostAt,
 			});
 		} catch (error) {
 			// this is bad ... if we can't catch up on history, we'll start
@@ -786,7 +786,7 @@ export class Broadcaster {
 		this._statusEmitter.fire({
 			status: status,
 			channels: channels,
-			reconnected
+			reconnected,
 		});
 	}
 

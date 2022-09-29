@@ -15,8 +15,10 @@ import com.intellij.psi.util.parentsOfType
 class PixieDynamicLoggingAction : DumbAwareAction() {
 
     override fun update(e: AnActionEvent) {
-        val psiElement = CommonDataKeys.PSI_ELEMENT.getData(e.dataContext)
-        e.presentation.isVisible = psiElement?.parentsOfType<GoFunctionOrMethodDeclaration>(true)?.firstOrNull() != null
+        e.presentation.isVisible = false
+        // Temporarily disabled, as Pixie only supports dynamic logging in Go 16
+        // val psiElement = CommonDataKeys.PSI_ELEMENT.getData(e.dataContext)
+        // e.presentation.isVisible = psiElement?.parentsOfType<GoFunctionOrMethodDeclaration>(true)?.firstOrNull() != null
     }
 
     override fun actionPerformed(e: AnActionEvent) = ApplicationManager.getApplication().invokeLater {

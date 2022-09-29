@@ -5,7 +5,7 @@ import {
 	flushCache,
 	getDriveLetterFromPath,
 	getMappedDrives,
-	mapMountedDriveToUNC
+	mapMountedDriveToUNC,
 } from "../../../src/winUtil/winUtil";
 
 jest.mock("../../../src/git/shell");

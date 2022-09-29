@@ -29,7 +29,7 @@ import {
 	ResolveStackTraceRequest,
 	ResolveStackTraceRequestType,
 	ResolveStackTraceResponse,
-	WarningOrError
+	WarningOrError,
 } from "../protocol/agent.protocol";
 import { RepoProjectType } from "../protocol/agent.protocol.scm";
 import { CSStackTraceInfo, CSStackTraceLine } from "../protocol/api.protocol.models";
@@ -60,7 +60,7 @@ const ExtensionToLanguageMap: { [key: string]: string } = {
 	py: "python",
 	kt: "java",
 	java: "java",
-	go: "go"
+	go: "go",
 };
 
 type Parser = (stack: string) => CSStackTraceInfo;
@@ -72,7 +72,7 @@ const StackTraceParsers: { [key: string]: Parser } = {
 	csharp: csharpParser,
 	python: pythonParser,
 	java: javaParser,
-	go: goParser
+	go: goParser,
 };
 
 const MISSING_REF_MESSAGE =
@@ -80,7 +80,7 @@ const MISSING_REF_MESSAGE =
 const MISSING_REF_HELP_URL =
 	"https://docs.newrelic.com/docs/codestream/how-use-codestream/performance-monitoring/#sha";
 const CONFIGURE_ERROR_REF_HELP_URL =
-	"http://docs.newrelic.com/docs/codestream/start-here/codestream-new-relic/#apm";
+	"https://docs.newrelic.com/docs/codestream/how-use-codestream/performance-monitoring/#buildsha";
 
 @lsp
 export class NRManager {
@@ -99,7 +99,7 @@ export class NRManager {
 	@log()
 	async parseStackTrace({
 		errorGroupGuid,
-		stackTrace
+		stackTrace,
 	}: ParseStackTraceRequest): Promise<ParseStackTraceResponse> {
 		const lines: string[] = typeof stackTrace === "string" ? stackTrace.split("\n") : stackTrace;
 		const whole = lines.join("\n");
@@ -123,12 +123,12 @@ export class NRManager {
 					properties: {
 						"Error Group ID": errorGroupGuid!,
 						"NR Account ID": parsed?.accountId || 0,
-						Language: lang || "Not Detected"
-					}
+						Language: lang || "Not Detected",
+					},
 				});
 			} catch (ex) {}
 			Logger.error(new Error("GuessStackLanguageFailed"), "language guess failed", {
-				languageGuess: lang
+				languageGuess: lang,
 			});
 
 			let info: ParseStackTraceResponse | undefined = undefined;
@@ -145,7 +145,7 @@ export class NRManager {
 			// take the last one
 			const response = info || ({} as ParseStackTraceResponse);
 			response.warning = {
-				message: "Unable to parse language from stack trace"
+				message: "Unable to parse language from stack trace",
 			};
 			return response;
 		}
@@ -162,7 +162,7 @@ export class NRManager {
 		repoId,
 		ref,
 		occurrenceId,
-		codeErrorId
+		codeErrorId,
 	}: ResolveStackTraceRequest): Promise<ResolveStackTraceResponse> {
 		const { git, repos, session } = SessionContainer.instance();
 		const matchingRepo = await git.getRepositoryById(repoId);
@@ -179,14 +179,14 @@ export class NRManager {
 			setWarning({
 				message: `Repo (${
 					repo ? repo.name : repoId
-				}) not found in your editor. Open it in order to navigate the stack trace.`
+				}) not found in your editor. Open it in order to navigate the stack trace.`,
 			});
 		}
 
 		if (!ref) {
 			setWarning({
 				message: `[Associate a build sha or release tag with your errors] so that CodeStream can help make sure you’re looking at the right version of the code.`,
-				helpUrl: CONFIGURE_ERROR_REF_HELP_URL
+				helpUrl: CONFIGURE_ERROR_REF_HELP_URL,
 			});
 		} else if (matchingRepoPath) {
 			try {
@@ -202,7 +202,7 @@ export class NRManager {
 						Logger.log(`NRManager ref (${ref}) not found after fetch`);
 						setWarning({
 							message: Strings.interpolate(MISSING_REF_MESSAGE, { ref: ref }),
-							helpUrl: MISSING_REF_HELP_URL
+							helpUrl: MISSING_REF_HELP_URL,
 						});
 					}
 				}
@@ -210,18 +210,18 @@ export class NRManager {
 				Logger.warn("NRManager issue locating ref", {
 					repoId: repoId,
 					matchingRepo: matchingRepo,
-					ref: ref
+					ref: ref,
 				});
 				setWarning({
 					message: Strings.interpolate(MISSING_REF_MESSAGE, { ref: ref }),
-					helpUrl: MISSING_REF_HELP_URL
+					helpUrl: MISSING_REF_HELP_URL,
 				});
 			}
 		}
 
 		const parsedStackInfo = await this.parseStackTrace({
 			errorGroupGuid,
-			stackTrace
+			stackTrace,
 		});
 		if (parsedStackInfo.parseError) {
 			return { error: parsedStackInfo.parseError };
@@ -229,7 +229,7 @@ export class NRManager {
 			// if there was an error on all lines (for some reason)
 			setWarning({
 				message: Strings.interpolate(MISSING_REF_MESSAGE, { sha: ref }),
-				helpUrl: MISSING_REF_HELP_URL
+				helpUrl: MISSING_REF_HELP_URL,
 			});
 		}
 		if (parsedStackInfo.warning) {
@@ -246,7 +246,7 @@ export class NRManager {
 		const resolvedStackInfo: CSStackTraceInfo = {
 			...parsedStackInfo,
 			text: stackTraceText,
-			lines: []
+			lines: [],
 		};
 
 		if (parsedStackInfo.lines) {
@@ -269,7 +269,7 @@ export class NRManager {
 								occurrenceId,
 								resolvedLine,
 								index: i,
-								codeErrorId
+								codeErrorId,
 							});
 						}
 					);
@@ -280,7 +280,7 @@ export class NRManager {
 		return {
 			warning: firstWarning,
 			resolvedStackInfo,
-			parsedStackInfo
+			parsedStackInfo,
 		};
 	}
 
@@ -291,7 +291,7 @@ export class NRManager {
 		repoId,
 		filePath,
 		line,
-		column
+		column,
 	}: ResolveStackTracePositionRequest): Promise<ResolveStackTracePositionResponse> {
 		const { git, repositoryMappings } = SessionContainer.instance();
 
@@ -303,7 +303,7 @@ export class NRManager {
 
 		const fullPath = path.join(repoPath, filePath);
 		let normalizedPath = Strings.normalizePath(fullPath, {
-			addLeadingSlash: isWindows && !fullPath.startsWith("\\\\")
+			addLeadingSlash: isWindows && !fullPath.startsWith("\\\\"),
 		});
 		if (isWindows) {
 			normalizedPath = normalizedPath.replace(":", "%3A");
@@ -314,13 +314,13 @@ export class NRManager {
 			return {
 				path: uri,
 				line: line,
-				column: column
+				column: column,
 			};
 		}
 		const position = await this.getCurrentStackTracePosition(ref, fullPath, line, column);
 		return {
 			...position,
-			path: uri
+			path: uri,
 		};
 	}
 
@@ -328,7 +328,7 @@ export class NRManager {
 	@log()
 	async findCandidateMainFiles({
 		type,
-		path
+		path,
 	}: FindCandidateMainFilesRequest): Promise<FindCandidateMainFilesResponse> {
 		switch (type) {
 			case RepoProjectType.NodeJS:
@@ -371,7 +371,7 @@ export class NRManager {
 		filePath,
 		repoPath,
 		licenseKey,
-		appName
+		appName,
 	}: CreateNewRelicConfigFileRequest): Promise<CreateNewRelicConfigFileResponse> {
 		let response;
 		switch (type) {
@@ -406,7 +406,7 @@ export class NRManager {
 	async addNewRelicInclude({
 		type,
 		file,
-		dir
+		dir,
 	}: AddNewRelicIncludeRequest): Promise<AddNewRelicIncludeResponse> {
 		let response;
 		switch (type) {
@@ -426,22 +426,14 @@ export class NRManager {
 		if (!pathSuffix) return undefined;
 
 		// normalize the file paths
-		const pathSuffixParts = pathSuffix
-			.replace(/\\/g, "/")
-			.split("/")
-			.slice()
-			.reverse();
+		const pathSuffixParts = pathSuffix.replace(/\\/g, "/").split("/").slice().reverse();
 		let bestMatchingFilePath = undefined;
 		let bestMatchingScore = -1;
 		let bestMatchingDepth = 0;
 
 		for (const filePath of allFilePaths) {
 			// normalize the file paths
-			const filePathParts = filePath
-				.replace(/\\/g, "/")
-				.split("/")
-				.slice()
-				.reverse();
+			const filePathParts = filePath.replace(/\\/g, "/").split("/").slice().reverse();
 
 			let partialMatch = false;
 			for (let i = 0; i < pathSuffixParts.length; i++) {
@@ -498,7 +490,7 @@ export class NRManager {
 				fileRelativePath: path.relative(matchingRepoPath, bestMatchingFilePath),
 				line: line.line || 0,
 				column: line.column || 0,
-				resolved: true
+				resolved: true,
 			};
 		}
 
@@ -517,7 +509,7 @@ export class NRManager {
 			fileRelativePath: path.relative(matchingRepoPath, bestMatchingFilePath),
 			line: position.line,
 			column: position.column,
-			resolved: true
+			resolved: true,
 		};
 	}
 
@@ -560,7 +552,7 @@ export class NRManager {
 				lineStart: line,
 				colStart: column,
 				lineEnd: line,
-				colEnd: MAX_RANGE_VALUE
+				colEnd: MAX_RANGE_VALUE,
 			},
 			diffToHead
 		);
@@ -593,7 +585,7 @@ export class NRManager {
 
 		return {
 			line: currentBufferLocation.lineStart,
-			column: currentBufferLocation.colStart
+			column: currentBufferLocation.colStart,
 		};
 	}
 }

@@ -44,7 +44,7 @@ export namespace Strings {
 		/**
 		 * The `\` character.
 		 */
-		Backslash = 92
+		Backslash = 92,
 	}
 
 	export function escapeRegExp(s: string) {
@@ -109,8 +109,8 @@ export namespace Strings {
 					padDirection: option === "-" ? "left" : "right",
 					prefix: prefix,
 					suffix: suffix,
-					truncateTo: truncateTo == null ? undefined : parseInt(truncateTo, 10)
-				}
+					truncateTo: truncateTo == null ? undefined : parseInt(truncateTo, 10),
+				},
 			});
 			match = TokenRegex.exec(template);
 		}
@@ -140,9 +140,7 @@ export namespace Strings {
 	}
 
 	export function md5(s: string, encoding: BinaryToTextEncoding = "base64"): string {
-		return createHash("md5")
-			.update(s)
-			.digest(encoding);
+		return createHash("md5").update(s).digest(encoding);
 	}
 
 	export function toGravatar(
@@ -167,7 +165,7 @@ export namespace Strings {
 	export function normalizePath(
 		fileName: string,
 		options: { addLeadingSlash?: boolean; stripTrailingSlash?: boolean } = {
-			stripTrailingSlash: true
+			stripTrailingSlash: true,
 		}
 	) {
 		if (fileName == null || fileName.length === 0) return fileName;
@@ -264,9 +262,7 @@ export namespace Strings {
 	}
 
 	export function sha1(s: string, encoding: BinaryToTextEncoding = "base64"): string {
-		return createHash("sha1")
-			.update(s)
-			.digest(encoding);
+		return createHash("sha1").update(s).digest(encoding);
 	}
 
 	export function splitPath(filename: string): [string, string] {
@@ -300,7 +296,8 @@ export namespace Strings {
 		return `${s.substring(0, chars)}${ellipsis}`;
 	}
 
-	const ansiRegex = /[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[a-zA-Z\\d]*)*)?\\u0007)|(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PRZcf-ntqry=><~]))/g;
+	const ansiRegex =
+		/[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[a-zA-Z\\d]*)*)?\\u0007)|(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PRZcf-ntqry=><~]))/g;
 	const containsNonAsciiRegex = /[^\x20-\x7F\u00a0\u2026]/;
 
 	export function getWidth(s: string): number {
@@ -371,8 +368,8 @@ export namespace Strings {
 		if (
 			cp >= 0x1100 &&
 			(cp <= 0x115f || // Hangul Jamo
-			cp === 0x2329 || // LEFT-POINTING ANGLE BRACKET
-			cp === 0x232a || // RIGHT-POINTING ANGLE BRACKET
+				cp === 0x2329 || // LEFT-POINTING ANGLE BRACKET
+				cp === 0x232a || // RIGHT-POINTING ANGLE BRACKET
 				// CJK Radicals Supplement .. Enclosed CJK Letters and Months
 				(0x2e80 <= cp && cp <= 0x3247 && cp !== 0x303f) ||
 				// Enclosed CJK Letters and Months .. CJK Unified Ideographs Extension A
@@ -443,7 +440,7 @@ export namespace Strings {
 	) {
 		const normalizedEolBaseContents = Strings.normalizeFileContents(baseContents, {
 			// Diffs from git may expect a trailing newline, so we need to preserve it
-			preserveEof: true
+			preserveEof: true,
 		});
 		let patchedContents = normalizedEolBaseContents;
 		if (patch !== undefined) {

@@ -1,9 +1,8 @@
 import {
 	CreateCompanyRequest,
 	CreateCompanyRequestType,
-	CreateForeignCompanyRequest,
 	CreateForeignCompanyRequestType,
-	EnvironmentHost
+	EnvironmentHost,
 } from "@codestream/protocols/agent";
 import { CSCompany } from "@codestream/protocols/api";
 import { HostApi } from "@codestream/webview/webview-api";
@@ -34,16 +33,14 @@ export const createCompany = (request: CreateCompanyRequest) => async dispatch =
 	return response.team;
 };
 
-export const createForeignCompany = (
-	request: CreateCompanyRequest,
-	host: EnvironmentHost
-) => async dispatch => {
-	const response = await HostApi.instance.send(CreateForeignCompanyRequestType, {
-		request,
-		host
-	});
-	response.company.host = host;
-	response.company.host.accessToken = response.accessToken;
-	await dispatch(addCompanies([response.company]));
-	return response.company;
-};
+export const createForeignCompany =
+	(request: CreateCompanyRequest, host: EnvironmentHost) => async dispatch => {
+		const response = await HostApi.instance.send(CreateForeignCompanyRequestType, {
+			request,
+			host,
+		});
+		response.company.host = host;
+		response.company.host.accessToken = response.accessToken;
+		await dispatch(addCompanies([response.company]));
+		return response.company;
+	};

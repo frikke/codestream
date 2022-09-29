@@ -80,7 +80,7 @@ import {
 	SharePostViaServerResponse,
 	UpdatePostSharingDataRequest,
 	UpdatePostSharingDataRequestType,
-	UpdatePostSharingDataResponse
+	UpdatePostSharingDataResponse,
 } from "../protocol/agent.protocol";
 import {
 	CodemarkType,
@@ -100,7 +100,7 @@ import {
 	isCSReview,
 	ModifiedFile,
 	ProviderType,
-	StreamType
+	StreamType,
 } from "../protocol/api.protocol";
 import { Directives } from "../providers/directives";
 import { providerDisplayNamesByNameKey } from "../providers/provider";
@@ -126,7 +126,7 @@ interface SearchResult {
 function search(posts: CSPost[], seq: string | number): SearchResult {
 	if (posts.length === 0) {
 		return {
-			outOfRange: true
+			outOfRange: true,
 		};
 	}
 
@@ -140,7 +140,7 @@ function search(posts: CSPost[], seq: string | number): SearchResult {
 
 	if (seqNum < minSeqNum || seqNum > maxSeqNum) {
 		return {
-			outOfRange: true
+			outOfRange: true,
 		};
 	}
 
@@ -149,7 +149,7 @@ function search(posts: CSPost[], seq: string | number): SearchResult {
 		const guessPost = posts[guess];
 		if (guessPost.seqNum === seq) {
 			return {
-				index: guess
+				index: guess,
 			};
 		} else {
 			const guessSeqNum = Number(guessPost.seqNum);
@@ -157,11 +157,11 @@ function search(posts: CSPost[], seq: string | number): SearchResult {
 			if (min === max) {
 				if (seqNum > guessSeqNum) {
 					return {
-						afterIndex: min
+						afterIndex: min,
 					};
 				} else {
 					return {
-						afterIndex: min - 1
+						afterIndex: min - 1,
 					};
 				}
 			}
@@ -222,7 +222,7 @@ class PostCollection {
 		}
 
 		return {
-			posts: this.posts.slice(start, end)
+			posts: this.posts.slice(start, end),
 		};
 	}
 
@@ -244,14 +244,14 @@ class PostCollection {
 		if (start < 0 && this.complete) {
 			return {
 				posts: this.posts.slice(0, end),
-				more: false
+				more: false,
 			};
 		} else if (start < 0) {
 			return {};
 		} else {
 			return {
 				posts: this.posts.slice(start, end),
-				more: true
+				more: true,
 			};
 		}
 	}
@@ -273,7 +273,7 @@ class PostCollection {
 		const end = start + limit;
 		return {
 			posts: this.posts.slice(start, end),
-			more: end <= this.posts.length
+			more: end <= this.posts.length,
 		};
 	}
 
@@ -284,7 +284,7 @@ class PostCollection {
 
 		return {
 			posts: this.posts.slice(start),
-			more
+			more,
 		};
 	}
 
@@ -419,7 +419,7 @@ class PostsCache extends EntityCache<CSPost> {
 		exit: (result: FetchPostsResponse) =>
 			`returned ${result.posts.length} posts (more=${result.more})`,
 		prefix: (context, request: FetchPostsRequest) => `${context.prefix}(${request.streamId})`,
-		singleLine: true
+		singleLine: true,
 	})
 	async getPosts(request: FetchPostsRequest): Promise<FetchPostsResponse> {
 		const cc = Logger.getCorrelationContext();
@@ -454,7 +454,7 @@ class PostsCache extends EntityCache<CSPost> {
 			Logger.debug(`PostCache: initializing stream ${streamId}`);
 			const newPromise = this.getPosts({
 				streamId: streamId,
-				limit: 100
+				limit: 100,
 			});
 			this._streamInitialization.set(streamId, newPromise as Promise<any>);
 			await newPromise;
@@ -523,7 +523,7 @@ function trackPostCreation(
 						const properties = {
 							"Parent ID": request.codemark.reviewId,
 							"Parent Type": "Review",
-							"Change Request": !!request.codemark.isChangeRequest
+							"Change Request": !!request.codemark.isChangeRequest,
 						};
 						telemetry.track({ eventName: "Reply Created", properties: properties });
 					} else if (request.codemark) {
@@ -538,7 +538,7 @@ function trackPostCreation(
 							"Entry Point": request.entryPoint,
 							Tags: (request.codemark.tags || []).length,
 							Markers: markers.length,
-							"Invitee Mentions": request.addedUsers ? request.addedUsers.length : 0
+							"Invitee Mentions": request.addedUsers ? request.addedUsers.length : 0,
 						};
 						if (request.codemark.reviewId) {
 							codemarkProperties["Code Review"] = true;
@@ -571,7 +571,7 @@ function trackPostCreation(
 									// reply to a codemark in a review
 									const postProperties = {
 										"Parent ID": parentPost.codemarkId,
-										"Parent Type": "Review.Codemark"
+										"Parent Type": "Review.Codemark",
 									};
 									telemetry.track({ eventName: "Reply Created", properties: postProperties });
 								}
@@ -579,21 +579,21 @@ function trackPostCreation(
 									// reply to a codemark in a code error
 									const postProperties = {
 										"Parent ID": parentPost.codemarkId,
-										"Parent Type": "Error.Codemark"
+										"Parent Type": "Error.Codemark",
 									};
 									telemetry.track({ eventName: "Reply Created", properties: postProperties });
 								} else if (grandParentPost && grandParentPost.reviewId) {
 									// reply to a reply in a review
 									const postProperties = {
 										"Parent ID": grandParentPost.reviewId,
-										"Parent Type": "Review.Reply"
+										"Parent Type": "Review.Reply",
 									};
 									telemetry.track({ eventName: "Reply Created", properties: postProperties });
 								} else if (grandParentPost && grandParentPost.codeErrorId) {
 									// reply to a reply in a code error
 									const postProperties = {
 										"Parent ID": grandParentPost.codeErrorId,
-										"Parent Type": "Error.Reply"
+										"Parent Type": "Error.Reply",
 									};
 									telemetry.track({ eventName: "Reply Created", properties: postProperties });
 								}
@@ -601,21 +601,21 @@ function trackPostCreation(
 								// reply to a review
 								const postProperties = {
 									"Parent ID": parentPost.reviewId,
-									"Parent Type": "Review"
+									"Parent Type": "Review",
 								};
 								telemetry.track({ eventName: "Reply Created", properties: postProperties });
 							} else if (parentPost.codeErrorId) {
 								// reply to a code error
 								const postProperties = {
 									"Parent ID": parentPost.codeErrorId,
-									"Parent Type": "Error"
+									"Parent Type": "Error",
 								};
 								telemetry.track({ eventName: "Reply Created", properties: postProperties });
 							} else if (parentPost.codemarkId) {
 								// reply to a standard codemark
 								const postProperties = {
 									"Parent ID": parentPost.codemarkId,
-									"Parent Type": "Codemark"
+									"Parent Type": "Codemark",
 								};
 								telemetry.track({ eventName: "Reply Created", properties: postProperties });
 							}
@@ -663,12 +663,12 @@ export function trackReviewPostCreation(
 					reviewChangesetsSizeInBytes > 0
 						? Math.round((reviewChangesetsSizeInBytes / 1048576) * 10000) / 10000
 						: 0,
-				"Invitee Reviewers": addedUsers ? addedUsers.length : 0
+				"Invitee Reviewers": addedUsers ? addedUsers.length : 0,
 			};
 
 			telemetry.track({
 				eventName: "Review Created",
-				properties: reviewProperties
+				properties: reviewProperties,
 			});
 		} catch (ex) {
 			Logger.error(ex);
@@ -691,12 +691,12 @@ export function trackCodeErrorPostCreation(
 				"Entry Point": entryPoint,
 				Assignees: codeError.assignees.length,
 				// rounds to 4 places
-				"Invitee Assignees": addedUsers ? addedUsers.length : 0
+				"Invitee Assignees": addedUsers ? addedUsers.length : 0,
 			};
 
 			telemetry.track({
 				eventName: "Code Error Created",
-				properties: codeErrorProperties
+				properties: codeErrorProperties,
 			});
 		} catch (ex) {
 			Logger.error(ex);
@@ -732,7 +732,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 		idxFields: this.getIndexedFields(),
 		fetchFn: this.fetch.bind(this),
 		fetchPosts: this.fetchPosts.bind(this),
-		entityName: this.getEntityName()
+		entityName: this.getEntityName(),
 	});
 
 	disableCache() {
@@ -756,8 +756,8 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 			{
 				fields: ["streamId", "parentPostId"],
 				type: IndexType.Group,
-				fetchFn: this.fetchByParentPostId.bind(this)
-			}
+				fetchFn: this.fetchByParentPostId.bind(this),
+			},
 		];
 	}
 
@@ -777,7 +777,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 		const [streamId, parentPostId] = getValues(criteria);
 		const response = await this.session.api.fetchPostReplies({
 			streamId,
-			postId: parentPostId
+			postId: parentPostId,
 		});
 		this.cacheResponse(response);
 		return response.posts;
@@ -789,12 +789,12 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 		const cacheResponse = await this.cache.getPosts(request);
 		const posts = await this.enrichPosts(cacheResponse.posts);
 		const { codemarks } = await SessionContainer.instance().codemarks.get({
-			streamId: request.streamId
+			streamId: request.streamId,
 		});
 		return {
 			codemarks: codemarks,
 			posts: posts,
-			more: cacheResponse.more
+			more: cacheResponse.more,
 		};
 	}
 
@@ -807,7 +807,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 	@log()
 	async getActivity(request: FetchActivityRequest): Promise<FetchActivityResponse> {
 		const response = await (this.session.api as CodeStreamApiProvider).fetchPosts({
-			...request
+			...request,
 		});
 
 		const unreads = await SessionContainer.instance().users.getUnreads({});
@@ -816,7 +816,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 			markers: markersManager,
 			posts: postsManager,
 			reviews: reviewsManager,
-			codeErrors: codeErrorsManager
+			codeErrors: codeErrorsManager,
 		} = SessionContainer.instance();
 
 		const markers = response.markers ?? [];
@@ -854,7 +854,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 					codemarksManager.cacheSet(object);
 					codemarks.push({
 						...object,
-						markers: markersByCodemark[object.id] || []
+						markers: markersByCodemark[object.id] || [],
 					});
 				}
 
@@ -862,7 +862,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 					try {
 						const threadResponse = await this.session.api.fetchPostReplies({
 							postId: object.postId,
-							streamId: object.streamId
+							streamId: object.streamId,
 						});
 						await this.cacheResponse(threadResponse);
 						posts.push(...threadResponse.posts);
@@ -882,7 +882,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 			const beforePostId = last(response.posts)!.id;
 			return this.getActivity({
 				...request,
-				before: beforePostId
+				before: beforePostId,
 			});
 		}
 
@@ -892,7 +892,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 			codeErrors,
 			posts: await this.enrichPosts(posts),
 			records: this.createRecords(records),
-			more: response.more
+			more: response.more,
 		};
 	}
 
@@ -959,7 +959,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 		try {
 			childPosts = await this.cache.getGroup([
 				["streamId", request.streamId],
-				["parentPostId", request.postId]
+				["parentPostId", request.postId],
 			]);
 		} catch (err) {
 			Logger.error(err, `Could not find thread ${request.postId}`);
@@ -989,7 +989,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 			...request.attributes,
 			status:
 				request.attributes.type === CodemarkType.Issue ? request.attributes.status : undefined,
-			markers: []
+			markers: [],
 		};
 		if (
 			request.textDocuments &&
@@ -1105,25 +1105,25 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 					params: {
 						subjectId: parsedUri.context.pullRequest.id,
 						text: `${request.attributes.text || ""}\n\n\`\`\`\n${codeBlock.contents}\n\`\`\`
-								\n${fileWithUrl} (Line${startLine === endLine ? ` ${startLine}` : `s ${startLine}-${endLine}`})`
-					}
+								\n${fileWithUrl} (Line${startLine === endLine ? ` ${startLine}` : `s ${startLine}-${endLine}`})`,
+					},
 				});
 				return {
 					isPassThrough: true,
 					pullRequest: parsedUri.context.pullRequest,
 					success: result != null,
-					directives: result
+					directives: result,
 				};
 			}
 
 			const { lineWithMetadata } = gitUtils.translateLineToPosition(
 				{
 					startLine,
-					startHunk
+					startHunk,
 				},
 				{
 					endLine,
-					endHunk
+					endHunk,
 				},
 				diff
 			);
@@ -1148,8 +1148,8 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 								startLine: startLine,
 								endLine: endLine,
 								position: lineWithMetadata.position,
-								side: parsedUri.side
-							}
+								side: parsedUri.side,
+							},
 						});
 					} else {
 						result = await providerRegistry.executeMethod({
@@ -1164,8 +1164,8 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 								filePath: parsedUri.path,
 								startLine: startLine,
 								endLine: endLine,
-								position: lineWithMetadata.position
-							}
+								position: lineWithMetadata.position,
+							},
 						});
 					}
 				} else {
@@ -1197,9 +1197,9 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 							contents: codeBlock.contents,
 							fileWithUrl: fileWithUrl,
 							startLine: startLine,
-							endLine: endLine
-						}
-					}
+							endLine: endLine,
+						},
+					},
 				})) as Promise<Directives>;
 			}
 
@@ -1207,7 +1207,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				isPassThrough: true,
 				pullRequest: parsedUri.context.pullRequest,
 				success: result != null,
-				directives: result
+				directives: result,
 			};
 		}
 
@@ -1236,14 +1236,14 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 		if (request.memberIds && request.memberIds.length > 0) {
 			const response = await SessionContainer.instance().streams.get({
 				memberIds: request.memberIds,
-				types: [StreamType.Direct]
+				types: [StreamType.Direct],
 			});
 			if (response.streams.length > 0) {
 				stream = response.streams[0] as CSDirectStream;
 			} else {
 				const response = await SessionContainer.instance().streams.createDirectStream({
 					memberIds: request.memberIds,
-					type: StreamType.Direct
+					type: StreamType.Direct,
 				});
 				stream = response.stream;
 			}
@@ -1267,7 +1267,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 			dontSendEmail: !!request.attributes.crossPostIssueValues,
 			mentionedUserIds: request.mentionedUserIds,
 			addedUsers: request.addedUsers,
-			files: request.files
+			files: request.files,
 		});
 		const { markers } = response!;
 		codemark = response.codemark!;
@@ -1279,8 +1279,8 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 						title: codemark.title,
 						text: codemark.text,
 						markers: response.markers,
-						permalink: codemark.permalink
-					}
+						permalink: codemark.permalink,
+					},
 				},
 				request.attributes.crossPostIssueValues,
 				request.ideName
@@ -1296,7 +1296,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 					externalAssignees:
 						assignees &&
 						assignees.map((a: any) => ({ displayName: a.displayName, email: a.email })),
-					wantEmailNotification: true
+					wantEmailNotification: true,
 				});
 				codemark = r.codemark;
 			}
@@ -1309,7 +1309,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				text: request.attributes.text!,
 				entryPoint: request.entryPoint,
 				isPseudoCodemark: request.isPseudoCodemark,
-				addedUsers: request.addedUsers
+				addedUsers: request.addedUsers,
 			},
 			request.textDocuments,
 			codemark.id
@@ -1321,7 +1321,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 			post: await this.enrichPost(response!.post),
 			codemark: (codemark as CodemarkPlus).markers
 				? codemark
-				: await SessionContainer.instance().codemarks.enrichCodemark(codemark)
+				: await SessionContainer.instance().codemarks.enrichCodemark(codemark),
 		};
 	}
 
@@ -1334,7 +1334,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 		const reviewRequest: CreateReviewRequest = {
 			...request.attributes,
 			markers: [],
-			reviewChangesets: []
+			reviewChangesets: [],
 		};
 
 		let review: ReviewPlus | undefined;
@@ -1400,14 +1400,14 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 		if (request.memberIds && request.memberIds.length > 0) {
 			const response = await SessionContainer.instance().streams.get({
 				memberIds: request.memberIds,
-				types: [StreamType.Direct]
+				types: [StreamType.Direct],
 			});
 			if (response.streams.length > 0) {
 				stream = response.streams[0] as CSDirectStream;
 			} else {
 				const response = await SessionContainer.instance().streams.createDirectStream({
 					memberIds: request.memberIds,
-					type: StreamType.Direct
+					type: StreamType.Direct,
 				});
 				stream = response.stream;
 			}
@@ -1422,7 +1422,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 			dontSendEmail: false,
 			mentionedUserIds: request.mentionedUserIds,
 			addedUsers: request.addedUsers,
-			files: request.attributes.files
+			files: request.attributes.files,
 		});
 
 		review = response.review!;
@@ -1455,7 +1455,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 		return {
 			stream,
 			post: await this.enrichPost(response!.post),
-			review
+			review,
 		};
 	}
 
@@ -1467,7 +1467,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 	): Promise<CreateShareableCodeErrorResponse> {
 		const codeErrorRequest: CreateCodeErrorRequest = {
 			...request.attributes,
-			markers: []
+			markers: [],
 		};
 
 		let codeError: CSCodeError | undefined;
@@ -1479,7 +1479,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 			streamId: stream.id,
 			dontSendEmail: false,
 			mentionedUserIds: request.mentionedUserIds,
-			addedUsers: request.addedUsers
+			addedUsers: request.addedUsers,
 		});
 
 		codeError = response.codeError!;
@@ -1492,7 +1492,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 			replyPostResponse = await this.session.api.createPost({
 				streamId: stream.id,
 				text: request.replyPost.text,
-				parentPostId: response.post.id
+				parentPostId: response.post.id,
 			});
 		}
 
@@ -1500,7 +1500,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 			stream,
 			post: await this.enrichPost(response!.post),
 			codeError,
-			replyPost: replyPostResponse?.post
+			replyPost: replyPostResponse?.post,
 		};
 	}
 
@@ -1586,7 +1586,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				uri: URI.file(scm.repoPath).toString(),
 				currentUserEmail: "", // FIXME
 				startCommit,
-				endCommit
+				endCommit,
 			});
 			modifiedFiles = statusFromBeginningOfReview.scm!.modifiedFiles.filter(
 				mf => !excludedFiles.includes(mf.file)
@@ -1845,8 +1845,8 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				), // for backtracking
 				latestCommitToRightDiffsCompressed: compressToBase64(
 					JSON.stringify(latestCommitToRightDiffs)
-				)
-			}
+				),
+			},
 		};
 	}
 
@@ -1872,7 +1872,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				codemarkResponse = await this.session.api.createCodemark({
 					...request.codemark,
 					parentPostId: request.parentPostId,
-					providerType: this.session.api.providerType
+					providerType: this.session.api.providerType,
 				});
 				if (request.crossPostIssueValues) {
 					providerCardRequest = {
@@ -1880,9 +1880,9 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 							title: request.codemark.title,
 							text: request.codemark.text,
 							markers: codemarkResponse.markers,
-							permalink: codemarkResponse.codemark.permalink
+							permalink: codemarkResponse.codemark.permalink,
 						},
-						remotes: request.codemark.remotes
+						remotes: request.codemark.remotes,
 					};
 				}
 				codemarkId = codemarkResponse.codemark.id;
@@ -1898,9 +1898,9 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 							title: request.codemark.title,
 							text: request.codemark.text,
 							markers: response.markers,
-							permalink: response.codemark && response.codemark.permalink
+							permalink: response.codemark && response.codemark.permalink,
 						},
-						remotes: request.codemark.remotes
+						remotes: request.codemark.remotes,
 					};
 				}
 				codemarkId = response.codemark && response.codemark.id;
@@ -1944,7 +1944,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				...request,
 				text: request.text || "",
 				remotes: request.codemark && request.codemark.remotes,
-				codemarkResponse: codemarkResponse
+				codemarkResponse: codemarkResponse,
 			});
 			postId = response.post.id;
 			streamId = response.post.streamId;
@@ -1961,7 +1961,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				externalAssignees:
 					externalAssignees &&
 					externalAssignees.map((a: any) => ({ displayName: a.displayName, email: a.email })),
-				externalProviderUrl: externalProviderUrl
+				externalProviderUrl: externalProviderUrl,
 			});
 		}
 
@@ -1969,7 +1969,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 		this.cacheResponse(response!);
 		return {
 			...response!,
-			post: await this.enrichPost(response!.post)
+			post: await this.enrichPost(response!.post),
 		};
 	}
 
@@ -1988,7 +1988,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 		status = "open",
 		tags,
 		relatedCodemarkIds,
-		crossPostIssueValues
+		crossPostIssueValues,
 	}: CreatePostWithMarkerRequest): Promise<CreatePostResponse | undefined> {
 		const codemarkRequest: CreateCodemarkRequest = {
 			title,
@@ -1998,7 +1998,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 			status: type === CodemarkType.Issue ? status : undefined,
 			tags,
 			relatedCodemarkIds,
-			markers: []
+			markers: [],
 		};
 
 		codemarkRequest.streamId = streamId;
@@ -2031,7 +2031,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 					codemark: codemarkRequest,
 					mentionedUserIds,
 					entryPoint,
-					crossPostIssueValues
+					crossPostIssueValues,
 				},
 				textDocuments
 			);
@@ -2048,8 +2048,8 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				message: "Post creation with markers failed",
 				extra: {
 					message: ex.message,
-					streamId
-				}
+					streamId,
+				},
 			});
 			throw ex;
 		}
@@ -2102,15 +2102,9 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 
 	protected bareRepo(repo: string): string {
 		if (repo.match(/^(bitbucket\.org|github\.com)\/(.+)\//)) {
-			repo = repo
-				.split("/")
-				.splice(2)
-				.join("/");
+			repo = repo.split("/").splice(2).join("/");
 		} else if (repo.indexOf("/") !== -1) {
-			repo = repo
-				.split("/")
-				.splice(1)
-				.join("/");
+			repo = repo.split("/").splice(1).join("/");
 		}
 		return repo;
 	}
@@ -2132,7 +2126,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 					end: "",
 					linefeed: "\n",
 					anchorFormat: "${text} ${url}",
-					escapeFn: noEscape
+					escapeFn: noEscape,
 				};
 			case CodeDelimiterStyles.HTML_LIGHT_MARKUP:
 				return {
@@ -2140,7 +2134,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 					end: "",
 					linefeed: "\n",
 					anchorFormat: '<a href="${url}">${text}</a>',
-					escapeFn: Strings.escapeHtml
+					escapeFn: Strings.escapeHtml,
 				};
 			// https://docs.microsoft.com/en-us/azure/devops/project/wiki/markdown-guidance?view=azure-devops
 			case CodeDelimiterStyles.HTML_MARKUP:
@@ -2149,7 +2143,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 					end: "</code></div></pre>",
 					linefeed: "<br/>",
 					anchorFormat: '<a href="${url}">${text}</a>',
-					escapeFn: Strings.escapeHtml
+					escapeFn: Strings.escapeHtml,
 				};
 
 			// https://www.jetbrains.com/help/youtrack/incloud/youtrack-markdown-syntax-issues.html
@@ -2159,7 +2153,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 					end: "`",
 					linefeed: "\n",
 					anchorFormat: "[${text}](${url})",
-					escapeFn: noEscape
+					escapeFn: noEscape,
 				};
 			// https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all
 			case CodeDelimiterStyles.CODE_BRACE:
@@ -2168,7 +2162,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 					end: "{code}",
 					linefeed: "\n",
 					anchorFormat: "[${text}|${url}]",
-					escapeFn: noEscape
+					escapeFn: noEscape,
 				};
 			// https://confluence.atlassian.com/bitbucketserver/markdown-syntax-guide-776639995.html
 			// https://help.trello.com/article/821-using-markdown-in-trello
@@ -2179,7 +2173,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 					end: "```\n",
 					linefeed: "\n",
 					anchorFormat: "[${text}](${url})",
-					escapeFn: noEscape
+					escapeFn: noEscape,
 				};
 		}
 	};
@@ -2240,7 +2234,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 							marker.id
 						}&ide=default&src=${encodeURIComponent(
 							providerDisplayNamesByNameKey.get(attributes.issueProvider.name) || ""
-						)}`
+						)}`,
 					});
 					if (link) {
 						links.push(link);
@@ -2276,7 +2270,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 					}
 					const link = Strings.interpolate(delimiters.anchorFormat, {
 						text: `Open on ${url.displayName}`,
-						url: url.url
+						url: url.url,
 					});
 					if (link) {
 						links.push(link);
@@ -2322,8 +2316,8 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 							summary: providerCardRequest.codemark.title,
 							issueType: attributes.issueType,
 							project: attributes.boardId,
-							assignees: attributes.assignees
-						}
+							assignees: attributes.assignees,
+						},
 					});
 					break;
 				}
@@ -2334,8 +2328,8 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 							listId: attributes.listId,
 							name: providerCardRequest.codemark.title,
 							assignees: attributes.assignees,
-							description: `${description}\nCreated ${createdFrom} using [CodeStream](${codeStreamLink}trello)`
-						}
+							description: `${description}\nCreated ${createdFrom} using [CodeStream](${codeStreamLink}trello)`,
+						},
 					});
 					break;
 				}
@@ -2347,8 +2341,8 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 							description: `${description}\n<sup>Created ${createdFrom} using [CodeStream](${codeStreamLink}github)</sup>`,
 							title: providerCardRequest.codemark.title,
 							repoName: attributes.boardName,
-							assignees: attributes.assignees
-						}
+							assignees: attributes.assignees,
+						},
 					});
 					break;
 				}
@@ -2360,8 +2354,8 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 							description: `${description}\n<sup>Created ${createdFrom} using [CodeStream](${codeStreamLink}gitlab)</sup>`,
 							title: providerCardRequest.codemark.title,
 							repoName: attributes.boardName,
-							assignee: attributes.assignees && attributes.assignees[0]
-						}
+							assignee: attributes.assignees && attributes.assignees[0],
+						},
 					});
 					break;
 				}
@@ -2372,8 +2366,8 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 							description: `${description}\n<sup>Created ${createdFrom} using [CodeStream](${codeStreamLink}youtrack)</sup>`,
 							name: providerCardRequest.codemark.title,
 							boardId: attributes.board.id,
-							assignee: attributes.assignees && attributes.assignees[0]
-						}
+							assignee: attributes.assignees && attributes.assignees[0],
+						},
 					});
 					break;
 				}
@@ -2385,8 +2379,8 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 							boardId: attributes.boardId,
 							listId: attributes.listId,
 							name: providerCardRequest.codemark.title,
-							assignee: attributes.assignees && attributes.assignees[0]
-						}
+							assignee: attributes.assignees && attributes.assignees[0],
+						},
 					});
 					break;
 				}
@@ -2397,8 +2391,8 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 							description: `${description}\nCreated ${createdFrom} using [CodeStream](${codeStreamLink}bitbucket)`,
 							title: providerCardRequest.codemark.title,
 							repoName: attributes.boardName,
-							assignee: attributes.assignees && attributes.assignees[0]
-						}
+							assignee: attributes.assignees && attributes.assignees[0],
+						},
 					});
 					break;
 				}
@@ -2409,8 +2403,8 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 							description: `${description}\n<sup>Created ${createdFrom} using <a href="${codeStreamLink}azuredevops">CodeStream</a></sup>`,
 							title: providerCardRequest.codemark.title,
 							boardId: attributes.board.id,
-							assignee: attributes.assignees && attributes.assignees[0]
-						}
+							assignee: attributes.assignees && attributes.assignees[0],
+						},
 					});
 					break;
 				}
@@ -2422,8 +2416,8 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 							description: `${description}\n\n <sup>Created ${createdFrom} using [CodeStream](${codeStreamLink}shortcut)</sup>`,
 							name: providerCardRequest.codemark.title,
 							projectId: attributes.projectId,
-							assignees: attributes.assignees
-						}
+							assignees: attributes.assignees,
+						},
 					});
 					break;
 				}
@@ -2435,8 +2429,8 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 							description: `${description}\n\n Created ${createdFrom} using [CodeStream](${codeStreamLink}linear)`,
 							name: providerCardRequest.codemark.title,
 							projectId: attributes.projectId,
-							assignees: attributes.assignees
-						}
+							assignees: attributes.assignees,
+						},
 					});
 					Logger.log("GOT RESPONSE: " + JSON.stringify(response, null, 4));
 					break;
@@ -2451,7 +2445,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				type: ReportingMessageType.Error,
 				message: `Failed to create a ${attributes.issueProvider.name} card`,
 				source: "agent",
-				extra: { message: error.message }
+				extra: { message: error.message },
 			});
 			Logger.error(error, `failed to create a ${attributes.issueProvider.name} card:`);
 			return undefined;

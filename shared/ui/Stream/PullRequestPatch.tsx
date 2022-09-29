@@ -1,15 +1,15 @@
-import React from "react";
-import * as Path from "path-browserify";
-import { prettyPrintOne } from "code-prettify";
-import { escapeHtml } from "../utils";
-import styled from "styled-components";
-import Icon from "./Icon";
-import { PullRequestInlineComment } from "./PullRequestInlineComment";
 import { FetchThirdPartyPullRequestPullRequest } from "@codestream/protocols/agent";
-import { PullRequestCodeComment } from "./PullRequestCodeComment";
-import { PRComment, PRCommentsInPatch, PRCard } from "./PullRequestComponents";
-import { CodeStreamState } from "../store";
+import { prettyPrintOne } from "code-prettify";
+import * as Path from "path-browserify";
+import React from "react";
 import { useSelector } from "react-redux";
+import styled from "styled-components";
+import { CodeStreamState } from "../store";
+import { escapeHtml } from "../utils";
+import Icon from "./Icon";
+import { PullRequestCodeComment } from "./PullRequestCodeComment";
+import { PRCard, PRComment, PRCommentsInPatch } from "./PullRequestComponents";
+import { PullRequestInlineComment } from "./PullRequestInlineComment";
 
 export const PRPatchRoot = styled.div`
 	font-size: 12px;
@@ -135,7 +135,7 @@ export const PullRequestPatch = (props: {
 			isGitLab:
 				state && state.context && state.context.currentPullRequest
 					? state.context.currentPullRequest.providerId.indexOf("gitlab") > -1
-					: false
+					: false,
 		};
 	});
 

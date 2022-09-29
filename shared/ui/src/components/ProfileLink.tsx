@@ -1,12 +1,13 @@
+import { WebviewModals } from "@codestream/protocols/webview";
 import React from "react";
 import { connect } from "react-redux";
-import { openModal, setProfileUser } from "../../store/context/actions";
-import { WebviewModals } from "@codestream/protocols/webview";
 import styled from "styled-components";
 import {
+	openModal,
+	setCurrentCodeError,
 	setCurrentCodemark,
 	setCurrentReview,
-	setCurrentCodeError
+	setProfileUser,
 } from "../../store/context/actions";
 
 interface Props {
@@ -40,7 +41,7 @@ const Component = connect(mapStateToProps, {
 	setProfileUser,
 	setCurrentCodemark,
 	setCurrentReview,
-	setCurrentCodeError
+	setCurrentCodeError,
 })(ProfileLink);
 
 export { Component as ProfileLink };

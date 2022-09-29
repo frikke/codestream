@@ -1,24 +1,13 @@
-import React, { useState, useCallback } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { HostApi } from "../webview-api";
-import { Button } from "../src/components/Button";
-import styled from "styled-components";
-import { TextInput } from "../Authentication/TextInput";
-import { isUsernameValid } from "../Authentication/Signup";
-import { logError } from "../logger";
-import { FormattedMessage } from "react-intl";
-import cx from "classnames";
-import { CodeStreamState } from "../store";
 import { CSMe } from "@codestream/protocols/api";
-import { Link } from "./Link";
-import {
-	UpdateUserRequestType,
-	FetchThirdPartyPullRequestRequestType
-} from "@codestream/protocols/agent";
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import styled from "styled-components";
+import { Button } from "../src/components/Button";
 import { Dialog } from "../src/components/Dialog";
-import { closeModal } from "./actions";
-import { useDidMount } from "../utilities/hooks";
+import { CodeStreamState } from "../store";
 import { RequestType } from "../vscode-jsonrpc.shim";
+import { HostApi } from "../webview-api";
+import { closeModal } from "./actions";
 
 export const ButtonRow = styled.div`
 	text-align: center;
@@ -41,7 +30,7 @@ export const Tester = props => {
 		JSON.stringify(
 			{
 				providerId: "github*com",
-				pullRequestId: "72"
+				pullRequestId: "72",
 			},
 			null,
 			4

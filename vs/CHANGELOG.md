@@ -1,5 +1,22 @@
 # Change Log
 
+## [14.2.0] - 2022-9-29
+
+### Added
+
+- Adds support for new pull request paradigm, with tree view of changed files and full-file diffs
+- Adds code-level metrics into diffs for pull requests and feedback requests
+
+### Changed
+
+- Optimized performance of queries for code-level metrics
+- Optimized the loading time of the Observability section
+
+### Fixed
+
+- Fixes an issue where a PR comment being composed is lost when the webview loses focus
+- Fixes an issue with api rate limiting with the Linear integration
+
 ## [14.1.0] - 2022-9-15
 
 ### Added

@@ -11,13 +11,13 @@ import {
 	TestAgent,
 	TestConnection,
 	TestSession,
-	trimUndefined
+	trimUndefined,
 } from "./helpers";
 
 async function runAcceptanceTest(dir: string, ctx: any) {
 	const { agentOptions, agentRequests, csApiRequests, slackApiRequests } = await loadTestData(dir);
 
-	const slackApiCall = async function(fnOrMethod: any, request: any, name: string) {
+	const slackApiCall = async function (fnOrMethod: any, request: any, name: string) {
 		const method = typeof fnOrMethod === "string" ? fnOrMethod : name;
 		const slackApiRequest = getRequest(method, slackApiRequests);
 		console.log(`Slack API request: ${method} OK`);
@@ -25,7 +25,11 @@ async function runAcceptanceTest(dir: string, ctx: any) {
 		expect(request).to.deep.equal(slackApiRequest.request);
 		return slackApiRequest.response;
 	};
-	const csApiFetch = async function(url: string, init?: RequestInit, token?: string): Promise<any> {
+	const csApiFetch = async function (
+		url: string,
+		init?: RequestInit,
+		token?: string
+	): Promise<any> {
 		const csApiRequest = getRequest(url, csApiRequests);
 		console.log(`CS API request: ${url} OK`);
 		const bodyString = init!.body;
@@ -40,7 +44,7 @@ async function runAcceptanceTest(dir: string, ctx: any) {
 	api.fetch = csApiFetch;
 
 	// session.login();
-	void (await session.login((agentOptions as unknown) as any));
+	void (await session.login(agentOptions as unknown as any));
 	// await wait(1000);
 	// @ts-ignore
 	ctx.api = session._api!;
@@ -64,50 +68,50 @@ async function runAcceptanceTest(dir: string, ctx: any) {
 	// expect(csApiRequests).to.be.empty;
 }
 
-describe("CodeStream backend", function() {
-	beforeEach(async function() {
+describe("CodeStream backend", function () {
+	beforeEach(async function () {
 		this.agent = new TestAgent();
-		this.csAgent = (this.agent as unknown) as CodeStreamAgent;
-		this.connection = (new TestConnection() as unknown) as Connection;
+		this.csAgent = this.agent as unknown as CodeStreamAgent;
+		this.connection = new TestConnection() as unknown as Connection;
 	});
 
-	afterEach(async function() {
+	afterEach(async function () {
 		await this.api.dispose();
 	});
 
-	it("logs in", async function() {
+	it("logs in", async function () {
 		await runAcceptanceTest("cs_login", this);
 	});
 
-	it("loads a channel", async function() {
+	it("loads a channel", async function () {
 		await runAcceptanceTest("cs_load_channel", this);
 	});
 
-	it("posts to a channel", async function() {
+	it("posts to a channel", async function () {
 		await runAcceptanceTest("cs_post", this);
 	});
 
-	it("loads a codemark from codemarks panel", async function() {
+	it("loads a codemark from codemarks panel", async function () {
 		await runAcceptanceTest("cs_load_codemark", this);
 	});
 });
 
-describe("Slack backend", function() {
-	beforeEach(async function() {
+describe("Slack backend", function () {
+	beforeEach(async function () {
 		this.agent = new TestAgent();
-		this.csAgent = (this.agent as unknown) as CodeStreamAgent;
-		this.connection = (new TestConnection() as unknown) as Connection;
+		this.csAgent = this.agent as unknown as CodeStreamAgent;
+		this.connection = new TestConnection() as unknown as Connection;
 	});
 
-	afterEach(async function() {
+	afterEach(async function () {
 		await this.api.dispose();
 	});
 
-	it("logs in", async function() {
+	it("logs in", async function () {
 		await runAcceptanceTest("slack_login", this);
 	});
 
-	xit("loads a channel", async function() {
+	xit("loads a channel", async function () {
 		await runAcceptanceTest("slack_load_channel", this);
 	});
 });

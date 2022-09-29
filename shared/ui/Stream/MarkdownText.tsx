@@ -1,6 +1,6 @@
+import React from "react";
 import styled from "styled-components";
 import { useMarkdownifyToHtml } from "./Markdowner";
-import React from "react";
 
 export const MarkdownText = styled(
 	(props: {
@@ -23,9 +23,9 @@ export const MarkdownText = styled(
 						? props.text
 						: markdownifyToHtml(props.text, {
 								inline: !!props.inline,
-								excludeOnlyEmoji: !!props.excludeOnlyEmoji
-						  })
-				}
+								excludeOnlyEmoji: !!props.excludeOnlyEmoji,
+						  }),
+				},
 			},
 			null
 		);

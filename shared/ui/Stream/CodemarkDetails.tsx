@@ -1,36 +1,36 @@
+import {
+	Capabilities,
+	CodemarkPlus,
+	CreateThirdPartyPostRequestType,
+	PostPlus,
+} from "@codestream/protocols/agent";
+import { CodemarkType, CSMe, CSPost, CSUser } from "@codestream/protocols/api";
+import cx from "classnames";
 import React from "react";
 import { connect } from "react-redux";
-import cx from "classnames";
-import PostList from "./PostList";
-import Icon from "./Icon";
-import Tooltip from "./Tooltip";
-import MessageInput, { AttachmentField } from "./MessageInput";
-import { findMentionedUserIds, getTeamMembers } from "../store/users/reducer";
-import CodemarkActions from "./CodemarkActions";
-import {
-	CodemarkPlus,
-	Capabilities,
-	CreateThirdPartyPostRequestType,
-	PostPlus
-} from "@codestream/protocols/agent";
-import {
-	createPost,
-	setCodemarkStatus,
-	setCodemarkPinned,
-	setUserPreference,
-	markItemRead
-} from "./actions";
-import { CSUser, CSMe, CSPost, CodemarkType } from "@codestream/protocols/api";
-import { getTeamProvider } from "../store/teams/reducer";
-import { replaceHtml } from "../utils";
 import { DelayedRender } from "../Container/DelayedRender";
-import { localStore } from "../utilities/storage";
-import { CodeStreamState } from "../store";
-import { HostApi } from "../webview-api";
-import { DropdownButton } from "./DropdownButton";
 import { Button } from "../src/components/Button";
 import { ButtonRow } from "../src/components/Dialog";
+import { CodeStreamState } from "../store";
 import { setCurrentCodemark } from "../store/context/actions";
+import { getTeamProvider } from "../store/teams/reducer";
+import { findMentionedUserIds, getTeamMembers } from "../store/users/reducer";
+import { localStore } from "../utilities/storage";
+import { replaceHtml } from "../utils";
+import { HostApi } from "../webview-api";
+import {
+	createPost,
+	markItemRead,
+	setCodemarkPinned,
+	setCodemarkStatus,
+	setUserPreference,
+} from "./actions";
+import CodemarkActions from "./CodemarkActions";
+import { DropdownButton } from "./DropdownButton";
+import Icon from "./Icon";
+import MessageInput, { AttachmentField } from "./MessageInput";
+import PostList from "./PostList";
+import Tooltip from "./Tooltip";
 
 interface State {
 	editingPostId?: string;
@@ -85,7 +85,7 @@ export class CodemarkDetails extends React.Component<Props, State> {
 			isLoadingReplies: true,
 			attachments: [],
 			isDragging: 0,
-			resolveMethod: "RESOLVE"
+			resolveMethod: "RESOLVE",
 		};
 	}
 
@@ -131,7 +131,7 @@ export class CodemarkDetails extends React.Component<Props, State> {
 		await markItemRead(codemark.id, codemark.numReplies + 1);
 		await createPost(codemark.streamId, threadId, replaceHtml(replyText)!, null, mentionedUserIds, {
 			entryPoint: "Codemark",
-			files: attachments
+			files: attachments,
 		});
 	};
 
@@ -147,7 +147,7 @@ export class CodemarkDetails extends React.Component<Props, State> {
 		HostApi.instance.track("Codemark Resolved", {
 			"Codemark ID": this.props.codemark.id,
 			"Codemark Type": this.props.codemark.type,
-			Archived: type === "archive"
+			Archived: type === "archive",
 		});
 		this.props.setCurrentCodemark();
 
@@ -162,7 +162,7 @@ export class CodemarkDetails extends React.Component<Props, State> {
 					channelId: target.channelId,
 					providerTeamId: target.teamId,
 					parentPostId: target.postId,
-					text: message
+					text: message,
 				});
 			}
 		}
@@ -302,7 +302,7 @@ export class CodemarkDetails extends React.Component<Props, State> {
 													label: `Resolve ${this.state.text ? "with Comment" : typeLabel}`,
 													subtext: "Save as documentation",
 													onSelect: () => this.setResolveMethod("RESOLVE"),
-													action: () => this.resolveCodemark("resolve")
+													action: () => this.resolveCodemark("resolve"),
 												},
 												{ label: "-" },
 												{
@@ -312,8 +312,8 @@ export class CodemarkDetails extends React.Component<Props, State> {
 													}`,
 													subtext: "Remove glyph from editor (still searchable)",
 													onSelect: () => this.setResolveMethod("ARCHIVE"),
-													action: () => this.resolveCodemark("archive")
-												}
+													action: () => this.resolveCodemark("archive"),
+												},
 											]}
 											selectedKey={this.props.defaultResolveAction}
 											variant="secondary"
@@ -370,7 +370,7 @@ const mapStateToProps = (state: CodeStreamState, props: { codemark: CodemarkPlus
 		currentUserId: user.id,
 		currentUserName: user.username,
 		teamProvider: teamProvider,
-		defaultResolveAction: preferences.defaultResolveAction || "resolve"
+		defaultResolveAction: preferences.defaultResolveAction || "resolve",
 	};
 };
 
@@ -380,5 +380,5 @@ export default connect(mapStateToProps, {
 	setCodemarkStatus,
 	setCodemarkPinned,
 	setUserPreference,
-	setCurrentCodemark
+	setCurrentCodemark,
 })(CodemarkDetails);

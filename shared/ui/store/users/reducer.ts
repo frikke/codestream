@@ -1,15 +1,15 @@
-import { CSUser, CSStream, StreamType, CSTeam } from "@codestream/protocols/api";
-import { createSelector } from "reselect";
-import { mapFilter, toMapBy, emptyArray } from "../../utils";
-import { ActionType } from "../common";
-import * as actions from "./actions";
-import { UsersState, UsersActionsType } from "./types";
-import { CodeStreamState } from "..";
+import { CSStream, CSTeam, CSUser, StreamType } from "@codestream/protocols/api";
 import { difference, isString } from "lodash-es";
-import { getStreamForId } from "../streams/reducer";
-import { PreferencesState } from "../preferences/types";
-import { UnreadsState } from "../unreads/types";
+import { createSelector } from "reselect";
+import { CodeStreamState } from "..";
+import { emptyArray, mapFilter, toMapBy } from "../../utils";
 import { isFeatureEnabled } from "../apiVersioning/reducer";
+import { ActionType } from "../common";
+import { PreferencesState } from "../preferences/types";
+import { getStreamForId } from "../streams/reducer";
+import { UnreadsState } from "../unreads/types";
+import * as actions from "./actions";
+import { UsersActionsType, UsersState } from "./types";
 
 type UsersActions = ActionType<typeof actions>;
 

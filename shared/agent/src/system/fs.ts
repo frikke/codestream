@@ -34,7 +34,7 @@ export namespace FileSystem {
 				fs.createReadStream(path)
 					.on("error", reject)
 					.pipe(hash.setEncoding(encoding))
-					.once("finish", function(this: any) {
+					.once("finish", function (this: any) {
 						resolve(this.read());
 					});
 
@@ -49,7 +49,7 @@ export namespace FileSystem {
 				.createInterface({
 					input: fs.createReadStream(path),
 					historySize: 0,
-					crlfDelay: Infinity
+					crlfDelay: Infinity,
 				} as any)
 				.on("line", (line: string) => {
 					count++;
@@ -66,7 +66,7 @@ export namespace FileSystem {
 						hash.update("\n");
 					}
 				})
-				.once("close", function() {
+				.once("close", function () {
 					const sha1 = hash.digest(encoding);
 					resolve(sha1);
 				});
@@ -90,7 +90,7 @@ export namespace FileSystem {
 				.createInterface({
 					input: stream,
 					historySize: 0,
-					crlfDelay: Infinity
+					crlfDelay: Infinity,
 				} as any)
 				.on("line", (line: string) => {
 					count++;
@@ -107,7 +107,7 @@ export namespace FileSystem {
 						content += "\n";
 					}
 				})
-				.once("close", function() {
+				.once("close", function () {
 					stream.close();
 					resolve(content);
 				});

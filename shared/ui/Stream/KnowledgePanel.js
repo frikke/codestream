@@ -1,20 +1,20 @@
+import createClassString from "classnames";
+import { includes as _includes, sortBy as _sortBy } from "lodash-es";
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import createClassString from "classnames";
-import * as actions from "./actions";
+import { PanelHeader } from "../src/components/PanelHeader";
 import * as codemarkSelectors from "../store/codemarks/reducer";
+import { setCurrentCodemark, setCurrentStream } from "../store/context/actions";
 import * as reviewSelectors from "../store/reviews/reducer";
 import * as userSelectors from "../store/users/reducer";
-import Tag from "./Tag";
+import { HostApi } from "../webview-api";
+import * as actions from "./actions";
+import Codemark from "./Codemark";
+import Filter from "./Filter";
+import Headshot from "./Headshot";
 import Icon from "./Icon";
 import ScrollBox from "./ScrollBox";
-import Filter from "./Filter";
-import Codemark from "./Codemark";
-import Headshot from "./Headshot";
-import { HostApi } from "../webview-api";
-import { includes as _includes, sortBy as _sortBy } from "lodash-es";
-import { setCurrentStream, setCurrentCodemark } from "../store/context/actions";
-import { PanelHeader } from "../src/components/PanelHeader";
+import Tag from "./Tag";
 
 export class SimpleKnowledgePanel extends Component {
 	disposables = [];
@@ -31,15 +31,15 @@ export class SimpleKnowledgePanel extends Component {
 				mine: true,
 				open: true,
 				closed: true,
-				unanswered: true
+				unanswered: true,
 			},
-			selectedTags: {}
+			selectedTags: {},
 		};
 
 		this.typeLabels = {
 			comment: "Code Comments",
 			// question: "Questions & Answers",
-			issue: "Issues"
+			issue: "Issues",
 			// trap: "Traps"
 			// snippet: "Snippets",
 			// bookmark: "Bookmarks"
@@ -48,7 +48,7 @@ export class SimpleKnowledgePanel extends Component {
 			all: "all codemarks",
 			comment: "code comments",
 			// question: "questions & answers",
-			issue: "issues"
+			issue: "issues",
 			// trap: "traps",
 			// snippet: "snippets",
 			// bookmark: "bookmarks"
@@ -57,7 +57,7 @@ export class SimpleKnowledgePanel extends Component {
 			current: "in current file only",
 			unseparated: "from all files, unseparated",
 			repo: "in the current repo only",
-			all: "from all files"
+			all: "from all files",
 		};
 		this.sectionLabel = {
 			inThisFile: "In This File",
@@ -65,7 +65,7 @@ export class SimpleKnowledgePanel extends Component {
 			open: "Open",
 			recent: "Recent",
 			closed: "Closed",
-			unanswered: "Unanswered"
+			unanswered: "Unanswered",
 		};
 		this.sectionsByType = {
 			all: ["mine", "recent"],
@@ -73,7 +73,7 @@ export class SimpleKnowledgePanel extends Component {
 			question: ["unanswered", "recent"],
 			issue: ["mine", "open", "recent", "closed"],
 			trap: ["recent"],
-			bookmark: ["recent"]
+			bookmark: ["recent"],
 			// all: ["inThisFile", "mine", "recent"],
 			// comment: ["inThisFile", "mine", "recent"],
 			// question: ["inThisFile", "unanswered", "recent"],
@@ -87,7 +87,7 @@ export class SimpleKnowledgePanel extends Component {
 			question: ["unanswered", "recent"],
 			issue: ["closed", "mine", "open", "recent"],
 			trap: ["recent"],
-			bookmark: ["recent"]
+			bookmark: ["recent"],
 			// all: ["inThisFile", "mine", "recent"],
 			// comment: ["inThisFile", "mine", "recent"],
 			// question: ["inThisFile", "unanswered", "recent"],
@@ -123,7 +123,7 @@ export class SimpleKnowledgePanel extends Component {
 	toggleSection = (e, section) => {
 		e.stopPropagation();
 		this.setState({
-			expanded: { ...this.state.expanded, [section]: !this.state.expanded[section] }
+			expanded: { ...this.state.expanded, [section]: !this.state.expanded[section] },
 		});
 	};
 
@@ -162,7 +162,7 @@ export class SimpleKnowledgePanel extends Component {
 		return (
 			<div
 				className={createClassString("section", "has-children", {
-					expanded: this.state.expanded[section]
+					expanded: this.state.expanded[section],
 				})}
 			>
 				<div className="header" onClick={e => this.toggleSection(e, section)}>
@@ -215,7 +215,7 @@ export class SimpleKnowledgePanel extends Component {
 			branchFilter,
 			commitArray,
 			branchArray,
-			authorArray
+			authorArray,
 		} = this.props;
 		const { thisRepo } = this.state;
 
@@ -296,7 +296,7 @@ export class SimpleKnowledgePanel extends Component {
 			{ label: "-" },
 			{ label: "Code Comments", action: "comment" },
 			// { label: "Questions & Answers", action: "question" },
-			{ label: "Issues", action: "issue" }
+			{ label: "Issues", action: "issue" },
 			// { label: "Traps", action: "trap" },
 			// { label: "Bookmarks", action: "bookmark" }
 		];
@@ -326,7 +326,7 @@ export class SimpleKnowledgePanel extends Component {
 					),
 					noHover: true,
 					searchLabel: tag.label || tag.color,
-					action: tag.id
+					action: tag.id,
 				};
 			})
 		);
@@ -343,7 +343,7 @@ export class SimpleKnowledgePanel extends Component {
 							</span>
 						),
 						searchLabel: branch,
-						action: branch
+						action: branch,
 					};
 				}),
 			{ label: "-" },
@@ -357,7 +357,7 @@ export class SimpleKnowledgePanel extends Component {
 							</span>
 						),
 						searchLabel: commit,
-						action: commit
+						action: commit,
 					};
 				})
 		);
@@ -375,7 +375,7 @@ export class SimpleKnowledgePanel extends Component {
 							</span>
 						),
 						searchLabel: author.name,
-						action: author.codestreamId || author.id
+						action: author.codestreamId || author.id,
 					};
 				})
 		);
@@ -499,13 +499,13 @@ export class SimpleKnowledgePanel extends Component {
 	onClickCodemarkTypeFor = type => e => {
 		e.preventDefault();
 		this.props.setMultiCompose(true, {
-			codemarkType: type
+			codemarkType: type,
 		});
 	};
 
 	toggleStatus = id => {
 		this.setState({
-			statusPosts: { ...this.state.statusPosts, [id]: !this.state.statusPosts[id] }
+			statusPosts: { ...this.state.statusPosts, [id]: !this.state.statusPosts[id] },
 		});
 	};
 
@@ -630,7 +630,7 @@ const mapStateToProps = state => {
 		authorArray,
 		branchFiltersLabelsLower,
 		authorFiltersLabelsLower,
-		webviewFocused: context.hasFocus
+		webviewFocused: context.hasFocus,
 	};
 };
 

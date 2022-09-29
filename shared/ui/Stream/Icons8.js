@@ -55,12 +55,12 @@ for (const [key, icon] of Object.entries(data)) {
 		width,
 		height,
 		class: "octicon octicon-" + key,
-		"aria-hidden": "true"
+		"aria-hidden": "true",
 	};
 	icon.options.viewBox = icon.viewBox || "0 0 " + width + " " + height;
 
 	// Function to return an SVG object
-	icon.toSVG = function(options) {
+	icon.toSVG = function (options) {
 		return `<svg ${getHtmlAttributes(icon, options)}>${icon.path}</svg>`;
 	};
 }

@@ -22,8 +22,7 @@ import {
 	ProviderConfigurationData,
 	ReportingMessageType,
 	ThirdPartyDisconnect,
-	ThirdPartyProviderCard,
-	ThirdPartyProviderConfig
+	ThirdPartyProviderConfig,
 } from "../protocol/agent.protocol";
 import { CSJiraServerProviderInfo } from "../protocol/api.protocol";
 import { CodeStreamSession } from "../session";
@@ -36,11 +35,11 @@ import {
 	IssueTypeDescriptor,
 	IssueTypeDetails,
 	IssueTypeFields,
+	JiraCardResponse,
 	JiraPaginateValues,
 	JiraProject,
 	JiraProjectsMetaResponse,
 	JiraServerOauthParams,
-	JiraCardResponse
 } from "./jiraserver.types";
 import { ThirdPartyIssueProviderBase } from "./thirdPartyIssueProviderBase";
 
@@ -110,7 +109,7 @@ class OAuthExtended extends OAuth {
 			path: path,
 			method: method,
 			headers: headers,
-			agent: this._agent
+			agent: this._agent,
 		};
 		const httpModel = sslEnabled ? Https : Http;
 		return httpModel.request(options);
@@ -153,7 +152,7 @@ export class JiraServerProvider extends ThirdPartyIssueProviderBase<CSJiraServer
 		if (this._providerInfo && this._providerInfo.isApiToken) {
 			return {
 				Authorization: `Bearer ${this._providerInfo.accessToken}`,
-				"Content-Type": "application/json"
+				"Content-Type": "application/json",
 			} as { [key: string]: string }; // having to write this "as" is everything i hate about typescript
 		} else {
 			return {};
@@ -228,7 +227,7 @@ export class JiraServerProvider extends ThirdPartyIssueProviderBase<CSJiraServer
 				const existingParams = path.includes("?") ? qs.parse(path.split("?")[1]) : {};
 				nextPage = `${basePath}?${qs.stringify({
 					...existingParams,
-					startAt: (response.startAt + response.maxResults).toString(10)
+					startAt: (response.startAt + response.maxResults).toString(10),
 				})}`;
 			} else {
 				Logger.debug("Jira: there are no more pages");
@@ -271,7 +270,7 @@ export class JiraServerProvider extends ThirdPartyIssueProviderBase<CSJiraServer
 				type: ReportingMessageType.Error,
 				message: "Jira Server: Error fetching jira boards",
 				source: "agent",
-				extra: { message: error.message }
+				extra: { message: error.message },
 			});
 			Logger.error(error, "Error fetching jira boards");
 			return { boards: [] };
@@ -289,7 +288,7 @@ export class JiraServerProvider extends ThirdPartyIssueProviderBase<CSJiraServer
 
 			jiraProjectsFieldDetails.projects.push({
 				...project,
-				issueTypes
+				issueTypes,
 			});
 
 			for (const issueType of issueTypesResponse) {
@@ -316,7 +315,7 @@ export class JiraServerProvider extends ThirdPartyIssueProviderBase<CSJiraServer
 				type: ReportingMessageType.Error,
 				message: "Jira Server: Error fetching issue metadata for projects",
 				source: "agent",
-				extra: { message: error.message }
+				extra: { message: error.message },
 			});
 			Logger.error(
 				error,
@@ -366,7 +365,7 @@ export class JiraServerProvider extends ThirdPartyIssueProviderBase<CSJiraServer
 				issueTypeIcons,
 				singleAssignee: true, // all jira cards have a single assignee?
 				assigneesRequired,
-				assigneesDisabled
+				assigneesDisabled,
 			};
 
 			return board;
@@ -388,7 +387,7 @@ export class JiraServerProvider extends ThirdPartyIssueProviderBase<CSJiraServer
 				type: ReportingMessageType.Error,
 				message: "Jira Server: Error fetching issue workflow for projects",
 				source: "agent",
-				extra: { message: error.message }
+				extra: { message: error.message },
 			});
 			Logger.error(error, "Jira Server: Error fetching card workflow");
 			return { workflow: [] };
@@ -408,7 +407,7 @@ export class JiraServerProvider extends ThirdPartyIssueProviderBase<CSJiraServer
 					request.customFilter ||
 					"assignee=currentuser() AND (status!=Closed OR resolution=Unresolved)",
 				expand: "transitions,names",
-				fields: "summary,description,updated,subtasks,status,issuetype,priority,assignee"
+				fields: "summary,description,updated,subtasks,status,issuetype,priority,assignee",
 			})}`;
 
 			while (nextPage !== undefined) {
@@ -431,8 +430,8 @@ export class JiraServerProvider extends ThirdPartyIssueProviderBase<CSJiraServer
 						message: "Jira: Error fetching jira cards",
 						source: "agent",
 						extra: {
-							message: e.message
-						}
+							message: e.message,
+						},
 					});
 					Logger.error(e);
 					Logger.debug("Jira: Stopping card search");
@@ -449,7 +448,7 @@ export class JiraServerProvider extends ThirdPartyIssueProviderBase<CSJiraServer
 				type: ReportingMessageType.Error,
 				message: "Jira: Error fetching jira cards",
 				source: "agent",
-				extra: { message: error.message }
+				extra: { message: error.message },
 			});
 			Logger.error(error, "Error fetching jira cards");
 			return { cards: [] };
@@ -463,14 +462,14 @@ export class JiraServerProvider extends ThirdPartyIssueProviderBase<CSJiraServer
 		const body: { [k: string]: any } = {
 			fields: {
 				project: {
-					id: data.project
+					id: data.project,
 				},
 				issuetype: {
-					name: data.issueType
+					name: data.issueType,
 				},
 				summary: data.summary,
-				description: data.description
-			}
+				description: data.description,
+			},
 		};
 
 		if (data.assignees && data.assignees.length > 0) {
@@ -480,7 +479,7 @@ export class JiraServerProvider extends ThirdPartyIssueProviderBase<CSJiraServer
 
 		return {
 			id: response.id,
-			url: `${this.baseUrl}/browse/${response.key}`
+			url: `${this.baseUrl}/browse/${response.key}`,
 		};
 	}
 
@@ -489,7 +488,7 @@ export class JiraServerProvider extends ThirdPartyIssueProviderBase<CSJiraServer
 		try {
 			Logger.debug("Jira Server: moving card");
 			const response = await this._postJira(`/rest/api/2/issue/${request.cardId}/transitions`, {
-				transition: { id: request.listId }
+				transition: { id: request.listId },
 			});
 			// Logger.debug("Got a response: " + JSON.stringify(response, null, 4));
 			return response;
@@ -499,7 +498,7 @@ export class JiraServerProvider extends ThirdPartyIssueProviderBase<CSJiraServer
 				type: ReportingMessageType.Error,
 				message: "Jira Server: Error moving jira card",
 				source: "agent",
-				extra: { message: error.message }
+				extra: { message: error.message },
 			});
 			Logger.error(error, "Error moving jira card");
 			return {};
@@ -517,7 +516,7 @@ export class JiraServerProvider extends ThirdPartyIssueProviderBase<CSJiraServer
 		const result = (await this._getJira(
 			`/rest/api/2/user/assignable/search?${qs.stringify({
 				project: board.key,
-				maxResults: 1000
+				maxResults: 1000,
 			})}`
 		)) as JiraUser[];
 		return { users: result.map(u => ({ ...u, id: u.accountId })) };
@@ -535,7 +534,7 @@ export class JiraServerProvider extends ThirdPartyIssueProviderBase<CSJiraServer
 			`/rest/api/2/user/assignable/search?${qs.stringify({
 				username: request.search,
 				project: board.key,
-				maxResults: 50
+				maxResults: 50,
 			})}`
 		)) as JiraUser[];
 		return { users: result.map(u => ({ ...u, id: u.accountId })) };

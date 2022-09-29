@@ -1,10 +1,9 @@
+import { MapReposRequestType, RepoMap, TelemetryRequestType } from "@codestream/protocols/agent";
 import React from "react";
+import { ShellPromptFolderRequestType } from "../ipc/host.protocol";
+import { HostApi } from "../webview-api";
 import Button from "./Button";
 import Tooltip from "./Tooltip";
-import { HostApi } from "../webview-api";
-import { ShellPromptFolderRequestType } from "../ipc/host.protocol";
-import { MapReposRequestType, RepoMap } from "@codestream/protocols/agent";
-import { TelemetryRequestType } from "@codestream/protocols/agent";
 
 interface Props {
 	repoId: string | undefined;
@@ -16,7 +15,7 @@ interface State {
 }
 export class LocateRepoButton extends React.Component<Props, State> {
 	state: State = {
-		locateLoading: false
+		locateLoading: false,
 	};
 	mounted = false;
 
@@ -27,15 +26,15 @@ export class LocateRepoButton extends React.Component<Props, State> {
 		if (!repoId) return;
 
 		this.setState({
-			locateLoading: true
+			locateLoading: true,
 		});
 		let response = await HostApi.instance.send(ShellPromptFolderRequestType, {
-			message: `Please select the root folder for the ${repoName} repository.`
+			message: `Please select the root folder for the ${repoName} repository.`,
 		});
 		try {
 			if (response && response.path) {
 				const result = await HostApi.instance.send(MapReposRequestType, {
-					repos: [{ repoId: repoId, ...response } as RepoMap]
+					repos: [{ repoId: repoId, ...response } as RepoMap],
 				});
 
 				if (this.props.callback) {

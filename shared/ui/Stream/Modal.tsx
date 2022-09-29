@@ -1,13 +1,13 @@
 import React, { PropsWithChildren } from "react";
 import { createPortal } from "react-dom";
-import styled from "styled-components";
-import KeystrokeDispatcher from "../utilities/keystroke-dispatcher";
-import Tooltip from "./Tooltip";
-import ScrollBox from "./ScrollBox";
-import Icon from "./Icon";
-import { useDidMount } from "../utilities/hooks";
-import * as contextActions from "../store/context/actions";
 import { useDispatch } from "react-redux";
+import styled from "styled-components";
+import * as contextActions from "../store/context/actions";
+import { useDidMount } from "../utilities/hooks";
+import KeystrokeDispatcher from "../utilities/keystroke-dispatcher";
+import Icon from "./Icon";
+import ScrollBox from "./ScrollBox";
+import Tooltip from "./Tooltip";
 
 const noopElement = document.createElement("span");
 
@@ -84,7 +84,7 @@ interface ModalContextType {
 }
 
 export const ModalContext = React.createContext<ModalContextType>({
-	zIndex: 52
+	zIndex: 52,
 });
 
 export interface ModalProps {
@@ -168,7 +168,7 @@ export function Modal(props: PropsWithChildren<ModalProps>) {
 	);
 }
 
-const CancelButton = styled(function(props: { onClick: (e: any) => void }) {
+const CancelButton = styled(function (props: { onClick: (e: any) => void }) {
 	// have to pass overlayStyle to bump z-index within #modal-root
 	return (
 		<Tooltip

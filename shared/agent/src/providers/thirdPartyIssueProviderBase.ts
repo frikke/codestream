@@ -1,14 +1,15 @@
+import { TernarySearchTree } from "../../../ui/utilities/searchTree";
 import { ReportSuppressedMessages } from "../agentError";
 import { SessionContainer } from "../container";
 import { Logger } from "../logger";
 import {
 	DocumentMarker,
-	DocumentMarkerExternalContent
+	DocumentMarkerExternalContent,
 } from "../protocol/agent.protocol.documentMarkers";
 import {
 	FetchAssignableUsersAutocompleteRequest,
 	FetchAssignableUsersResponse,
-	GetMyPullRequestsRequest
+	GetMyPullRequestsRequest,
 } from "../protocol/agent.protocol.providers";
 import { CSProviderInfos } from "../protocol/api.protocol.models";
 import { log } from "../system/decorators/log";
@@ -19,14 +20,16 @@ import {
 	ThirdPartyIssueProvider,
 	ThirdPartyProviderSupportsCreatingPullRequests,
 	ThirdPartyProviderSupportsIssues,
-	ThirdPartyProviderSupportsViewingPullRequests
+	ThirdPartyProviderSupportsViewingPullRequests,
 } from "./provider";
 import { ThirdPartyProviderBase } from "./thirdPartyProviderBase";
-import { TernarySearchTree } from "../../../ui/utilities/searchTree";
 
 export abstract class ThirdPartyIssueProviderBase<
-	TProviderInfo extends CSProviderInfos = CSProviderInfos
-> extends ThirdPartyProviderBase<TProviderInfo> implements ThirdPartyIssueProvider {
+		TProviderInfo extends CSProviderInfos = CSProviderInfos
+	>
+	extends ThirdPartyProviderBase<TProviderInfo>
+	implements ThirdPartyIssueProvider
+{
 	private _pullRequestDocumentMarkersCache = new Map<
 		string,
 		{ documentVersion: number; promise: Promise<DocumentMarker[]> }
@@ -68,9 +71,10 @@ export abstract class ThirdPartyIssueProviderBase<
 				request.description += ` by ${request.metadata.reviewers?.map(_ => _.name)?.join(", ")}`;
 			}
 			if (request.metadata.approvedAt) {
-				request.description += ` on ${new Date(
-					request.metadata.approvedAt
-				).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}`;
+				request.description += ` on ${new Date(request.metadata.approvedAt).toLocaleDateString(
+					"en-US",
+					{ year: "numeric", month: "short", day: "numeric" }
+				)}`;
 			}
 		}
 		if (request.metadata.addresses) {
@@ -135,7 +139,7 @@ export abstract class ThirdPartyIssueProviderBase<
 			"ENETUNREACH",
 			"self signed certificate in certificate chain",
 			"socket disconnected before secure",
-			"socket hang up"
+			"socket hang up",
 		];
 
 		if (ex.message && networkErrors.some(e => ex.message.match(new RegExp(e)))) {
@@ -188,9 +192,11 @@ export abstract class ThirdPartyIssueProviderBase<
 						occurredAt: Date.now(),
 						isConnectionError: exType === ReportSuppressedMessages.ConnectionError,
 						providerMessage:
-							exType === ReportSuppressedMessages.OAuthAppAccessRestrictionError ? ex.message : null
-					}
-				}
+							exType === ReportSuppressedMessages.OAuthAppAccessRestrictionError
+								? ex.message
+								: null,
+					},
+				},
 			});
 			if (this._client) {
 				delete this._client;
@@ -201,7 +207,7 @@ export abstract class ThirdPartyIssueProviderBase<
 	getOwnerFromRemote(remote: string): { owner: string; name: string } {
 		return {
 			owner: "",
-			name: ""
+			name: "",
 		};
 	}
 
@@ -296,7 +302,7 @@ export abstract class ThirdPartyIssueProviderBase<
 
 	protected handleProviderError(ex: any, request: any) {
 		Logger.error(ex, `${this.displayName}: handleProviderError`, {
-			request
+			request,
 		});
 
 		let errorMessage = undefined;
@@ -322,8 +328,8 @@ export abstract class ThirdPartyIssueProviderBase<
 		return {
 			error: {
 				type: "PROVIDER",
-				message: errorMessage
-			}
+				message: errorMessage,
+			},
 		};
 	}
 

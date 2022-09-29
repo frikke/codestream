@@ -4,7 +4,7 @@ import { DropdownButton, DropdownButtonItems } from "@codestream/webview/Stream/
 import { useDidMount } from "@codestream/webview/utilities/hooks";
 import { HostApi } from "@codestream/webview/webview-api";
 import React from "react";
-import { shallowEqual, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 export const Accounts = props => {
 	const [isLoading, setIsLoading] = React.useState(false);
@@ -28,14 +28,14 @@ export const Accounts = props => {
 			searchLabel: _.name,
 			action: () => {
 				props.onSelect(_);
-			}
+			},
 		})) as DropdownButtonItems[];
 		if (newAccounts.length > 5) {
 			newAccounts.unshift(
 				{
 					label: "",
 					placeholder: "Search Accounts",
-					type: "search"
+					type: "search",
 				},
 				{ label: "-" }
 			);

@@ -1,8 +1,8 @@
-import React from "react";
 import { Capabilities, CodemarkPlus } from "@codestream/protocols/agent";
+import React from "react";
 import { injectIntl, WrappedComponentProps } from "react-intl";
-import { CodeStreamState } from "../store";
 import { connect } from "react-redux";
+import { CodeStreamState } from "../store";
 import MarkerActions from "./MarkerActions";
 
 interface State {}
@@ -62,7 +62,7 @@ class CodemarkActions extends React.Component<Props, State> {
 
 const mapStateToProps = (state: CodeStreamState) => {
 	return {
-		jumpToMarkerId: state.context.currentMarkerId
+		jumpToMarkerId: state.context.currentMarkerId,
 	};
 };
 

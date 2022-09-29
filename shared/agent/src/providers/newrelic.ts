@@ -7,34 +7,42 @@ import {
 	groupBy as _groupBy,
 	memoize,
 	uniq as _uniq,
+	uniqBy as _uniqBy,
 } from "lodash";
+import * as path from "path";
 import { join, relative, sep } from "path";
 import Cache from "timed-cache";
 import { ResponseError } from "vscode-jsonrpc/lib/messages";
 import { URI } from "vscode-uri";
+import * as csUri from "../system/uri";
 
 import { InternalError, ReportSuppressedMessages } from "../agentError";
 import { SessionContainer, SessionServiceContainer } from "../container";
 import { GitRemoteParser } from "../git/parsers/remoteParser";
 import { Logger } from "../logger";
+import { ReviewsManager } from "../managers/reviewsManager";
 import {
 	BuiltFromResult,
+	CodeStreamDiffUriData,
 	CrashOrException,
 	Entity,
 	EntityAccount,
 	EntitySearchResponse,
 	EntityType,
+	ErrorGroup,
+	ErrorGroupResponse,
+	ErrorGroupsResponse,
+	ErrorGroupStateType,
 	ERROR_NR_CONNECTION_INVALID_API_KEY,
 	ERROR_NR_CONNECTION_MISSING_API_KEY,
 	ERROR_NR_CONNECTION_MISSING_URL,
 	ERROR_NR_INSUFFICIENT_API_KEY,
 	ERROR_PIXIE_NOT_CONFIGURED,
-	ErrorGroup,
-	ErrorGroupResponse,
-	ErrorGroupsResponse,
-	ErrorGroupStateType,
 	GetAlertViolationsQueryResult,
 	GetAlertViolationsResponse,
+	GetEntityCountRequest,
+	GetEntityCountRequestType,
+	GetEntityCountResponse,
 	GetFileLevelTelemetryRequest,
 	GetFileLevelTelemetryRequestType,
 	GetFileLevelTelemetryResponse,
@@ -97,6 +105,7 @@ import {
 	isGraphqlNrqlError,
 	NRErrorResponse,
 	NRErrorType,
+	RepoEntitiesByRemotesResponse,
 } from "./newrelic.types";
 import { generateMethodAverageDurationQuery } from "./newrelic/methodAverageDurationQuery";
 import { generateMethodErrorRateQuery } from "./newrelic/methodErrorRateQuery";
@@ -132,12 +141,17 @@ function isSupportedLanguage(value: string): value is LanguageId {
 	return !!language;
 }
 
+const ENTITY_CACHE_KEY = "entityCache";
+
 @lspProvider("newrelic")
 export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProviderInfo> {
 	private _newRelicUserId: number | undefined = undefined;
 	private _accountIds: number[] | undefined = undefined;
 	private _memoizedBuildRepoRemoteVariants: any;
-	private _mltTimedCache: Cache;
+	private _mltTimedCache: Cache<GetFileLevelTelemetryResponse | null>;
+	private _entityCountTimedCache: Cache<GetEntityCountResponse>;
+	private _repositoryEntitiesByRepoRemotes: Cache<RepoEntitiesByRemotesResponse>;
+	private _observabilityReposCache: Cache<GetObservabilityReposResponse>;
 	private _applicationEntitiesCache: { [key: string]: GetObservabilityEntitiesResponse } = {};
 
 	constructor(session: CodeStreamSession, config: ThirdPartyProviderConfig) {
@@ -146,8 +160,14 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			this.buildRepoRemoteVariants,
 			(remotes: string[]) => remotes
 		);
-		// default is 60s
-		this._mltTimedCache = new Cache();
+		// 2 minute cache
+		this._mltTimedCache = new Cache({ defaultTtl: 120 * 1000 });
+		// 30 second cache
+		this._entityCountTimedCache = new Cache({ defaultTtl: 30 * 1000 });
+		// 30 second cache
+		this._repositoryEntitiesByRepoRemotes = new Cache({ defaultTtl: 30 * 10000 });
+		// 30 second cache
+		this._observabilityReposCache = new Cache({ defaultTtl: 30 * 1000 });
 	}
 
 	get displayName() {
@@ -432,6 +452,19 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			);
 		}
 		return undefined;
+	}
+
+	// Map array of objects based on order of array of strings
+	// @TODO: might be worth creating a agent/src/providers/newrelic/utils.tsx file
+	// for some of these private functions
+	private mapOrder(array: any = [], order: string[] = [], key: string = "") {
+		if (array.length > 0 && order.length > 0 && key) {
+			array.sort(function (a: any, b: any) {
+				return order.indexOf(a[key]) > order.indexOf(b[key]) ? 1 : -1;
+			});
+		}
+
+		return array;
 	}
 
 	private getInsufficientApiKeyError(ex: any): { message: string } | undefined {
@@ -751,6 +784,17 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 	async getObservabilityRepos(
 		request: GetObservabilityReposRequest
 	): Promise<GetObservabilityReposResponse> {
+		const { force = false } = request;
+		const cacheKey = JSON.stringify(request);
+		if (!force) {
+			const cached = this._observabilityReposCache.get(cacheKey);
+			if (cached) {
+				Logger.log("getObservabilityRepos: from cache", {
+					cacheKey,
+				});
+				return cached;
+			}
+		}
 		const response: GetObservabilityReposResponse = { repos: [] };
 		try {
 			const { scm } = this._sessionServiceContainer || SessionContainer.instance();
@@ -786,7 +830,10 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				const remotes: string[] = repo.remotes?.map(_ => _.rawUrl!);
 
 				// find REPOSITORY entities tied to a remote
-				const repositoryEntitiesResponse = await this.findRepositoryEntitiesByRepoRemotes(remotes);
+				const repositoryEntitiesResponse = await this.findRepositoryEntitiesByRepoRemotes(
+					remotes,
+					force
+				);
 				let remoteUrls: (string | undefined)[] = [];
 				let hasRepoAssociation;
 				let applicationAssociations;
@@ -885,7 +932,6 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 					repoRemote: remote,
 					hasRepoAssociation: hasRepoAssociation,
 					hasCodeLevelMetricSpanData: hasCodeLevelMetricSpanData,
-					// @ts-ignore
 					entityAccounts: uniqueEntities
 						.map(entity => {
 							return {
@@ -912,6 +958,8 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			ContextLogger.error(ex, "getObservabilityRepos");
 			throw ex;
 		}
+
+		this._observabilityReposCache.put(cacheKey, response);
 
 		return response;
 	}
@@ -1656,7 +1704,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				// entities based on the request.url
 				const fn = async () => {
 					try {
-						const result = await this.findRepositoryEntitiesByRepoRemotes([request.url]);
+						const result = await this.findRepositoryEntitiesByRepoRemotes([request.url], true);
 						return !!result?.entities?.length;
 					} catch (error) {
 						ContextLogger.warn("findRepositoryEntitiesByRepoRemotesResult error", {
@@ -2017,7 +2065,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		metricTimesliceNames: MetricTimeslice[],
 		languageId: LanguageId
 	) {
-		return metricTimesliceNames.map((_: any) => {
+		return metricTimesliceNames.map(_ => {
 			const additionalMetadata: AdditionalMetadataInfo = {};
 			const metadata =
 				groupedByTransactionName[this.timesliceNameMap(languageId, _.metricTimesliceName)];
@@ -2095,6 +2143,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 	async getFileLevelTelemetry(
 		request: GetFileLevelTelemetryRequest
 	): Promise<GetFileLevelTelemetryResponse | NRErrorResponse | undefined> {
+		const { git, users } = this._sessionServiceContainer || SessionContainer.instance();
 		const languageId: LanguageId | undefined = isSupportedLanguage(request.languageId)
 			? request.languageId
 			: undefined;
@@ -2103,15 +2152,36 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			return undefined;
 		}
 
-		if (!request.filePath && !request.locator) {
-			ContextLogger.warn("getFileLevelTelemetry: Missing filePath, or method locator");
+		if (!request.fileUri && !request.locator) {
+			ContextLogger.warn("getFileLevelTelemetry: Missing fileUri, or method locator");
+			return undefined;
+		}
+
+		let filePath = undefined;
+		if (request.fileUri.startsWith("codestream-diff://")) {
+			let parsedUri = undefined;
+			if (csUri.Uris.isCodeStreamDiffUri(request.fileUri)) {
+				parsedUri = csUri.Uris.fromCodeStreamDiffUri<CodeStreamDiffUriData>(request.fileUri);
+			} else {
+				parsedUri = ReviewsManager.parseUri(request.fileUri);
+			}
+			const repo = parsedUri?.repoId && (await git.getRepositoryById(parsedUri?.repoId));
+			filePath = repo && parsedUri?.path && path.join(repo.path, parsedUri.path);
+		} else {
+			const parsedUri = URI.parse(request.fileUri);
+			filePath = parsedUri.fsPath;
+		}
+		if (!filePath) {
+			ContextLogger.warn(
+				`getFileLevelTelemetry: Unable to resolve filePath from URI ${request.fileUri}`
+			);
 			return undefined;
 		}
 
 		const resolutionMethod = this.getResolutionMethod(languageId);
 		const cacheKey =
 			resolutionMethod === "filePath"
-				? [request.filePath, request.languageId].join("-")
+				? [filePath, request.languageId].join("-")
 				: [Object.values(request.locator!).join("-"), request.languageId].join("-");
 
 		if (request.resetCache) {
@@ -2124,14 +2194,15 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			});
 		} else {
 			const cached = this._mltTimedCache.get(cacheKey);
-			if (cached) {
+			// Using null here to differentiate no result for file (null) vs not cached (undefined)
+			if (cached !== undefined) {
+				// Is null or real response
 				Logger.log("getFileLevelTelemetry: from cache", {
 					cacheKey,
 				});
-				return cached;
+				return cached ?? undefined;
 			}
 		}
-		const { users, git } = this._sessionServiceContainer || SessionContainer.instance();
 		const codeStreamUser = await users.getMe();
 
 		const isConnected = this.isConnected(codeStreamUser);
@@ -2148,7 +2219,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			};
 		}
 
-		const repoForFile = await git.getRepositoryByFilePath(request.filePath);
+		const repoForFile = await git.getRepositoryByFilePath(filePath);
 		if (!repoForFile?.id) {
 			ContextLogger.warn("getFileLevelTelemetry: no repo for file", {
 				request,
@@ -2157,7 +2228,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		}
 
 		try {
-			const entityCount = await this.getEntityCount();
+			const { entityCount } = await this.getEntityCount();
 			if (entityCount < 1) {
 				ContextLogger.log("getFileLevelTelemetry: no NR1 entities");
 				return undefined;
@@ -2181,7 +2252,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		const remotes = await repoForFile.getWeightedRemotesByStrategy("prioritizeUpstream", undefined);
 		const remote = remotes.map(_ => _.rawUrl)[0];
 
-		let relativeFilePath = relative(repoForFile.path, request.filePath);
+		let relativeFilePath = relative(repoForFile.path, filePath);
 		if (relativeFilePath[0] !== sep) {
 			relativeFilePath = join(sep, relativeFilePath);
 		}
@@ -2272,7 +2343,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 
 			const hasAnyData =
 				throughputResponseLength || averageDurationResponseLength || errorRateResponseLength;
-			const response = {
+			const response: GetFileLevelTelemetryResponse = {
 				codeNamespace: request?.locator?.namespace,
 				isConnected: isConnected,
 				throughput: throughputResponse ? throughputResponse.actor.account.nrql.results : [],
@@ -2300,7 +2371,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				newRelicUrl: `${this.productUrl}/redirect/entity/${newRelicEntityGuid}`,
 			};
 
-			if (spans?.length) {
+			if (spans?.length > 0) {
 				this._mltTimedCache.put(cacheKey, response);
 				Logger.log("getFileLevelTelemetry caching success", {
 					spansLength: spans.length,
@@ -2314,6 +2385,8 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 					newRelicAccountId,
 				});
 			} else {
+				// Cache that there are no spans for this file for a shorter duration
+				this._mltTimedCache.put(cacheKey, null, { ttl: 60 * 1000 });
 				Logger.log("getFileLevelTelemetry no spans", {
 					hasAnyData,
 					relativeFilePath,
@@ -2481,7 +2554,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 					  entity(guid: $entityGuid) {
 						name
 						guid
-						recentAlertViolations(count: 2) {
+						recentAlertViolations(count: 20) {
 						  agentUrl
 						  alertSeverity
 						  closedAt
@@ -2499,7 +2572,43 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 					entityGuid: entityGuid,
 				}
 			);
-			return response?.actor?.entity;
+
+			if (response?.actor?.entity) {
+				let entity = response?.actor?.entity;
+				const recentAlertViolationsArray = entity?.recentAlertViolations;
+
+				const ALERT_SEVERITY_SORTING_ORDER: string[] = [
+					"",
+					"CRITICAL",
+					"NOT_ALERTING",
+					"NOT_CONFIGURED",
+					"WARNING",
+					"UNKNOWN",
+				];
+
+				// get unique labels
+				const recentAlertViolationsArrayUnique = _uniqBy(recentAlertViolationsArray, "label");
+
+				// sort based on openedAt time
+				recentAlertViolationsArrayUnique.sort((a, b) =>
+					a.openedAt > b.openedAt ? 1 : b.openedAt > a.openedAt ? -1 : 0
+				);
+
+				// sort based on alert serverity defined in ALERT_SEVERITY_SORTING_ORDER
+				const recentAlertViolationsArraySorted = this.mapOrder(
+					recentAlertViolationsArray,
+					ALERT_SEVERITY_SORTING_ORDER,
+					"alertSeverity"
+				);
+
+				// take top 2
+				const topTwoRecentAlertViolations = recentAlertViolationsArraySorted.slice(0, 2);
+
+				entity.recentAlertViolations = topTwoRecentAlertViolations;
+
+				return entity;
+			}
+			return {};
 		} catch (ex) {
 			ContextLogger.warn("getRecentAlertViolations failure", {
 				entityGuid,
@@ -2524,16 +2633,19 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 	 *
 	 * @private
 	 * @param {string} repoId
+	 * @param {boolean} force - Don't use cache, force live request
 	 * @return {*}
 	 * @memberof NewRelicProvider
 	 */
 	protected async getObservabilityEntityRepos(
-		repoId: string
+		repoId: string,
+		force = false
 	): Promise<ObservabilityRepo | undefined> {
 		let observabilityRepos: GetObservabilityReposResponse | undefined;
 		try {
 			observabilityRepos = await this.getObservabilityRepos({
 				filters: [{ repoId: repoId }],
+				force,
 			});
 		} catch (err) {
 			this.contextWarnLogIfNotIgnored("getObservabilityEntityRepos", { error: err });
@@ -3259,26 +3371,24 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 	 *
 	 * @private
 	 * @param {string[]} remotes
-	 * @return {*}  {(Promise<
-	 * 		| {
-	 * 				entities?: {
-	 * 					guid: string;
-	 * 					name: String;
-	 * 					tags: { key: string; values: string[] }[];
-	 * 				}[];
-	 * 				remotes?: string[];
-	 * 		  }
-	 * 		| undefined
-	 * 	>)}
+	 * @param {boolean} force
+	 * @return {*}  {(Promise<RepoEntitiesByRemotesResponse | undefined >)}
 	 * @memberof NewRelicProvider
 	 */
-	protected async findRepositoryEntitiesByRepoRemotes(remotes: string[]): Promise<
-		| {
-				entities?: Entity[];
-				remotes?: string[];
-		  }
-		| undefined
-	> {
+	protected async findRepositoryEntitiesByRepoRemotes(
+		remotes: string[],
+		force = false
+	): Promise<RepoEntitiesByRemotesResponse | undefined> {
+		const cacheKey = JSON.stringify(remotes);
+		if (!force) {
+			const cached = this._repositoryEntitiesByRepoRemotes.get(cacheKey);
+			if (cached) {
+				Logger.log("findRepositoryEntitiesByRepoRemotes: from cache", {
+					cacheKey,
+				});
+				return cached;
+			}
+		}
 		try {
 			const remoteVariants: string[] = await this._memoizedBuildRepoRemoteVariants(remotes);
 			if (!remoteVariants.length) return undefined;
@@ -3308,10 +3418,12 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
   }
   `;
 			const queryResponse = await this.query<EntitySearchResponse>(query);
-			return {
+			const response = {
 				entities: queryResponse.actor.entitySearch.results.entities,
 				remotes: remoteVariants,
 			};
+			this._repositoryEntitiesByRepoRemotes.put(cacheKey, response);
+			return response;
 		} catch (ex) {
 			ContextLogger.warn("getEntitiesByRepoRemote", {
 				error: ex,
@@ -3789,24 +3901,35 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		);
 	}
 
-	protected async getEntityCount(): Promise<number> {
+	@lspHandler(GetEntityCountRequestType)
+	@log()
+	async getEntityCount(request?: GetEntityCountRequest): Promise<GetEntityCountResponse> {
+		// Cache entity count separately for case of user that has no entity association setup yet
+		// if we don't cache the nrql will execute for every single file they open in the IDE
+		// Flip side: if cache is too long user will get frustrated that new repo association isn't show up in
+		// UI during setup
+		const cached = this._entityCountTimedCache.get(ENTITY_CACHE_KEY);
+		if (cached && !request?.force) {
+			return cached;
+		}
 		try {
-			const result = await this.query(`{
+			const apiResult = await this.query(`{
 			actor {
 			  entitySearch(query: "type='APPLICATION'") {
 				count       
 			  }
 			}
 		  }`);
-
-			return result?.actor?.entitySearch?.count;
+			const result = { entityCount: apiResult?.actor?.entitySearch?.count };
+			this._entityCountTimedCache.put(ENTITY_CACHE_KEY, result);
+			return result;
 		} catch (ex) {
 			this.errorLogIfNotIgnored(ex, "getEntityCount");
 			if (ex instanceof GraphqlNrqlError) {
 				throw ex;
 			}
 		}
-		return 0;
+		return { entityCount: 0 };
 	}
 
 	private findBuiltFrom(relatedEntities: RelatedEntity[]): BuiltFromResult | undefined {

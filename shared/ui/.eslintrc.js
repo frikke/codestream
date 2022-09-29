@@ -1,14 +1,15 @@
 module.exports = {
 	env: {
 		browser: true,
-		es2021: true
+		es2021: true,
 	},
 	extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
 	overrides: [],
+	ignorePatterns: ["newrelic-browser.js"],
 	parser: "@typescript-eslint/parser",
 	parserOptions: {
 		ecmaVersion: "latest",
-		sourceType: "module"
+		sourceType: "module",
 	},
 	plugins: ["@typescript-eslint"],
 	rules: {
@@ -37,6 +38,6 @@ module.exports = {
 		"no-fallthrough": "warn",
 		"no-irregular-whitespace": "warn",
 		"prefer-spread": "warn",
-		"@typescript-eslint/no-this-alias": "warn"
-	}
+		"@typescript-eslint/no-this-alias": "warn",
+	},
 };

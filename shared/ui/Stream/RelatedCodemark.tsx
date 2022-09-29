@@ -1,11 +1,11 @@
-import React from "react";
-import { useSelector, useDispatch } from "react-redux";
 import cx from "classnames";
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { CodeStreamState } from "../store";
 import { getCodemark } from "../store/codemarks/reducer";
-import Icon from "./Icon";
-import { HostApi } from "../webview-api";
 import { setCurrentCodemark } from "../store/context/actions";
+import { HostApi } from "../webview-api";
+import Icon from "./Icon";
 
 export function RelatedCodemark(props: { id: string; className?: string }) {
 	const dispatch = useDispatch();
@@ -25,7 +25,7 @@ export function RelatedCodemark(props: { id: string; className?: string }) {
 			event.stopPropagation();
 			HostApi.instance.track("Codemark Clicked", {
 				"Codemark ID": props.id,
-				"Codemark Location": "Related List"
+				"Codemark Location": "Related List",
 			});
 
 			dispatch(setCurrentCodemark(codemark!.id));

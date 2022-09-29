@@ -1,6 +1,6 @@
 import React from "react";
-import Button from "./Button";
 import styled from "styled-components";
+import Button from "./Button";
 
 interface State {}
 
@@ -22,7 +22,7 @@ const StyledButton = styled(Button)`
 export default class Dismissable extends React.Component<Props, State> {
 	static defaultProps = {
 		title: "",
-		buttons: [{ text: "Dismiss", onClick: () => {}, isSecondary: false, loading: false }]
+		buttons: [{ text: "Dismiss", onClick: () => {}, isSecondary: false, loading: false }],
 	};
 
 	render() {

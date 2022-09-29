@@ -37,7 +37,7 @@ export enum ReportSuppressedMessages {
 	/* Some GitLab configurations require users to accept a Terms of Service before they can do anything */
 	GitLabTermsOfService = "Must accept GitLab Terms of Service",
 	/* User is receiving a status 401, no need to report it	 */
-	Unauthorized = "Unauthorized"
+	Unauthorized = "Unauthorized",
 }
 
 /**

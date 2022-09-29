@@ -25,7 +25,9 @@ const tips = [
 	<span>Created before yesterday: created:&lt;yesterday</span>,
 	<span>
 		Flag tech debt with tagged codemarks.{" "}
-		<a href="https://docs.newrelic.com/docs/codestream/how-use-codestream/discuss-code/#tagging">See how.</a>
+		<a href="https://docs.newrelic.com/docs/codestream/how-use-codestream/discuss-code/#tagging">
+			See how.
+		</a>
 	</span>,
 	<span>Use permalinks to share pointers to code on other platforms such as JIRA.</span>,
 	<span>CodeStream's comments can include multiple ranges, even across repos.</span>,
@@ -50,7 +52,7 @@ const tips = [
 			<span className="keybinding">r</span>
 		</span>{" "}
 		to request a code review.
-	</span>
+	</span>,
 ];
 
 export function ProTip() {

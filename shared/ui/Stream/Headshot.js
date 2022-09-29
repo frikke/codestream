@@ -57,7 +57,7 @@ export default class Headshot extends Component {
 				"Until we have built-in CodeStream headshots, you can edit your headshot by setting it up on Gravatar.com for " +
 				this.props.person.email +
 				".\n\nNote that it might take a few minutes for your headshot to appear here.\n\n-Team CodeStream",
-			buttons: [{ label: "OK" }]
+			buttons: [{ label: "OK" }],
 		});
 	};
 

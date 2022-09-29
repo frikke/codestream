@@ -1,14 +1,14 @@
-import React, { useState, useCallback } from "react";
-import { TextInput } from "./TextInput";
+import { CreateTeamRequestType } from "@codestream/protocols/agent";
+import React, { useCallback, useState } from "react";
 import { FormattedMessage } from "react-intl";
+import { connect } from "react-redux";
+import { DispatchProp } from "../store/common";
+import { goToLogin, goToNewUserEntry } from "../store/context/actions";
 import Button from "../Stream/Button";
 import { Link } from "../Stream/Link";
-import { connect } from "react-redux";
-import { goToNewUserEntry, goToLogin } from "../store/context/actions";
-import { DispatchProp } from "../store/common";
 import { HostApi } from "../webview-api";
-import { CreateTeamRequestType } from "@codestream/protocols/agent";
 import { completeSignup } from "./actions";
+import { TextInput } from "./TextInput";
 
 const isTeamNameValid = (name: string) => name.length > 0;
 
@@ -44,7 +44,7 @@ export const TeamCreation = (connect() as any)((props: ConnectedProps & Dispatch
 				props.dispatch(
 					completeSignup(props.email, props.token, team.id, {
 						createdTeam: true,
-						provider: props.provider
+						provider: props.provider,
 					})
 				);
 			} catch (error) {
@@ -60,11 +60,14 @@ export const TeamCreation = (connect() as any)((props: ConnectedProps & Dispatch
 				<fieldset className="form-body">
 					<div className="border-bottom-box">
 						<h3>
-							<FormattedMessage id="teamCreation.teamName" defaultMessage="Team Name"/>
+							<FormattedMessage id="teamCreation.teamName" defaultMessage="Team Name" />
 						</h3>
 						{props.loggedIn && (
 							<h4>
-								<FormattedMessage id="teamCreation.teamYet" defaultMessage="You don't belong to a team yet. Enter a name to create one now."/>
+								<FormattedMessage
+									id="teamCreation.teamYet"
+									defaultMessage="You don't belong to a team yet. Enter a name to create one now."
+								/>
 							</h4>
 						)}
 						<div id="controls">
@@ -79,7 +82,11 @@ export const TeamCreation = (connect() as any)((props: ConnectedProps & Dispatch
 									onValidityChanged={onValidityChanged}
 									required
 								/>
-								{!teamNameValidity && <small className="explainer error-message"><FormattedMessage id="teamCreation.required" defaultMessage="Required"/></small>}
+								{!teamNameValidity && (
+									<small className="explainer error-message">
+										<FormattedMessage id="teamCreation.required" defaultMessage="Required" />
+									</small>
+								)}
 							</div>
 							<div className="button-group">
 								<Button className="control-button" type="submit" loading={isLoading}>
@@ -90,7 +97,9 @@ export const TeamCreation = (connect() as any)((props: ConnectedProps & Dispatch
 					</div>
 					<div id="controls">
 						<div className="footer">
-							<Link onClick={onCancel}><FormattedMessage id="teamCreation.cancel" defaultMessage="Cancel"/></Link>
+							<Link onClick={onCancel}>
+								<FormattedMessage id="teamCreation.cancel" defaultMessage="Cancel" />
+							</Link>
 						</div>
 					</div>
 				</fieldset>

@@ -1,13 +1,11 @@
-import React from "react";
-import styled from "styled-components";
-import Menu from "../../Stream/Menu";
+import { CSUser } from "@codestream/protocols/api";
 import { Headshot } from "@codestream/webview/src/components/Headshot";
-import { HeadshotName } from "@codestream/webview/src/components/HeadshotName";
-import { CSUser, CSMe } from "@codestream/protocols/api";
 import { CodeStreamState } from "@codestream/webview/store";
 import { getTeamMembers } from "@codestream/webview/store/users/reducer";
+import React from "react";
 import { connect } from "react-redux";
-import Icon from "@codestream/webview/Stream/Icon";
+import styled from "styled-components";
+import Menu from "../../Stream/Menu";
 
 const ClickTarget = styled.span`
 	cursor: pointer;
@@ -83,7 +81,7 @@ class SelectPeople extends React.Component<Props, State> {
 						</span>
 					),
 					disabled: onlyPerson && person.id !== onlyPerson,
-					action: () => onChange(person)
+					action: () => onChange(person),
 				};
 			}) as any;
 		if (items.length >= 5) {

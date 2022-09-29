@@ -65,265 +65,265 @@ describe("rubyStackTraceParser", () => {
 				{
 					method: "rescue in block in connect",
 					fileFullPath: "/usr/local/lib/ruby/2.4.0/net/http.rb",
-					line: 906
+					line: 906,
 				},
 				{
 					method: "block in connect",
 					fileFullPath: "/usr/local/lib/ruby/2.4.0/net/http.rb",
-					line: 903
+					line: 903,
 				},
 				{
 					method: "block in timeout",
 					fileFullPath: "/usr/local/lib/ruby/2.4.0/timeout.rb",
-					line: 93
+					line: 93,
 				},
 				{
 					method: "timeout",
 					fileFullPath: "/usr/local/lib/ruby/2.4.0/timeout.rb",
-					line: 103
+					line: 103,
 				},
 				{
 					method: "connect",
 					fileFullPath: "/usr/local/lib/ruby/2.4.0/net/http.rb",
-					line: 902
+					line: 902,
 				},
 				{
 					method: "do_start",
 					fileFullPath: "/usr/local/lib/ruby/2.4.0/net/http.rb",
-					line: 887
+					line: 887,
 				},
 				{
 					method: "start",
 					fileFullPath: "/usr/local/lib/ruby/2.4.0/net/http.rb",
-					line: 876
+					line: 876,
 				},
 				{
 					method: "request",
 					fileFullPath: "/usr/local/lib/ruby/2.4.0/net/http.rb",
-					line: 1407
+					line: 1407,
 				},
 				{
 					method: "block in request_with_newrelic_trace",
 					fileFullPath:
 						"/usr/local/bundle/gems/newrelic_rpm-6.7.0.359/lib/new_relic/agent/instrumentation/net.rb",
-					line: 36
+					line: 36,
 				},
 				{
 					method: "disable_all_tracing",
 					fileFullPath: "/usr/local/bundle/gems/newrelic_rpm-6.7.0.359/lib/new_relic/agent.rb",
-					line: 506
+					line: 506,
 				},
 				{
 					method: "request_with_newrelic_trace",
 					fileFullPath:
 						"/usr/local/bundle/gems/newrelic_rpm-6.7.0.359/lib/new_relic/agent/instrumentation/net.rb",
-					line: 35
+					line: 35,
 				},
 				{
 					method: "post",
 					fileFullPath: "/mnt/rubytron/rubytron.rb",
-					line: 96
+					line: 96,
 				},
 				{
 					method: "block in sequence",
 					fileFullPath: "/mnt/rubytron/rubytron.rb",
-					line: 111
+					line: 111,
 				},
 				{
 					method: "each",
 					fileFullPath: "/mnt/rubytron/rubytron.rb",
-					line: 110
+					line: 110,
 				},
 				{
 					method: "sequence",
 					fileFullPath: "/mnt/rubytron/rubytron.rb",
-					line: 110
+					line: 110,
 				},
 				{
 					method: "block in <class:Rubytron>",
 					fileFullPath: "/mnt/rubytron/rubytron.rb",
-					line: 201
+					line: 201,
 				},
 				{
 					method: "call",
 					fileFullPath: "/usr/local/bundle/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 1636
+					line: 1636,
 				},
 				{
 					method: "block in compile!",
 					fileFullPath: "/usr/local/bundle/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 1636
+					line: 1636,
 				},
 				{
 					method: "block (3 levels) in route!",
 					fileFullPath: "/usr/local/bundle/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 987
+					line: 987,
 				},
 				{
 					method: "route_eval",
 					fileFullPath: "/usr/local/bundle/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 1006
+					line: 1006,
 				},
 				{
 					method: "route_eval_with_newrelic",
 					fileFullPath:
 						"/usr/local/bundle/gems/newrelic_rpm-6.7.0.359/lib/new_relic/agent/instrumentation/sinatra.rb",
-					line: 138
+					line: 138,
 				},
 				{
 					method: "block (2 levels) in route!",
 					fileFullPath: "/usr/local/bundle/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 987
+					line: 987,
 				},
 				{
 					method: "block in process_route",
 					fileFullPath: "/usr/local/bundle/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 1035
+					line: 1035,
 				},
 				{
 					method: "catch",
 					fileFullPath: "/usr/local/bundle/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 1033
+					line: 1033,
 				},
 				{
 					method: "process_route",
 					fileFullPath: "/usr/local/bundle/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 1033
+					line: 1033,
 				},
 				{
 					method: "call",
 					fileFullPath:
 						"/usr/local/bundle/gems/newrelic_rpm-6.7.0.359/lib/new_relic/agent/instrumentation/middleware_tracing.rb",
-					line: 99
+					line: 99,
 				},
 				{
 					method: "call",
 					fileFullPath:
 						"/usr/local/bundle/gems/rack-protection-2.0.8.1/lib/rack/protection/frame_options.rb",
-					line: 31
+					line: 31,
 				},
 				{
 					method: "call",
 					fileFullPath:
 						"/usr/local/bundle/gems/newrelic_rpm-6.7.0.359/lib/new_relic/agent/instrumentation/middleware_tracing.rb",
-					line: 99
+					line: 99,
 				},
 				{
 					method: "call",
 					fileFullPath: "/usr/local/bundle/gems/rack-2.2.2/lib/rack/null_logger.rb",
-					line: 11
+					line: 11,
 				},
 				{
 					method: "call",
 					fileFullPath:
 						"/usr/local/bundle/gems/newrelic_rpm-6.7.0.359/lib/new_relic/agent/instrumentation/middleware_tracing.rb",
-					line: 99
+					line: 99,
 				},
 				{
 					method: "call",
 					fileFullPath: "/usr/local/bundle/gems/rack-2.2.2/lib/rack/head.rb",
-					line: 12
+					line: 12,
 				},
 				{
 					method: "call",
 					fileFullPath:
 						"/usr/local/bundle/gems/newrelic_rpm-6.7.0.359/lib/new_relic/agent/instrumentation/middleware_tracing.rb",
-					line: 99
+					line: 99,
 				},
 				{
 					method: "call",
 					fileFullPath: "/usr/local/bundle/gems/sinatra-2.0.8.1/lib/sinatra/show_exceptions.rb",
-					line: 22
+					line: 22,
 				},
 				{
 					method: "call",
 					fileFullPath:
 						"/usr/local/bundle/gems/newrelic_rpm-6.7.0.359/lib/new_relic/agent/instrumentation/middleware_tracing.rb",
-					line: 99
+					line: 99,
 				},
 				{
 					method: "call",
 					fileFullPath: "/usr/local/bundle/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 194
+					line: 194,
 				},
 				{
 					method: "call",
 					fileFullPath:
 						"/usr/local/bundle/gems/newrelic_rpm-6.7.0.359/lib/new_relic/agent/instrumentation/middleware_tracing.rb",
-					line: 99
+					line: 99,
 				},
 				{
 					method: "call",
 					fileFullPath: "/usr/local/bundle/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 1951
+					line: 1951,
 				},
 				{
 					method: "block in call",
 					fileFullPath: "/usr/local/bundle/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 1503
+					line: 1503,
 				},
 				{
 					method: "synchronize",
 					fileFullPath: "/usr/local/bundle/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 1730
+					line: 1730,
 				},
 				{
 					method: "call",
 					fileFullPath: "/usr/local/bundle/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 1503
+					line: 1503,
 				},
 				{
 					method: "call",
 					fileFullPath:
 						"/usr/local/bundle/gems/newrelic_rpm-6.7.0.359/lib/new_relic/agent/instrumentation/middleware_tracing.rb",
-					line: 99
+					line: 99,
 				},
 				{
 					method: "call",
 					fileFullPath: "/usr/local/bundle/gems/rack-2.2.2/lib/rack/tempfile_reaper.rb",
-					line: 15
+					line: 15,
 				},
 				{
 					method: "_call",
 					fileFullPath: "/usr/local/bundle/gems/rack-2.2.2/lib/rack/lint.rb",
-					line: 50
+					line: 50,
 				},
 				{
 					method: "call",
 					fileFullPath: "/usr/local/bundle/gems/rack-2.2.2/lib/rack/lint.rb",
-					line: 38
+					line: 38,
 				},
 				{
 					method: "call",
 					fileFullPath: "/usr/local/bundle/gems/rack-2.2.2/lib/rack/show_exceptions.rb",
-					line: 23
+					line: 23,
 				},
 				{
 					method: "call",
 					fileFullPath: "/usr/local/bundle/gems/rack-2.2.2/lib/rack/content_length.rb",
-					line: 17
+					line: 17,
 				},
 				{
 					method: "service",
 					fileFullPath: "/usr/local/bundle/gems/rack-2.2.2/lib/rack/handler/webrick.rb",
-					line: 95
+					line: 95,
 				},
 				{
 					method: "service",
 					fileFullPath: "/usr/local/lib/ruby/2.4.0/webrick/httpserver.rb",
-					line: 140
+					line: 140,
 				},
 				{
 					method: "run",
 					fileFullPath: "/usr/local/lib/ruby/2.4.0/webrick/httpserver.rb",
-					line: 96
+					line: 96,
 				},
 				{
 					method: "block in start_thread",
 					fileFullPath: "/usr/local/lib/ruby/2.4.0/webrick/server.rb",
-					line: 308
-				}
-			]
+					line: 308,
+				},
+			],
 		});
 	});
 
@@ -379,7 +379,7 @@ describe("rubyStackTraceParser", () => {
 			"/home/ec2-user/.gem/ruby/2.4/gems/rack-2.2.3/lib/rack/handler/webrick.rb:95:in `service'",
 			"/usr/share/ruby/2.4/webrick/httpserver.rb:140:in `service'",
 			"/usr/share/ruby/2.4/webrick/httpserver.rb:96:in `run'",
-			"/usr/share/ruby/2.4/webrick/server.rb:308:in `block in start_thread'"
+			"/usr/share/ruby/2.4/webrick/server.rb:308:in `block in start_thread'",
 		];
 
 		const result = Parser(lines.join("\n"));
@@ -389,269 +389,269 @@ describe("rubyStackTraceParser", () => {
 				{
 					method: "status_check",
 					fileFullPath: "/home/ec2-user/rubytron/custom_apis/purchase_cart_api.rb",
-					line: 156
+					line: 156,
 				},
 				{
 					method: "block in registered",
 					fileFullPath: "/home/ec2-user/rubytron/custom_apis/purchase_cart_api.rb",
-					line: 46
+					line: 46,
 				},
 				{
 					method: "call",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 1636
+					line: 1636,
 				},
 				{
 					method: "block in compile!",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 1636
+					line: 1636,
 				},
 				{
 					method: "block (3 levels) in route!",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 987
+					line: 987,
 				},
 				{
 					method: "route_eval",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 1006
+					line: 1006,
 				},
 				{
 					method: "route_eval_with_newrelic",
 					fileFullPath:
 						"/home/ec2-user/.gem/ruby/2.4/gems/newrelic_rpm-6.15.0/lib/new_relic/agent/instrumentation/sinatra.rb",
-					line: 138
+					line: 138,
 				},
 				{
 					method: "block (2 levels) in route!",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 987
+					line: 987,
 				},
 				{
 					method: "block in process_route",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 1035
+					line: 1035,
 				},
 				{
 					method: "catch",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 1033
+					line: 1033,
 				},
 				{
 					method: "process_route",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 1033
+					line: 1033,
 				},
 				{
 					method: "process_route_with_newrelic",
 					fileFullPath:
 						"/home/ec2-user/.gem/ruby/2.4/gems/newrelic_rpm-6.15.0/lib/new_relic/agent/instrumentation/sinatra.rb",
-					line: 118
+					line: 118,
 				},
 				{
 					method: "block in route!",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 985
+					line: 985,
 				},
 				{
 					method: "each",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 984
+					line: 984,
 				},
 				{
 					method: "route!",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 984
+					line: 984,
 				},
 				{
 					method: "block in dispatch!",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 1098
+					line: 1098,
 				},
 				{
 					method: "block in invoke",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 1072
+					line: 1072,
 				},
 				{
 					method: "catch",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 1072
+					line: 1072,
 				},
 				{
 					method: "invoke",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 1072
+					line: 1072,
 				},
 				{
 					method: "dispatch!",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 1095
+					line: 1095,
 				},
 				{
 					method: "dispatch_and_notice_errors_with_newrelic",
 					fileFullPath:
 						"/home/ec2-user/.gem/ruby/2.4/gems/newrelic_rpm-6.15.0/lib/new_relic/agent/instrumentation/sinatra.rb",
-					line: 163
+					line: 163,
 				},
 				{
 					method: "block in dispatch_with_newrelic",
 					fileFullPath:
 						"/home/ec2-user/.gem/ruby/2.4/gems/newrelic_rpm-6.15.0/lib/new_relic/agent/instrumentation/sinatra.rb",
-					line: 149
+					line: 149,
 				},
 				{
 					method: "perform_action_with_newrelic_trace",
 					fileFullPath:
 						"/home/ec2-user/.gem/ruby/2.4/gems/newrelic_rpm-6.15.0/lib/new_relic/agent/instrumentation/controller_instrumentation.rb",
-					line: 376
+					line: 376,
 				},
 				{
 					method: "dispatch_with_newrelic",
 					fileFullPath:
 						"/home/ec2-user/.gem/ruby/2.4/gems/newrelic_rpm-6.15.0/lib/new_relic/agent/instrumentation/sinatra.rb",
-					line: 146
+					line: 146,
 				},
 				{
 					method: "block in call!",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 919
+					line: 919,
 				},
 				{
 					method: "call",
 					fileFullPath:
 						"/home/ec2-user/.gem/ruby/2.4/gems/newrelic_rpm-6.15.0/lib/new_relic/agent/instrumentation/middleware_tracing.rb",
-					line: 101
+					line: 101,
 				},
 				{
 					method: "call",
 					fileFullPath:
 						"/home/ec2-user/.gem/ruby/2.4/gems/rack-protection-2.0.8.1/lib/rack/protection/frame_options.rb",
-					line: 31
+					line: 31,
 				},
 				{
 					method: "call",
 					fileFullPath:
 						"/home/ec2-user/.gem/ruby/2.4/gems/newrelic_rpm-6.15.0/lib/new_relic/agent/instrumentation/middleware_tracing.rb",
-					line: 101
+					line: 101,
 				},
 				{
 					method: "call",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/rack-2.2.3/lib/rack/null_logger.rb",
-					line: 11
+					line: 11,
 				},
 				{
 					method: "call",
 					fileFullPath:
 						"/home/ec2-user/.gem/ruby/2.4/gems/newrelic_rpm-6.15.0/lib/new_relic/agent/instrumentation/middleware_tracing.rb",
-					line: 101
+					line: 101,
 				},
 				{
 					method: "call",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/rack-2.2.3/lib/rack/head.rb",
-					line: 12
+					line: 12,
 				},
 				{
 					method: "call",
 					fileFullPath:
 						"/home/ec2-user/.gem/ruby/2.4/gems/newrelic_rpm-6.15.0/lib/new_relic/agent/instrumentation/middleware_tracing.rb",
-					line: 101
+					line: 101,
 				},
 				{
 					method: "call",
 					fileFullPath:
 						"/home/ec2-user/.gem/ruby/2.4/gems/sinatra-2.0.8.1/lib/sinatra/show_exceptions.rb",
-					line: 22
+					line: 22,
 				},
 				{
 					method: "call",
 					fileFullPath:
 						"/home/ec2-user/.gem/ruby/2.4/gems/newrelic_rpm-6.15.0/lib/new_relic/agent/instrumentation/middleware_tracing.rb",
-					line: 101
+					line: 101,
 				},
 				{
 					method: "call",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 194
+					line: 194,
 				},
 				{
 					method: "call",
 					fileFullPath:
 						"/home/ec2-user/.gem/ruby/2.4/gems/newrelic_rpm-6.15.0/lib/new_relic/agent/instrumentation/middleware_tracing.rb",
-					line: 101
+					line: 101,
 				},
 				{
 					method: "call",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 1951
+					line: 1951,
 				},
 				{
 					method: "block in call",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 1503
+					line: 1503,
 				},
 				{
 					method: "synchronize",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 1730
+					line: 1730,
 				},
 				{
 					method: "call",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/sinatra-2.0.8.1/lib/sinatra/base.rb",
-					line: 1503
+					line: 1503,
 				},
 				{
 					method: "call",
 					fileFullPath:
 						"/home/ec2-user/.gem/ruby/2.4/gems/newrelic_rpm-6.15.0/lib/new_relic/agent/instrumentation/middleware_tracing.rb",
-					line: 101
+					line: 101,
 				},
 				{
 					method: "call",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/rack-2.2.3/lib/rack/tempfile_reaper.rb",
-					line: 15
+					line: 15,
 				},
 				{
 					method: "_call",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/rack-2.2.3/lib/rack/lint.rb",
-					line: 50
+					line: 50,
 				},
 				{
 					method: "call",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/rack-2.2.3/lib/rack/lint.rb",
-					line: 38
+					line: 38,
 				},
 				{
 					method: "call",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/rack-2.2.3/lib/rack/show_exceptions.rb",
-					line: 23
+					line: 23,
 				},
 				{
 					method: "call",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/rack-2.2.3/lib/rack/content_length.rb",
-					line: 17
+					line: 17,
 				},
 				{
 					method: "service",
 					fileFullPath: "/home/ec2-user/.gem/ruby/2.4/gems/rack-2.2.3/lib/rack/handler/webrick.rb",
-					line: 95
+					line: 95,
 				},
 				{
 					method: "service",
 					fileFullPath: "/usr/share/ruby/2.4/webrick/httpserver.rb",
-					line: 140
+					line: 140,
 				},
 				{
 					method: "run",
 					fileFullPath: "/usr/share/ruby/2.4/webrick/httpserver.rb",
-					line: 96
+					line: 96,
 				},
 				{
 					method: "block in start_thread",
 					fileFullPath: "/usr/share/ruby/2.4/webrick/server.rb",
-					line: 308
-				}
-			]
+					line: 308,
+				},
+			],
 		});
 	});
 });

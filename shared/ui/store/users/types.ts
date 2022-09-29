@@ -7,5 +7,5 @@ export interface UsersState {
 export enum UsersActionsType {
 	Bootstrap = "BOOTSTRAP_USERS",
 	Update = "UPDATE_USER",
-	Add = "ADD_USERS"
+	Add = "ADD_USERS",
 }

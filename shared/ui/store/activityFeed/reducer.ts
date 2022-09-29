@@ -1,21 +1,21 @@
-import { CodemarksState } from "../codemarks/types";
-import { ActivityFeedState, ActivityFeedActionType, ActivityFeedActivity } from "./types";
-import { CodeStreamState } from "..";
-import { createSelector } from "reselect";
 import { mapFilter } from "@codestream/webview/utils";
-import * as actions from "./actions";
-import { ActionType } from "../common";
 import { uniq } from "lodash-es";
-import { ReviewsState } from "../reviews/types";
-import { getReview } from "../reviews/reducer";
-import { CodeErrorsState } from "../codeErrors/types";
+import { createSelector } from "reselect";
+import { CodeStreamState } from "..";
 import { getCodeError } from "../codeErrors/reducer";
+import { CodeErrorsState } from "../codeErrors/types";
+import { CodemarksState } from "../codemarks/types";
+import { ActionType } from "../common";
+import { getReview } from "../reviews/reducer";
+import { ReviewsState } from "../reviews/types";
+import * as actions from "./actions";
+import { ActivityFeedActionType, ActivityFeedActivity, ActivityFeedState } from "./types";
 
 type ActivityFeedAction = ActionType<typeof actions>;
 
 const initialState: ActivityFeedState = {
 	records: [],
-	hasMore: true /* assume yes to start, as history is fetched, we'll know when there's no more  */
+	hasMore: true /* assume yes to start, as history is fetched, we'll know when there's no more  */,
 };
 
 export function reduceActivityFeed(state = initialState, action: ActivityFeedAction) {
@@ -23,7 +23,7 @@ export function reduceActivityFeed(state = initialState, action: ActivityFeedAct
 		case ActivityFeedActionType.AddOlder: {
 			return {
 				hasMore: action.payload.hasMore,
-				records: uniq([...state.records, ...action.payload.activities])
+				records: uniq([...state.records, ...action.payload.activities]),
 			};
 		}
 		case ActivityFeedActionType.AddNew: {
@@ -58,21 +58,21 @@ export const getActivity = createSelector(
 					if (codemark == undefined || codemark.deactivated) return;
 					return {
 						type: model,
-						record: codemark
+						record: codemark,
 					};
 				case "review":
 					const review = getReview(reviewsState, id);
 					if (review == null || review.deactivated) return;
 					return {
 						type: model,
-						record: review
+						record: review,
 					};
 				case "codeError":
 					const codeError = getCodeError(codeErrorsState, id);
 					if (codeError == null || codeError.deactivated) return;
 					return {
 						type: model,
-						record: codeError
+						record: codeError,
 					};
 				default:
 					return;

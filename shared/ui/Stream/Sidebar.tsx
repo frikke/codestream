@@ -1,26 +1,26 @@
 import { HostApi } from "@codestream/webview/webview-api";
-import React, { useState, useEffect, useMemo } from "react";
-import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { CodeStreamState } from "../store";
-import styled from "styled-components";
-import { OpenReviews } from "./OpenReviews";
-import { ReposScm, GetReposScmRequestType } from "../protocols/agent/agent.protocol.scm";
-import { HostDidChangeWorkspaceFoldersNotificationType } from "../ipc/host.protocol.notifications";
-import { useDidMount } from "../utilities/hooks";
-import { OpenPullRequests } from "./OpenPullRequests";
-import { WebviewPanels } from "../ipc/webview.protocol.common";
-import IssuesPane from "./CrossPostIssueControls/IssuesPane";
-import Codemarks from "./Codemarks";
-import { CreateCodemarkIcons } from "./CreateCodemarkIcons";
-import { Pane, PaneState } from "../src/components/Pane";
+import cx from "classnames";
+import React, { useEffect, useMemo, useState } from "react";
 import Draggable from "react-draggable";
+import { shallowEqual } from "react-redux";
+import styled from "styled-components";
+import { HostDidChangeWorkspaceFoldersNotificationType } from "../ipc/host.protocol.notifications";
+import { WebviewPanels } from "../ipc/webview.protocol.common";
+import { GetReposScmRequestType, ReposScm } from "../protocols/agent/agent.protocol.scm";
+import { Pane, PaneState } from "../src/components/Pane";
+import { CodeStreamState } from "../store";
+import { getConnectedSupportedPullRequestHosts } from "../store/providers/reducer";
+import { getRepos } from "../store/repos/reducer";
+import { getPreferences } from "../store/users/reducer";
+import { useAppDispatch, useAppSelector, useDidMount } from "../utilities/hooks";
 import { findLastIndex } from "../utils";
 import { setUserPreference } from "./actions";
-import cx from "classnames";
-import { getConnectedSupportedPullRequestHosts } from "../store/providers/reducer";
-import { getPreferences } from "../store/users/reducer";
-import { getRepos } from "../store/repos/reducer";
+import Codemarks from "./Codemarks";
+import { CreateCodemarkIcons } from "./CreateCodemarkIcons";
+import IssuesPane from "./CrossPostIssueControls/IssuesPane";
 import { Observability } from "./Observability";
+import { OpenPullRequests } from "./OpenPullRequests";
+import { OpenReviews } from "./OpenReviews";
 
 const Root = styled.div`
 	height: 100%;
@@ -52,7 +52,7 @@ export const ResizeHandle = styled.div`
 
 export const DragHeaderContext = React.createContext({
 	drag: (e: any, id: WebviewPanels) => {},
-	stop: (e: any, id: WebviewPanels) => {}
+	stop: (e: any, id: WebviewPanels) => {},
 });
 
 const _defaultPaneSettings = {};
@@ -72,7 +72,7 @@ export const AVAILABLE_PANES = [
 	WebviewPanels.OpenPullRequests,
 	WebviewPanels.OpenReviews,
 	WebviewPanels.CodemarksForFile,
-	WebviewPanels.Tasks
+	WebviewPanels.Tasks,
 ];
 
 export const COLLAPSED_SIZE = 22;
@@ -81,8 +81,8 @@ const EMPTY_ARRAY = [];
 const EMPTY_HASH = {};
 const EMPTY_SIZE = { width: 0, height: 0 };
 export const Sidebar = React.memo(function Sidebar() {
-	const dispatch = useDispatch();
-	const derivedState = useSelector((state: CodeStreamState) => {
+	const dispatch = useAppDispatch();
+	const derivedState = useAppSelector((state: CodeStreamState) => {
 		const preferences = getPreferences(state);
 		const repos = getRepos(state);
 
@@ -103,7 +103,7 @@ export const Sidebar = React.memo(function Sidebar() {
 			sidebarPaneOrder,
 			currentUserId: state.session.userId!,
 			hasPRProvider: getConnectedSupportedPullRequestHosts(state).length > 0,
-			ideName: state.ide.name
+			ideName: state.ide.name,
 		};
 	}, shallowEqual);
 	const { sidebarPanes } = derivedState;
@@ -126,7 +126,7 @@ export const Sidebar = React.memo(function Sidebar() {
 		const response = await HostApi.instance.send(GetReposScmRequestType, {
 			inEditorOnly: true,
 			includeCurrentBranches: true,
-			includeProviders: true
+			includeProviders: true,
 		});
 		if (response && response.repositories) {
 			setOpenRepos(response.repositories);
@@ -140,7 +140,7 @@ export const Sidebar = React.memo(function Sidebar() {
 		fetchOpenRepos();
 		HostApi.instance.track("Sidebar Rendered", {
 			Width: window.innerWidth,
-			Height: window.innerHeight
+			Height: window.innerHeight,
 		});
 	});
 
@@ -151,7 +151,7 @@ export const Sidebar = React.memo(function Sidebar() {
 			// Set window width/height to state
 			setWindowSize({
 				width: window.innerWidth,
-				height: window.innerHeight
+				height: window.innerHeight,
 			});
 		}
 
@@ -199,22 +199,30 @@ export const Sidebar = React.memo(function Sidebar() {
 				removed: settings.removed == null ? defaults.removed : settings.removed,
 				collapsed: settings.collapsed,
 				maximized: settings.maximized,
-				size: sizes[id] || Math.abs(settings.size) || 1
+				size: sizes[id] || Math.abs(settings.size) || 1,
 			};
 		});
 	// }, [sidebarPanes, sizes, derivedState.sidebarPaneOrder, showPullRequests]);
 
 	const maximizedPane = panes.find(p => p.maximized && !p.removed);
 	const collapsed = pane => {
-		if (maximizedPane) return pane.id !== maximizedPane.id && !pane.removed;
-		else return pane.collapsed && !pane.removed;
+		if (maximizedPane) {
+			return pane.id !== maximizedPane.id && !pane.removed;
+		} else {
+			return pane.collapsed && !pane.removed;
+		}
 	};
 
 	const state = pane => {
-		if (pane.removed) return PaneState.Removed;
-		else if (maximizedPane) return PaneState.Minimized;
-		else if (pane.collapsed) return PaneState.Collapsed;
-		else return PaneState.Open;
+		if (pane.removed) {
+			return PaneState.Removed;
+		} else if (maximizedPane) {
+			return PaneState.Minimized;
+		} else if (pane.collapsed) {
+			return PaneState.Collapsed;
+		} else {
+			return PaneState.Open;
+		}
 	};
 
 	const numCollapsed = panes.filter(p => collapsed(p)).length;
@@ -223,8 +231,11 @@ export const Sidebar = React.memo(function Sidebar() {
 
 	const totalSize = (() => {
 		const expanded = panes.filter(p => !p.removed && !collapsed(p));
-		if (expanded.length == 0) return 1;
-		else return expanded.map(p => sizes[p.id] || p.size || 1).reduce(reducer);
+		if (expanded.length == 0) {
+			return 1;
+		} else {
+			return expanded.map(p => sizes[p.id] || p.size || 1).reduce(reducer);
+		}
 	})();
 
 	const positions = (() => {
@@ -241,7 +252,7 @@ export const Sidebar = React.memo(function Sidebar() {
 				id: p.id,
 				height,
 				top: accumulator,
-				size: p.size
+				size: p.size,
 			};
 			accumulator += height;
 			return position;
@@ -312,9 +323,13 @@ export const Sidebar = React.memo(function Sidebar() {
 		setDragging(false);
 		if (firstIndex === undefined || secondIndex === undefined) return;
 		const firstId = positions[firstIndex].id;
-		dispatch(setUserPreference(["sidebarPanes", firstId, "size"], sizes[firstId]));
+		dispatch(
+			setUserPreference({ prefPath: ["sidebarPanes", firstId, "size"], value: sizes[firstId] })
+		);
 		const secondId = positions[secondIndex].id;
-		dispatch(setUserPreference(["sidebarPanes", secondId, "size"], sizes[secondId]));
+		dispatch(
+			setUserPreference({ prefPath: ["sidebarPanes", secondId, "size"], value: sizes[secondId] })
+		);
 	};
 
 	const handleDragHeader = (e: any, id: WebviewPanels) => {
@@ -350,7 +365,7 @@ export const Sidebar = React.memo(function Sidebar() {
 			paneOrder = paneOrder.filter(p => p !== "TO_DELETE");
 			// stop the animation for this re-ordering...
 			setDragging(true);
-			dispatch(setUserPreference(["sidebarPaneOrder"], paneOrder));
+			dispatch(setUserPreference({ prefPath: ["sidebarPaneOrder"], value: paneOrder }));
 			// .. then re-enable it
 			setTimeout(() => setDragging(false), 100);
 		}
@@ -398,7 +413,7 @@ export const Sidebar = React.memo(function Sidebar() {
 				<DragHeaderContext.Provider
 					value={{
 						drag: handleDragHeader,
-						stop: handleStopHeader
+						stop: handleStopHeader,
 					}}
 				>
 					{panes.map((pane, index) => {
@@ -416,7 +431,7 @@ export const Sidebar = React.memo(function Sidebar() {
 								className={cx({
 									highlightTop,
 									highlightBottom,
-									open: paneState === PaneState.Open
+									open: paneState === PaneState.Open,
 								})}
 								top={position.top}
 								height={position.height}

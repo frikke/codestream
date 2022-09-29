@@ -45,7 +45,7 @@ import {
 	SetCodemarkStatusResponse,
 	UpdateCodemarkRequest,
 	UpdateCodemarkRequestType,
-	UpdateCodemarkResponse
+	UpdateCodemarkResponse,
 } from "../protocol/agent.protocol";
 import { CSCodemark, CSMarker } from "../protocol/api.protocol";
 import { log, lsp, lspHandler, Strings } from "../system";
@@ -105,7 +105,7 @@ export class CodemarksManager extends CachedEntityManagerBase<CSCodemark> {
 	@log()
 	async getCodemarkSha1({
 		codemarkId,
-		markerId
+		markerId,
 	}: GetCodemarkSha1Request): Promise<GetCodemarkSha1Response> {
 		const cc = Logger.getCorrelationContext();
 
@@ -159,13 +159,13 @@ export class CodemarksManager extends CachedEntityManagerBase<CSCodemark> {
 		const response = {
 			// Normalize to /n line endings
 			codemarkSha1: Strings.sha1(marker.code.replace(/\r\n/g, "\n")),
-			documentSha1: documentSha1
+			documentSha1: documentSha1,
 		};
 
 		if (document && document.version) {
 			this._codemarkSha1Cache.set(marker.id, {
 				...response,
-				documentVersion: document.version
+				documentVersion: document.version,
 			});
 		}
 
@@ -176,7 +176,7 @@ export class CodemarksManager extends CachedEntityManagerBase<CSCodemark> {
 	@log()
 	async getCodemarkRange({
 		codemarkId,
-		markerId
+		markerId,
 	}: GetCodemarkRangeRequest): Promise<GetCodemarkRangeResponse> {
 		const cc = Logger.getCorrelationContext();
 
@@ -221,7 +221,7 @@ export class CodemarksManager extends CachedEntityManagerBase<CSCodemark> {
 			documentRange = await scm.getRange({ uri: uri, range: range });
 			if (documentRange) {
 				const normalizedMarkerCode = Strings.normalizeFileContents(marker.code, {
-					preserveEof: true
+					preserveEof: true,
 				});
 				const normalizedCurrentContent =
 					documentRange.currentContent &&
@@ -239,8 +239,9 @@ export class CodemarksManager extends CachedEntityManagerBase<CSCodemark> {
 					} else if (marker.referenceLocations && marker.referenceLocations.length) {
 						startLine = marker.referenceLocations[0].location[0];
 					}
-					const newHeader = `@@ -${startLine},${marker.code.split("\n").length} +${range.start
-						.line + 1},${(documentRange.currentContent || "").split("\n").length}`;
+					const newHeader = `@@ -${startLine},${marker.code.split("\n").length} +${
+						range.start.line + 1
+					},${(documentRange.currentContent || "").split("\n").length}`;
 					diff = `${newHeader}\n${diffs.join("\n")}`;
 				}
 			}
@@ -249,7 +250,7 @@ export class CodemarksManager extends CachedEntityManagerBase<CSCodemark> {
 		const response = {
 			...documentRange,
 			diff,
-			success: true
+			success: true,
 		};
 
 		return response;
@@ -353,13 +354,13 @@ export class CodemarksManager extends CachedEntityManagerBase<CSCodemark> {
 		if (request.externalAssignees && request.externalAssignees.length) {
 			request.externalAssignees = request.externalAssignees.map(a => ({
 				displayName: a.displayName,
-				email: a.email
+				email: a.email,
 			}));
 		}
 		const updateResponse = await this.session.api.updateCodemark(request);
 		const [codemark] = await this.resolve({
 			type: MessageType.Codemarks,
-			data: [updateResponse.codemark]
+			data: [updateResponse.codemark],
 		});
 		return { codemark: await this.enrichCodemark(codemark) };
 	}
@@ -394,7 +395,7 @@ export class CodemarksManager extends CachedEntityManagerBase<CSCodemark> {
 		const response = await this.session.api.setCodemarkStatus(request);
 		const [codemark] = await this.resolve({
 			type: MessageType.Codemarks,
-			data: [response.codemark]
+			data: [response.codemark],
 		});
 		return { codemark: await this.enrichCodemark(codemark) };
 	}

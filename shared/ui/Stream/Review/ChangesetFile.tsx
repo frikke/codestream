@@ -1,9 +1,9 @@
+import { FileStatus, ReviewChangesetFileInfo } from "@codestream/protocols/api";
+import { pathBasename } from "@codestream/webview/utilities/fs";
+import cx from "classnames";
 import React from "react";
-import { ReviewChangesetFileInfo, FileStatus } from "@codestream/protocols/api";
 import styled from "styled-components";
 import Tooltip from "../Tooltip";
-import cx from "classnames";
-import { pathBasename } from "@codestream/webview/utilities/fs";
 
 interface Props {
 	className?: string;
@@ -33,7 +33,7 @@ export const ChangesetFile = styled((props: ReviewChangesetFileInfo & Props) => 
 				selected: props.selected,
 				"no-hover": props.noHover,
 				"with-file-icon": props.icon,
-				"with-action-icons": !!props.actionIcons
+				"with-action-icons": !!props.actionIcons,
 			})}
 			onClick={props.onClick}
 			style={props.depth ? { paddingLeft: `${props.depth * 10}px` } : {}}

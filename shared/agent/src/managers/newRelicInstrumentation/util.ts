@@ -6,7 +6,7 @@ import { promisify } from "util";
 
 export const execAsync = promisify(exec);
 
-export const existsAsync = async function(file: PathLike) {
+export const existsAsync = async function (file: PathLike) {
 	try {
 		await fsPromises.access(file, fsConstants.F_OK);
 		return true;

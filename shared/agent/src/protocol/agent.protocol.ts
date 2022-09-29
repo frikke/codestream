@@ -2,48 +2,43 @@
 import { RequestInit } from "node-fetch";
 import { InitializeResult, RequestType, WorkspaceFolder } from "vscode-languageserver-protocol";
 import { LoginResponse } from "./agent.protocol.auth";
+import { CreateCompanyRequest, CreateCompanyResponse } from "./agent.protocol.companies";
 import { Unreads } from "./agent.protocol.notifications";
 import { ThirdPartyProviders } from "./agent.protocol.providers";
 import { CSCompany, CSMePreferences, CSRepository, CSStream, CSTeam, CSUser } from "./api.protocol";
-import { CreateCompanyRequest, CreateCompanyResponse } from "./agent.protocol.companies";
 
-export * from "./agent.protocol.notifications";
-
+export * from "./agent.protocol.asana";
 export * from "./agent.protocol.auth";
-export * from "./agent.protocol.documentMarkers";
+export * from "./agent.protocol.azuredevops";
+export * from "./agent.protocol.bitbucket";
+export * from "./agent.protocol.codeErrors";
 export * from "./agent.protocol.codemarks";
 export * from "./agent.protocol.companies";
-export * from "./agent.protocol.markers";
-export * from "./agent.protocol.posts";
-export * from "./agent.protocol.repos";
-export * from "./agent.protocol.textFiles";
-export * from "./agent.protocol.reviews";
-export * from "./agent.protocol.codeErrors";
-export * from "./agent.protocol.streams";
-export * from "./agent.protocol.teams";
-export * from "./agent.protocol.users";
-
-export * from "./agent.protocol.scm";
-
-export * from "./agent.protocol.providers";
-export * from "./agent.protocol.asana";
-export * from "./agent.protocol.bitbucket";
+export * from "./agent.protocol.documentMarkers";
+export * from "./agent.protocol.errors";
 export * from "./agent.protocol.github";
 export * from "./agent.protocol.gitlab";
 export * from "./agent.protocol.jira";
-export * from "./agent.protocol.slack";
-export * from "./agent.protocol.trello";
-export * from "./agent.protocol.youtrack";
-export * from "./agent.protocol.azuredevops";
-export * from "./agent.protocol.okta";
-export * from "./agent.protocol.shortcut";
 export * from "./agent.protocol.linear";
+export * from "./agent.protocol.markers";
 export * from "./agent.protocol.newrelic";
-
+export * from "./agent.protocol.notifications";
 export * from "./agent.protocol.nr";
+export * from "./agent.protocol.okta";
 export * from "./agent.protocol.pixie";
-
-export * from "./agent.protocol.errors";
+export * from "./agent.protocol.posts";
+export * from "./agent.protocol.providers";
+export * from "./agent.protocol.repos";
+export * from "./agent.protocol.reviews";
+export * from "./agent.protocol.scm";
+export * from "./agent.protocol.shortcut";
+export * from "./agent.protocol.slack";
+export * from "./agent.protocol.streams";
+export * from "./agent.protocol.teams";
+export * from "./agent.protocol.textFiles";
+export * from "./agent.protocol.trello";
+export * from "./agent.protocol.users";
+export * from "./agent.protocol.youtrack";
 
 export interface Document {
 	uri: string;
@@ -65,6 +60,9 @@ export interface Capabilities {
 	services?: {
 		vsls?: boolean;
 	};
+	vsCodeGithubSignin?: boolean;
+	providerReauth?: boolean;
+	openLink?: boolean;
 }
 
 export enum CodeDelimiterStyles {
@@ -73,7 +71,7 @@ export enum CodeDelimiterStyles {
 	SINGLE_BACK_QUOTE = "singleBackQuote",
 	HTML_MARKUP = "htmlMarkup",
 	HTML_LIGHT_MARKUP = "htmlLightMarkup",
-	CODE_BRACE = "codeBrace"
+	CODE_BRACE = "codeBrace",
 }
 
 export interface AccessToken {
@@ -91,7 +89,7 @@ export enum CodeStreamEnvironment {
 	OnPrem = "onprem",
 	RegionUS = "us",
 	RegionEU = "eu",
-	Unknown = "unknown"
+	Unknown = "unknown",
 }
 
 export interface CodeStreamEnvironmentInfo {
@@ -107,7 +105,7 @@ export enum TraceLevel {
 	Silent = "silent",
 	Errors = "errors",
 	Verbose = "verbose",
-	Debug = "debug"
+	Debug = "debug",
 }
 
 export interface BaseAgentOptions {
@@ -223,7 +221,7 @@ export enum ReportingMessageType {
 	Warning = "warning",
 	Info = "info",
 	Debug = "debug",
-	Fatal = "fatal"
+	Fatal = "fatal",
 }
 
 export interface ReportMessageRequest {
@@ -278,6 +276,21 @@ export const TelemetrySetAnonymousIdRequestType = new RequestType<
 export const TelemetryRequestType = new RequestType<TelemetryRequest, void, void, void>(
 	"codestream/telemetry"
 );
+
+export interface ResolveLocalUriRequest {
+	uri: string;
+}
+
+export interface ResolveLocalUriResponse {
+	uri?: string;
+}
+
+export const ResolveLocalUriRequestType = new RequestType<
+	ResolveLocalUriRequest,
+	ResolveLocalUriResponse,
+	void,
+	void
+>("codestream/uri/resolveLocal");
 
 export interface AgentOpenUrlRequest {
 	url: string;

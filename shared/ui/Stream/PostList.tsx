@@ -1,10 +1,10 @@
-import React from "react";
+import { CSPost, CSUser } from "@codestream/protocols/api";
 import { debounce as _debounce } from "lodash-es";
-import Icon from "./Icon";
-import Post from "./Post";
-import infiniteLoadable from "./infiniteLoadable";
+import React from "react";
 import { findLast, rAFThrottle, safe } from "../utils";
-import { CSUser, CSPost } from "@codestream/protocols/api";
+import Icon from "./Icon";
+import infiniteLoadable from "./infiniteLoadable";
+import Post from "./Post";
 
 interface State {}
 export interface Props {
@@ -42,7 +42,7 @@ export default infiniteLoadable(
 	class PostList extends React.Component<Props, State> {
 		static defaultProps = {
 			disableEdits: false,
-			onDidChangeVisiblePosts: noop
+			onDidChangeVisiblePosts: noop,
 		};
 		list = React.createRef<HTMLDivElement>();
 		showUnreadBanner = true;
@@ -246,7 +246,7 @@ export default infiniteLoadable(
 				hasMore,
 				posts,
 				reverse,
-				renderHeaderIfPostsExist
+				renderHeaderIfPostsExist,
 			} = this.props;
 
 			const postsInOrder = reverse ? [...posts].reverse() : posts;

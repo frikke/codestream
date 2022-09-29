@@ -161,7 +161,7 @@ export enum RepoProjectType {
 	NodeJS = "NodeJS",
 	Java = "Java",
 	DotNetCore = "DotNetCore",
-	DotNetFramework = "DotNetFramework"
+	DotNetFramework = "DotNetFramework",
 	/*
 	PHP = "PHP",
 	CSharp = "C#"

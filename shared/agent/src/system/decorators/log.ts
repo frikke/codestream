@@ -157,7 +157,7 @@ export function log<T, F extends (this: T, ...args: any[]) => any>(
 
 		const parameters = Functions.getParameters(fn);
 
-		descriptor.value = function(this: any, ...args: any[]) {
+		descriptor.value = function (this: any, ...args: any[]) {
 			const correlationId = getNextCorrelationId();
 
 			if (
@@ -194,7 +194,7 @@ export function log<T, F extends (this: T, ...args: any[]) => any>(
 						instance: this,
 						instanceName: instanceName,
 						name: key,
-						prefix: prefix
+						prefix: prefix,
 					} as LogContext<T>,
 					...(args as Parameters<F>)
 				);

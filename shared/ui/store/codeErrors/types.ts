@@ -11,7 +11,7 @@ export enum CodeErrorsActionsTypes {
 	AddProviderError = "@codeErrors/AddError",
 	ClearProviderError = "@codeErrors/ClearError",
 	SetErrorGroup = "@codeError/SetErrorGroup",
-	IsLoadingErrorGroup = "@codeError/IsLoadingErrorGroup"
+	IsLoadingErrorGroup = "@codeError/IsLoadingErrorGroup",
 }
 
 export type CodeErrorsState = {

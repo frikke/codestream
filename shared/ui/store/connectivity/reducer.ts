@@ -6,7 +6,7 @@ type ConnectivityActions = ActionType<typeof actions>;
 
 const initialState: ConnectivityState = {
 	offline: false, // !navigator.onLine
-	error: undefined
+	error: undefined,
 };
 
 export function reduceConnectivity(state = initialState, action: ConnectivityActions) {

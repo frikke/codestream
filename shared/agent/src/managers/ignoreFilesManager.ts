@@ -10,7 +10,7 @@ import {
 	AddIgnoreFilesRequestType,
 	IgnoreFilesRequest,
 	IgnoreFilesRequestType,
-	IgnoreFilesResponse
+	IgnoreFilesResponse,
 } from "../protocol/agent.protocol.repos";
 import { log, lsp, lspHandler } from "../system";
 
@@ -47,14 +47,14 @@ export class IgnoreFilesManager {
 				fs.appendFileSync(ignoreFile, path + "\n");
 				Logger.debug(`Saved path ${path} to ${ignoreFile}`);
 				return {
-					success: true
+					success: true,
 				};
 			}
 		} catch (ex) {
 			Logger.error(ex);
 		}
 		return {
-			success: false
+			success: false,
 		};
 	}
 
@@ -76,9 +76,9 @@ export class IgnoreFilesHelper {
 				const filtered = arr.filter(_ => ignoreFiltered.includes(selector(_)));
 				return filtered;
 			},
-			filterIgnoredFilesByHash(hashByKey: {
+			filterIgnoredFilesByHash(hashByKey: { [fileName: string]: any }): {
 				[fileName: string]: any;
-			}): { [fileName: string]: any } {
+			} {
 				if (!_ignore || hashByKey == null) return hashByKey;
 
 				const results: { [fileName: string]: any } = {};
@@ -91,7 +91,7 @@ export class IgnoreFilesHelper {
 					.reduce((res, key) => ((res[key] = hashByKey[key]), res), results);
 
 				return filtered;
-			}
+			},
 		};
 	}
 
@@ -102,7 +102,7 @@ export class IgnoreFilesHelper {
 			const { ignoreFiles } = SessionContainer.instance();
 			// read ignored files from disc
 			const ignoredFilePaths = await ignoreFiles.getIgnoreFiles({
-				repoPath: repoPath
+				repoPath: repoPath,
 			});
 			if (!ignoredFilePaths || !ignoredFilePaths.paths || !ignoredFilePaths.paths.length) {
 				return undefined;

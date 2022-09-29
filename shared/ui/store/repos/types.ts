@@ -6,5 +6,5 @@ export interface ReposState {
 
 export enum ReposActionsType {
 	Bootstrap = "BOOTSTRAP_REPOS",
-	Add = "ADD_REPOS"
+	Add = "ADD_REPOS",
 }

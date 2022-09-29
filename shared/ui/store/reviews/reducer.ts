@@ -1,11 +1,10 @@
+import { CSReview } from "@codestream/protocols/api";
 import { createSelector } from "reselect";
+import { CodeStreamState } from "..";
 import { toMapBy } from "../../utils";
 import { ActionType, Index } from "../common";
 import * as actions from "./actions";
 import { ReviewsActionsTypes, ReviewsState } from "./types";
-import { CSReview } from "@codestream/protocols/api";
-import { CodeStreamState } from "..";
-import { logWarning } from "@codestream/webview/logger";
 
 type ReviewsActions = ActionType<typeof actions>;
 
@@ -16,14 +15,14 @@ export function reduceReviews(state = initialState, action: ReviewsActions): Rev
 		case ReviewsActionsTypes.Bootstrap:
 			return {
 				bootstrapped: true,
-				reviews: { ...state.reviews, ...toMapBy("id", action.payload) }
+				reviews: { ...state.reviews, ...toMapBy("id", action.payload) },
 			};
 		case ReviewsActionsTypes.AddReviews:
 		case ReviewsActionsTypes.UpdateReviews:
 		case ReviewsActionsTypes.SaveReviews: {
 			return {
 				bootstrapped: state.bootstrapped,
-				reviews: { ...state.reviews, ...toMapBy("id", action.payload) }
+				reviews: { ...state.reviews, ...toMapBy("id", action.payload) },
 			};
 		}
 		case ReviewsActionsTypes.Delete: {
@@ -78,7 +77,7 @@ export const getAllReviewLinks = createSelector(getReviews, (reviews: Index<CSRe
 		.map(_ => {
 			return {
 				id: _.id,
-				permalink: _.permalink
+				permalink: _.permalink,
 			};
 		})
 );

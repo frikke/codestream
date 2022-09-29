@@ -7,7 +7,7 @@ import {
 	Event,
 	TextDocument,
 	TextDocumentChangeEvent,
-	TextDocuments
+	TextDocuments,
 } from "vscode-languageserver";
 import { URI } from "vscode-uri";
 import { isWindows } from "./git/shell";
@@ -113,28 +113,24 @@ export class DocumentManager implements Disposable {
 		// If we are on windows we have to do some drive letter manipulation to support different editor using different uri formatting
 		let match = unescapedRegex.exec(uri);
 		if (match != null) {
-			const escapedUriLowerCaseDrive = uri.replace(unescapedRegex, function(
-				_,
-				start: string,
-				drive: string,
-				end: string
-			) {
-				return `${start}${drive.toLowerCase()}%3A${end}`;
-			});
+			const escapedUriLowerCaseDrive = uri.replace(
+				unescapedRegex,
+				function (_, start: string, drive: string, end: string) {
+					return `${start}${drive.toLowerCase()}%3A${end}`;
+				}
+			);
 			doc = this._documents.get(escapedUriLowerCaseDrive);
 			if (doc !== undefined) {
 				this._normalizedUriLookup.set(uri, doc.uri);
 				return doc;
 			}
 
-			const unescapedUriUpperCaseDrive = uri.replace(unescapedRegex, function(
-				_,
-				start: string,
-				drive: string,
-				end: string
-			) {
-				return `${start}${drive.toUpperCase()}:${end}`;
-			});
+			const unescapedUriUpperCaseDrive = uri.replace(
+				unescapedRegex,
+				function (_, start: string, drive: string, end: string) {
+					return `${start}${drive.toUpperCase()}:${end}`;
+				}
+			);
 			doc = this._documents.get(unescapedUriUpperCaseDrive);
 			if (doc !== undefined) {
 				this._normalizedUriLookup.set(uri, doc.uri);
@@ -144,28 +140,24 @@ export class DocumentManager implements Disposable {
 
 		match = unescapedRegex.exec(encodedSpacesUri);
 		if (match != null) {
-			const escapedUriLowerCaseDrive = encodedSpacesUri.replace(unescapedRegex, function(
-				_,
-				start: string,
-				drive: string,
-				end: string
-			) {
-				return `${start}${drive.toLowerCase()}%3A${end}`;
-			});
+			const escapedUriLowerCaseDrive = encodedSpacesUri.replace(
+				unescapedRegex,
+				function (_, start: string, drive: string, end: string) {
+					return `${start}${drive.toLowerCase()}%3A${end}`;
+				}
+			);
 			doc = this._documents.get(escapedUriLowerCaseDrive);
 			if (doc !== undefined) {
 				this._normalizedUriLookup.set(uri, doc.uri);
 				return doc;
 			}
 
-			const upperCaseDrive = encodedSpacesUri.replace(unescapedRegex, function(
-				_,
-				start: string,
-				drive: string,
-				end: string
-			) {
-				return `${start}${drive.toUpperCase()}:${end}`;
-			});
+			const upperCaseDrive = encodedSpacesUri.replace(
+				unescapedRegex,
+				function (_, start: string, drive: string, end: string) {
+					return `${start}${drive.toUpperCase()}:${end}`;
+				}
+			);
 			doc = this._documents.get(upperCaseDrive);
 			if (doc !== undefined) {
 				this._normalizedUriLookup.set(uri, doc.uri);
@@ -175,14 +167,12 @@ export class DocumentManager implements Disposable {
 
 		match = escapedRegex.exec(uri);
 		if (match != null) {
-			let unescapedUri = uri.replace(escapedRegex, function(
-				_,
-				start: string,
-				drive: string,
-				end: string
-			) {
-				return `${start}${drive.toUpperCase()}:${end}`;
-			});
+			let unescapedUri = uri.replace(
+				escapedRegex,
+				function (_, start: string, drive: string, end: string) {
+					return `${start}${drive.toUpperCase()}:${end}`;
+				}
+			);
 			doc = this._documents.get(unescapedUri);
 			if (doc !== undefined) {
 				this._normalizedUriLookup.set(uri, doc.uri);
@@ -190,7 +180,7 @@ export class DocumentManager implements Disposable {
 				return doc;
 			}
 
-			unescapedUri = uri.replace(escapedRegex, function(start, drive: string, end) {
+			unescapedUri = uri.replace(escapedRegex, function (start, drive: string, end) {
 				return `${start}${drive.toLowerCase()}:${end}`;
 			});
 			doc = this._documents.get(unescapedUri);

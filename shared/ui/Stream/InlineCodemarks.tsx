@@ -1,95 +1,87 @@
-import React, { Component, SyntheticEvent } from "react";
-import PropTypes from "prop-types";
-import { connect, batch } from "react-redux";
-import * as userSelectors from "../store/users/reducer";
-import Icon from "./Icon";
-import ScrollBox from "./ScrollBox";
-import { CreateCodemarkIcons } from "./CreateCodemarkIcons";
-import Tooltip from "./Tooltip"; // careful with tooltips on codemarks; they are not performant
-import { ReviewNav } from "./ReviewNav";
-import { CodeErrorNav } from "./CodeErrorNav";
-import Feedback from "./Feedback";
-import cx from "classnames";
 import {
-	range,
-	debounceToAnimationFrame,
-	isNotOnDisk,
-	ComponentUpdateEmitter,
-	isRangeEmpty,
-	uriToFilePath,
-	safe
-} from "../utils";
-import { HostApi } from "../webview-api";
-import {
-	EditorRevealRangeRequestType,
-	EditorSelection,
-	EditorMetrics,
-	EditorScrollToNotificationType,
-	EditorScrollMode,
-	NewCodemarkNotificationType,
-	WebviewPanels,
-	ReviewCloseDiffRequestType,
-	LocalFilesCloseDiffRequestType
-} from "../ipc/webview.protocol";
-import {
-	DocumentMarker,
 	DidChangeDocumentMarkersNotificationType,
-	GetFileScmInfoResponse,
+	DocumentMarker,
 	GetFileScmInfoRequestType,
-	MarkerNotLocated
+	GetFileScmInfoResponse,
+	MarkerNotLocated,
 } from "@codestream/protocols/agent";
-import { Range, Position } from "vscode-languageserver-types";
-import { fetchDocumentMarkers, addDocumentMarker } from "../store/documentMarkers/actions";
+import { CodemarkType, CSTeam } from "@codestream/protocols/api";
+import cx from "classnames";
+import PropTypes from "prop-types";
+import React, { Component, SyntheticEvent } from "react";
+import { batch, connect } from "react-redux";
+import styled from "styled-components";
+import { Position, Range } from "vscode-languageserver-types";
 import {
-	getCurrentSelection,
-	getVisibleLineCount,
-	getVisibleRanges,
-	ScmError,
-	getFileScmError,
-	mapFileScmErrorForTelemetry
-} from "../store/editorContext/reducer";
-import { CSTeam, CodemarkType } from "@codestream/protocols/api";
+	EditorMetrics,
+	EditorRevealRangeRequestType,
+	EditorScrollMode,
+	EditorScrollToNotificationType,
+	EditorSelection,
+	LocalFilesCloseDiffRequestType,
+	NewCodemarkNotificationType,
+	ReviewCloseDiffRequestType,
+	WebviewPanels,
+} from "../ipc/webview.protocol";
+import { Switch } from "../src/components/controls/Switch";
+import { PanelHeader } from "../src/components/PanelHeader";
+import { CodeStreamState } from "../store";
+import { isFeatureEnabled } from "../store/apiVersioning/reducer";
+import { isCreateCodemarkError, NewCodemarkAttributes } from "../store/codemarks/actions";
 import {
-	setCodemarksFileViewStyle,
-	setCodemarksShowArchived,
-	setCurrentCodemark,
-	repositionCodemark,
-	setComposeCodemarkActive,
-	closePanel,
 	closeAllModals,
 	closeAllPanels,
-	closePrDetailModal
+	closePanel,
+	closePrDetailModal,
+	repositionCodemark,
+	setCodemarksFileViewStyle,
+	setCodemarksShowArchived,
+	setComposeCodemarkActive,
+	setCurrentCodemark,
+	setNewPostEntry,
 } from "../store/context/actions";
-import { sortBy as _sortBy } from "lodash-es";
-import { setEditorContext, changeSelection } from "../store/editorContext/actions";
-import { CodeStreamState } from "../store";
-import ContainerAtEditorLine from "./SpatialView/ContainerAtEditorLine";
-import { CodemarkForm } from "./CodemarkForm";
-import { middlewareInjector } from "../store/middleware-injector";
-import { DocumentMarkersActionsType } from "../store/documentMarkers/types";
-import { createPostAndCodemark, setUserPreference } from "./actions";
-import Codemark from "./Codemark";
 import { PostEntryPoint } from "../store/context/types";
-import { localStore } from "../utilities/storage";
-import { PRInfoModal } from "./SpatialView/PRInfoModal";
-import { isConnected } from "../store/providers/reducer";
-import { confirmPopup } from "./Confirm";
-import ComposeTitles from "./ComposeTitles";
-import { Switch } from "../src/components/controls/Switch";
+import { addDocumentMarker, fetchDocumentMarkers } from "../store/documentMarkers/actions";
+import { DocumentMarkersActionsType } from "../store/documentMarkers/types";
+import { changeSelection, setEditorContext } from "../store/editorContext/actions";
 import {
-	NewCodemarkAttributes,
-	isCreateCodemarkError,
-	canCreateCodemark
-} from "../store/codemarks/actions";
-import styled from "styled-components";
-import { PanelHeader } from "../src/components/PanelHeader";
+	getCurrentSelection,
+	getFileScmError,
+	getVisibleLineCount,
+	getVisibleRanges,
+	mapFileScmErrorForTelemetry,
+	ScmError,
+} from "../store/editorContext/reducer";
+import { middlewareInjector } from "../store/middleware-injector";
+import { isConnected } from "../store/providers/reducer";
+import * as userSelectors from "../store/users/reducer";
 import * as fs from "../utilities/fs";
-import { isFeatureEnabled } from "../store/apiVersioning/reducer";
-import { Keybindings } from "./Keybindings";
-import { setNewPostEntry } from "../store/context/actions";
-import { PullRequest } from "./PullRequest";
-import { PullRequest as GitLabPullRequest } from "./PullRequests/GitLab/PullRequest";
+import {
+	ComponentUpdateEmitter,
+	debounceToAnimationFrame,
+	isNotOnDisk,
+	isRangeEmpty,
+	range,
+	safe,
+	uriToFilePath,
+} from "../utils";
+import { HostApi } from "../webview-api";
+import { createPostAndCodemark, setUserPreference } from "./actions";
+import { CodeErrorNav } from "./CodeErrorNav";
+import Codemark from "./Codemark";
+import { CodemarkForm } from "./CodemarkForm";
+import { CreateCodemarkIcons } from "./CreateCodemarkIcons";
+import Feedback from "./Feedback";
+import Icon from "./Icon";
 import { Modal } from "./Modal";
+import { PullRequest } from "./PullRequest";
+import { PullRequest as BitbucketPullRequest } from "./PullRequests/Bitbucket/PullRequest";
+import { PullRequest as GitLabPullRequest } from "./PullRequests/GitLab/PullRequest";
+import { ReviewNav } from "./ReviewNav";
+import ScrollBox from "./ScrollBox";
+import ContainerAtEditorLine from "./SpatialView/ContainerAtEditorLine";
+import { PRInfoModal } from "./SpatialView/PRInfoModal";
+import Tooltip from "./Tooltip"; // careful with tooltips on codemarks; they are not performant
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -209,7 +201,7 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 			numBelow: 0,
 			numLinesVisible: props.numLinesVisible,
 			problem: props.scmInfo && getFileScmError(props.scmInfo),
-			multiLocationCodemarkForm: false
+			multiLocationCodemarkForm: false,
 		};
 
 		this.docMarkersByStartLine = {};
@@ -222,7 +214,7 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 			childList: true,
 			subtree: true,
 			attributes: true,
-			attributeFilter: ["data-top"]
+			attributeFilter: ["data-top"],
 		});
 
 		this.disposables.push(
@@ -234,7 +226,7 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 			{
 				dispose() {
 					mutationObserver.disconnect();
-				}
+				},
 			},
 			HostApi.instance.on(NewCodemarkNotificationType, e => {
 				this.currentPostEntryPoint = e.source as PostEntryPoint;
@@ -442,7 +434,7 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 		if (!scmInfo) {
 			this.setState({ isLoading: true });
 			scmInfo = await HostApi.instance.send(GetFileScmInfoRequestType, {
-				uri: textEditorUri
+				uri: textEditorUri,
 			});
 			setEditorContext({ scmInfo });
 		}
@@ -526,7 +518,7 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 			currentReviewId,
 			currentCodeErrorId,
 			currentPullRequestId,
-			composeCodemarkActive
+			composeCodemarkActive,
 		} = this.props;
 
 		if (composeCodemarkActive || currentReviewId || currentCodeErrorId || currentPullRequestId)
@@ -648,7 +640,7 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 			metrics,
 			currentReviewId,
 			currentPullRequestId,
-			currentCodeErrorId
+			currentCodeErrorId,
 		} = this.props;
 		const { numLinesVisible } = this.state;
 
@@ -686,7 +678,7 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 			// background: "#333366",
 			position: "relative",
 			fontSize: fontSize,
-			height: height
+			height: height,
 		};
 
 		if (documentMarkers.length === 0) {
@@ -701,7 +693,7 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 						// background: "#333366",
 						position: "relative",
 						fontSize: fontSize,
-						height: height
+						height: height,
 					}}
 					onClick={this.handleClickField}
 				>
@@ -721,7 +713,7 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 			firstVisibleLine,
 			lastVisibleLine,
 			documentMarkers,
-			showHidden
+			showHidden,
 		} = this.props;
 		const { numLinesVisible } = this.state;
 
@@ -774,7 +766,7 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 							// background: "#333366",
 							position: "relative",
 							fontSize: fontSize,
-							height: height
+							height: height,
 						}}
 						id="inline-codemarks-field"
 					>
@@ -843,7 +835,7 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 				className={cx({
 					"cs-hidden": hidden,
 					"cs-off-plane": hidden,
-					"no-padding": true
+					"no-padding": true,
 				})}
 			>
 				<div className="codemark-container">
@@ -890,7 +882,7 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 	closeCodemarkForm = (e?: SyntheticEvent) => {
 		this.setState({
 			multiLocationCodemarkForm: false,
-			codemarkFormError: undefined
+			codemarkFormError: undefined,
 		});
 		this.clearSelection();
 
@@ -898,7 +890,7 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 	};
 
 	static contextTypes = {
-		store: PropTypes.object
+		store: PropTypes.object,
 	};
 
 	/**
@@ -935,7 +927,7 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 							}
 						}
 						return true;
-					})
+					}),
 				};
 			}
 		);
@@ -1045,7 +1037,7 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 
 			this._wheelingState = {
 				accumulatedPixels: 0,
-				topLine: textEditorVisibleRanges[0].start.line
+				topLine: textEditorVisibleRanges[0].start.line,
 			};
 		}
 
@@ -1099,7 +1091,7 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 			uri: this.props.textEditorUri!,
 			position: Position.create(topLine, 0),
 			deltaPixels: deltaPixels,
-			atTop: true
+			atTop: true,
 		});
 	};
 
@@ -1162,7 +1154,7 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 			currentCodeErrorId,
 			composeCodemarkActive,
 			expandedPullRequestGroupIndex,
-			currentPullRequestProviderId
+			currentPullRequestProviderId,
 		} = this.props;
 		if (currentReviewId) {
 			HostApi.instance.send(ReviewCloseDiffRequestType, {});
@@ -1193,7 +1185,7 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 			currentPullRequestProviderId,
 			composeCodemarkActive,
 			currentPullRequestCommentId,
-			expandedPullRequestGroupIndex
+			expandedPullRequestGroupIndex,
 		} = this.props;
 
 		const composeOpen = composeCodemarkActive ? true : false;
@@ -1201,6 +1193,7 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 			currentPullRequestId &&
 			(currentPullRequestProviderId === "gitlab*com" ||
 				currentPullRequestProviderId === "gitlab/enterprise");
+		const isBitbucketPR = currentPullRequestId && currentPullRequestProviderId === "bitbucket*org";
 
 		return (
 			<Modal
@@ -1221,6 +1214,8 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 							<PullRequest />
 						) : isGitLabPR ? (
 							<GitLabPullRequest />
+						) : isBitbucketPR ? (
+							<BitbucketPullRequest />
 						) : (
 							<div id="oops">
 								<form className="standard-form">
@@ -1329,7 +1324,7 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 						uri: this.props.textEditorUri!,
 						range: Range.create(lineNum, 0, lineNum, 0),
 						preserveFocus: true,
-						atTop: true
+						atTop: true,
 					});
 					done = true;
 				}
@@ -1353,7 +1348,7 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 					HostApi.instance.send(EditorRevealRangeRequestType, {
 						uri: textEditorUri!,
 						range: Range.create(lineNum, 0, lineNum, 0),
-						preserveFocus: true
+						preserveFocus: true,
 					});
 					done = true;
 				}
@@ -1406,7 +1401,7 @@ const mapStateToProps = (state: CodeStreamState) => {
 		"bitbucket",
 		"bitbucket_enterprise",
 		"gitlab",
-		"gitlab_enterprise"
+		"gitlab_enterprise",
 	].some(name => isConnected(state, { name }));
 
 	return {
@@ -1445,7 +1440,7 @@ const mapStateToProps = (state: CodeStreamState) => {
 		currentPullRequestCommentId: context.currentPullRequest
 			? context.currentPullRequest.commentId
 			: undefined,
-		expandedPullRequestGroupIndex
+		expandedPullRequestGroupIndex,
 	};
 };
 
@@ -1465,7 +1460,7 @@ export default connect(mapStateToProps, {
 	closeAllModals,
 	closeAllPanels,
 	closePrDetailModal,
-	closePanel
+	closePanel,
 })(SimpleInlineCodemarks);
 
 const ViewSelectorButton = styled.div`

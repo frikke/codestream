@@ -1,16 +1,16 @@
-import React, { useState, useCallback } from "react";
+import { UpdateCompanyRequestType } from "@codestream/protocols/agent";
+import React, { useCallback, useState } from "react";
+import { FormattedMessage } from "react-intl";
 import { useDispatch, useSelector } from "react-redux";
+import { TextInput } from "../Authentication/TextInput";
+import { logError } from "../logger";
+import { Button } from "../src/components/Button";
+import { Dialog } from "../src/components/Dialog";
 import { CodeStreamState } from "../store";
 import { HostApi } from "../webview-api";
-import { Button } from "../src/components/Button";
-import { ButtonRow } from "./ChangeUsername";
-import { logError } from "../logger";
-import { FormattedMessage } from "react-intl";
-import { Link } from "./Link";
-import { TextInput } from "../Authentication/TextInput";
-import { Dialog } from "../src/components/Dialog";
 import { closeModal } from "./actions";
-import { UpdateCompanyRequestType } from "@codestream/protocols/agent";
+import { ButtonRow } from "./ChangeUsername";
+import { Link } from "./Link";
 
 const isNotEmpty = s => s.length > 0;
 
@@ -19,7 +19,7 @@ export const ChangeCompanyName = props => {
 	const derivedState = useSelector((state: CodeStreamState) => {
 		const team = state.teams[state.context.currentTeamId] || {};
 		return {
-			company: state.companies[team.companyId] || {}
+			company: state.companies[team.companyId] || {},
 		};
 	});
 	const [loading, setLoading] = useState(false);
@@ -47,7 +47,7 @@ export const ChangeCompanyName = props => {
 		try {
 			await HostApi.instance.send(UpdateCompanyRequestType, {
 				companyId: derivedState.company.id,
-				name: companyName
+				name: companyName,
 			});
 
 			HostApi.instance.track("companyName Changed", {});

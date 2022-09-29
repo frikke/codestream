@@ -22,7 +22,7 @@ import { LinearCardControls } from "./LinearCardControls";
 import { ShortcutCardControls } from "./ShortcutCardControls";
 import { SlackCardControls } from "./SlackCardControls";
 import { TrelloCardControls } from "./TrelloCardControls";
-import { PROVIDER_MAPPINGS, ProviderDisplay } from "./types";
+import { ProviderDisplay, PROVIDER_MAPPINGS } from "./types";
 import { YouTrackCardControls } from "./YouTrackCardControls";
 
 interface ProviderInfo {
@@ -71,7 +71,7 @@ class CrossPostIssueControls extends React.Component<Props, State> {
 			isLoading: false,
 			loadingProvider,
 			issueProviderMenuOpen: false,
-			issueProviderMenuTarget: undefined
+			issueProviderMenuTarget: undefined,
 		};
 	}
 
@@ -250,7 +250,7 @@ class CrossPostIssueControls extends React.Component<Props, State> {
 				return {
 					value: providerId,
 					label: displayName,
-					action: providerId
+					action: providerId,
 				};
 			})
 			.sort((a, b) => a.label.localeCompare(b.label));
@@ -299,7 +299,7 @@ class CrossPostIssueControls extends React.Component<Props, State> {
 		const target = event.target;
 		this.setState(state => ({
 			issueProviderMenuOpen: !state.issueProviderMenuOpen,
-			issueProviderMenuTarget: target
+			issueProviderMenuTarget: target,
 		}));
 	};
 
@@ -433,7 +433,7 @@ const mapStateToProps = (state: CodeStreamState): ConnectedProps => {
 		issueProviderConfig: currentIssueProviderConfig,
 		connectedProviderNames: getConnectedProviderNames(state),
 		teamSettings,
-		isOnPrem: configs.isOnPrem
+		isOnPrem: configs.isOnPrem,
 	};
 };
 
@@ -441,7 +441,7 @@ export default connect(mapStateToProps, {
 	configureAndConnectProvider,
 	setIssueProvider,
 	openPanel,
-	updateForProvider
+	updateForProvider,
 })(CrossPostIssueControls);
 
 // {false && (

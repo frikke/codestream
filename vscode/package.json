@@ -2,7 +2,7 @@
 	"name": "codestream",
 	"displayName": "New Relic CodeStream: GitHub, GitLab, Bitbucket PRs and Code Review",
 	"description": "GitHub pull requests, GitLab merge requests, and code reviews in your IDE. Eliminate context-switching. Integrates with New Relic observability, Bitbucket, Slack, MS Teams, Jira, Trello and more.",
-	"version": "14.1.0",
+	"version": "14.2.0",
 	"author": "CodeStream",
 	"publisher": "CodeStream",
 	"license": "UNLICENSED",
@@ -196,6 +196,12 @@
 					"type": "string",
 					"default": "avg duration: ${averageDuration} | throughput: ${throughput} | error rate: ${errorsPerMinute} - since ${since}",
 					"description": "Specifies how to format the CodeStream golden signals in the editor",
+					"scope": "window"
+				},
+				"codestream.promptToEnableCodeLensInDiffs": {
+					"type": "boolean",
+					"default": true,
+					"description": "Specifies whether to prompt to enable Code Lens in diffs in order to show golden signals",
 					"scope": "window"
 				}
 			}
@@ -667,7 +673,7 @@
 		"babel-plugin-styled-components": "2.0.2",
 		"circular-dependency-plugin": "5.2.2",
 		"cpy": "9.0.1",
-		"esbuild": "0.14.50",
+		"esbuild": "0.15.8",
 		"eslint": "8.22.0",
 		"glob": "7.2.0",
 		"less": "4.1.2",
@@ -676,10 +682,9 @@
 		"prettier": "2.7.1",
 		"rimraf": "3.0.2",
 		"sinon": "14.0.0",
-		"ts-node": "10.7.0",
 		"tsc-alias": "1.6.3",
-		"tsx": "^3.8.0",
-		"typescript": "4.5.4",
+		"tsx": "^3.9.0",
+		"typescript": "4.8.3",
 		"vsce": "2.6.7"
 	}
 }

@@ -1,12 +1,12 @@
+import { UpdateTeamSettingsRequestType } from "@codestream/protocols/agent";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { CodeStreamState } from "../store";
-import { HostApi } from "../webview-api";
 import styled from "styled-components";
 import { Button } from "../src/components/Button";
-import { UpdateTeamSettingsRequestType } from "@codestream/protocols/agent";
-import { Dialog, ButtonRow } from "../src/components/Dialog";
 import { Checkbox } from "../src/components/Checkbox";
+import { ButtonRow, Dialog } from "../src/components/Dialog";
+import { CodeStreamState } from "../store";
+import { HostApi } from "../webview-api";
 
 const Root = styled.div`
 	h3 {
@@ -26,7 +26,7 @@ export const ConfigureBranchNames = (props: { onClose: Function }) => {
 			teamId,
 			branchMaxLength: settings.branchMaxLength,
 			branchTicketTemplate: settings.branchTicketTemplate,
-			branchPreserveCase: settings.branchPreserveCase
+			branchPreserveCase: settings.branchPreserveCase,
 		};
 	});
 
@@ -41,7 +41,7 @@ export const ConfigureBranchNames = (props: { onClose: Function }) => {
 			teamId: derivedState.teamId,
 			// we need to replace . with * to allow for the creation of deeply-nested
 			// team settings, since that's how they're stored in mongo
-			settings: { branchMaxLength, branchTicketTemplate, branchPreserveCase }
+			settings: { branchMaxLength, branchTicketTemplate, branchPreserveCase },
 		});
 		props.onClose();
 	};
@@ -116,7 +116,7 @@ export const ConfigureBranchNames = (props: { onClose: Function }) => {
 									float: "left",
 									textAlign: "left",
 									marginTop: "18px",
-									fontSize: "smaller"
+									fontSize: "smaller",
 								}}
 							>
 								This is an organization setting.

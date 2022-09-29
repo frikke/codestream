@@ -1,14 +1,14 @@
+import { CodemarkPlus } from "@codestream/protocols/agent";
 import { CSEntity } from "@codestream/protocols/api";
+import { sortBy } from "lodash-es";
 import { action } from "../common";
 import { ActivityFeedActionType } from "./types";
-import { sortBy } from "lodash-es";
-import { CodemarkPlus } from "@codestream/protocols/agent";
 
 export { reset } from "../actions";
 
 export const addOlderActivity = (payload: { activities: string[]; hasMore: boolean }) => {
 	return action(ActivityFeedActionType.AddOlder, {
-		...payload
+		...payload,
 	});
 };
 

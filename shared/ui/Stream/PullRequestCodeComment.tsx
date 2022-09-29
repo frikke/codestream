@@ -1,9 +1,10 @@
+import { useAppDispatch } from "@codestream/webview/utilities/hooks";
 import {
 	PRActionIcons,
 	PRButtonRow,
 	PRCodeCommentBody,
 	PRCodeCommentWrapper,
-	PRThreadedCommentHeader
+	PRThreadedCommentHeader,
 } from "./PullRequestComponents";
 import React, { PropsWithChildren, useState } from "react";
 import { PRHeadshot } from "../src/components/Headshot";
@@ -18,7 +19,7 @@ import { PullRequestMinimizedComment } from "./PullRequestMinimizedComment";
 import { PullRequestEditingComment } from "./PullRequestEditingComment";
 import { PullRequestReplyComment } from "./PullRequestReplyComment";
 import { Button } from "../src/components/Button";
-import { api } from "../store/providerPullRequests/actions";
+import { api } from "../store/providerPullRequests/thunks";
 import { useDispatch } from "react-redux";
 import { GHOST } from "./PullRequestTimelineItems";
 
@@ -27,7 +28,7 @@ const ReviewIcons = {
 	CHANGES_REQUESTED: <Icon name="plus-minus" className="circled red" />,
 	COMMENTED: <Icon name="eye" className="circled" />,
 	DISMISSED: <Icon name="x" className="circled" />,
-	PENDING: <Icon name="eye" className="circled" />
+	PENDING: <Icon name="eye" className="circled" />,
 };
 
 interface Props {
@@ -43,7 +44,7 @@ interface Props {
 
 export const PullRequestCodeComment = (props: PropsWithChildren<Props>) => {
 	const { item, comment, author, setIsLoadingMessage, pr } = props;
-	const dispatch = useDispatch();
+	const dispatch = useAppDispatch();
 
 	const [openComments, setOpenComments] = useState({});
 	const [pendingComments, setPendingComments] = useState({});
@@ -58,25 +59,25 @@ export const PullRequestCodeComment = (props: PropsWithChildren<Props>) => {
 	const handleTextInputFocus = async (databaseCommentId: number) => {
 		setOpenComments({
 			...openComments,
-			[databaseCommentId]: true
+			[databaseCommentId]: true,
 		});
 	};
 
 	const setEditingComment = (comment, value) => {
 		setEditingComments({
 			...editingComments,
-			[comment.id]: value
+			[comment.id]: value,
 		});
 		setPendingComments({
 			...pendingComments,
-			[comment.id]: value ? comment.body : ""
+			[comment.id]: value ? comment.body : "",
 		});
 	};
 
 	const expandComment = id => {
 		setExpandedComments({
 			...expandedComments,
-			[id]: !expandedComments[id]
+			[id]: !expandedComments[id],
 		});
 	};
 
@@ -84,8 +85,11 @@ export const PullRequestCodeComment = (props: PropsWithChildren<Props>) => {
 		try {
 			setIsResolving(true);
 			await dispatch(
-				api("resolveReviewThread", {
-					threadId: threadId
+				api({
+					method: "resolveReviewThread",
+					params: {
+						threadId: threadId,
+					},
 				})
 			);
 		} catch (ex) {
@@ -99,8 +103,11 @@ export const PullRequestCodeComment = (props: PropsWithChildren<Props>) => {
 		try {
 			setIsResolving(true);
 			await dispatch(
-				api("unresolveReviewThread", {
-					threadId: threadId
+				api({
+					method: "unresolveReviewThread",
+					params: {
+						threadId: threadId,
+					},
 				})
 			);
 		} catch (ex) {
@@ -170,12 +177,16 @@ export const PullRequestCodeComment = (props: PropsWithChildren<Props>) => {
 									node={comment}
 									isPending={item.state === "PENDING"}
 								/>
-								<PullRequestReactButton
-									pr={pr}
-									targetId={comment.id}
-									setIsLoadingMessage={setIsLoadingMessage}
-									reactionGroups={comment.reactionGroups}
-								/>
+
+								{/* bitbucket doesn't support reactions */}
+								{!pr.providerId.includes("bitbucket") && (
+									<PullRequestReactButton
+										pr={pr}
+										targetId={comment.id}
+										setIsLoadingMessage={setIsLoadingMessage}
+										reactionGroups={comment.reactionGroups}
+									/>
+								)}
 								<PullRequestCommentMenu
 									pr={pr}
 									setIsLoadingMessage={setIsLoadingMessage}
@@ -225,6 +236,7 @@ export const PullRequestCodeComment = (props: PropsWithChildren<Props>) => {
 					if (c.isMinimized && !expandedComments[c.id]) {
 						return (
 							<PullRequestMinimizedComment
+								key={c.id + i}
 								reason={c.minimizedReason}
 								className="threaded"
 								onClick={() => expandComment(c.id)}
@@ -242,12 +254,16 @@ export const PullRequestCodeComment = (props: PropsWithChildren<Props>) => {
 									{c.includesCreatedEdit ? <> • edited</> : ""}
 									<PRActionIcons>
 										<PRAuthorBadges key={`badge_${c.id + i}`} pr={pr} node={c} />
-										<PullRequestReactButton
-											pr={pr}
-											targetId={c.id}
-											setIsLoadingMessage={setIsLoadingMessage}
-											reactionGroups={c.reactionGroups}
-										/>
+
+										{/* bitbucket doesn't support reactions */}
+										{!pr.providerId.includes("bitbucket") && (
+											<PullRequestReactButton
+												pr={pr}
+												targetId={c.id}
+												setIsLoadingMessage={setIsLoadingMessage}
+												reactionGroups={c.reactionGroups}
+											/>
+										)}
 										<PullRequestCommentMenu
 											pr={pr}
 											setIsLoadingMessage={setIsLoadingMessage}

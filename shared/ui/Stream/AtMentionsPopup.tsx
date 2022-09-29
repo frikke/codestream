@@ -1,9 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import { useDidMount } from "../utilities/hooks";
 import Headshot from "./Headshot";
 import Icon from "./Icon";
 import { ModalContext } from "./Modal";
-import { useDidMount } from "../utilities/hooks";
 
 interface Mention {
 	id: string;
@@ -73,7 +73,7 @@ export const AtMentionsPopup = (props: React.PropsWithChildren<AtMentionsPopupPr
 							childRef.current = node;
 							// if the child already has a ref, make sure to invoke it
 							if (typeof child.ref === "function") child.ref(node);
-						}
+						},
 					},
 					child.children
 				)

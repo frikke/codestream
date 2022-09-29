@@ -1,6 +1,6 @@
 import {
 	ERROR_PIXIE_NOT_CONFIGURED,
-	PixieGetClustersRequestType
+	PixieGetClustersRequestType,
 } from "@codestream/protocols/agent";
 import { Dialog } from "@codestream/webview/src/components/Dialog";
 import { CodeStreamState } from "@codestream/webview/store";
@@ -8,7 +8,7 @@ import { DropdownButton, DropdownButtonItems } from "@codestream/webview/Stream/
 import { Link } from "@codestream/webview/Stream/Link";
 import { HostApi } from "@codestream/webview/webview-api";
 import React, { useEffect } from "react";
-import { shallowEqual, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 export const Clusters = props => {
 	const [isLoading, setIsLoading] = React.useState(false);
@@ -28,7 +28,7 @@ export const Clusters = props => {
 		setIsLoading(true);
 		try {
 			const response = await HostApi.instance.send(PixieGetClustersRequestType, {
-				accountId: props.account.id
+				accountId: props.account.id,
 			});
 			const newClusters = response.clusters.map(_ => ({
 				key: _.clusterId,
@@ -36,14 +36,14 @@ export const Clusters = props => {
 				searchLabel: _.clusterName,
 				action: () => {
 					props.onSelect(_);
-				}
+				},
 			})) as DropdownButtonItems[];
 			if (newClusters.length > 5) {
 				newClusters.unshift(
 					{
 						label: "",
 						placeholder: "Search Clusters",
-						type: "search"
+						type: "search",
 					},
 					{ label: "-" }
 				);

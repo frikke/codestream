@@ -16,7 +16,7 @@ import {
 	LoginResponse,
 	PostData,
 	StreamData,
-	TeamData
+	TeamData,
 } from "./types";
 import { UserCreator } from "./userCreator";
 
@@ -32,7 +32,7 @@ class CodeStreamApiSimulator {
 			method: "PUT",
 			path: `/grant/${channel}`,
 			data: {},
-			token
+			token,
 		};
 		return this._apiRequester.request(request);
 	}
@@ -71,9 +71,9 @@ export abstract class BroadcasterTester {
 					build: "",
 					buildEnv: "",
 					version: "",
-					versionFormatted: ""
+					versionFormatted: "",
 				},
-				ide: { name: "", version: "", detail: "" }
+				ide: { name: "", version: "", detail: "" },
 			},
 			undefined,
 			false
@@ -134,7 +134,7 @@ export abstract class BroadcasterTester {
 			accessToken: this._userData!.accessToken,
 			userId: this._userData!.user._id,
 			strictSSL: false,
-			testMode: true
+			testMode: true,
 		});
 	}
 
@@ -149,13 +149,13 @@ export abstract class BroadcasterTester {
 	protected async createTeam(options: ApiRequestOverrides = {}) {
 		const teamName = Randomstring.generate(12);
 		const data = {
-			name: teamName
+			name: teamName,
 		} as CreateTeamRequest;
 		Object.assign(data, options.data || {});
 		const request = {
 			method: "POST",
 			path: "/teams",
-			data
+			data,
 		};
 		Object.assign(request, options);
 		const response = (await this._apiRequester.request(request)) as CreateTeamResponse;
@@ -165,13 +165,13 @@ export abstract class BroadcasterTester {
 	protected async inviteOtherUser(options: ApiRequestOverrides = {}) {
 		const data = {
 			teamId: this._teamData!._id,
-			email: this._otherUserData!.user.email
+			email: this._otherUserData!.user.email,
 		} as InviteUserRequest;
 		Object.assign(data, options.data || {});
 		const request = {
 			method: "POST",
 			path: "/users",
-			data
+			data,
 		};
 		Object.assign(request, options);
 		await this._apiRequester.request(request);
@@ -183,13 +183,13 @@ export abstract class BroadcasterTester {
 			teamId: this._teamData!._id,
 			type: "channel",
 			name: streamName,
-			memberIds: [this._otherUserData!.user._id]
+			memberIds: [this._otherUserData!.user._id],
 		} as CreateStreamRequest;
 		Object.assign(data, options.data || {});
 		const request = {
 			method: "POST",
 			path: "/streams",
-			data
+			data,
 		};
 		Object.assign(request, options);
 		const response = (await this._apiRequester.request(request)) as CreateStreamResponse;
@@ -200,13 +200,13 @@ export abstract class BroadcasterTester {
 		const text = Randomstring.generate(100);
 		const data = {
 			streamId: this._streamData!._id,
-			text
+			text,
 		} as CreatePostRequest;
 		Object.assign(data, options.data || {});
 		const request = {
 			method: "POST",
 			path: "/posts",
-			data
+			data,
 		};
 		const response = (await this._apiRequester.request(request)) as CreatePostResponse;
 		this._postData = response.post;

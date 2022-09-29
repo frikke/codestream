@@ -36,11 +36,11 @@ import { SubscriptionTimeoutTest } from "./subscriptionTimeoutTest";
 */
 
 const TesterConfig: BroadcasterTesterConfig = {
-	apiOrigin: process.env.LSPAGENT_API_ORIGIN || "https://localhost.codestream.us:12079"
+	apiOrigin: process.env.LSPAGENT_API_ORIGIN || "https://localhost.codestream.us:12079",
 };
 
 const Tests: BroadcasterTester[] = [
-/*
+	/*
 	new SubscriptionTest(TesterConfig),
 	new SecondSubscriptionTest(TesterConfig),
 	new QueuedChannelsTest(TesterConfig),
@@ -63,7 +63,7 @@ const Tests: BroadcasterTester[] = [
 	new MalformedChannelTest(TesterConfig),
 */
 	new MessageTest(TesterConfig),
-/*
+	/*
 	new CatchUpTest(TesterConfig),
 	new MultiMessageCatchUpTest(TesterConfig),
 	new ExceedBatchLimitTest(TesterConfig),
@@ -72,7 +72,7 @@ const Tests: BroadcasterTester[] = [
 */
 ];
 
-describe("broadcaster tests", function() {
+describe("broadcaster tests", function () {
 	this.timeout(20000);
 	Tests.forEach(async test => {
 		describe(test.describe(), () => {

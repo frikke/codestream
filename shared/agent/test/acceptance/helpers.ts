@@ -121,7 +121,7 @@ export async function loadTestData(dir: string): Promise<TestData> {
 		agentOptions: agentOptions!,
 		agentRequests,
 		csApiRequests,
-		slackApiRequests
+		slackApiRequests,
 	};
 }
 

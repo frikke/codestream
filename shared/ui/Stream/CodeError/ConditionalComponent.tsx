@@ -1,4 +1,4 @@
-import React, { PropsWithChildren, useEffect } from "react";
+import React from "react";
 
 import { CodeStreamState } from "@codestream/webview/store";
 import { isConnected } from "@codestream/webview/store/providers/reducer";
@@ -16,7 +16,7 @@ const ConditionalComponentBase = (props: {
 }) => {
 	const derivedState = useSelector((state: CodeStreamState) => {
 		return {
-			isProviderConnected: isConnected(state, { id: props.providerId })
+			isProviderConnected: isConnected(state, { id: props.providerId }),
 		};
 	});
 

@@ -1,46 +1,51 @@
-import createClassString from "classnames";
-import React from "react";
-import ContentEditable from "react-contenteditable";
-import { connect } from "react-redux";
-import { injectIntl } from "react-intl";
-import { retryPost, cancelPost, editPost, deletePost } from "./actions";
-import Button from "./Button";
-import { confirmPopup } from "./Confirm";
-import Headshot from "./Headshot";
-import Icon from "./Icon";
-import Timestamp from "./Timestamp";
-import CodemarkActions from "./CodemarkActions";
-import RetrySpinner from "./RetrySpinner";
-import { LocateRepoButton } from "./LocateRepoButton";
-import { Marker } from "./Marker";
-import Menu from "./Menu";
-import Tooltip from "./Tooltip";
-import { getById } from "../store/repos/reducer";
-import { getPost } from "../store/posts/reducer";
-import { getUserByCsId } from "../store/users/reducer";
-import { getCodemark } from "../store/codemarks/reducer";
-import { markdownify, emojify } from "./Markdowner";
-import { reactToPost, setCodemarkStatus } from "./actions";
-import { escapeHtml, safe, replaceHtml } from "../utils";
-import {
-	getUsernamesById,
-	getNormalizedUsernames,
-	getTeamMembers,
-	findMentionedUserIds
-} from "../store/users/reducer";
 import {
 	GetDocumentFromMarkerRequestType,
-	PinReplyToCodemarkRequestType
+	PinReplyToCodemarkRequestType,
 } from "@codestream/protocols/agent";
-import { EditorSelectRangeRequestType } from "../ipc/webview.protocol";
-import { PROVIDER_MAPPINGS } from "./CrossPostIssueControls/types";
-import { HostApi } from "../webview-api";
+import createClassString from "classnames";
 import { includes as _includes } from "lodash-es";
+import React from "react";
+import ContentEditable from "react-contenteditable";
+import { injectIntl } from "react-intl";
+import { connect } from "react-redux";
+import { EditorSelectRangeRequestType } from "../ipc/webview.protocol";
 import { ProfileLink } from "../src/components/ProfileLink";
-import EmojiPicker from "./EmojiPicker";
-import { AddReactionIcon, Reactions } from "./Reactions";
-import { MarkdownText } from "./MarkdownText";
+import { getCodemark } from "../store/codemarks/reducer";
+import { getPost } from "../store/posts/reducer";
+import { getById } from "../store/repos/reducer";
+import {
+	findMentionedUserIds,
+	getNormalizedUsernames,
+	getTeamMembers,
+	getUserByCsId,
+	getUsernamesById,
+} from "../store/users/reducer";
+import { escapeHtml, replaceHtml, safe } from "../utils";
+import { HostApi } from "../webview-api";
+import {
+	cancelPost,
+	deletePost,
+	editPost,
+	reactToPost,
+	retryPost,
+	setCodemarkStatus,
+} from "./actions";
 import { Attachments } from "./Attachments";
+import Button from "./Button";
+import CodemarkActions from "./CodemarkActions";
+import { confirmPopup } from "./Confirm";
+import { PROVIDER_MAPPINGS } from "./CrossPostIssueControls/types";
+import Headshot from "./Headshot";
+import Icon from "./Icon";
+import { LocateRepoButton } from "./LocateRepoButton";
+import { emojify } from "./Markdowner";
+import { MarkdownText } from "./MarkdownText";
+import { Marker } from "./Marker";
+import Menu from "./Menu";
+import { AddReactionIcon, Reactions } from "./Reactions";
+import RetrySpinner from "./RetrySpinner";
+import Timestamp from "./Timestamp";
+import Tooltip from "./Tooltip";
 
 class Post extends React.Component {
 	state = {
@@ -49,7 +54,7 @@ class Post extends React.Component {
 		menuOpen: false,
 		menuTarget: null,
 		authorMenuOpen: false,
-		warning: ""
+		warning: "",
 	};
 
 	componentDidMount() {
@@ -88,7 +93,7 @@ class Post extends React.Component {
 		if (marker) {
 			if (marker.repoId) {
 				const response = await HostApi.instance.send(GetDocumentFromMarkerRequestType, {
-					markerId: marker.id
+					markerId: marker.id,
 				});
 
 				if (response) {
@@ -98,9 +103,9 @@ class Post extends React.Component {
 						selection: {
 							start: response.range.start,
 							end: response.range.start,
-							cursor: response.range.start
+							cursor: response.range.start,
 						},
-						preserveFocus: preserveFocus
+						preserveFocus: preserveFocus,
 					});
 					this.setState({ warning: success ? null : "FILE_NOT_FOUND" });
 				} else {
@@ -121,13 +126,15 @@ class Post extends React.Component {
 			case "NO_REMOTE": {
 				const message = intl.formatMessage({
 					id: "codeBlock.noRemote",
-					defaultMessage: "This code does not have a remote URL associated with it."
+					defaultMessage: "This code does not have a remote URL associated with it.",
 				});
 				const learnMore = intl.formatMessage({ id: "learnMore" });
 				return (
 					<span>
 						{message}{" "}
-						<a href="https://docs.newrelic.com/docs/codestream/troubleshooting/git-issues/#repo-doesnt-have-a-remote-url">{learnMore}</a>
+						<a href="https://docs.newrelic.com/docs/codestream/troubleshooting/git-issues/#repo-doesnt-have-a-remote-url">
+							{learnMore}
+						</a>
 					</span>
 				);
 			}
@@ -136,7 +143,7 @@ class Post extends React.Component {
 					<span>
 						{intl.formatMessage({
 							id: "codeBlock.fileNotFound",
-							defaultMessage: "You don’t currently have this file in your repo."
+							defaultMessage: "You don’t currently have this file in your repo.",
 						})}
 					</span>
 				);
@@ -148,7 +155,7 @@ class Post extends React.Component {
 							{intl.formatMessage(
 								{
 									id: "codeBlock.repoMissing",
-									defaultMessage: "You don’t currently have the {repoName} repo open."
+									defaultMessage: "You don’t currently have the {repoName} repo open.",
 								},
 								{ repoName: this.props.repoName }
 							)}
@@ -175,7 +182,7 @@ class Post extends React.Component {
 					<span>
 						{intl.formatMessage({
 							id: "codeBlock.locationUnknown",
-							defaultMessage: "Unknown code block location."
+							defaultMessage: "Unknown code block location.",
 						})}
 					</span>
 				);
@@ -187,14 +194,8 @@ class Post extends React.Component {
 		if (this.props.deactivated) return null;
 
 		// console.log(renderCount++);
-		const {
-			author,
-			post,
-			showAssigneeHeadshots,
-			hasMarkers,
-			codemark,
-			parentPostCodemark
-		} = this.props;
+		const { author, post, showAssigneeHeadshots, hasMarkers, codemark, parentPostCodemark } =
+			this.props;
 		const { menuOpen, authorMenuOpen, menuTarget } = this.state;
 
 		const headshotSize = this.props.headshotSize || 36;
@@ -223,7 +224,7 @@ class Post extends React.Component {
 			issue: type === "issue",
 			trap: type === "trap",
 			bookmark: type === "bookmark",
-			reply: post.parentPostId && post.parentPostId !== post.id
+			reply: post.parentPostId && post.parentPostId !== post.id,
 		});
 
 		let codeBlock = null;
@@ -316,13 +317,13 @@ class Post extends React.Component {
 											if (this.props.threadId === post.id) {
 												this.props.setCurrentStream(post.streamId);
 											}
-										}
+										},
 									},
-									{ label: "Cancel" }
-								]
+									{ label: "Cancel" },
+								],
 							});
 						}
-					}
+					},
 				});
 			}
 		}
@@ -338,7 +339,7 @@ class Post extends React.Component {
 						<div className="author-fullname">{author.fullName}</div>
 					</div>
 				</div>
-			)
+			),
 		});
 		if (mine) {
 			authorMenuItems.push({ label: "Edit Headshot", action: "edit-headshot" });
@@ -437,7 +438,7 @@ class Post extends React.Component {
 			}
 			return [
 				<br />,
-				<a href={codemark.externalProviderUrl}>Open on {providerDisplay.displayName}</a>
+				<a href={codemark.externalProviderUrl}>Open on {providerDisplay.displayName}</a>,
 			];
 		}
 		return null;
@@ -532,7 +533,7 @@ class Post extends React.Component {
 					<b>Assignees</b>
 				</div>
 				{assigneeNames.filter(Boolean).join(", ")}
-			</div>
+			</div>,
 		];
 	};
 
@@ -581,7 +582,7 @@ class Post extends React.Component {
 
 		const statusClass = createClassString({
 			"status-button": true,
-			checked: status === "closed"
+			checked: status === "closed",
 		});
 
 		return [
@@ -596,7 +597,7 @@ class Post extends React.Component {
 					</div>{" "}
 					<span className="status-label">{status}</span>
 				</div>
-			</div>
+			</div>,
 		];
 
 		// return (
@@ -796,7 +797,7 @@ class Post extends React.Component {
 			HostApi.instance.send(PinReplyToCodemarkRequestType, {
 				codemarkId: this.props.parentPostCodemark.id,
 				postId: this.props.post.id,
-				value: true
+				value: true,
 			});
 		} else if (action === "unpin-reply") {
 			if (
@@ -808,14 +809,14 @@ class Post extends React.Component {
 			HostApi.instance.send(PinReplyToCodemarkRequestType, {
 				codemarkId: this.props.parentPostCodemark.id,
 				postId: this.props.post.id,
-				value: false
+				value: false,
 			});
 		} else {
 			this.props.action(action, {
 				...this.props.post,
 				author: this.props.author,
 				codemark: this.props.codemark,
-				parentPostCodemark: this.props.parentPostCodemark
+				parentPostCodemark: this.props.parentPostCodemark,
 			});
 		}
 
@@ -887,7 +888,7 @@ const mapStateToProps = (state, props) => {
 		parentPostCodemark,
 		capabilities,
 		disableEdits: props.disableEdits || !Boolean(capabilities.postEdit),
-		disableDeletes: !Boolean(capabilities.postDelete)
+		disableDeletes: !Boolean(capabilities.postDelete),
 	};
 };
 
@@ -897,5 +898,5 @@ export default connect(mapStateToProps, {
 	editPost,
 	deletePost,
 	reactToPost,
-	setCodemarkStatus
+	setCodemarkStatus,
 })(injectIntl(Post));

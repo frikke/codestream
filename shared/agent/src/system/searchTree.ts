@@ -80,7 +80,7 @@ const enum CharCode {
 	/**
 	 * The `\` character.
 	 */
-	Backslash = 92
+	Backslash = 92,
 }
 
 export class PathIterator implements IKeyIterator {

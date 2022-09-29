@@ -98,7 +98,7 @@ export class ResponseError<D> extends Error {
 		return {
 			code: this.code,
 			message: this.message,
-			data: this.data
+			data: this.data,
 		};
 	}
 }

@@ -104,5 +104,5 @@ export default {
 	"createTeam.name.label": "Team Name",
 	"createCompany.name.label": "Organization Name",
 	"oktaConfig.submitButton": "Set Host URL",
-	"pullRequest.title": "Set a title"
+	"pullRequest.title": "Set a title",
 };

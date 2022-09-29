@@ -7,7 +7,7 @@ import {
 	CSFileStream,
 	CSObjectStream,
 	CSStream,
-	StreamType
+	StreamType,
 } from "./api.protocol";
 
 export interface CreateChannelStreamRequest {

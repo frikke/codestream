@@ -40,7 +40,7 @@ export class EntityCache<T extends CSEntity> extends BaseCache<T> {
 			makeIndex({
 				fields: ["id"],
 				type: IndexType.Unique,
-				fetchFn: cfg.fetchFn
+				fetchFn: cfg.fetchFn,
 			})
 		);
 	}

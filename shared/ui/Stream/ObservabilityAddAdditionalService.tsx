@@ -1,9 +1,8 @@
-import { forEach as _forEach, isEmpty as _isEmpty } from "lodash-es";
+import { EntityAccount } from "@codestream/protocols/agent";
 import React, { useState } from "react";
 import { Row } from "./CrossPostIssueControls/IssuesPane";
-import Icon from "./Icon";
 import { EntityAssociator } from "./EntityAssociator";
-import { EntityAccount } from "@codestream/protocols/agent";
+import Icon from "./Icon";
 interface Props {
 	onSuccess: Function;
 	remote: string;
@@ -19,7 +18,7 @@ export const ObservabilityAddAdditionalService = React.memo((props: Props) => {
 		<>
 			<Row
 				style={{
-					padding: "2px 10px 2px 18px"
+					padding: "2px 10px 2px 18px",
 				}}
 				className={"pr-row"}
 				onClick={() => setExpanded(!expanded)}

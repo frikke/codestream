@@ -1,25 +1,25 @@
-import React from "react";
-import ReactDOM from "react-dom";
-import AsyncSelect from "react-select/async";
-import Icon from "../Icon";
-import Menu from "../Menu";
 import {
-	ThirdPartyProviderConfig,
+	FetchAssignableUsersRequestType,
 	FetchThirdPartyBoardsRequestType,
-	TrelloList,
+	ThirdPartyProviderConfig,
 	TrelloBoard,
-	FetchAssignableUsersRequestType
+	TrelloList,
 } from "@codestream/protocols/agent";
-import { useSelector, useDispatch } from "react-redux";
 import { CodeStreamState } from "@codestream/webview/store";
-import { getIntegrationData } from "@codestream/webview/store/activeIntegrations/reducer";
 import { updateForProvider } from "@codestream/webview/store/activeIntegrations/actions";
-import { emptyArray, mapFilter, keyFilter } from "@codestream/webview/utils";
-import { HostApi } from "@codestream/webview/webview-api";
+import { getIntegrationData } from "@codestream/webview/store/activeIntegrations/reducer";
 import { TrelloIntegrationData } from "@codestream/webview/store/activeIntegrations/types";
 import { setIssueProvider } from "@codestream/webview/store/context/actions";
-import { CrossPostIssueContext } from "../CodemarkForm";
 import { useDidMount } from "@codestream/webview/utilities/hooks";
+import { emptyArray, mapFilter } from "@codestream/webview/utils";
+import { HostApi } from "@codestream/webview/webview-api";
+import React from "react";
+import ReactDOM from "react-dom";
+import { useDispatch, useSelector } from "react-redux";
+import AsyncSelect from "react-select/async";
+import { CrossPostIssueContext } from "../CodemarkForm";
+import Icon from "../Icon";
+import Menu from "../Menu";
 
 interface Props {
 	provider: ThirdPartyProviderConfig;
@@ -53,7 +53,7 @@ export function TrelloCardControls(props: React.PropsWithChildren<Props>) {
 
 		if (!data.isLoading) {
 			updateDataState({
-				isLoading: true
+				isLoading: true,
 			});
 		}
 
@@ -61,28 +61,32 @@ export function TrelloCardControls(props: React.PropsWithChildren<Props>) {
 
 		const fetchBoards = async () => {
 			const response = await HostApi.instance.send(FetchThirdPartyBoardsRequestType, {
-				providerId: props.provider.id
+				providerId: props.provider.id,
 			});
 
 			if (!isValid) return;
 			// make sure to persist current board/list selection if possible
-			const newCurrentBoard = (data.currentBoard
-				? response.boards.find(b => b.id === data.currentBoard!.id)
-				: response.boards[0]) as TrelloBoard;
+			const newCurrentBoard = (
+				data.currentBoard
+					? response.boards.find(b => b.id === data.currentBoard!.id)
+					: response.boards[0]
+			) as TrelloBoard;
 
-			const newCurrentList = (data.currentList
-				? newCurrentBoard.lists.find(l => l.id === data.currentList!.id)
-				: newCurrentBoard.lists[0]) as TrelloList;
+			const newCurrentList = (
+				data.currentList
+					? newCurrentBoard.lists.find(l => l.id === data.currentList!.id)
+					: newCurrentBoard.lists[0]
+			) as TrelloList;
 
 			updateDataState({
 				isLoading: false,
 				boards: response.boards as TrelloBoard[],
 				currentBoard: newCurrentBoard,
-				currentList: newCurrentList
+				currentList: newCurrentList,
 			});
 
 			crossPostIssueContext.setValues({
-				listId: newCurrentList.id
+				listId: newCurrentList.id,
 			});
 		};
 
@@ -107,7 +111,7 @@ export function TrelloCardControls(props: React.PropsWithChildren<Props>) {
 		const target = event.target;
 		setBoardMenuState(state => ({
 			open: !state.open,
-			target
+			target,
 		}));
 	}, []);
 
@@ -116,10 +120,10 @@ export function TrelloCardControls(props: React.PropsWithChildren<Props>) {
 		if (board) {
 			updateDataState({
 				currentBoard: board,
-				currentList: board.lists[0]
+				currentList: board.lists[0],
 			});
 			crossPostIssueContext.setValues({
-				listId: board.lists[0].id
+				listId: board.lists[0].id,
 			});
 		}
 	}, []);
@@ -129,7 +133,7 @@ export function TrelloCardControls(props: React.PropsWithChildren<Props>) {
 		const target = event.target;
 		setListMenuState(state => ({
 			open: !state.open,
-			target
+			target,
 		}));
 	}, []);
 
@@ -138,10 +142,10 @@ export function TrelloCardControls(props: React.PropsWithChildren<Props>) {
 
 		if (list) {
 			crossPostIssueContext.setValues({
-				listId: list.id
+				listId: list.id,
 			});
 			updateDataState({
-				currentList: list
+				currentList: list,
 			});
 		}
 	}, []);
@@ -152,7 +156,7 @@ export function TrelloCardControls(props: React.PropsWithChildren<Props>) {
 
 			const { users } = await HostApi.instance.send(FetchAssignableUsersRequestType, {
 				providerId: props.provider.id,
-				boardId: data.currentBoard!.id
+				boardId: data.currentBoard!.id,
 			});
 			return mapFilter(users, u => {
 				if (u.displayName.toLowerCase().includes(inputValue.toLowerCase()))
@@ -212,13 +216,13 @@ export function TrelloCardControls(props: React.PropsWithChildren<Props>) {
 	const boardItems = (data.boards || emptyArray).map(board => ({
 		label: board.name,
 		key: board.id,
-		action: board
+		action: board,
 	}));
 	const listItems = data.currentBoard
 		? data.currentBoard.lists.map(list => ({
 				label: list.name,
 				key: list.id,
-				action: list
+				action: list,
 		  }))
 		: [];
 

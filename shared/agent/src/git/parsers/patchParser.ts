@@ -61,7 +61,7 @@ export class GitPatchParser {
 
 		function parseIndex() {
 			const index: ParsedDiff = {
-				hunks: []
+				hunks: [],
 			};
 			list.push(index);
 
@@ -141,7 +141,7 @@ export class GitPatchParser {
 				patch: "",
 				additions: 0,
 				changes: 0,
-				deletions: 0
+				deletions: 0,
 			};
 
 			// Unified Diff Format quirk: If the chunk size is 0,

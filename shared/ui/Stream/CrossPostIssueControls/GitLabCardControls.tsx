@@ -1,24 +1,24 @@
-import React from "react";
-import ReactDOM from "react-dom";
-import AsyncSelect from "react-select/async";
-import Icon from "../Icon";
-import Menu from "../Menu";
 import {
-	ThirdPartyProviderConfig,
-	GitLabBoard,
+	FetchAssignableUsersRequestType,
 	FetchThirdPartyBoardsRequestType,
-	FetchAssignableUsersRequestType
+	GitLabBoard,
+	ThirdPartyProviderConfig,
 } from "@codestream/protocols/agent";
-import { useDispatch, useSelector } from "react-redux";
 import { CodeStreamState } from "@codestream/webview/store";
+import { updateForProvider } from "@codestream/webview/store/activeIntegrations/actions";
 import { getIntegrationData } from "@codestream/webview/store/activeIntegrations/reducer";
 import { GitLabIntegrationData } from "@codestream/webview/store/activeIntegrations/types";
-import { updateForProvider } from "@codestream/webview/store/activeIntegrations/actions";
-import { CrossPostIssueContext } from "../CodemarkForm";
-import { emptyArray, mapFilter } from "@codestream/webview/utils";
-import { useDidMount } from "@codestream/webview/utilities/hooks";
-import { HostApi } from "@codestream/webview/webview-api";
 import { setIssueProvider } from "@codestream/webview/store/context/actions";
+import { useDidMount } from "@codestream/webview/utilities/hooks";
+import { emptyArray, mapFilter } from "@codestream/webview/utils";
+import { HostApi } from "@codestream/webview/webview-api";
+import React from "react";
+import ReactDOM from "react-dom";
+import { useDispatch, useSelector } from "react-redux";
+import AsyncSelect from "react-select/async";
+import { CrossPostIssueContext } from "../CodemarkForm";
+import Icon from "../Icon";
+import Menu from "../Menu";
 
 export function GitLabCardControls(
 	props: React.PropsWithChildren<{ provider: ThirdPartyProviderConfig }>
@@ -57,7 +57,7 @@ export function GitLabCardControls(
 		}
 		if (!data.isLoading) {
 			updateDataState({
-				isLoading: true
+				isLoading: true,
 			});
 		}
 
@@ -65,7 +65,7 @@ export function GitLabCardControls(
 
 		const fetchBoards = async () => {
 			let response = await HostApi.instance.send(FetchThirdPartyBoardsRequestType, {
-				providerId: props.provider.id
+				providerId: props.provider.id,
 			});
 
 			if (!isValid) return;
@@ -73,7 +73,7 @@ export function GitLabCardControls(
 			selectRepoForCodeBlock(response.boards as GitLabBoard[]);
 			updateDataState({
 				isLoading: false,
-				repos: response.boards as GitLabBoard[]
+				repos: response.boards as GitLabBoard[],
 			});
 		};
 
@@ -96,7 +96,7 @@ export function GitLabCardControls(
 		setRepoMenuState({ open: false, target: undefined });
 		if (repo) {
 			updateDataState({
-				currentRepo: repo
+				currentRepo: repo,
 			});
 			crossPostIssueContext.setValues({ boardName: repo.name });
 		}
@@ -108,7 +108,7 @@ export function GitLabCardControls(
 
 			const { users } = await HostApi.instance.send(FetchAssignableUsersRequestType, {
 				providerId: props.provider.id,
-				boardId: data.currentRepo.id
+				boardId: data.currentRepo.id,
 			});
 
 			return mapFilter(users, u => {
@@ -179,7 +179,7 @@ export function GitLabCardControls(
 							items={(data.repos || emptyArray).map(board => ({
 								label: board.name,
 								key: board.id,
-								action: board
+								action: board,
 							}))}
 							action={selectRepo}
 						/>

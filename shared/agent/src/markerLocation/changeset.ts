@@ -6,12 +6,12 @@ enum Operation {
 	Sync,
 	Add,
 	Del,
-	Comment
+	Comment,
 }
 
 enum State {
 	Sync,
-	Edit
+	Edit,
 }
 
 function getOperation(symbol: string): Operation {
@@ -89,7 +89,7 @@ class ChangesetBuilder {
 		return {
 			oldFile: this._oldFile,
 			newFile: this._newFile,
-			changes: this._changes
+			changes: this._changes,
 		};
 	}
 
@@ -106,7 +106,7 @@ class ChangesetBuilder {
 					operation,
 					content,
 					oldLine,
-					newLine
+					newLine,
 				});
 
 				if (operation === Operation.Sync || operation === Operation.Add) {
@@ -175,7 +175,7 @@ class ChangesetBuilder {
 			delLength: delLength,
 			addLength: addLength,
 			dels: dels,
-			adds: adds
+			adds: adds,
 		});
 	}
 

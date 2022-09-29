@@ -1,7 +1,6 @@
 import { PixieGetNamespacesRequestType } from "@codestream/protocols/agent";
 import { CodeStreamState } from "@codestream/webview/store";
 import { DropdownButton, DropdownButtonItems } from "@codestream/webview/Stream/DropdownButton";
-import { useDidMount } from "@codestream/webview/utilities/hooks";
 import { HostApi } from "@codestream/webview/webview-api";
 import React, { useEffect } from "react";
 import { useSelector } from "react-redux";
@@ -24,7 +23,7 @@ export const Namespaces = props => {
 		try {
 			const response = await HostApi.instance.send(PixieGetNamespacesRequestType, {
 				accountId: props.account.id,
-				clusterId: props.cluster.clusterId
+				clusterId: props.cluster.clusterId,
 			});
 			const newNamespaces = response.namespaces.map(_ => ({
 				key: _,
@@ -32,14 +31,14 @@ export const Namespaces = props => {
 				searchLabel: _,
 				action: () => {
 					props.onSelect(_);
-				}
+				},
 			})) as DropdownButtonItems[];
 			if (newNamespaces.length > 5) {
 				newNamespaces.unshift(
 					{
 						label: "",
 						placeholder: "Search Namespaces",
-						type: "search"
+						type: "search",
 					},
 					{ label: "-" }
 				);

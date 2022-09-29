@@ -5,7 +5,7 @@ import { CodeErrorPlus, CreateCodeErrorRequest } from "./agent.protocol.codeErro
 import {
 	CodemarkPlus,
 	CreateCodemarkRequest,
-	CreateCodemarkResponse
+	CreateCodemarkResponse,
 } from "./agent.protocol.codemarks";
 import { ThirdPartyProviderUser } from "./agent.protocol.providers";
 import { CreateReviewRequest, ReviewPlus } from "./agent.protocol.reviews";
@@ -19,7 +19,7 @@ import {
 	CSReactions,
 	CSRepository,
 	CSReview,
-	CSStream
+	CSStream,
 } from "./api.protocol";
 import { Attachment, ShareTarget } from "./api.protocol.models";
 

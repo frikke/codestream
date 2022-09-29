@@ -1,7 +1,7 @@
+import { darken, lighten } from "polished";
 import React from "react";
 import styled from "styled-components";
-import { lighten, darken } from "polished";
-import { PropsWithTheme, CSTheme, isDark } from "../../themes";
+import { CSTheme, isDark, PropsWithTheme } from "../../themes";
 
 export type Size = "small" | "normal" | "large";
 
@@ -39,7 +39,7 @@ const getRootProps = (props: SwitchProps): RootProps => ({
 	on: Boolean(props.on),
 	colored: Boolean(props.colored),
 	$disabled: Boolean(props.disabled),
-	...getDimensions(props.size)
+	...getDimensions(props.size),
 });
 
 const getRootBackgroundColor = (theme: CSTheme, props: RootProps) => {
@@ -96,7 +96,7 @@ export function Switch(props: SwitchProps) {
 	const knobProps = {
 		...rootProps,
 		$height: knobHeightWidth,
-		$width: knobHeightWidth
+		$width: knobHeightWidth,
 	};
 	return (
 		<Root

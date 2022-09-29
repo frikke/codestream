@@ -45,11 +45,11 @@ export namespace GitRepositoryExtensions {
 							name: "/",
 							fullPath: repo.path,
 							id: repo.id!,
-							partialPath: []
+							partialPath: [],
 						},
 						withSubDirectoriesDepth
 				  )
-				: undefined
+				: undefined,
 		};
 		return result;
 	}

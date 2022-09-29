@@ -1,6 +1,6 @@
 import React from "react";
 import styled, { keyframes, ThemeContext } from "styled-components";
-import { PropsWithTheme, CSTheme } from "../../themes";
+import { CSTheme, PropsWithTheme } from "../../themes";
 
 export type Size = "small" | "normal" | "large";
 
@@ -29,7 +29,7 @@ const getRootProps = (props: LabeledSwitchProps): RootProps => ({
 	colored: Boolean(props.colored),
 	$height: props.height || 24,
 	$width: props.width || 56,
-	$disabled: Boolean(props.disabled)
+	$disabled: Boolean(props.disabled),
 });
 
 const getRootBackgroundColor = (theme: CSTheme, props: RootProps) => {
@@ -100,7 +100,7 @@ export function LabeledSwitch(props: LabeledSwitchProps) {
 	const knobProps = {
 		...rootProps,
 		$height: knobHeightWidth,
-		$width: knobHeightWidth
+		$width: knobHeightWidth,
 	};
 
 	const theme: CSTheme = React.useContext(ThemeContext);

@@ -13,7 +13,7 @@ import {
 	TrelloCard,
 	TrelloCreateCardRequest,
 	TrelloCreateCardResponse,
-	TrelloMember
+	TrelloMember,
 } from "../protocol/agent.protocol";
 import { CSTrelloProviderInfo } from "../protocol/api.protocol";
 import { log, lspProvider } from "../system";
@@ -63,7 +63,7 @@ export class TrelloProvider extends ThirdPartyIssueProviderBase<CSTrelloProvider
 				fields: "id,name,desc,descData,closed,idOrganization,pinned,url,labelNames,starred",
 				lists: "open",
 				key: this.apiKey,
-				token: this.accessToken
+				token: this.accessToken,
 			})}`
 		);
 
@@ -86,7 +86,7 @@ export class TrelloProvider extends ThirdPartyIssueProviderBase<CSTrelloProvider
 			`/cards/${request.cardId}?${qs.stringify({
 				idMembers: this._trelloUserId,
 				key: this.apiKey,
-				token: this.accessToken
+				token: this.accessToken,
 			})}`,
 			{}
 		);
@@ -104,13 +104,14 @@ export class TrelloProvider extends ThirdPartyIssueProviderBase<CSTrelloProvider
 				filter: "open",
 				fields: "id,name,desc,url,idList,idBoard,idOrganization,dateLastActivity,shortLink,idShort",
 				key: this.apiKey,
-				token: this.accessToken
+				token: this.accessToken,
 			})}`
 		);
 
-		const cards = (request.organizationId
-			? response.body.filter(c => c.idOrganization === request.organizationId)
-			: response.body
+		const cards = (
+			request.organizationId
+				? response.body.filter(c => c.idOrganization === request.organizationId)
+				: response.body
 		).map(card => {
 			return {
 				id: card.id,
@@ -121,7 +122,7 @@ export class TrelloProvider extends ThirdPartyIssueProviderBase<CSTrelloProvider
 				tokenId: card.shortLink,
 				idList: card.idList,
 				listName: this._listNames[card.idList],
-				idBoard: card.idBoard
+				idBoard: card.idBoard,
 			};
 		});
 		return { cards };
@@ -139,7 +140,7 @@ export class TrelloProvider extends ThirdPartyIssueProviderBase<CSTrelloProvider
 				desc: data.description,
 				key: this.apiKey,
 				idMembers: (data.assignees! || []).map(a => a.id),
-				token: this.accessToken
+				token: this.accessToken,
 			})}`,
 			{}
 		);
@@ -154,7 +155,7 @@ export class TrelloProvider extends ThirdPartyIssueProviderBase<CSTrelloProvider
 			`/cards/${request.cardId}?${qs.stringify({
 				idList: request.listId,
 				key: this.apiKey,
-				token: this.accessToken
+				token: this.accessToken,
 			})}`,
 			{}
 		);
@@ -169,7 +170,7 @@ export class TrelloProvider extends ThirdPartyIssueProviderBase<CSTrelloProvider
 			`/boards/${request.boardId}/members?${qs.stringify({
 				key: this.apiKey,
 				token: this.accessToken,
-				fields: "id,email,username,fullName"
+				fields: "id,email,username,fullName",
 			})}`
 		);
 		return { users: body.map(u => ({ ...u, displayName: u.fullName })) };

@@ -13,7 +13,7 @@ export function reduceDynamicLogging(
 	switch (action.type) {
 		case DynamicLoggingActionsTypes.AddDynamicLogging: {
 			return {
-				dynamicLogs: action.payload
+				dynamicLogs: action.payload,
 			};
 		}
 		case DynamicLoggingActionsTypes.ClearDynamicLogging: {

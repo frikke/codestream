@@ -1,22 +1,22 @@
-import { Index } from "../common";
 import {
-	TrelloList,
-	TrelloBoard,
-	ShortcutProject,
-	LinearProject,
-	LinearTeam,
-	JiraBoard,
-	GitHubBoard,
-	BitbucketBoard,
 	AsanaBoard,
 	AsanaList,
-	GitLabBoard,
-	SlackChannel,
 	AzureDevOpsBoard,
-	YouTrackBoard,
+	BitbucketBoard,
+	GitHubBoard,
+	GitLabBoard,
+	JiraBoard,
+	LinearProject,
+	LinearTeam,
+	ShortcutProject,
+	SlackChannel,
+	ThirdPartyProviderBoard,
 	ThirdPartyProviderCard,
-	ThirdPartyProviderBoard
+	TrelloBoard,
+	TrelloList,
+	YouTrackBoard,
 } from "@codestream/protocols/agent";
+import { Index } from "../common";
 
 export interface ActiveIntegrationData<T = ThirdPartyProviderBoard> {
 	isLoading?: boolean;
@@ -107,5 +107,5 @@ export interface ActiveIntegrationsState {
 export enum ActiveIntegrationsActionType {
 	UpdateForProvider = "@activeIntegrations/UpdateForProvider",
 	DeleteForProvider = "@activeIntegrations/DeleteForProvider",
-	SetIssuesLoading = "@activeIntegrations/IssuesLoading"
+	SetIssuesLoading = "@activeIntegrations/IssuesLoading",
 }

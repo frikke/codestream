@@ -1,4 +1,4 @@
-import React, { SyntheticEvent } from "react";
+import React from "react";
 import styled from "styled-components";
 import { WarningOrError } from "../protocols/agent/agent.protocol.nr";
 import Icon from "./Icon";
@@ -72,7 +72,9 @@ export const WarningBox = (props: Props) => {
 					});
 				})}
 			</div>
-			{props.dismissCallback && <Icon name="x" className="dismiss" onClick={props.dismissCallback} />}
+			{props.dismissCallback && (
+				<Icon name="x" className="dismiss" onClick={props.dismissCallback} />
+			)}
 		</WarningBoxRoot>
 	);
 };

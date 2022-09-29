@@ -15,7 +15,7 @@ export class OktaProvider extends ThirdPartyPostProviderBase<CSOktaProviderInfo>
 
 	get headers() {
 		return {
-			Authorization: `Bearer ${this.accessToken}`
+			Authorization: `Bearer ${this.accessToken}`,
 		};
 	}
 

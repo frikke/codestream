@@ -12,21 +12,23 @@ import {
 	FetchThirdPartyChannelsResponse,
 	ThirdPartyDisconnect,
 	UpdateThirdPartyStatusRequest,
-	UpdateThirdPartyStatusResponse
+	UpdateThirdPartyStatusResponse,
 } from "../protocol/agent.protocol";
 import {
 	CSChannelStream,
 	CSDirectStream,
 	CSSlackProviderInfo,
-	StreamType
+	StreamType,
 } from "../protocol/api.protocol";
 import { log, lspProvider } from "../system";
 import { ThirdPartyProviderSupportsStatus } from "./provider";
 import { ThirdPartyPostProviderBase } from "./thirdPartyPostProviderBase";
 
 @lspProvider("slack")
-export class SlackProvider extends ThirdPartyPostProviderBase<CSSlackProviderInfo>
-	implements ThirdPartyProviderSupportsStatus {
+export class SlackProvider
+	extends ThirdPartyPostProviderBase<CSSlackProviderInfo>
+	implements ThirdPartyProviderSupportsStatus
+{
 	get displayName() {
 		return "Slack";
 	}
@@ -37,7 +39,7 @@ export class SlackProvider extends ThirdPartyPostProviderBase<CSSlackProviderInf
 
 	get headers() {
 		return {
-			Authorization: `Bearer ${this.accessToken}`
+			Authorization: `Bearer ${this.accessToken}`,
 		};
 	}
 
@@ -66,7 +68,7 @@ export class SlackProvider extends ThirdPartyPostProviderBase<CSSlackProviderInf
 					providerInfo!.data.team &&
 					providerInfo!.data.team!.id,
 				// this is the slack userId
-				userId: providerInfo && providerInfo!.data && providerInfo!.data.user_id // session.api.userId
+				userId: providerInfo && providerInfo!.data && providerInfo!.data.user_id, // session.api.userId
 			},
 			// codestream teamId
 			session.api.teamId,
@@ -128,7 +130,7 @@ export class SlackProvider extends ThirdPartyPostProviderBase<CSSlackProviderInf
 		const slackClient = this.getClient(request.providerTeamId);
 		if (!slackClient) {
 			return {
-				channels: []
+				channels: [],
 			};
 		}
 		const streams = await slackClient.fetchStreams({});
@@ -141,7 +143,7 @@ export class SlackProvider extends ThirdPartyPostProviderBase<CSSlackProviderInf
 						id: _.id,
 						name: _.name!,
 						type: _.type,
-						order: _.type === StreamType.Channel ? 0 : _.type === StreamType.Direct ? 2 : 1
+						order: _.type === StreamType.Channel ? 0 : _.type === StreamType.Direct ? 2 : 1,
 					};
 				}),
 			[_ => _.order, _ => _.name]
@@ -149,7 +151,7 @@ export class SlackProvider extends ThirdPartyPostProviderBase<CSSlackProviderInf
 		const members = streams.members || [];
 		return {
 			channels,
-			members
+			members,
 		};
 	}
 
@@ -207,7 +209,7 @@ export class SlackProvider extends ThirdPartyPostProviderBase<CSSlackProviderInf
 
 		const post = await slackClient.deleteExternalPost({
 			postId: request.providerPostId,
-			channelId: request.channelId
+			channelId: request.channelId,
 		});
 		return post;
 	}

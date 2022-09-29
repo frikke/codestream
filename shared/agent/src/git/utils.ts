@@ -60,7 +60,7 @@ export function translateLineToPosition(
 				position: position,
 				index: j,
 				// don't assign a line number to the removed lines
-				lineNumber: firstCharIsMinus ? undefined : lineNumber
+				lineNumber: firstCharIsMinus ? undefined : lineNumber,
 			});
 			if (!firstCharIsMinus) lineNumber++;
 			j++;
@@ -130,7 +130,7 @@ export function translatePositionToLineNumber(
 				position: position,
 				index: j,
 				// don't assign a line number to the removed lines
-				lineNumber: firstCharIsMinus ? undefined : lineNumber
+				lineNumber: firstCharIsMinus ? undefined : lineNumber,
 			});
 			if (!firstCharIsMinus) lineNumber++;
 			j++;

@@ -16,7 +16,7 @@ import {
 	NewCodemarkNotificationType,
 	NewReviewNotification,
 	NewReviewNotificationType,
-	WebviewIpcMessage
+	WebviewIpcMessage,
 } from "./ipc/webview.protocol";
 import { AnyObject, Disposable, shortUuid } from "./utils";
 
@@ -39,36 +39,36 @@ const normalizeNotificationsMap = new Map<
 				e.editor.uri = URI.parse(e.editor.uri).toString(true);
 			}
 			return listener(e);
-		}
+		},
 	],
 	[
 		HostDidChangeEditorSelectionNotificationType,
 		listener => (e: HostDidChangeEditorSelectionNotification) => {
 			e.uri = URI.parse(e.uri).toString(true);
 			return listener(e);
-		}
+		},
 	],
 	[
 		HostDidChangeEditorVisibleRangesNotificationType,
 		listener => (e: HostDidChangeEditorVisibleRangesNotification) => {
 			e.uri = URI.parse(e.uri).toString(true);
 			return listener(e);
-		}
+		},
 	],
 	[
 		NewCodemarkNotificationType,
 		listener => (e: NewCodemarkNotification) => {
 			e.uri = e.uri ? URI.parse(e.uri).toString(true) : undefined;
 			return listener(e);
-		}
+		},
 	],
 	[
 		NewReviewNotificationType,
 		listener => (e: NewReviewNotification) => {
 			e.uri = e.uri ? URI.parse(e.uri).toString(true) : undefined;
 			return listener(e);
-		}
-	]
+		},
+	],
 ]);
 
 function normalizeListener<NT extends NotificationType<any, any>>(
@@ -100,7 +100,7 @@ class EventEmitter {
 			dispose: () => {
 				const listeners = this.listenersByEvent.get(eventType.method)!.filter(l => l !== listener);
 				this.listenersByEvent.set(eventType.method, listeners);
-			}
+			},
 		};
 	}
 
@@ -185,7 +185,7 @@ export class HostApi extends EventEmitter {
 	notify<NT extends NotificationType<any, any>>(type: NT, params: NotificationParamsOf<NT>): void {
 		const payload = {
 			method: type.method,
-			params: params
+			params: params,
 		};
 		this.port.postMessage(payload);
 		console.debug(`notification ${type.method} sent to host`, payload);
@@ -205,7 +205,7 @@ export class HostApi extends EventEmitter {
 			const payload = {
 				id,
 				method: type.method,
-				params: params
+				params: params,
 			};
 			this.port.postMessage(payload);
 			console.debug(`request ${id}:${type.method} sent to host`, payload);
@@ -215,7 +215,7 @@ export class HostApi extends EventEmitter {
 	track(eventName: string, properties?: AnyObject) {
 		this.send(TelemetryRequestType, {
 			eventName,
-			properties
+			properties,
 		});
 	}
 
@@ -234,27 +234,27 @@ export class Server {
 	static get<Res = any>(url: string, paramData?: { [key: string]: any }): Promise<Res> {
 		return HostApi.instance.send(new RequestType<any, Res, void, void>("codestream/api/get"), {
 			url: url,
-			paramData: paramData
+			paramData: paramData,
 		});
 	}
 
 	static post<Res = any>(url: string, body?: any): Promise<Res> {
 		return HostApi.instance.send(new RequestType<any, Res, void, void>("codestream/api/post"), {
 			url: url,
-			body: body
+			body: body,
 		});
 	}
 
 	static put<Res = any>(url: string, body?: any): Promise<Res> {
 		return HostApi.instance.send(new RequestType<any, Res, void, void>("codestream/api/put"), {
 			url: url,
-			body: body
+			body: body,
 		});
 	}
 
 	static delete<Res = any>(url: string): Promise<Res> {
 		return HostApi.instance.send(new RequestType<any, Res, void, void>("codestream/api/delete"), {
-			url: url
+			url: url,
 		});
 	}
 }

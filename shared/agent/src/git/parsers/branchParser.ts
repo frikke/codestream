@@ -19,7 +19,7 @@ export class GitBranchParser {
 			const branchName = line.substring(spaceIndex + 1, line.length);
 			branches.push({
 				name: branchName,
-				isCurrentBranch: line.indexOf("*") === 0
+				isCurrentBranch: line.indexOf("*") === 0,
 			});
 		}
 

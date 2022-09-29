@@ -1,24 +1,24 @@
-import React from "react";
-import ReactDOM from "react-dom";
-import AsyncSelect from "react-select/async";
-import Icon from "../Icon";
-import Menu from "../Menu";
 import {
-	ThirdPartyProviderConfig,
+	FetchAssignableUsersRequestType,
 	FetchThirdPartyChannelsRequestType,
 	SlackChannel,
-	FetchAssignableUsersRequestType
+	ThirdPartyProviderConfig,
 } from "@codestream/protocols/agent";
-import { useSelector, useDispatch } from "react-redux";
 import { CodeStreamState } from "@codestream/webview/store";
-import { getIntegrationData } from "@codestream/webview/store/activeIntegrations/reducer";
 import { updateForProvider } from "@codestream/webview/store/activeIntegrations/actions";
-import { emptyArray, mapFilter } from "@codestream/webview/utils";
-import { HostApi } from "@codestream/webview/webview-api";
+import { getIntegrationData } from "@codestream/webview/store/activeIntegrations/reducer";
 import { SlackIntegrationData } from "@codestream/webview/store/activeIntegrations/types";
 import { setIssueProvider } from "@codestream/webview/store/context/actions";
-import { CrossPostIssueContext } from "../CodemarkForm";
 import { useDidMount } from "@codestream/webview/utilities/hooks";
+import { emptyArray, mapFilter } from "@codestream/webview/utils";
+import { HostApi } from "@codestream/webview/webview-api";
+import React from "react";
+import ReactDOM from "react-dom";
+import { useDispatch, useSelector } from "react-redux";
+import AsyncSelect from "react-select/async";
+import { CrossPostIssueContext } from "../CodemarkForm";
+import Icon from "../Icon";
+import Menu from "../Menu";
 
 interface Props {
 	provider: ThirdPartyProviderConfig;
@@ -46,7 +46,7 @@ export function SlackCardControls(props: React.PropsWithChildren<Props>) {
 
 		if (!data.isLoading) {
 			updateDataState({
-				isLoading: true
+				isLoading: true,
 			});
 		}
 
@@ -56,14 +56,16 @@ export function SlackCardControls(props: React.PropsWithChildren<Props>) {
 			const response = await HostApi.instance.send(FetchThirdPartyChannelsRequestType, {
 				providerId: props.provider.id,
 				// TODO need the real providerTeamId
-				providerTeamId: "T7DDT1L5R"
+				providerTeamId: "T7DDT1L5R",
 			});
 
 			if (!isValid) return;
 			// make sure to persist current board/list selection if possible
-			const newCurrentBoard = (data.currentBoard
-				? response.channels.find(b => b.id === data.currentBoard!.id)
-				: response.channels[0]) as SlackChannel;
+			const newCurrentBoard = (
+				data.currentBoard
+					? response.channels.find(b => b.id === data.currentBoard!.id)
+					: response.channels[0]
+			) as SlackChannel;
 
 			// const newCurrentList = (data.currentList
 			// 	? newCurrentBoard.lists.find(l => l.id === data.currentList!.id)
@@ -72,7 +74,7 @@ export function SlackCardControls(props: React.PropsWithChildren<Props>) {
 			updateDataState({
 				isLoading: false,
 				boards: response.channels as SlackChannel[],
-				currentBoard: newCurrentBoard
+				currentBoard: newCurrentBoard,
 				//currentList: newCurrentList
 			});
 
@@ -102,7 +104,7 @@ export function SlackCardControls(props: React.PropsWithChildren<Props>) {
 		const target = event.target;
 		setBoardMenuState(state => ({
 			open: !state.open,
-			target
+			target,
 		}));
 	}, []);
 
@@ -110,7 +112,7 @@ export function SlackCardControls(props: React.PropsWithChildren<Props>) {
 		setBoardMenuState({ open: false });
 		if (board) {
 			updateDataState({
-				currentBoard: board
+				currentBoard: board,
 				//currentList: board.lists[0]
 			});
 			// crossPostIssueContext.setValues({
@@ -124,7 +126,7 @@ export function SlackCardControls(props: React.PropsWithChildren<Props>) {
 		const target = event.target;
 		setListMenuState(state => ({
 			open: !state.open,
-			target
+			target,
 		}));
 	}, []);
 
@@ -133,7 +135,7 @@ export function SlackCardControls(props: React.PropsWithChildren<Props>) {
 
 		if (list) {
 			crossPostIssueContext.setValues({
-				listId: list.id
+				listId: list.id,
 			});
 			// updateDataState({
 			// 	currentList: list
@@ -147,7 +149,7 @@ export function SlackCardControls(props: React.PropsWithChildren<Props>) {
 
 			const { users } = await HostApi.instance.send(FetchAssignableUsersRequestType, {
 				providerId: props.provider.id,
-				boardId: data.currentBoard!.id
+				boardId: data.currentBoard!.id,
 			});
 			return mapFilter(users, u => {
 				if (u.displayName.toLowerCase().includes(inputValue.toLowerCase()))
@@ -207,7 +209,7 @@ export function SlackCardControls(props: React.PropsWithChildren<Props>) {
 	const boardItems = (data.boards || emptyArray).map(board => ({
 		label: board.name,
 		key: board.id,
-		action: board
+		action: board,
 	}));
 	const listItems = [];
 	//  data.currentBoard

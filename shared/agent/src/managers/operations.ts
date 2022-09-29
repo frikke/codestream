@@ -160,5 +160,5 @@ const operations = {
 	},
 	$version(object: any, data: any) {
 		object.version = data.after;
-	}
+	},
 } as any;

@@ -1,5 +1,5 @@
 import { action } from "../common";
-import { UnreadsState, UnreadsActionsType } from "./types";
+import { UnreadsActionsType, UnreadsState } from "./types";
 
 export { reset } from "../actions";
 

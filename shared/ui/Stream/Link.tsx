@@ -1,8 +1,7 @@
-import { OpenUrlRequestType } from "../ipc/host.protocol";
 import React from "react";
 import { connect } from "react-redux";
+import { OpenUrlRequestType } from "../ipc/host.protocol";
 import { HostApi } from "../webview-api";
-import styled from "styled-components";
 
 interface Props {
 	useHref?: boolean;
@@ -21,7 +20,7 @@ function Link(props: Props) {
 
 	const onClick =
 		props.onClick ||
-		function(event: React.SyntheticEvent) {
+		function (event: React.SyntheticEvent) {
 			if (!(event.target as any).href) {
 				event.preventDefault();
 				if (props.useStopPropagation) {
@@ -35,7 +34,7 @@ function Link(props: Props) {
 }
 
 const mapStateToProps = (state, props: Props) => ({
-	useHref: props.href && state.capabilities.openLink
+	useHref: props.href && state.capabilities.openLink,
 });
 const Component = connect(mapStateToProps)(Link);
 

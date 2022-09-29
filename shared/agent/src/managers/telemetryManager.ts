@@ -3,7 +3,7 @@ import {
 	TelemetryRequest,
 	TelemetryRequestType,
 	TelemetrySetAnonymousIdRequest,
-	TelemetrySetAnonymousIdRequestType
+	TelemetrySetAnonymousIdRequestType,
 } from "../protocol/agent.protocol";
 import { CodeStreamSession } from "../session";
 import { debug, lsp, lspHandler } from "../system";

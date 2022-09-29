@@ -5,7 +5,7 @@ import * as path from "path";
 
 export function openUrl(target: string) {
 	const opts = {
-		wait: false
+		wait: false,
 	} as any;
 
 	// @ts-ignore

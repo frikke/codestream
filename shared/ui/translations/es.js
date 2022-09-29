@@ -71,5 +71,5 @@ export default {
 	"teamCreation.teamYet":
 		"Todavía no perteneces a ningún equipo. Introduce un nombre para crear uno ahora.",
 	"teamCreation.required": "Requerido",
-	"teamCreation.cancel": "Cancelar"
+	"teamCreation.cancel": "Cancelar",
 };

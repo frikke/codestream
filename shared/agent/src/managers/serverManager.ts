@@ -1,11 +1,11 @@
-import { ParsedUrlQueryInput } from "querystring";
 import * as qs from "querystring";
+import { ParsedUrlQueryInput } from "querystring";
 import { Logger } from "../logger";
 import {
 	CodeStreamApiDeleteRequestType,
 	CodeStreamApiGetRequestType,
 	CodeStreamApiPostRequestType,
-	CodeStreamApiPutRequestType
+	CodeStreamApiPutRequestType,
 } from "../protocol/agent.protocol";
 import { CodeStreamSession } from "../session";
 import { lsp, lspHandler } from "../system";
@@ -23,7 +23,7 @@ export class ServerManager {
 			return this.session.api.get(request.url);
 		} catch (e) {
 			Logger.error(e, "Could not GET", {
-				url: request.url
+				url: request.url,
 			});
 		}
 	}
@@ -34,7 +34,7 @@ export class ServerManager {
 			return this.session.api.post(request.url, request.body);
 		} catch (e) {
 			Logger.error(e, "Could not POST", {
-				url: request.url
+				url: request.url,
 			});
 		}
 	}
@@ -45,7 +45,7 @@ export class ServerManager {
 			return this.session.api.put(request.url, request.body);
 		} catch (e) {
 			Logger.error(e, "Could not PUT", {
-				url: request.url
+				url: request.url,
 			});
 		}
 	}
@@ -56,7 +56,7 @@ export class ServerManager {
 			return this.session.api.delete(request.url);
 		} catch (e) {
 			Logger.error(e, "Could not DELETE", {
-				url: request.url
+				url: request.url,
 			});
 		}
 	}

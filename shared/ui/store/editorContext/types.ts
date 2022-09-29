@@ -6,5 +6,5 @@ export enum EditorContextActionsType {
 	SetEditorLayout = "@editorContext/SetLayout",
 	SetEditorContext = "@editorContext/Set",
 	AppendProcessBuffer = "@editorContext/AppendProcessBuffer",
-	ClearProcessBuffer = "@editorContext/ClearProcessBuffer"
+	ClearProcessBuffer = "@editorContext/ClearProcessBuffer",
 }

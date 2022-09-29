@@ -16,9 +16,9 @@ describe("newRelicProvider", () => {
 					accountName: "codestream",
 					entityGuid: "123",
 					entityName: "prod",
-					tags: [{ key: "env", values: ["production"] }]
-				}
-			]
+					tags: [{ key: "env", values: ["production"] }],
+				},
+			],
 		});
 		expect(asdf.entityGuid).toEqual("123");
 	});
@@ -35,16 +35,16 @@ describe("newRelicProvider", () => {
 					accountName: "codestream",
 					entityGuid: "123",
 					entityName: "dev",
-					tags: [{ key: "env", values: ["dev"] }]
+					tags: [{ key: "env", values: ["dev"] }],
 				},
 				{
 					accountId: 2,
 					accountName: "codestream",
 					entityGuid: "234",
 					entityName: "us-foo (prod)",
-					tags: []
-				}
-			]
+					tags: [],
+				},
+			],
 		});
 		expect(asdf.entityGuid).toEqual("234");
 	});
@@ -61,23 +61,23 @@ describe("newRelicProvider", () => {
 					accountName: "codestream",
 					entityGuid: "012",
 					entityName: "eu-foo",
-					tags: []
+					tags: [],
 				},
 				{
 					accountId: 1,
 					accountName: "codestream",
 					entityGuid: "123",
 					entityName: "dev",
-					tags: [{ key: "env", values: ["dev"] }]
+					tags: [{ key: "env", values: ["dev"] }],
 				},
 				{
 					accountId: 2,
 					accountName: "codestream",
 					entityGuid: "234",
 					entityName: "us-foo (staging)",
-					tags: []
-				}
-			]
+					tags: [],
+				},
+			],
 		});
 		expect(asdf.entityGuid).toEqual("012");
 	});
@@ -89,9 +89,9 @@ describe("newRelicProvider", () => {
 					observabilityRepoEntities: [
 						{
 							repoId: "555",
-							entityGuid: "234"
-						}
-					]
+							entityGuid: "234",
+						},
+					],
 				},
 				lastReads: undefined as any,
 				lastReadItems: [] as any,
@@ -116,7 +116,7 @@ describe("newRelicProvider", () => {
 				createdAt: 0,
 				modifiedAt: 0,
 				id: "",
-				creatorId: ""
+				creatorId: "",
 			},
 			{
 				repoId: "555",
@@ -128,16 +128,16 @@ describe("newRelicProvider", () => {
 						accountName: "codestream",
 						entityGuid: "123",
 						entityName: "prod",
-						tags: [{ key: "env", values: ["production"] }]
+						tags: [{ key: "env", values: ["production"] }],
 					},
 					{
 						accountId: 2,
 						accountName: "codestream",
 						entityGuid: "234",
 						entityName: "prod",
-						tags: []
-					}
-				]
+						tags: [],
+					},
+				],
 			}
 		);
 		expect(asdf.entityGuid).toEqual("234");

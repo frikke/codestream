@@ -68,7 +68,7 @@ export namespace Versions {
 			major: typeof major === "string" ? parseInt(major, 10) : major,
 			minor: typeof minor === "string" ? parseInt(minor, 10) : minor,
 			patch: typeof patch === "string" ? parseInt(patch, 10) : patch,
-			pre: pre
+			pre: pre,
 		};
 	}
 

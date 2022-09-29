@@ -1,8 +1,8 @@
 "use strict";
 
+import { Logger } from "../../logger";
 import { CSStackTraceInfo } from "../../protocol/api.protocol.models";
 import { Strings } from "../../system/string";
-import { Logger } from "../../logger";
 
 let regex: RegExp;
 
@@ -60,7 +60,7 @@ export function Parser(stack: string): CSStackTraceInfo {
 		info.lines.push({
 			method: `${packageName}.${className}.${methodName}`,
 			fileFullPath: fileFromClass,
-			line: lineNum
+			line: lineNum,
 		});
 	}
 

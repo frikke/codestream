@@ -1,21 +1,21 @@
-import React from "react";
-import { useSelector } from "react-redux";
-import { CodeStreamState } from "../../store";
-import { getCodeError } from "../../store/codeErrors/reducer";
-import Dismissable from "../Dismissable";
 import {
 	ChangeDataType,
 	DidChangeDataNotificationType,
 	DidChangeObservabilityDataNotificationType,
 	GetReposScmRequestType,
-	ReposScm
+	ReposScm,
 } from "@codestream/protocols/agent";
-import { HostApi } from "@codestream/webview/webview-api";
 import { CSCodeError } from "@codestream/protocols/api";
-import { logWarning } from "../../logger";
-import { DropdownButton } from "../DropdownButton";
 import { useDidMount } from "@codestream/webview/utilities/hooks";
+import { HostApi } from "@codestream/webview/webview-api";
+import React from "react";
+import { useSelector } from "react-redux";
 import styled from "styled-components";
+import { logWarning } from "../../logger";
+import { CodeStreamState } from "../../store";
+import { getCodeError } from "../../store/codeErrors/reducer";
+import Dismissable from "../Dismissable";
+import { DropdownButton } from "../DropdownButton";
 
 const Ellipsize = styled.div`
 	button {
@@ -55,7 +55,7 @@ export function RepositoryAssociator(props: {
 
 		return {
 			codeError: codeError,
-			repos: state.repos
+			repos: state.repos,
 		};
 	});
 	const { error: repositoryError } = props;
@@ -71,7 +71,7 @@ export function RepositoryAssociator(props: {
 		HostApi.instance
 			.send(GetReposScmRequestType, {
 				inEditorOnly: true,
-				includeRemotes: true
+				includeRemotes: true,
 			})
 			.then(_ => {
 				if (!_.repositories) return;
@@ -91,7 +91,7 @@ export function RepositoryAssociator(props: {
 								key: btoa(remoteUrl!),
 								remote: remoteUrl!,
 								label: label,
-								name: name
+								name: name,
 							});
 						}
 						if (repo.remotes.length > 1) {
@@ -132,8 +132,8 @@ export function RepositoryAssociator(props: {
 						onClick: e => {
 							e.preventDefault();
 							props.onCancelled(e);
-						}
-					}
+						},
+					},
 				]}
 			>
 				<p>Could not locate any open repositories. Please open a repository and try again.</p>
@@ -155,12 +155,12 @@ export function RepositoryAssociator(props: {
 						await props.onSubmit(selected);
 						if (!props.disableEmitDidChangeObservabilityDataNotification) {
 							HostApi.instance.emit(DidChangeObservabilityDataNotificationType.method, {
-								type: "RepositoryAssociation"
+								type: "RepositoryAssociation",
 							});
 						}
 						setIsLoading(false);
 					},
-					disabled: !selected
+					disabled: !selected,
 				},
 				{
 					text: "Cancel",
@@ -168,8 +168,8 @@ export function RepositoryAssociator(props: {
 					onClick: e => {
 						e.preventDefault();
 						props.onCancelled(e);
-					}
-				}
+					},
+				},
 			]}
 		>
 			<p>{repositoryError.description}</p>
@@ -188,7 +188,7 @@ export function RepositoryAssociator(props: {
 									action: () => {
 										setSelected(remote);
 										props.onSelected && props.onSelected(remote);
-									}
+									},
 								};
 							}) || []
 					}

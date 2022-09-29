@@ -1,39 +1,40 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
+	FetchForkPointRequestType,
 	FetchThirdPartyPullRequestPullRequest,
 	GetReposScmRequestType,
-	FetchForkPointRequestType,
-	ReposScm
+	ReposScm,
 } from "@codestream/protocols/agent";
-import { HostApi } from "@codestream/webview/webview-api";
-import { useSelector } from "react-redux";
-import { CodeStreamState } from "@codestream/webview/store";
-import Icon from "./Icon";
 import {
+	CompareLocalFilesRequest,
+	EditorRevealRangeRequestType,
 	ShowNextChangedFileNotificationType,
 	ShowPreviousChangedFileNotificationType,
-	EditorRevealRangeRequestType
 } from "@codestream/protocols/webview";
-import { useDidMount } from "../utilities/hooks";
-import { CompareLocalFilesRequestType } from "../ipc/host.protocol";
+import { CodeStreamState } from "@codestream/webview/store";
+import { HostApi } from "@codestream/webview/webview-api";
 import * as path from "path-browserify";
-import { Range } from "vscode-languageserver-types";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
 import styled from "styled-components";
+import { Range } from "vscode-languageserver-types";
+import { CompareLocalFilesRequestType } from "../ipc/host.protocol";
 import { parseCodeStreamDiffUri } from "../store/codemarks/actions";
-import { Link } from "./Link";
-import { Meta, MetaLabel } from "./Codemark/BaseCodemark";
-import { MetaIcons } from "./Review";
 import {
+	getCurrentProviderPullRequest,
 	getProviderPullRequestCollaborators,
 	getProviderPullRequestRepo,
 	getPullRequestId,
-	getCurrentProviderPullRequest
-} from "../store/providerPullRequests/reducer";
-import { CompareFilesProps } from "./PullRequestFilesChangedList";
+} from "../store/providerPullRequests/slice";
+import { useDidMount } from "../utilities/hooks";
 import { TernarySearchTree } from "../utilities/searchTree";
+import { Meta, MetaLabel } from "./Codemark/BaseCodemark";
+import Icon from "./Icon";
+import { Link } from "./Link";
 import { PRErrorBox, PRErrorBoxSidebar } from "./PullRequestComponents";
 import { PullRequestFilesChangedFileComments } from "./PullRequestFilesChangedFileComments";
-import { isUndefined } from "lodash-es";
+import { CompareFilesProps } from "./PullRequestFilesChangedList";
+import { MetaIcons } from "./Review";
+import { logError } from "../logger";
 
 export const Directory = styled.div`
 	cursor: pointer;
@@ -98,7 +99,7 @@ export const PullRequestFilesChanged = (props: Props) => {
 				: "";
 		const parsedDiffUri = parseCodeStreamDiffUri(matchFile || "");
 
-		return {
+		const result = {
 			currentPullRequestProviderId: state.context.currentPullRequest
 				? state.context.currentPullRequest.providerId
 				: undefined,
@@ -111,8 +112,9 @@ export const PullRequestFilesChanged = (props: Props) => {
 			numFiles: props.filesChanged.length,
 			isInVscode: state.ide.name === "VSC",
 			pullRequestId: getPullRequestId(state),
-			collaborators: getProviderPullRequestCollaborators(state)
+			collaborators: getProviderPullRequestCollaborators(state),
 		};
+		return result;
 	});
 
 	const { visitedFiles, visitFile, unVisitFile } = props;
@@ -144,6 +146,19 @@ export const PullRequestFilesChanged = (props: Props) => {
 				) : (
 					<span>Could not get fork point.</span>
 				);
+
+			logError(forkPointResponse?.error?.type || "undefined forkPointResponse", {
+				detail: errorMessageCopy,
+				repoId:
+					derivedState.currentRepo?.repoFoundReason === "closestMatch"
+						? "0"
+						: derivedState.currentRepo!.id!,
+				baseSha: props?.baseRef,
+				headSha: props?.headRef,
+				baseShaFromPrProp: props?.pr?.baseRefOid,
+				headShaFromPrProp: props?.pr?.headRefOid,
+				ref: getRef,
+			});
 			setErrorMessage(errorMessageCopy);
 
 			setIsDisabled(true);
@@ -161,7 +176,7 @@ export const PullRequestFilesChanged = (props: Props) => {
 				includeCurrentBranches: true,
 				includeProviders: true,
 				includeRemotes: true,
-				includeConnectedProviders: true
+				includeConnectedProviders: true,
 			});
 			if (response && response.repositories) {
 				setOpenRepos(response.repositories);
@@ -177,7 +192,8 @@ export const PullRequestFilesChanged = (props: Props) => {
 			} else if (derivedState.currentPullRequestProviderId.indexOf("gitlab") > -1) {
 				return `merge-requests/${props.pr.iid}/head`;
 			} else if (derivedState.currentPullRequestProviderId.indexOf("bitbucket") > -1) {
-				return "";
+				//TODO: figure this out  FETCH_HEAD???
+				return `refs/pull/${props.pr.number}/head`;
 			}
 		}
 		return "";
@@ -196,10 +212,20 @@ export const PullRequestFilesChanged = (props: Props) => {
 								: derivedState.currentRepo!.id!,
 						baseSha: props.baseRef,
 						headSha: props.headRef,
-						ref: getRef
+						ref: getRef,
 					});
 					handleForkPointResponse(forkPointResponse);
 				} catch (ex) {
+					logError(ex, {
+						detail: `failed to fetchForkPoint`,
+						repoId:
+							derivedState.currentRepo?.repoFoundReason === "closestMatch"
+								? "0"
+								: derivedState.currentRepo!.id!,
+						baseSha: props.baseRef,
+						headSha: props.headRef,
+						ref: getRef,
+					});
 					console.error(ex);
 				} finally {
 					setLoading(false);
@@ -223,10 +249,20 @@ export const PullRequestFilesChanged = (props: Props) => {
 								: derivedState.currentRepo!.id!,
 						baseSha: props.pr.baseRefOid,
 						headSha: props.pr.headRefOid,
-						ref: getRef
+						ref: getRef,
 					});
 					handleForkPointResponse(forkPointResponse);
 				} catch (err) {
+					logError(err, {
+						detail: `failed to fetchForkPoint`,
+						repoId:
+							derivedState.currentRepo?.repoFoundReason === "closestMatch"
+								? "0"
+								: derivedState.currentRepo!.id!,
+						baseSha: props.pr.baseRefOid,
+						headSha: props.pr.headRefOid,
+						ref: getRef,
+					});
 					console.error(err);
 				} finally {
 					setLoading(false);
@@ -243,7 +279,7 @@ export const PullRequestFilesChanged = (props: Props) => {
 				if (index > derivedState.numFiles - 1) index = 0;
 				const f = filesInOrder[index];
 
-				const request = {
+				const request: CompareLocalFilesRequest = {
 					baseBranch: props.baseRefName,
 					baseSha: pr && !props.commitBased ? forkPointSha : props.baseRef,
 					headBranch: props.headRefName,
@@ -256,10 +292,10 @@ export const PullRequestFilesChanged = (props: Props) => {
 								pullRequest: {
 									providerId: pr.providerId,
 									id: derivedState.pullRequestId,
-									collaborators: derivedState.collaborators
-								}
+									collaborators: derivedState.collaborators!,
+								},
 						  }
-						: undefined
+						: undefined,
 				};
 				try {
 					await HostApi.instance.send(CompareLocalFilesRequestType, request);
@@ -269,7 +305,7 @@ export const PullRequestFilesChanged = (props: Props) => {
 				}
 
 				HostApi.instance.track("PR Diff Viewed", {
-					Host: pr && pr.providerId
+					Host: pr && pr.providerId,
 				});
 			})(i);
 		},
@@ -291,7 +327,7 @@ export const PullRequestFilesChanged = (props: Props) => {
 	useEffect(() => {
 		const disposables = [
 			HostApi.instance.on(ShowNextChangedFileNotificationType, nextFile),
-			HostApi.instance.on(ShowPreviousChangedFileNotificationType, prevFile)
+			HostApi.instance.on(ShowPreviousChangedFileNotificationType, prevFile),
 		];
 
 		return () => disposables.forEach(disposable => disposable.dispose());
@@ -305,7 +341,7 @@ export const PullRequestFilesChanged = (props: Props) => {
 		let repoRoot = currentRepoRoot;
 		if (!repoRoot) {
 			const response = await HostApi.instance.send(GetReposScmRequestType, {
-				inEditorOnly: false
+				inEditorOnly: false,
 			});
 			if (!response.repositories) return;
 			const repoIdToCheck = props.repoId
@@ -324,14 +360,14 @@ export const PullRequestFilesChanged = (props: Props) => {
 		if (repoRoot) {
 			const result = await HostApi.instance.send(EditorRevealRangeRequestType, {
 				uri: path.join("file://", repoRoot, f.file),
-				range: Range.create(0, 0, 0, 0)
+				range: Range.create(0, 0, 0, 0),
 			});
 
 			if (!result.success) {
 				setErrorMessage("Could not open file");
 			} else {
 				HostApi.instance.track("PR File Viewed", {
-					Host: props.pr && props.pr.providerId
+					Host: props.pr && props.pr.providerId,
 				});
 			}
 		} else {
@@ -485,7 +521,7 @@ export const PullRequestFilesChanged = (props: Props) => {
 		derivedState.matchFile,
 		visitedFiles,
 		forkPointSha,
-		props.viewMode
+		props.viewMode,
 	]);
 
 	React.useEffect(() => {

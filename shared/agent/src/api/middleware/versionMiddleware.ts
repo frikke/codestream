@@ -7,7 +7,7 @@ import { log, Versions } from "../../system";
 import {
 	ApiProvider,
 	CodeStreamApiMiddleware,
-	CodeStreamApiMiddlewareContext
+	CodeStreamApiMiddlewareContext,
 } from "../apiProvider";
 import { APIServerVersionInfo } from "../codestream/apiServerVersionInfo";
 
@@ -54,7 +54,7 @@ export class VersionMiddlewareManager implements Disposable {
 		this._onDidChangeCompatibility.fire({
 			compatibility: compatibility,
 			downloadUrl: url,
-			version: version
+			version: version,
 		});
 	}
 
@@ -67,7 +67,7 @@ export class VersionMiddlewareManager implements Disposable {
 		this._onDidChangeApiCompatibility.fire({
 			compatibility,
 			version,
-			missingCapabilities
+			missingCapabilities,
 		});
 	}
 

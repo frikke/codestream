@@ -5,7 +5,7 @@ import {
 	CSCreateTeamResponse,
 	CSTeam,
 	CSTeamTagRequest,
-	CSTeamTagResponse
+	CSTeamTagResponse,
 } from "./api.protocol";
 
 export interface FetchTeamsRequest {

@@ -256,10 +256,9 @@ export class Logger {
 
 	private static get timestamp(): string {
 		const now = new Date();
-		return `[${now
-			.toISOString()
-			.replace(/T/, " ")
-			.replace(/\..+/, "")}:${("00" + now.getUTCMilliseconds()).slice(-3)}]`;
+		return `[${now.toISOString().replace(/T/, " ").replace(/\..+/, "")}:${(
+			"00" + now.getUTCMilliseconds()
+		).slice(-3)}]`;
 	}
 
 	private static toLoggableParams(debugOnly: boolean, params: any[]) {

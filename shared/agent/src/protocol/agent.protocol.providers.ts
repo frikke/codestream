@@ -1,6 +1,6 @@
 "use strict";
 import { RequestType } from "vscode-languageserver-protocol";
-import { CrossPostIssueValues } from "./agent.protocol";
+import { CrossPostIssueValues, GitLabMergeRequest } from "./agent.protocol";
 import { CodeErrorPlus } from "./agent.protocol.codeErrors";
 import { CodemarkPlus } from "./agent.protocol.codemarks";
 import { ReviewPlus } from "./agent.protocol.reviews";
@@ -116,6 +116,7 @@ export interface ThirdPartyProviderBoard {
 
 export interface FetchThirdPartyBoardsRequest {
 	providerId: string;
+	force?: boolean | undefined;
 	[key: string]: any;
 }
 
@@ -158,6 +159,8 @@ export interface ThirdPartyProviderCard {
 
 export interface FetchThirdPartyCardsRequest {
 	providerId: string;
+	customFilter?: string;
+	force?: boolean | undefined;
 	[key: string]: any;
 }
 
@@ -473,7 +476,9 @@ export interface StatusContext {
 
 export interface FetchThirdPartyPullRequestPullRequest {
 	id: string;
+	/** used by some other providers like GitLab  */
 	iid?: string;
+	idComputed?: string;
 	providerId: string; // e.g. "github*com"
 	// this is the parent repo
 	repository: {
@@ -514,6 +519,7 @@ export interface FetchThirdPartyPullRequestPullRequest {
 			};
 		};
 	};
+	comments?: any[]; //TODO: Fix this!
 	files: {
 		pageInfo: {
 			endCursor?: string;
@@ -665,6 +671,7 @@ export interface FetchThirdPartyPullRequestPullRequest {
 		viewerCanDelete?: boolean;
 	};
 	supports?: {
+		reviewers?: any;
 		version: {
 			version: string;
 		};
@@ -697,7 +704,7 @@ export interface FetchThirdPartyPullRequestRepository {
 	providerId: string;
 	viewerDefaultMergeMethod?: "MERGE" | "REBASE" | "SQUASH";
 	viewerPermission: "ADMIN" | "MAINTAIN" | "READ" | "TRIAGE" | "WRITE";
-	branchProtectionRules: BranchProtectionRules;
+	branchProtectionRules?: BranchProtectionRules | undefined;
 }
 
 interface RateLimit {
@@ -707,17 +714,25 @@ interface RateLimit {
 	resetAt: any;
 }
 
+export interface ThirdPartyPullRequestComments<T> extends Array<T> {}
+
 export interface FetchThirdPartyPullRequestResponse {
 	error?: {
 		message: string;
 	};
-	rateLimit: RateLimit;
+	rateLimit?: RateLimit;
 	repository: FetchThirdPartyPullRequestRepository;
 	viewer: {
 		id: string;
 		login: string;
 		avatarUrl: string;
 	};
+	project?: {
+		name?: string;
+		repoName?: string;
+		mergeRequest?: FetchThirdPartyPullRequestPullRequest | GitLabMergeRequest;
+	};
+	mergeRequest?: GitLabMergeRequest; // TODO - Probably can remove
 }
 
 export const FetchThirdPartyPullRequestRequestType = new RequestType<
@@ -739,6 +754,7 @@ export interface FetchThirdPartyPullRequestCommitsResponse {
 		avatarUrl: string;
 		user?: {
 			login: string;
+			avatarUrl?: string;
 		};
 	};
 	committer: {
@@ -837,6 +853,7 @@ export interface Labels {
 
 export interface GetMyPullRequestsResponse {
 	id: string;
+	idComputed?: string;
 	providerId: string;
 	url: string;
 	title: string;
@@ -1070,7 +1087,7 @@ export const GetNewRelicAccountsRequestType = new RequestType<
 >("codestream/newrelic/accounts");
 
 export interface GetObservabilityErrorsRequest {
-	filters?: { repoId: string; entityGuid?: string }[];
+	filters: { repoId: string; entityGuid?: string }[];
 }
 
 export interface ObservabilityErrorCore {
@@ -1117,6 +1134,7 @@ export const GetObservabilityErrorsRequestType = new RequestType<
 
 export interface GetObservabilityReposRequest {
 	filters?: { repoId: string; entityGuid?: string }[];
+	force?: boolean;
 }
 
 export interface EntityAccount {
@@ -1204,7 +1222,7 @@ export interface FunctionLocator {
 }
 
 export interface GetFileLevelTelemetryRequest {
-	filePath: string;
+	fileUri: string;
 	languageId: string;
 	/** if true, this request will reset the cache */
 	resetCache?: boolean;
@@ -1221,6 +1239,13 @@ export interface GetMethodLevelTelemetryRequest {
 	metricTimesliceNameMapping?: MetricTimesliceNameMapping;
 }
 
+export interface GetEntityCountRequest {
+	force?: boolean;
+}
+
+export interface GetEntityCountResponse {
+	entityCount: number;
+}
 export interface GetServiceLevelTelemetryRequest {
 	/** CodeStream repoId */
 	repoId: string;
@@ -1346,6 +1371,13 @@ export const GetAlertViolationsRequestType = new RequestType<
 	void,
 	void
 >("codestream/newrelic/alertViolations");
+
+export const GetEntityCountRequestType = new RequestType<
+	GetEntityCountRequest,
+	GetEntityCountResponse,
+	void,
+	void
+>("codestream/newrelic/entityCount");
 
 export interface CrashOrException {
 	message?: string;

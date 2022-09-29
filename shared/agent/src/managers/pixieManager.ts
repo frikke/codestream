@@ -25,7 +25,6 @@ import {
 	PixieGetPodsRequest,
 	PixieGetPodsRequestType,
 	PixieGetPodsResponse,
-	PixiePod
 } from "../protocol/agent.protocol";
 import { NewRelicProvider } from "../providers/newrelic";
 import { CodeStreamSession } from "../session";
@@ -84,7 +83,7 @@ export class PixieManager {
 		);
 
 		return new Promise<PixieGetClustersResponse>((resolve, reject) => {
-			clusterInfo.getClusterInfo({}, function(err: any, response: { clusters: PixieCluster[] }) {
+			clusterInfo.getClusterInfo({}, function (err: any, response: { clusters: PixieCluster[] }) {
 				if (err) {
 					reject(new Error(err.message || err.toString()));
 				} else {
@@ -100,14 +99,14 @@ export class PixieManager {
 							.map(_ => {
 								const id = {
 									high: newLong(_.id!.highBits),
-									low: newLong(_.id!.lowBits)
+									low: newLong(_.id!.lowBits),
 								};
 								const clusterId = formatId(id);
 								return {
 									clusterId,
-									clusterName: _.clusterName
+									clusterName: _.clusterName,
 								};
-							})
+							}),
 					});
 				}
 			});
@@ -128,7 +127,7 @@ px.display(df[['namespace']])
 
 		const call = vizier.executeScript({
 			queryStr: script,
-			clusterId: request.clusterId
+			clusterId: request.clusterId,
 		});
 
 		return new Promise<PixieGetNamespacesResponse>((resolve, reject) => {
@@ -156,7 +155,7 @@ px.display(df[['namespace']])
 			call.on("end", () => {
 				if (namespaces) {
 					resolve({
-						namespaces: namespaces.sort()
+						namespaces: namespaces.sort(),
 					});
 				} else {
 					reject(new Error(error || "Error fetching namespaces"));
@@ -180,7 +179,7 @@ px.display(df[['upid', 'pod']])`;
 
 		const call = vizier.executeScript({
 			queryStr: script,
-			clusterId: request.clusterId
+			clusterId: request.clusterId,
 		});
 
 		return new Promise<PixieGetPodsResponse>((resolve, reject) => {
@@ -211,7 +210,7 @@ px.display(df[['upid', 'pod']])`;
 				if (pods) {
 					const podsArray = Array.from(pods, ([key, value]) => ({
 						upid: key,
-						name: value
+						name: value,
 					})).sort((a, b) =>
 						a.name.toLowerCase() > b.name.toLowerCase()
 							? 1
@@ -221,7 +220,7 @@ px.display(df[['upid', 'pod']])`;
 					);
 
 					resolve({
-						pods: podsArray
+						pods: podsArray,
 					});
 				} else {
 					reject(new Error(error || "Error fetching pods"));
@@ -264,9 +263,9 @@ px.display(df[['upid', 'pod']])`;
 				const call = vizier.executeScript({
 					queryStr: script,
 					clusterId: request.clusterId,
-					mutation: true
+					mutation: true,
 				});
-				call.on("data", function(response: any) {
+				call.on("data", function (response: any) {
 					if (response.metaData) {
 						metaData = (response.metaData.relation.columns as any[]).map(c => c.columnName);
 					}
@@ -289,7 +288,7 @@ px.display(df[['upid', 'pod']])`;
 						}
 					}
 				});
-				call.on("error", function(err: any) {
+				call.on("error", function (err: any) {
 					if (
 						err.message ===
 						"14 UNAVAILABLE: rpc error: code = Unavailable desc = probe installation in progress"
@@ -304,7 +303,7 @@ px.display(df[['upid', 'pod']])`;
 						error = err.toString();
 					}
 				});
-				call.on("status", function(s: any) {
+				call.on("status", function (s: any) {
 					if (s?.details?.length) {
 						if (
 							s.details === "rpc error: code = Unavailable desc = probe installation in progress"
@@ -339,7 +338,7 @@ px.display(df[['upid', 'pod']])`;
 						data,
 						status,
 						error,
-						done
+						done,
 					});
 
 					if (!done) {

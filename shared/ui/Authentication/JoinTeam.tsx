@@ -1,21 +1,21 @@
-import React, { useEffect, useState, useCallback } from "react";
-import Button from "../Stream/Button";
-import { CodeStreamState } from "../store";
-import { useDispatch, useSelector } from "react-redux";
-import { goToSignup } from "../store/context/actions";
-import { TextInput } from "./TextInput";
-import { HostApi } from "@codestream/webview/webview-api";
 import { GetInviteInfoRequestType } from "@codestream/protocols/agent";
 import { LoginResult } from "@codestream/protocols/api";
+import { HostApi } from "@codestream/webview/webview-api";
+import React, { useCallback, useEffect, useState } from "react";
 import { FormattedMessage } from "react-intl";
-import { SignupType } from "./actions";
+import { useDispatch, useSelector } from "react-redux";
 import { UpdateServerUrlRequestType } from "../ipc/host.protocol";
+import { CodeStreamState } from "../store";
+import { goToSignup } from "../store/context/actions";
+import Button from "../Stream/Button";
+import { SignupType } from "./actions";
+import { TextInput } from "./TextInput";
 
 const errorToMessageId = {
 	[LoginResult.InvalidToken]: "confirmation.invalid",
 	[LoginResult.ExpiredToken]: "confirmation.expired",
 	[LoginResult.Timeout]: "unexpectedError",
-	[LoginResult.Unknown]: "unexpectedError"
+	[LoginResult.Unknown]: "unexpectedError",
 };
 
 export interface JoinTeamProps {
@@ -33,7 +33,7 @@ export const JoinTeam = (props: React.PropsWithChildren<JoinTeamProps>) => {
 	// called when we have an invite code, and for on-prem, when we know the server url has been set
 	const checkInviteInfo = async code => {
 		const { status, info } = await HostApi.instance.send(GetInviteInfoRequestType, {
-			code
+			code,
 		});
 
 		if (status === LoginResult.Success) {
@@ -42,7 +42,7 @@ export const JoinTeam = (props: React.PropsWithChildren<JoinTeamProps>) => {
 			picker < 0.5 ? (tosType = "Interstitial") : (tosType = "Links");
 			HostApi.instance.track("Reg Path Selected", {
 				"Reg Path": "Join Team",
-				"TOS Type": tosType
+				"TOS Type": tosType,
 			});
 			// HostApi.instance.track("Joined Organization", {
 			// 	Availability: ""
@@ -114,7 +114,7 @@ export const JoinTeam = (props: React.PropsWithChildren<JoinTeamProps>) => {
 			setWaitingForServerUrlTimeout(timeout);
 			HostApi.instance.send(UpdateServerUrlRequestType, {
 				serverUrl,
-				disableStrictSSL
+				disableStrictSSL,
 			});
 		} else {
 			setIsLoading(false);

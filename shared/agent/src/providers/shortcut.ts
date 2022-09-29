@@ -15,7 +15,7 @@ import {
 	ShortcutSelf,
 	ShortcutStory,
 	ThirdPartyDisconnect,
-	ThirdPartyProviderCard
+	ThirdPartyProviderCard,
 } from "../protocol/agent.protocol";
 import { CSShortcutProviderInfo } from "../protocol/api.protocol";
 import { log, lspProvider } from "../system";
@@ -36,7 +36,7 @@ export class ShortcutProvider extends ThirdPartyIssueProviderBase<CSShortcutProv
 	get headers() {
 		return {
 			"Content-Type": "application/json",
-			"Shortcut-Token": this.accessToken!
+			"Shortcut-Token": this.accessToken!,
 		};
 	}
 
@@ -82,7 +82,7 @@ export class ShortcutProvider extends ThirdPartyIssueProviderBase<CSShortcutProv
 					title: story.name,
 					modifiedAt: new Date(story.updated_at).getTime(),
 					tokenId: story.id,
-					body: story.description
+					body: story.description,
 				};
 			});
 
@@ -106,7 +106,7 @@ export class ShortcutProvider extends ThirdPartyIssueProviderBase<CSShortcutProv
 			name: data.name,
 			description: data.description,
 			owner_ids: (data.assignees! || []).map(a => a.id),
-			story_type: "bug"
+			story_type: "bug",
 		};
 		const response = await this.post<{}, ShortcutCreateCardResponse>(`/stories`, body);
 		return { ...response.body, url: response.body.app_url };

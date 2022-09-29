@@ -34,7 +34,7 @@ export function lsp<T extends object>(target: T) {
 			}
 
 			return instance;
-		}
+		},
 	});
 }
 
@@ -55,7 +55,7 @@ export function lspHandler(type: RequestType<any, any, void, void>): Function {
 		handlers.push({
 			type: type,
 			unboundMethod: descriptor.value,
-			target: target.constructor
+			target: target.constructor,
 		});
 	};
 }

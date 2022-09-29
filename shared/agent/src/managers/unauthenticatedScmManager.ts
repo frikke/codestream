@@ -7,7 +7,7 @@ import {
 	GetWorkspaceAutoJoinInfoRequestType,
 	GetWorkspaceAutoJoinInfoResponse,
 	GetWorkspaceRepoInfoRequestType,
-	GetWorkspaceRepoInfoResponse
+	GetWorkspaceRepoInfoResponse,
 } from "../protocol/agent.protocol";
 import { lsp, lspHandler } from "../system";
 
@@ -62,8 +62,8 @@ export class UnauthenticatedScmManager {
 			const response = (await server.get({
 				url: "/no-auth/team-lookup",
 				queryData: {
-					commitHashes: shas.join(",")
-				}
+					commitHashes: shas.join(","),
+				},
 			})) as GetWorkspaceAutoJoinInfoResponse[];
 			return response;
 		} catch (ex) {

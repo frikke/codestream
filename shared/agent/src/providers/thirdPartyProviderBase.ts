@@ -15,7 +15,7 @@ import {
 	ProviderConfigurationData,
 	RemoveEnterpriseProviderRequest,
 	ThirdPartyDisconnect,
-	ThirdPartyProviderConfig
+	ThirdPartyProviderConfig,
 } from "../protocol/agent.protocol.providers";
 import { CSMe, CSProviderInfos } from "../protocol/api.protocol.models";
 import { CodeStreamSession } from "../session";
@@ -29,7 +29,8 @@ const transitoryErrors = new Set(["ECONNREFUSED", "ETIMEDOUT", "ECONNRESET", "EN
 
 export abstract class ThirdPartyProviderBase<
 	TProviderInfo extends CSProviderInfos = CSProviderInfos
-> implements ThirdPartyProvider {
+> implements ThirdPartyProvider
+{
 	private _readyPromise: Promise<void> | undefined;
 	protected _ensuringConnection: Promise<void> | undefined;
 	protected _providerInfo: TProviderInfo | undefined;
@@ -81,7 +82,7 @@ export abstract class ThirdPartyProviderBase<
 			provider: this.providerConfig.name,
 			teamId: this.session.teamId,
 			host: request.host,
-			data: request.data
+			data: request.data,
 		});
 	}
 
@@ -89,7 +90,7 @@ export abstract class ThirdPartyProviderBase<
 		await this.session.api.removeEnterpriseProviderHost({
 			provider: this.providerConfig.name,
 			providerId: request.providerId,
-			teamId: this.session.teamId
+			teamId: this.session.teamId,
 		});
 	}
 
@@ -136,7 +137,7 @@ export abstract class ThirdPartyProviderBase<
 
 	getConnectionData() {
 		return {
-			providerId: this.providerConfig.id
+			providerId: this.providerConfig.id,
 		};
 	}
 
@@ -194,7 +195,7 @@ export abstract class ThirdPartyProviderBase<
 				`${this.providerConfig.name} provider (id:"${this.providerConfig.id}") will use a custom HTTPS agent with strictSSL disabled`
 			);
 			this._httpsAgent = new HttpsAgent({
-				rejectUnauthorized: false
+				rejectUnauthorized: false,
 			});
 		}
 	}
@@ -211,7 +212,7 @@ export abstract class ThirdPartyProviderBase<
 		}
 		await this.session.api.setThirdPartyProviderInfo({
 			providerId: this.providerConfig.id,
-			data: config
+			data: config,
 		});
 		let result = true;
 		if (verify) {
@@ -230,7 +231,7 @@ export abstract class ThirdPartyProviderBase<
 				error: ex,
 				occurredAt: Date.now(),
 				isConnectionError: true,
-				providerMessage: (ex as Error).message
+				providerMessage: (ex as Error).message,
 			};
 			delete config.accessToken;
 		}
@@ -238,7 +239,7 @@ export abstract class ThirdPartyProviderBase<
 		config.pendingVerification = false;
 		this.session.api.setThirdPartyProviderInfo({
 			providerId: this.providerConfig.id,
-			data: config
+			data: config,
 		});
 		return !tokenError;
 	}
@@ -250,7 +251,7 @@ export abstract class ThirdPartyProviderBase<
 	async disconnect(request?: ThirdPartyDisconnect) {
 		void (await this.session.api.disconnectThirdPartyProvider({
 			providerId: this.providerConfig.id,
-			providerTeamId: request && request.providerTeamId
+			providerTeamId: request && request.providerTeamId,
 		}));
 		this._readyPromise = this._providerInfo = this._ensuringConnection = undefined;
 		await this.onDisconnected(request);
@@ -286,7 +287,7 @@ export abstract class ThirdPartyProviderBase<
 				const me = await this.session.api.refreshThirdPartyProvider({
 					providerId: this.providerConfig.id,
 					refreshToken: this._providerInfo.refreshToken,
-					subId: request && request.providerTeamId
+					subId: request && request.providerTeamId,
 				});
 				this._providerInfo = this.getProviderInfo(me);
 			} catch (error) {
@@ -335,7 +336,7 @@ export abstract class ThirdPartyProviderBase<
 				url,
 				{
 					method: "DELETE",
-					headers: { ...this.headers, ...headers }
+					headers: { ...this.headers, ...headers },
 				},
 				options
 			);
@@ -356,7 +357,7 @@ export abstract class ThirdPartyProviderBase<
 			url,
 			{
 				method: "GET",
-				headers: { ...this.headers, ...headers }
+				headers: { ...this.headers, ...headers },
 			},
 			options
 		);
@@ -374,7 +375,7 @@ export abstract class ThirdPartyProviderBase<
 			{
 				method: "POST",
 				body: JSON.stringify(body),
-				headers: { ...this.headers, ...headers }
+				headers: { ...this.headers, ...headers },
 			},
 			options
 		);
@@ -392,7 +393,7 @@ export abstract class ThirdPartyProviderBase<
 			{
 				method: "PUT",
 				body: JSON.stringify(body),
-				headers: { ...this.headers, ...headers }
+				headers: { ...this.headers, ...headers },
 			},
 			options
 		);
@@ -453,8 +454,8 @@ export abstract class ThirdPartyProviderBase<
 								message: `provider fetchCore parseJsonError`,
 								data: {
 									jsonError,
-									text: resp.text() as any
-								}
+									text: resp.text() as any,
+								},
 							});
 						}
 					}
@@ -467,15 +468,15 @@ export abstract class ThirdPartyProviderBase<
 				Container.instance().errorReporter.reportBreadcrumb({
 					message: `provider fetchCore response`,
 					data: {
-						error
-					}
+						error,
+					},
 				});
 				throw error;
 			}
 
 			return {
 				body: await json!,
-				response: resp!
+				response: resp!,
 			};
 		} catch (ex) {
 			throw ex;

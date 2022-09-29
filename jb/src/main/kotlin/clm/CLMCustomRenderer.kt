@@ -1,8 +1,12 @@
 package com.codestream.clm
 
+import com.codestream.extensions.file
+import com.codestream.review.ReviewDiffSide
+import com.codestream.review.ReviewDiffVirtualFile
 import com.intellij.codeInsight.hints.LinearOrderInlayRenderer
 import com.intellij.codeInsight.hints.presentation.InlayPresentation
 import com.intellij.codeInsight.hints.presentation.InputHandler
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorCustomElementRenderer
 import com.intellij.openapi.editor.Inlay
 import com.intellij.openapi.editor.markup.TextAttributes
@@ -34,7 +38,8 @@ class CLMCustomRenderer(val presentation: InlayPresentation) : EditorCustomEleme
     override fun paint(inlay: Inlay<*>, g: Graphics, targetRegion: Rectangle, textAttributes: TextAttributes) {
         val point = getPoint(inlay, targetRegion.location)
         g as Graphics2D
-        g.withTranslated(targetRegion.x + point.x, targetRegion.y + 2) {
+        val leftShift = if (inlay.editor.shiftIndentation) 0 else -5
+        g.withTranslated(targetRegion.x + point.x + leftShift, targetRegion.y + 2) {
             presentation.paint(g, LinearOrderInlayRenderer.effectsIn(textAttributes))
         }
     }
@@ -56,13 +61,10 @@ class CLMCustomRenderer(val presentation: InlayPresentation) : EditorCustomEleme
 
     private fun painterPosition(inlay: Inlay<*>): Int {
         if (!inlay.isValid) return 0
-
         val editor = inlay.editor
         val lineStartOffset = DocumentUtil.getLineStartOffset(inlay.offset, editor.document)
-
-        val shiftForward = CharArrayUtil.shiftForward(editor.document.immutableCharSequence, lineStartOffset, " \t")
-
-        return editor.offsetToXY(shiftForward).x
+        val offset = if (editor.shiftIndentation) CharArrayUtil.shiftForward(editor.document.immutableCharSequence, lineStartOffset, " \t") else lineStartOffset
+        return editor.offsetToXY(offset).x
     }
 
     private fun getPoint(inlay: Inlay<*>, targetPoint: Point): Point {
@@ -75,3 +77,8 @@ class CLMCustomRenderer(val presentation: InlayPresentation) : EditorCustomEleme
         return presentation.toString()
     }
 }
+
+private val Editor.shiftIndentation: Boolean
+    get() {
+        return (document.file as? ReviewDiffVirtualFile)?.side != ReviewDiffSide.LEFT
+    }

@@ -1,10 +1,10 @@
-import { Headshot, CodeStreamHeadshot } from "./Headshot";
 import React from "react";
 import styled from "styled-components";
+import { CodeStreamHeadshot, Headshot } from "./Headshot";
 
 export default {
 	title: "Headshot",
-	component: Headshot
+	component: Headshot,
 };
 
 const Row = styled.div`

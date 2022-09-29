@@ -4,7 +4,7 @@ import { Strings } from "../../../src/system/string";
 
 describe("strings.ts", () => {
 	describe("normalizePath", () => {
-		it("can normalize a variety of OS-specific paths (windows)", async function() {
+		it("can normalize a variety of OS-specific paths (windows)", async function () {
 			const unique = uniq(
 				[
 					"c:/foo/bar",
@@ -12,7 +12,7 @@ describe("strings.ts", () => {
 					// this can only be run on windows
 					// "C:/foo/bar",
 					"c:\\foo\\bar",
-					"c:\\foo\\bar\\"
+					"c:\\foo\\bar\\",
 					// this can only be run on windows
 					// "C:\\foo\\bar\\"
 				].map(_ => Strings.normalizePath(_))
@@ -21,7 +21,7 @@ describe("strings.ts", () => {
 			expect(unique[0]).toEqual("c:/foo/bar");
 		});
 
-		it("can normalize a variety of OS-specific paths (mac/linux)", async function() {
+		it("can normalize a variety of OS-specific paths (mac/linux)", async function () {
 			const unique = uniq(
 				["/users/foo/bar", "/users/foo/bar/", "\\users\\foo\\bar", "\\users\\foo\\bar\\"].map(_ =>
 					Strings.normalizePath(_)
@@ -61,14 +61,14 @@ describe("strings.ts", () => {
 				"test/foo/bar/main.js",
 				"foo/bar/main.js",
 				"bar/main.js",
-				"main.js"
+				"main.js",
 			]);
 			expect(Strings.asPartialPaths("/users/test/foo/bar/main.js")).toEqual([
 				"users/test/foo/bar/main.js",
 				"test/foo/bar/main.js",
 				"foo/bar/main.js",
 				"bar/main.js",
-				"main.js"
+				"main.js",
 			]);
 		});
 

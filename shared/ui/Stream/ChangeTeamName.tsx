@@ -1,16 +1,16 @@
-import React, { useState, useCallback } from "react";
+import { UpdateTeamRequestType } from "@codestream/protocols/agent";
+import React, { useCallback, useState } from "react";
+import { FormattedMessage } from "react-intl";
 import { useDispatch, useSelector } from "react-redux";
+import { TextInput } from "../Authentication/TextInput";
+import { logError } from "../logger";
+import { Button } from "../src/components/Button";
+import { Dialog } from "../src/components/Dialog";
 import { CodeStreamState } from "../store";
 import { HostApi } from "../webview-api";
-import { Button } from "../src/components/Button";
-import { ButtonRow } from "./ChangeUsername";
-import { logError } from "../logger";
-import { FormattedMessage } from "react-intl";
-import { Link } from "./Link";
-import { TextInput } from "../Authentication/TextInput";
-import { Dialog } from "../src/components/Dialog";
 import { closeModal } from "./actions";
-import { UpdateTeamRequestType } from "@codestream/protocols/agent";
+import { ButtonRow } from "./ChangeUsername";
+import { Link } from "./Link";
 
 const isNotEmpty = s => s.length > 0;
 
@@ -44,7 +44,7 @@ export const ChangeTeamName = props => {
 		try {
 			await HostApi.instance.send(UpdateTeamRequestType, {
 				teamId: derivedState.team.id,
-				name: teamName
+				name: teamName,
 			});
 
 			HostApi.instance.track("teamName Changed", {});

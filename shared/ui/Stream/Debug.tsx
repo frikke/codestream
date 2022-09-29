@@ -35,7 +35,7 @@ function Debug(props: Props) {
 }
 
 Debug.defaultProps = {
-	placement: "right" as Placement
+	placement: "right" as Placement,
 };
 
 const mapStateToProps = (state: any) => ({ enabled: state.configs.debug });

@@ -35,106 +35,106 @@ at org.mortbay.thread.QueuedThreadPool$PoolThread.run(QueuedThreadPool.java:582)
 				{
 					method: "com.example.myproject.OpenSessionInViewFilter.doFilter",
 					fileFullPath: "com/example/myproject/OpenSessionInViewFilter.java",
-					line: 60
+					line: 60,
 				},
 				{
 					method: "org.mortbay.jetty.servlet.ServletHandler$CachedChain.doFilter",
 					fileFullPath: "org/mortbay/jetty/servlet/ServletHandler.java",
-					line: 1157
+					line: 1157,
 				},
 				{
 					method: "com.example.myproject.ExceptionHandlerFilter.doFilter",
 					fileFullPath: "com/example/myproject/ExceptionHandlerFilter.java",
-					line: 28
+					line: 28,
 				},
 				{
 					method: "org.mortbay.jetty.servlet.ServletHandler$CachedChain.doFilter",
 					fileFullPath: "org/mortbay/jetty/servlet/ServletHandler.java",
-					line: 1157
+					line: 1157,
 				},
 				{
 					method: "com.example.myproject.OutputBufferFilter.doFilter",
 					fileFullPath: "com/example/myproject/OutputBufferFilter.java",
-					line: 33
+					line: 33,
 				},
 				{
 					method: "org.mortbay.jetty.servlet.ServletHandler$CachedChain.doFilter",
 					fileFullPath: "org/mortbay/jetty/servlet/ServletHandler.java",
-					line: 1157
+					line: 1157,
 				},
 				{
 					method: "org.mortbay.jetty.servlet.ServletHandler.handle",
 					fileFullPath: "org/mortbay/jetty/servlet/ServletHandler.java",
-					line: 388
+					line: 388,
 				},
 				{
 					method: "org.mortbay.jetty.security.SecurityHandler.handle",
 					fileFullPath: "org/mortbay/jetty/security/SecurityHandler.java",
-					line: 216
+					line: 216,
 				},
 				{
 					method: "org.mortbay.jetty.servlet.SessionHandler.handle",
 					fileFullPath: "org/mortbay/jetty/servlet/SessionHandler.java",
-					line: 182
+					line: 182,
 				},
 				{
 					method: "org.mortbay.jetty.handler.ContextHandler.handle",
 					fileFullPath: "org/mortbay/jetty/handler/ContextHandler.java",
-					line: 765
+					line: 765,
 				},
 				{
 					method: "org.mortbay.jetty.webapp.WebAppContext.handle",
 					fileFullPath: "org/mortbay/jetty/webapp/WebAppContext.java",
-					line: 418
+					line: 418,
 				},
 				{
 					method: "org.mortbay.jetty.handler.HandlerWrapper.handle",
 					fileFullPath: "org/mortbay/jetty/handler/HandlerWrapper.java",
-					line: 152
+					line: 152,
 				},
 				{
 					method: "org.mortbay.jetty.Server.handle",
 					fileFullPath: "org/mortbay/jetty/Server.java",
-					line: 326
+					line: 326,
 				},
 				{
 					method: "org.mortbay.jetty.HttpConnection.handleRequest",
 					fileFullPath: "org/mortbay/jetty/HttpConnection.java",
-					line: 542
+					line: 542,
 				},
 				{
 					method: "org.mortbay.jetty.HttpConnection$RequestHandler.content",
 					fileFullPath: "org/mortbay/jetty/HttpConnection.java",
-					line: 943
+					line: 943,
 				},
 				{
 					method: "org.mortbay.jetty.HttpParser.parseNext",
 					fileFullPath: "org/mortbay/jetty/HttpParser.java",
-					line: 756
+					line: 756,
 				},
 				{
 					method: "org.mortbay.jetty.HttpParser.parseAvailable",
 					fileFullPath: "org/mortbay/jetty/HttpParser.java",
-					line: 218
+					line: 218,
 				},
 				{
 					method: "org.mortbay.jetty.HttpConnection.handle",
 					fileFullPath: "org/mortbay/jetty/HttpConnection.java",
-					line: 404
+					line: 404,
 				},
 				{
 					method: "org.mortbay.jetty.bio.SocketConnector$Connection.run",
 					fileFullPath: "org/mortbay/jetty/bio/SocketConnector.java",
-					line: 228
+					line: 228,
 				},
 				{
 					method: "org.mortbay.thread.QueuedThreadPool$PoolThread.run",
 					fileFullPath: "org/mortbay/thread/QueuedThreadPool.java",
-					line: 582
-				}
+					line: 582,
+				},
 			],
 			header: "javax.servlet.ServletException: Something bad happened",
-			error: "Something bad happened"
+			error: "Something bad happened",
 		});
 	});
 
@@ -147,60 +147,60 @@ at org.mortbay.thread.QueuedThreadPool$PoolThread.run(QueuedThreadPool.java:582)
 				{
 					fileFullPath: "java/base/sun/nio/fs/UnixException.java",
 					line: 92,
-					method: "java.base/sun.nio.fs.UnixException.translateToIOException"
+					method: "java.base/sun.nio.fs.UnixException.translateToIOException",
 				},
 				{
 					fileFullPath: "java/base/sun/nio/fs/UnixException.java",
 					line: 111,
-					method: "java.base/sun.nio.fs.UnixException.rethrowAsIOException"
+					method: "java.base/sun.nio.fs.UnixException.rethrowAsIOException",
 				},
 				{
 					fileFullPath: "java/base/sun/nio/fs/UnixException.java",
 					line: 116,
-					method: "java.base/sun.nio.fs.UnixException.rethrowAsIOException"
+					method: "java.base/sun.nio.fs.UnixException.rethrowAsIOException",
 				},
 				{
 					fileFullPath: "java/base/sun/nio/fs/UnixFileSystemProvider.java",
 					line: 219,
-					method: "java.base/sun.nio.fs.UnixFileSystemProvider.newByteChannel"
+					method: "java.base/sun.nio.fs.UnixFileSystemProvider.newByteChannel",
 				},
 				{
 					fileFullPath: "java/base/java/nio/file/Files.java",
 					line: 371,
-					method: "java.base/java.nio.file.Files.newByteChannel"
+					method: "java.base/java.nio.file.Files.newByteChannel",
 				},
 				{
 					fileFullPath: "java/base/java/nio/file/Files.java",
 					line: 422,
-					method: "java.base/java.nio.file.Files.newByteChannel"
+					method: "java.base/java.nio.file.Files.newByteChannel",
 				},
 				{
 					fileFullPath: "java/base/java/util/concurrent/FutureTask.java",
 					line: 305,
-					method: "java.base/java.util.concurrent.FutureTask.runAndReset"
+					method: "java.base/java.util.concurrent.FutureTask.runAndReset",
 				},
 				{
 					fileFullPath: "java/base/java/util/concurrent/ScheduledThreadPoolExecutor.java",
 					line: 305,
 					method:
-						"java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run"
+						"java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run",
 				},
 				{
 					fileFullPath: "java/base/java/util/concurrent/ThreadPoolExecutor.java",
 					line: 1128,
-					method: "java.base/java.util.concurrent.ThreadPoolExecutor.runWorker"
+					method: "java.base/java.util.concurrent.ThreadPoolExecutor.runWorker",
 				},
 				{
 					fileFullPath: "java/base/java/util/concurrent/ThreadPoolExecutor.java",
 					line: 628,
-					method: "java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run"
+					method: "java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run",
 				},
 				{
 					fileFullPath: "java/base/java/lang/Thread.java",
 					line: 834,
-					method: "java.base/java.lang.Thread.run"
-				}
-			]
+					method: "java.base/java.lang.Thread.run",
+				},
+			],
 		});
 
 		it("stack with java and kotlin", () => {
@@ -212,70 +212,70 @@ at org.mortbay.thread.QueuedThreadPool$PoolThread.run(QueuedThreadPool.java:582)
 					{
 						method: "com.newrelic.distributedtracingservice.util.ExceptionUtilsKt.apiGet",
 						fileFullPath: "com/newrelic/distributedtracingservice/util/ExceptionUtils.kt",
-						line: 25
+						line: 25,
 					},
 					{
 						method: "com.newrelic.distributedtracingservice.nrdb.NrdbApi.getAccountsWritingSpans",
 						fileFullPath: "com/newrelic/distributedtracingservice/nrdb/NrdbApi.kt",
-						line: 1212
+						line: 1212,
 					},
 					{
 						method: "java.base/sun.nio.fs.UnixException.translateToIOException",
 						fileFullPath: "java/base/sun/nio/fs/UnixException.java",
-						line: 92
+						line: 92,
 					},
 					{
 						fileFullPath: "java/base/sun/nio/fs/UnixException.java",
 						line: 111,
-						method: "java.base/sun.nio.fs.UnixException.rethrowAsIOException"
+						method: "java.base/sun.nio.fs.UnixException.rethrowAsIOException",
 					},
 					{
 						fileFullPath: "java/base/sun/nio/fs/UnixException.java",
 						line: 116,
-						method: "java.base/sun.nio.fs.UnixException.rethrowAsIOException"
+						method: "java.base/sun.nio.fs.UnixException.rethrowAsIOException",
 					},
 					{
 						fileFullPath: "java/base/sun/nio/fs/UnixFileSystemProvider.java",
 						line: 219,
-						method: "java.base/sun.nio.fs.UnixFileSystemProvider.newByteChannel"
+						method: "java.base/sun.nio.fs.UnixFileSystemProvider.newByteChannel",
 					},
 					{
 						fileFullPath: "java/base/java/nio/file/Files.java",
 						line: 371,
-						method: "java.base/java.nio.file.Files.newByteChannel"
+						method: "java.base/java.nio.file.Files.newByteChannel",
 					},
 					{
 						fileFullPath: "java/base/java/nio/file/Files.java",
 						line: 422,
-						method: "java.base/java.nio.file.Files.newByteChannel"
+						method: "java.base/java.nio.file.Files.newByteChannel",
 					},
 					{
 						fileFullPath: "java/base/java/util/concurrent/FutureTask.java",
 						line: 305,
-						method: "java.base/java.util.concurrent.FutureTask.runAndReset"
+						method: "java.base/java.util.concurrent.FutureTask.runAndReset",
 					},
 					{
 						fileFullPath: "java/base/java/util/concurrent/ScheduledThreadPoolExecutor.java",
 						line: 305,
 						method:
-							"java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run"
+							"java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run",
 					},
 					{
 						fileFullPath: "java/base/java/util/concurrent/ThreadPoolExecutor.java",
 						line: 1128,
-						method: "java.base/java.util.concurrent.ThreadPoolExecutor.runWorker"
+						method: "java.base/java.util.concurrent.ThreadPoolExecutor.runWorker",
 					},
 					{
 						fileFullPath: "java/base/java/util/concurrent/ThreadPoolExecutor.java",
 						line: 628,
-						method: "java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run"
+						method: "java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run",
 					},
 					{
 						fileFullPath: "java/base/java/lang/Thread.java",
 						line: 834,
-						method: "java.base/java.lang.Thread.run"
-					}
-				]
+						method: "java.base/java.lang.Thread.run",
+					},
+				],
 			});
 		});
 	});
@@ -288,9 +288,9 @@ at org.mortbay.thread.QueuedThreadPool$PoolThread.run(QueuedThreadPool.java:582)
 				{
 					method: "sun.reflect.GeneratedMethodAccessor77.invoke",
 					fileFullPath: undefined,
-					line: undefined
-				}
-			]
+					line: undefined,
+				},
+			],
 		});
 	});
 });

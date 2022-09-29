@@ -1,11 +1,9 @@
-import { forEach as _forEach } from "lodash-es";
 import React, { useState } from "react";
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import Icon from "./Icon";
-import { ObservabilityErrorDropdown } from "./ObservabilityErrorDropdown";
-import { ObservabilityAssignmentsDropdown } from "./ObservabilityAssignmentsDropdown";
-import { any } from "prop-types";
 import { Link } from "./Link";
+import { ObservabilityAssignmentsDropdown } from "./ObservabilityAssignmentsDropdown";
+import { ObservabilityErrorDropdown } from "./ObservabilityErrorDropdown";
 
 interface Props {
 	observabilityErrors: any;
@@ -22,7 +20,7 @@ export const ObservabilityErrorWrapper = React.memo((props: Props) => {
 		<>
 			<Row
 				style={{
-					padding: "2px 10px 2px 30px"
+					padding: "2px 10px 2px 30px",
 				}}
 				className={"pr-row"}
 				onClick={() => setExpanded(!expanded)}
@@ -35,7 +33,7 @@ export const ObservabilityErrorWrapper = React.memo((props: Props) => {
 				(props.noAccess ? (
 					<Row
 						style={{
-							padding: "2px 10px 2px 40px"
+							padding: "2px 10px 2px 40px",
 						}}
 						className={"pr-row"}
 						onClick={() => setExpanded(!expanded)}

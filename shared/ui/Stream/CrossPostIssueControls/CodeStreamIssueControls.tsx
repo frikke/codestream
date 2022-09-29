@@ -1,11 +1,11 @@
-import React from "react";
-import ReactDOM from "react-dom";
-import Select from "react-select";
-import { CrossPostIssueContext } from "../CodemarkForm";
 import { CodeStreamState } from "@codestream/webview/store";
-import { useSelector } from "react-redux";
 import { getTeamMembers } from "@codestream/webview/store/users/reducer";
 import { mapFilter } from "@codestream/webview/utils";
+import React from "react";
+import ReactDOM from "react-dom";
+import { useSelector } from "react-redux";
+import Select from "react-select";
+import { CrossPostIssueContext } from "../CodemarkForm";
 
 export function CodeStreamIssueControls(props: React.PropsWithChildren<any>) {
 	const assignableUsers = useSelector((state: CodeStreamState) => {
@@ -13,7 +13,7 @@ export function CodeStreamIssueControls(props: React.PropsWithChildren<any>) {
 			if (!user.isRegistered) return;
 			return {
 				value: user.id,
-				label: user.username
+				label: user.username,
 			};
 		});
 	});

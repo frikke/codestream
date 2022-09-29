@@ -29,7 +29,7 @@ export function Parser(stack: string): CSStackTraceInfo {
 			arguments: undefined,
 			fileFullPath: m[2],
 			line: parseInt(m[4], 10),
-			column: undefined
+			column: undefined,
 		});
 	}
 	return info;

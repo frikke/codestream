@@ -1,7 +1,7 @@
-import styled from "styled-components";
-import React, { PropsWithChildren } from "react";
 import Icon from "@codestream/webview/Stream/Icon";
 import cx from "classnames";
+import React, { PropsWithChildren } from "react";
+import styled from "styled-components";
 
 interface Props extends PropsWithChildren<{}> {
 	className?: string;
@@ -49,5 +49,5 @@ export const FloatingLoadingMessage = React.forwardRef(
 );
 
 FloatingLoadingMessage.defaultProps = {
-	align: "center"
+	align: "center",
 };

@@ -1,14 +1,17 @@
-import { forEach as _forEach, isEmpty as _isEmpty } from "lodash-es";
-import React, { useState, useEffect } from "react";
+import {
+	GetServiceLevelTelemetryRequestType,
+	GoldenMetricsResult,
+	RelatedEntitiesByType,
+} from "@codestream/protocols/agent";
+import { HostApi } from "@codestream/webview/webview-api";
+import { isEmpty as _isEmpty } from "lodash-es";
+import React, { useEffect, useState } from "react";
+import Select from "react-select";
+import styled from "styled-components";
+import { useInterval } from "../utilities/hooks";
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import Icon from "./Icon";
-import Select from "react-select";
-import { useInterval } from "../utilities/hooks";
-import { HostApi } from "@codestream/webview/webview-api";
-import { GetServiceLevelTelemetryRequestType } from "@codestream/protocols/agent";
-import styled from "styled-components";
 import { ObservabilityGoldenMetricDropdown } from "./ObservabilityGoldenMetricDropdown";
-import { GoldenMetricsResult, RelatedEntitiesByType } from "@codestream/protocols/agent";
 interface Props {
 	searchItems: RelatedEntitiesByType;
 	currentRepoId: string;
@@ -42,35 +45,35 @@ export const ObservabilityRelatedSearch = React.memo((props: Props) => {
 			borderColor: "#9e9e9e",
 			minHeight: "25px",
 			height: "25px",
-			boxShadow: state.isFocused ? null : null
+			boxShadow: state.isFocused ? null : null,
 		}),
 
 		valueContainer: (provided, state) => ({
 			...provided,
 			height: "25px",
-			padding: "0 6px"
+			padding: "0 6px",
 		}),
 
 		input: (provided, state) => ({
 			...provided,
-			margin: "0px"
+			margin: "0px",
 		}),
 		indicatorSeparator: state => ({
-			display: "none"
+			display: "none",
 		}),
 		indicatorsContainer: (provided, state) => ({
 			...provided,
-			height: "25px"
+			height: "25px",
 		}),
 		clearIndicator: (provided, state) => ({
 			...provided,
 			marginTop: "3px",
-			padding: "8px 0px 8px 8px"
+			padding: "8px 0px 8px 8px",
 		}),
 		dropdownIndicator: (provided, state) => ({
 			...provided,
-			marginTop: "3px"
-		})
+			marginTop: "3px",
+		}),
 	};
 
 	useEffect(() => {
@@ -78,7 +81,7 @@ export const ObservabilityRelatedSearch = React.memo((props: Props) => {
 			const _selectOptions = searchItems.map(item => {
 				return {
 					value: item?.guid,
-					label: item?.name
+					label: item?.name,
 				};
 			});
 			if (_selectOptions) {
@@ -105,7 +108,7 @@ export const ObservabilityRelatedSearch = React.memo((props: Props) => {
 			const response = await HostApi.instance.send(GetServiceLevelTelemetryRequestType, {
 				newRelicEntityGuid: entityGuid,
 				repoId: props.currentRepoId,
-				skipRepoFetch: true
+				skipRepoFetch: true,
 			});
 			if (response?.goldenMetrics) {
 				setGoldenMetrics(response.goldenMetrics);
@@ -125,7 +128,7 @@ export const ObservabilityRelatedSearch = React.memo((props: Props) => {
 		<>
 			<Row
 				style={{
-					padding: "2px 10px 2px 50px"
+					padding: "2px 10px 2px 50px",
 				}}
 				className={"pr-row"}
 				onClick={() => setExpanded(!expanded)}

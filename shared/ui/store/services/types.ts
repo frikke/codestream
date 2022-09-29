@@ -1,5 +1,5 @@
 export enum ServicesActionsType {
-	Bootstrap = "BOOTSTRAP_SERVICES"
+	Bootstrap = "BOOTSTRAP_SERVICES",
 }
 
 export interface ServicesState {

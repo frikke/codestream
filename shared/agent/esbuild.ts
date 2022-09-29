@@ -11,60 +11,60 @@ const outputDir = path.resolve(__dirname, "dist");
 
 const ignore = ignorePlugin([
 	{
-		resourceRegExp: /vm2$/
-	}
+		resourceRegExp: /vm2$/,
+	},
 ]);
 
 const postBuildCopy: CopyStuff[] = [
 	{
 		from: "node_modules/opn/**/xdg-open",
-		to: outputDir
+		to: outputDir,
 	},
 	{
-        // VS Code
+		// VS Code
 		from: `${outputDir}/agent.*`,
-		to: path.resolve(__dirname, "../../vscode/dist/")
+		to: path.resolve(__dirname, "../../vscode/dist/"),
 	},
-    {
-        // Visual Studio 2019
+	{
+		// Visual Studio 2019
 		from: `${outputDir}/agent-vs-2019.js`,
 		to: path.resolve(__dirname, "../../vs/src/CodeStream.VisualStudio.Vsix.x86/agent"),
-		options: { rename: "agent.js" }
+		options: { rename: "agent.js" },
 	},
 	{
-        // Visual Studio 2019
+		// Visual Studio 2019
 		from: `${outputDir}/agent-vs-2019.js.map`,
 		to: path.resolve(__dirname, "../../vs/src/CodeStream.VisualStudio.Vsix.x86/agent"),
-		options: { rename: "agent.js.map" }
+		options: { rename: "agent.js.map" },
 	},
 	{
-        // Visual Studio 2022
+		// Visual Studio 2022
 		from: `${outputDir}/agent.*`,
-		to: path.resolve(__dirname, "../../vs/src/CodeStream.VisualStudio.Vsix.x64/agent/")
-	}
+		to: path.resolve(__dirname, "../../vs/src/CodeStream.VisualStudio.Vsix.x64/agent/"),
+	},
 ];
 
-(async function() {
+(async function () {
 	const args = processArgs();
 	const buildOption: BuildOptions = {
 		...commonEsbuildOptions(false, args),
 		entryPoints: {
 			agent: "./src/main.ts",
-			"agent-vs-2019": "./src/main-vs-2019.ts"
+			"agent-vs-2019": "./src/main-vs-2019.ts",
 		},
 		plugins: [
 			graphqlLoaderPlugin(),
 			nativeNodeModulesPlugin,
 			statsPlugin,
 			ignore,
-			copyPlugin({ onEnd: postBuildCopy })
+			copyPlugin({ onEnd: postBuildCopy }),
 		],
 		format: "cjs",
 		platform: "node",
 		target: "node16.13",
 		outdir: outputDir,
 		sourceRoot: path.resolve(__dirname, "../../agent/dist"),
-		sourcesContent: false
+		sourcesContent: false,
 	};
 
 	await build(buildOption);

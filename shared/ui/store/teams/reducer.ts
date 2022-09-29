@@ -1,13 +1,13 @@
 import {
-	CSTeam,
 	CSReviewApprovalSetting,
-	CSReviewAssignmentSetting
+	CSReviewAssignmentSetting,
+	CSTeam,
 } from "@codestream/protocols/api";
+import { CodeStreamState } from "..";
 import { toMapBy } from "../../utils";
 import { ActionType } from "../common";
 import * as actions from "./actions";
-import { TeamsState, TeamsActionsType } from "./types";
-import { CodeStreamState } from "..";
+import { TeamsActionsType, TeamsState } from "./types";
 
 type TeamsActions = ActionType<typeof actions>;
 
@@ -47,7 +47,7 @@ export function getTeamProvider(team: CSTeam): "codestream" | "slack" | "msteams
 
 const TEAM_SETTING_DEFAULTS = {
 	reviewApproval: CSReviewApprovalSetting.User,
-	reviewAssignment: CSReviewAssignmentSetting.Authorship2
+	reviewAssignment: CSReviewAssignmentSetting.Authorship2,
 };
 
 // return a team setting if it's set, otherwise return the default value

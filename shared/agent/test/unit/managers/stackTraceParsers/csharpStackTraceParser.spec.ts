@@ -24,32 +24,31 @@ describe("csharpStackTraceParser", () => {
 						fileFullPath: "/Users/jdoe/code/dotnet_console/Program.cs",
 						method: "Initialize",
 						line: 37,
-						column: undefined
+						column: undefined,
 					},
 					{
 						arguments: undefined,
 						fileFullPath: "/Users/jdoe/code/dotnet_console/Program.cs",
 						method: "Execute",
 						line: 26,
-						column: undefined
+						column: undefined,
 					},
 					{
 						arguments: undefined,
 						fileFullPath: "/Users/jdoe/code/dotnet_console/Program.cs",
 						method: "Go",
 						line: 20,
-						column: undefined
+						column: undefined,
 					},
 					{
 						arguments: ["String[] args"],
 						fileFullPath: "/Users/jdoe/code/dotnet_console/Program.cs",
 						method: "Main",
 						line: 10,
-						column: undefined
-					}
+						column: undefined,
+					},
 				],
-				text:
-					"   at Somethingelse.Baz.Initialize() in /Users/jdoe/code/dotnet_console/Program.cs:line 37\n\t   at dotnet_console.Bar.Execute() in /Users/jdoe/code/dotnet_console/Program.cs:line 26\n\t   at dotnet_console.Foo.Go() in /Users/jdoe/code/dotnet_console/Program.cs:line 20\n\t   at dotnet_console.Program.Main(String[] args) in /Users/jdoe/code/dotnet_console/Program.cs:line 10"
+				text: "   at Somethingelse.Baz.Initialize() in /Users/jdoe/code/dotnet_console/Program.cs:line 37\n\t   at dotnet_console.Bar.Execute() in /Users/jdoe/code/dotnet_console/Program.cs:line 26\n\t   at dotnet_console.Foo.Go() in /Users/jdoe/code/dotnet_console/Program.cs:line 20\n\t   at dotnet_console.Program.Main(String[] args) in /Users/jdoe/code/dotnet_console/Program.cs:line 10",
 			});
 		});
 
@@ -87,14 +86,14 @@ describe("csharpStackTraceParser", () => {
 				fileFullPath: "/Users/jdoe/code/dotnet_mvc/Views/Home/Index.cshtml",
 				method: "ExecuteAsync",
 				line: 5,
-				column: undefined
+				column: undefined,
 			});
 			expect(result.lines[1]).toEqual({
 				arguments: ["IRazorPage page", "ViewContext context"],
 				fileFullPath: undefined,
 				method: "RenderPageCoreAsync",
 				line: NaN,
-				column: undefined
+				column: undefined,
 			});
 		});
 	});

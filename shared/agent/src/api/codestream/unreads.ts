@@ -9,7 +9,7 @@ import {
 	CSPost,
 	CSStream,
 	RepoSetting,
-	StreamType
+	StreamType,
 } from "../../protocol/api.protocol";
 import { Arrays, Functions, log } from "../../system";
 import { ApiProvider } from "../apiProvider";
@@ -77,7 +77,7 @@ export class CodeStreamUnreads {
 		const grouped = Arrays.groupBy(posts, p => p.streamId);
 		const streams = (
 			await SessionContainer.instance().streams.get({
-				streamIds: Object.keys(grouped)
+				streamIds: Object.keys(grouped),
 			})
 		).streams;
 
@@ -155,19 +155,19 @@ export class CodeStreamUnreads {
 		try {
 			const codemarks = (
 				await SessionContainer.instance().codemarks.get({
-					streamIds: streamIds
+					streamIds: streamIds,
 				})
 			).codemarks;
 
 			const reviews = (
 				await SessionContainer.instance().reviews.get({
-					streamIds: streamIds
+					streamIds: streamIds,
 				})
 			).reviews;
 
 			const codeErrors = (
 				await SessionContainer.instance().codeErrors.get({
-					streamIds: streamIds
+					streamIds: streamIds,
 				})
 			).codeErrors;
 
@@ -295,7 +295,7 @@ export class CodeStreamUnreads {
 						latestPost = (
 							await posts.get({
 								streamId: streamId,
-								limit: 1
+								limit: 1,
 							})
 						).posts[0];
 						unreadPosts = (
@@ -303,7 +303,7 @@ export class CodeStreamUnreads {
 								streamId: streamId,
 								before: latestPost.seqNum,
 								after: Number(lastReadSeqNum) + 1,
-								inclusive: true
+								inclusive: true,
 							})
 						).posts;
 						unreadPosts = unreadPosts.filter(
@@ -311,7 +311,7 @@ export class CodeStreamUnreads {
 						);
 
 						unreadPosts = await this.filterPostsByPreferences(unreadPosts, repoSettings, [
-							streamId
+							streamId,
 						]);
 					} catch (ex) {
 						// likely an access error because user is no longer in this channel
@@ -373,7 +373,7 @@ export class CodeStreamUnreads {
 			mentions: this._mentions,
 			unreads: this._unreads,
 			totalMentions: Object.values(this._mentions).reduce((total, count) => total + count, 0),
-			totalUnreads: Object.values(this._unreads).reduce((total, count) => total + count, 0)
+			totalUnreads: Object.values(this._unreads).reduce((total, count) => total + count, 0),
 		};
 	}
 }

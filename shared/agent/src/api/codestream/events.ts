@@ -5,7 +5,7 @@ import { Disposable, Emitter, Event } from "vscode-languageserver";
 import {
 	Broadcaster,
 	BroadcasterStatus,
-	BroadcasterStatusType
+	BroadcasterStatusType,
 } from "../../broadcaster/broadcaster";
 import { Logger } from "../../logger";
 import { ConnectionStatus } from "../../protocol/agent.protocol";
@@ -50,7 +50,7 @@ const messageToType: {
 	teams: MessageType.Teams,
 	user: MessageType.Users,
 	users: MessageType.Users,
-	echo: MessageType.Echo
+	echo: MessageType.Echo,
 };
 
 export interface BroadcasterEventsInitializer {
@@ -95,12 +95,12 @@ export class BroadcasterEvents implements Disposable {
 			userId: this._options.api.userId,
 			strictSSL: this._options.strictSSL,
 			debug: this.debug.bind(this),
-			httpsAgent: this._options.httpsAgent
+			httpsAgent: this._options.httpsAgent,
 		});
 
 		const channels: string[] = [
 			`user-${this._options.api.userId}`,
-			`team-${this._options.api.teamId}`
+			`team-${this._options.api.teamId}`,
 		];
 
 		/*
@@ -171,7 +171,7 @@ export class BroadcasterEvents implements Disposable {
 				if (e.reconnected) {
 					this._onDidReceiveMessage.fire({
 						type: MessageType.Connection,
-						data: { reset: false, status: ConnectionStatus.Reconnected }
+						data: { reset: false, status: ConnectionStatus.Reconnected },
 					} as ConnectionRTMessage);
 				}
 				break;
@@ -179,7 +179,7 @@ export class BroadcasterEvents implements Disposable {
 			case BroadcasterStatusType.Trouble:
 				this._onDidReceiveMessage.fire({
 					type: MessageType.Connection,
-					data: { status: ConnectionStatus.Reconnecting }
+					data: { status: ConnectionStatus.Reconnecting },
 				} as ConnectionRTMessage);
 				break;
 
@@ -187,14 +187,14 @@ export class BroadcasterEvents implements Disposable {
 				// TODO: must fetch all data fetch from the server
 				this._onDidReceiveMessage.fire({
 					type: MessageType.Connection,
-					data: { reset: true, status: ConnectionStatus.Reconnected }
+					data: { reset: true, status: ConnectionStatus.Reconnected },
 				} as ConnectionRTMessage);
 				break;
 
 			case BroadcasterStatusType.Offline:
 				this._onDidReceiveMessage.fire({
 					type: MessageType.Connection,
-					data: { status: ConnectionStatus.Disconnected }
+					data: { status: ConnectionStatus.Disconnected },
 				} as ConnectionRTMessage);
 				break;
 
@@ -231,7 +231,7 @@ export class BroadcasterEvents implements Disposable {
 			this._onDidReceiveMessage.fire({
 				type: MessageType.Streams,
 				data: Array.isArray(data) ? data : [data],
-				blockUntilProcessed: true
+				blockUntilProcessed: true,
 			});
 			delete messages.streams;
 			delete messages.stream;
@@ -244,7 +244,7 @@ export class BroadcasterEvents implements Disposable {
 					const data = CodeStreamApiProvider.normalizeResponse<any>(rawData);
 					this._onDidReceiveMessage.fire({
 						type: type,
-						data: Array.isArray(data) ? data : [data]
+						data: Array.isArray(data) ? data : [data],
 					});
 				} else {
 					Logger.warn(`Unknown message type received from broadcaster: ${dataType}`);

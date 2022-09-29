@@ -22,7 +22,7 @@ const MockedHostApi = HostApi as any;
 jest.mock("../../webview-api");
 
 setupCommunication({
-	postMessage: function() {}
+	postMessage: function () {},
 });
 
 let container: any = undefined;
@@ -51,33 +51,33 @@ const storeFactory = () => {
 				repo: {
 					id: "123",
 					name: "repoName",
-					remote: "http://"
+					remote: "http://",
 				},
 				relativeFilePath: "/foo/bar.py",
 				functionName: "hello_world",
-				metricTimesliceNameMapping: {}
-			} as CurrentMethodLevelTelemetry
+				metricTimesliceNameMapping: {},
+			} as CurrentMethodLevelTelemetry,
 		},
 		ide: {
-			name: "VSC"
+			name: "VSC",
 		},
 		configs: {
-			showGoldenSignalsInEditor: true
+			showGoldenSignalsInEditor: true,
 		},
 		users: {
 			"123": {
-				status: {}
-			}
+				status: {},
+			},
 		},
 		session: {
-			userId: "123"
-		}
+			userId: "123",
+		},
 	};
 };
 
 it("renders default state", async () => {
 	let mockHostApi = {
-		track: async function() {},
+		track: async function () {},
 		send: async (a, b, c) => {
 			//	console.warn(a, a.method, b, c);
 			if (a.method === "codestream/newrelic/methodLevelMethodTelemetry") {
@@ -86,16 +86,16 @@ it("renders default state", async () => {
 					newRelicUrl: "https://",
 					goldenMetrics: [{}],
 					newRelicEntityAccounts: [{}],
-					newRelicEntityName: "entityName"
+					newRelicEntityName: "entityName",
 				} as GetMethodLevelTelemetryResponse;
 			}
 			return new Promise(resolve => resolve(true));
 		},
 		on: () => {
 			return {
-				dispose: function() {}
+				dispose: function () {},
 			};
-		}
+		},
 	};
 	MockedHostApi.mockImplementation(() => {
 		return mockHostApi;

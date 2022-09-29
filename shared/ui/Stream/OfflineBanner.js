@@ -1,6 +1,6 @@
 import React, { PureComponent } from "react";
-import { connect } from "react-redux";
 import { FormattedMessage } from "react-intl";
+import { connect } from "react-redux";
 
 class OfflineBanner extends PureComponent {
 	render() {
@@ -19,7 +19,7 @@ class OfflineBanner extends PureComponent {
 							/>
 							{this.props.isOnPrem && (
 								<>
-									<br/>
+									<br />
 									<FormattedMessage
 										id="offlineBanner.offline.isOnPrem"
 										defaultMessage="If your CodeStream server is behind a firewall, make sure you're connected to your VPN."
@@ -44,7 +44,7 @@ const mapStateToProps = ({ connectivity, configs }) => {
 	return {
 		isOffline: connectivity.offline,
 		offlineCode: connectivity.code,
-		isOnPrem: configs.isOnPrem
+		isOnPrem: configs.isOnPrem,
 	};
 };
 export default connect(mapStateToProps)(OfflineBanner);

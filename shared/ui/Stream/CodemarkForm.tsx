@@ -1,99 +1,99 @@
-import { Range } from "vscode-languageserver-types";
 import {
+	BlameAuthor,
 	CodemarkPlus,
+	CreateDocumentMarkerPermalinkRequestType,
+	CrossPostIssueValues,
 	FetchAssignableUsersRequestType,
 	GetRangeScmInfoRequestType,
 	GetRangeScmInfoResponse,
-	CreateDocumentMarkerPermalinkRequestType,
+	GetReviewRequestType,
+	GetShaDiffsRangesRequestType,
+	GetShaDiffsRangesResponse,
 	ThirdPartyProviderBoard,
 	ThirdPartyProviderConfig,
-	CrossPostIssueValues,
-	GetReviewRequestType,
-	BlameAuthor,
-	GetShaDiffsRangesRequestType,
-	GetShaDiffsRangesResponse
 } from "@codestream/protocols/agent";
 import {
 	CodemarkType,
 	CSChannelStream,
 	CSCodemark,
+	CSMe,
 	CSStream,
 	CSUser,
 	StreamType,
-	CSMe
 } from "@codestream/protocols/api";
+import {
+	EditorHighlightRangeRequestType,
+	EditorSelection,
+	EditorSelectRangeRequestType,
+	WebviewPanels,
+} from "@codestream/protocols/webview";
+import { upgradePendingCodeError } from "@codestream/webview/store/codeErrors/thunks";
 import cx from "classnames";
+import { prettyPrintOne } from "code-prettify";
 import * as paths from "path-browserify";
 import React, { SyntheticEvent } from "react";
+import { FormattedMessage } from "react-intl";
 import { connect } from "react-redux";
 import Select from "react-select";
-import {
-	getStreamForId,
-	getStreamForTeam,
-	getChannelStreamsForTeam
-} from "../store/streams/reducer";
-import {
-	mapFilter,
-	arrayToRange,
-	forceAsLine,
-	isRangeEmpty,
-	replaceHtml,
-	keyFilter,
-	safe
-} from "../utils";
-import { HostApi } from "../webview-api";
-import Button from "./Button";
-import CrossPostIssueControls from "./CrossPostIssueControls";
-import Tag from "./Tag";
-import Icon from "./Icon";
-import Menu from "./Menu";
-import Tooltip from "./Tooltip";
-import {
-	EditorSelectRangeRequestType,
-	EditorSelection,
-	EditorHighlightRangeRequestType,
-	WebviewPanels
-} from "@codestream/protocols/webview";
-import { getCurrentSelection } from "../store/editorContext/reducer";
-import Headshot from "./Headshot";
-import {
-	getTeamMembers,
-	getTeamTagsArray,
-	getTeamMates,
-	getActiveMemberIds
-} from "../store/users/reducer";
-import MessageInput, { AttachmentField } from "./MessageInput";
-import { getCurrentTeamProvider } from "../store/teams/reducer";
-import { getCodemark } from "../store/codemarks/reducer";
-import { CodemarksState } from "../store/codemarks/types";
-import { setCurrentStream, setCurrentPullRequestNeedsRefresh } from "../store/context/actions";
-import ContainerAtEditorLine from "./SpatialView/ContainerAtEditorLine";
-import ContainerAtEditorSelection from "./SpatialView/ContainerAtEditorSelection";
-import { prettyPrintOne } from "code-prettify";
-import { escapeHtml } from "../utils";
-import { CodeStreamState } from "../store";
+import { Range } from "vscode-languageserver-types";
+import { Checkbox } from "../src/components/Checkbox";
 import { LabeledSwitch } from "../src/components/controls/LabeledSwitch";
 import { CSText } from "../src/components/CSText";
-import { NewCodemarkAttributes, parseCodeStreamDiffUri } from "../store/codemarks/actions";
-import { SharingControls, SharingAttributes } from "./SharingControls";
-import { SmartFormattedList } from "./SmartFormattedList";
-import { Modal } from "./Modal";
-import { Checkbox } from "../src/components/Checkbox";
-import { isFeatureEnabled } from "../store/apiVersioning/reducer";
-import { FormattedMessage } from "react-intl";
-import { Link } from "./Link";
-import { confirmPopup } from "./Confirm";
-import { openPanel, openModal, setUserPreference, markItemRead } from "./actions";
-import { fetchCodeError, upgradePendingCodeError } from "../store/codeErrors/actions";
-import CancelButton from "./CancelButton";
-import { VideoLink } from "./Flow";
 import { PanelHeader } from "../src/components/PanelHeader";
-import { ReposState } from "../store/repos/types";
-import { getDocumentFromMarker } from "./api-functions";
-import { getPRLabel, LabelHash } from "../store/providers/reducer";
-import { contextType } from "react-gravatar";
+import { CodeStreamState } from "../store";
+import { isFeatureEnabled } from "../store/apiVersioning/reducer";
+import { fetchCodeError } from "../store/codeErrors/actions";
 import { CodeErrorsState } from "../store/codeErrors/types";
-import { getPullRequestConversationsFromProvider } from "../store/providerPullRequests/actions";
+import { NewCodemarkAttributes, parseCodeStreamDiffUri } from "../store/codemarks/actions";
+import { getCodemark } from "../store/codemarks/reducer";
+import { CodemarksState } from "../store/codemarks/types";
+import { setCurrentPullRequestNeedsRefresh, setCurrentStream } from "../store/context/actions";
+import { getCurrentSelection } from "../store/editorContext/reducer";
+import { getPullRequestConversationsFromProvider } from "../store/providerPullRequests/thunks";
+import { getPRLabel, LabelHash } from "../store/providers/reducer";
+import { ReposState } from "../store/repos/types";
+import {
+	getChannelStreamsForTeam,
+	getStreamForId,
+	getStreamForTeam,
+} from "../store/streams/reducer";
+import { getCurrentTeamProvider } from "../store/teams/reducer";
+import {
+	getActiveMemberIds,
+	getTeamMates,
+	getTeamMembers,
+	getTeamTagsArray,
+} from "../store/users/reducer";
+import {
+	arrayToRange,
+	escapeHtml,
+	forceAsLine,
+	isRangeEmpty,
+	keyFilter,
+	mapFilter,
+	replaceHtml,
+	safe,
+} from "../utils";
+import { HostApi } from "../webview-api";
+import { markItemRead, openModal, openPanel, setUserPreference } from "./actions";
+import { getDocumentFromMarker } from "./api-functions";
+import Button from "./Button";
+import CancelButton from "./CancelButton";
+import { confirmPopup } from "./Confirm";
+import CrossPostIssueControls from "./CrossPostIssueControls";
+import { VideoLink } from "./Flow";
+import Headshot from "./Headshot";
+import Icon from "./Icon";
+import { Link } from "./Link";
+import Menu from "./Menu";
+import MessageInput, { AttachmentField } from "./MessageInput";
+import { Modal } from "./Modal";
+import { SharingAttributes, SharingControls } from "./SharingControls";
+import { SmartFormattedList } from "./SmartFormattedList";
+import ContainerAtEditorLine from "./SpatialView/ContainerAtEditorLine";
+import ContainerAtEditorSelection from "./SpatialView/ContainerAtEditorSelection";
+import Tag from "./Tag";
+import Tooltip from "./Tooltip";
 
 export interface ICrossPostIssueContext {
 	setSelectedAssignees(any: any): void;
@@ -105,7 +105,7 @@ export interface ICrossPostIssueContext {
 export const CrossPostIssueContext = React.createContext<ICrossPostIssueContext>({
 	selectedAssignees: [],
 	setSelectedAssignees: () => {},
-	setValues: () => {}
+	setValues: () => {},
 });
 
 interface Props extends ConnectedProps {
@@ -178,6 +178,7 @@ interface ConnectedProps {
 	repos: ReposState;
 	prLabel: LabelHash;
 	codeErrors: CodeErrorsState;
+	currentPullRequestSupportsReview?: boolean;
 }
 
 interface State {
@@ -249,7 +250,7 @@ function merge(defaults: Partial<State>, codemark: CSCodemark): State {
 class CodemarkForm extends React.Component<Props, State> {
 	static defaultProps = {
 		commentType: "comment",
-		isEditing: false
+		isEditing: false,
 	};
 	_titleInput: HTMLElement | null = null;
 	insertTextAtCursor?: Function;
@@ -295,7 +296,7 @@ class CodemarkForm extends React.Component<Props, State> {
 			changedPrLines: [],
 			deleteMarkerLocations: {},
 			attachments: [],
-			isDragging: 0
+			isDragging: 0,
 		};
 
 		const state = props.editingCodemark
@@ -303,7 +304,7 @@ class CodemarkForm extends React.Component<Props, State> {
 			: ({
 					isLoading: false,
 					notify: false,
-					...defaultState
+					...defaultState,
 			  } as State);
 
 		let assignees: any;
@@ -312,7 +313,7 @@ class CodemarkForm extends React.Component<Props, State> {
 			assignees = externalAssignees
 				.map(a => ({
 					value: a.displayName,
-					label: a.displayName
+					label: a.displayName,
 				}))
 				.concat(
 					mapFilter(this.props.editingCodemark!.assignees || [], a =>
@@ -328,7 +329,7 @@ class CodemarkForm extends React.Component<Props, State> {
 		}
 		this.state = {
 			...state,
-			assignees
+			assignees,
 		};
 
 		if (props.isEditing && props.editingCodemark) {
@@ -343,13 +344,13 @@ class CodemarkForm extends React.Component<Props, State> {
 			this.state = {
 				...this.state,
 				selectedTags,
-				relatedCodemarkIds
+				relatedCodemarkIds,
 			};
 		}
 		if (props.isEditing && props.editingCodemark) {
 			this.state = {
 				...this.state,
-				text: escapeHtml(this.state.text)
+				text: escapeHtml(this.state.text),
 			};
 		}
 	}
@@ -369,7 +370,7 @@ class CodemarkForm extends React.Component<Props, State> {
 			dontAutoSelectLine,
 			textEditorUriHasPullRequestContext,
 			textEditorUriContext,
-			isEditing
+			isEditing,
 		} = this.props;
 		const { codeBlocks } = this.state;
 
@@ -378,7 +379,7 @@ class CodemarkForm extends React.Component<Props, State> {
 				repoId: textEditorUriContext.repoId,
 				filePath: textEditorUriContext.path,
 				baseSha: textEditorUriContext.leftSha,
-				headSha: textEditorUriContext.rightSha
+				headSha: textEditorUriContext.rightSha,
 			});
 
 			this.setState({ changedPrLines });
@@ -488,7 +489,7 @@ class CodemarkForm extends React.Component<Props, State> {
 		HostApi.instance.send(EditorSelectRangeRequestType, {
 			uri: uri,
 			selection: { ...range, cursor: range.end },
-			preserveFocus: true
+			preserveFocus: true,
 		});
 	}
 
@@ -502,7 +503,7 @@ class CodemarkForm extends React.Component<Props, State> {
 			uri: uri,
 			gitSha: gitSha,
 			range: range,
-			dirty: true // should this be determined here? using true to be safe
+			dirty: true, // should this be determined here? using true to be safe
 		});
 		let newCodeBlocks = [...this.state.codeBlocks];
 		if (this.state.liveLocation >= 0) newCodeBlocks[this.state.liveLocation] = scmInfo;
@@ -524,7 +525,7 @@ class CodemarkForm extends React.Component<Props, State> {
 			if (!user.isRegistered) return;
 			return {
 				value: user.id,
-				label: user.username
+				label: user.username,
 			};
 		});
 	}
@@ -541,14 +542,14 @@ class CodemarkForm extends React.Component<Props, State> {
 		try {
 			const { users } = await HostApi.instance.send(FetchAssignableUsersRequestType, {
 				providerId,
-				boardId: board.apiIdentifier || board.id
+				boardId: board.apiIdentifier || board.id,
 			});
 
 			this.setState({
 				assignableUsers: users.map(u => ({
 					value: u,
-					label: u.displayName
-				}))
+					label: u.displayName,
+				})),
 			});
 		} catch (error) {
 			this.setState({ assignableUsers: [] });
@@ -640,7 +641,7 @@ class CodemarkForm extends React.Component<Props, State> {
 					mentionAuthors.push({
 						email: mappedPerson.email,
 						id: mappedPerson.id,
-						username: mappedPerson.username
+						username: mappedPerson.username,
 					});
 				} else if (author.id) {
 					// if it's a registered teammate who has not been explicitly removed from the team, mention them
@@ -711,7 +712,7 @@ class CodemarkForm extends React.Component<Props, State> {
 			type,
 			codeBlockInvalid: false,
 			titleInvalid: false,
-			textInvalid: false
+			textInvalid: false,
 		});
 		// setTimeout(() => {
 		// 	// this.focus();
@@ -720,7 +721,7 @@ class CodemarkForm extends React.Component<Props, State> {
 
 	togglePermalinkPrivacy = (isPermalinkPublic: boolean) => {
 		this.setState({
-			isPermalinkPublic
+			isPermalinkPublic,
 		});
 	};
 
@@ -773,7 +774,7 @@ class CodemarkForm extends React.Component<Props, State> {
 			selectedChannelId,
 			selectedTags,
 			relatedCodemarkIds,
-			attachments
+			attachments,
 		} = this.state;
 		// FIXME
 		const codeBlock = codeBlocks[0];
@@ -785,13 +786,13 @@ class CodemarkForm extends React.Component<Props, State> {
 				request = {
 					uri: codeBlock.uri,
 					range: codeBlock.range,
-					privacy: privacy
+					privacy: privacy,
 				};
 			} else {
 				request = {
 					uri: this.props.textEditorUri,
 					range: this.props.textEditorSelection,
-					privacy: privacy
+					privacy: privacy,
 				};
 			}
 
@@ -847,7 +848,7 @@ class CodemarkForm extends React.Component<Props, State> {
 					: "";
 			HostApi.instance.track("PR Comment Added", {
 				Host: providerId,
-				"Comment Type": this.state.isProviderReview ? "Review Comment" : "Single Comment"
+				"Comment Type": this.state.isProviderReview ? "Review Comment" : "Single Comment",
 			});
 		}
 
@@ -856,7 +857,7 @@ class CodemarkForm extends React.Component<Props, State> {
 		if (this.props.currentReviewId) {
 			try {
 				const response = await HostApi.instance.send(GetReviewRequestType, {
-					reviewId: this.props.currentReviewId
+					reviewId: this.props.currentReviewId,
 				});
 				const { review } = response;
 				parentPostId = review.postId;
@@ -904,14 +905,14 @@ class CodemarkForm extends React.Component<Props, State> {
 				parentPostId,
 				isChangeRequest: this.state.isChangeRequest,
 				addedUsers: keyFilter(this.state.emailAuthors),
-				isProviderReview: this.state.isProviderReview
+				isProviderReview: this.state.isProviderReview,
 			};
 			if (this.props.teamProvider === "codestream") {
 				const retVal = await this.props.onSubmit({
 					...baseAttributes,
 					sharingAttributes: this.props.shouldShare ? this._sharingAttributes : undefined,
 					accessMemberIds: this.state.privacyMembers.map(m => m.value),
-					files: attachments
+					files: attachments,
 				});
 				// if you're making a markerless codemark it won't appear on spatial view, the form
 				// will just kind of disappear.  similarly, if you prior panel was *not* spatial view
@@ -967,7 +968,7 @@ class CodemarkForm extends React.Component<Props, State> {
 								fontSize: "12px",
 								display: "inline-block",
 								margin: "0 auto",
-								padding: 0
+								padding: 0,
 							}}
 						>
 							<Checkbox
@@ -989,9 +990,9 @@ class CodemarkForm extends React.Component<Props, State> {
 			buttons: [
 				{
 					label: "OK",
-					action: () => {}
-				}
-			]
+					action: () => {},
+				},
+			],
 		});
 	};
 
@@ -1009,7 +1010,7 @@ class CodemarkForm extends React.Component<Props, State> {
 			titleInvalid: false,
 			textInvalid: false,
 			assigneesInvalid: false,
-			sharingAttributesInvalid: false
+			sharingAttributesInvalid: false,
 		};
 
 		let invalid = false;
@@ -1095,7 +1096,7 @@ class CodemarkForm extends React.Component<Props, State> {
 			this.setState(state => ({
 				channelMenuOpen: !state.channelMenuOpen,
 				channelMenuTarget: target,
-				crossPostMessage: true
+				crossPostMessage: true,
 			}));
 		}
 	};
@@ -1119,7 +1120,7 @@ class CodemarkForm extends React.Component<Props, State> {
 		this.setState({
 			liveLocation: -1,
 			locationMenuOpen: index,
-			locationMenuTarget: target
+			locationMenuTarget: target,
 		});
 	};
 
@@ -1136,7 +1137,7 @@ class CodemarkForm extends React.Component<Props, State> {
 		this.setState(
 			{
 				locationMenuOpen: "closed",
-				codeBlocks: newCodeBlocks
+				codeBlocks: newCodeBlocks,
 			},
 			() => {
 				this.handlePrIntersection();
@@ -1144,7 +1145,7 @@ class CodemarkForm extends React.Component<Props, State> {
 		);
 		if (editingCodemark) {
 			this.setState({
-				deleteMarkerLocations: { ...this.state.deleteMarkerLocations, [index]: true }
+				deleteMarkerLocations: { ...this.state.deleteMarkerLocations, [index]: true },
 			});
 		}
 		this.addLocation();
@@ -1157,7 +1158,7 @@ class CodemarkForm extends React.Component<Props, State> {
 		this.setState(state => ({
 			locationMenuOpen: "closed",
 			addingLocation: true,
-			liveLocation: Math.max(state.codeBlocks.length, markersLength)
+			liveLocation: Math.max(state.codeBlocks.length, markersLength),
 		}));
 		if (this.props.setMultiLocation && !this.props.multiLocation) this.props.setMultiLocation(true);
 	};
@@ -1177,7 +1178,7 @@ class CodemarkForm extends React.Component<Props, State> {
 		this.setState(state => ({
 			locationMenuOpen: "closed",
 			addingLocation: false,
-			liveLocation: -1
+			liveLocation: -1,
 		}));
 		// this.addLocation();
 		this.focus();
@@ -1206,7 +1207,7 @@ class CodemarkForm extends React.Component<Props, State> {
 		const target = event.target;
 		this.setState(state => ({
 			labelMenuOpen: !state.labelMenuOpen,
-			labelMenuTarget: target
+			labelMenuTarget: target,
 		}));
 	};
 
@@ -1414,7 +1415,7 @@ class CodemarkForm extends React.Component<Props, State> {
 			relatedCodemarkIds[codemark.id] = codemark;
 			HostApi.instance.track("Related Codemark Added", {
 				"Codemark ID": this.props.editingCodemark ? this.props.editingCodemark.id : undefined,
-				"Sibling Status": this.props.isEditing ? "Existing Codemark" : "New Codemark"
+				"Sibling Status": this.props.isEditing ? "Existing Codemark" : "New Codemark",
 			});
 		}
 		this.setState({ relatedCodemarkIds });
@@ -2035,10 +2036,10 @@ class CodemarkForm extends React.Component<Props, State> {
 				document.createElement("span"),
 			setValues: values => {
 				this.setState(state => ({
-					crossPostIssueValues: { ...state.crossPostIssueValues, ...values }
+					crossPostIssueValues: { ...state.crossPostIssueValues, ...values },
 				}));
 			},
-			codeBlock: this.state.codeBlocks[0]
+			codeBlock: this.state.codeBlocks[0],
 		};
 	}
 
@@ -2179,9 +2180,9 @@ class CodemarkForm extends React.Component<Props, State> {
 						label: `Discard ${type === "issue" ? "Issue" : "Comment"}`,
 						wait: true,
 						action: this.props.onClickClose,
-						className: "delete"
-					}
-				]
+						className: "delete",
+					},
+				],
 			});
 		} else {
 			this.props.onClickClose(e);
@@ -2324,7 +2325,7 @@ class CodemarkForm extends React.Component<Props, State> {
 			<form
 				id="code-comment-form"
 				className={cx("codemark-form", "standard-form", {
-					"active-drag": this.state.isDragging > 0
+					"active-drag": this.state.isDragging > 0,
 				})}
 				key="two"
 				onDragEnter={this.handleDragEnter}
@@ -2415,7 +2416,7 @@ class CodemarkForm extends React.Component<Props, State> {
 									<Icon name="alert" />
 									Note that this is a public URL. Anyone with the link will be able to see the
 									quoted code snippet.
-								</div>
+								</div>,
 							]}
 						{commentType === "link" &&
 							this.state.linkURI && [
@@ -2431,7 +2432,7 @@ class CodemarkForm extends React.Component<Props, State> {
 									ref={this.permalinkWithCodeRef}
 									value={linkWithCodeBlock}
 									style={{ position: "absolute", left: "-9999px" }}
-								/>
+								/>,
 							]}
 						{commentType === "link" && !this.state.linkURI && (
 							<div id="privacy-controls" className="control-group" key="1">
@@ -2490,7 +2491,7 @@ class CodemarkForm extends React.Component<Props, State> {
 										style={{
 											paddingLeft: "10px",
 											paddingRight: "10px",
-											marginRight: 0
+											marginRight: 0,
 										}}
 										className="control-button"
 										type="submit"
@@ -2513,7 +2514,7 @@ class CodemarkForm extends React.Component<Props, State> {
 											this.props.currentCodeErrorId
 												? "auto"
 												: "80px",
-										marginRight: 0
+										marginRight: 0,
 									}}
 									className="control-button"
 									type="submit"
@@ -2544,32 +2545,34 @@ class CodemarkForm extends React.Component<Props, State> {
 										: "Submit"}
 								</Button>
 							</Tooltip>
-							{this.props.textEditorUriHasPullRequestContext && this.state.isInsidePrChangeSet && (
-								<Tooltip title={hasError ? null : reviewTooltip} placement="bottom" delay={1}>
-									<Button
-										key="submit-review"
-										loading={this.state.isReviewLoading}
-										disabled={hasError}
-										onClick={e => {
-											this.setState({ isProviderReview: true }, () => {
-												this.handleClickSubmit(e);
-											});
-										}}
-										style={{
-											paddingLeft: "10px",
-											paddingRight: "10px",
-											// fixed width to handle the isReviewLoading case
-											width: "auto",
-											marginRight: 0
-										}}
-										className="control-button"
-										type="submit"
-									>
-										{hasExistingPullRequestReview && <>Add to review</>}
-										{!hasExistingPullRequestReview && <>Start a review</>}
-									</Button>
-								</Tooltip>
-							)}
+							{this.props.currentPullRequestSupportsReview &&
+								this.props.textEditorUriHasPullRequestContext &&
+								this.state.isInsidePrChangeSet && (
+									<Tooltip title={hasError ? null : reviewTooltip} placement="bottom" delay={1}>
+										<Button
+											key="submit-review"
+											loading={this.state.isReviewLoading}
+											disabled={hasError}
+											onClick={e => {
+												this.setState({ isProviderReview: true }, () => {
+													this.handleClickSubmit(e);
+												});
+											}}
+											style={{
+												paddingLeft: "10px",
+												paddingRight: "10px",
+												// fixed width to handle the isReviewLoading case
+												width: "auto",
+												marginRight: 0,
+											}}
+											className="control-button"
+											type="submit"
+										>
+											{hasExistingPullRequestReview && <>Add to review</>}
+											{!hasExistingPullRequestReview && <>Start a review</>}
+										</Button>
+									</Tooltip>
+								)}
 							{/*
 							<span className="hint">Styling with Markdown is supported</span>
 						*/}
@@ -2577,7 +2580,7 @@ class CodemarkForm extends React.Component<Props, State> {
 					)}
 					<div key="clear" style={{ clear: "both" }} />
 				</fieldset>
-			</form>
+			</form>,
 		];
 		// 	<span className="hixnt" style={{ grid: "none" }}>
 		// 	<input type="checkbox" />
@@ -2615,7 +2618,7 @@ const mapStateToProps = (state: CodeStreamState): ConnectedProps => {
 		providers,
 		codemarks,
 		repos,
-		codeErrors
+		codeErrors,
 	} = state;
 	const user = users[session.userId!] as CSMe;
 	const channel = context.currentStreamId
@@ -2658,6 +2661,10 @@ const mapStateToProps = (state: CodeStreamState): ConnectedProps => {
 		currentPullRequestId: state.context.currentPullRequest
 			? state.context.currentPullRequest.id
 			: undefined,
+		currentPullRequestSupportsReview:
+			state.context.currentPullRequest && state.context.currentPullRequest.providerId
+				? !state.context.currentPullRequest.providerId.includes("bitbucket")
+				: undefined,
 		providerInfo: (user.providerInfo && user.providerInfo[context.currentTeamId]) || EMPTY_OBJECT,
 		teamProvider: getCurrentTeamProvider(state),
 		currentUser: user,
@@ -2682,7 +2689,7 @@ const mapStateToProps = (state: CodeStreamState): ConnectedProps => {
 		currentCodeErrorId: context.currentCodeErrorId,
 		inviteUsersOnTheFly,
 		prLabel: getPRLabel(state),
-		codeErrors: codeErrors
+		codeErrors: codeErrors,
 	};
 };
 
@@ -2694,7 +2701,7 @@ const ConnectedCodemarkForm = connect(mapStateToProps, {
 	fetchCodeError,
 	upgradePendingCodeError,
 	getPullRequestConversationsFromProvider,
-	setCurrentPullRequestNeedsRefresh
+	setCurrentPullRequestNeedsRefresh,
 })(CodemarkForm);
 
 export { ConnectedCodemarkForm as CodemarkForm };

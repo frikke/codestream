@@ -16,7 +16,7 @@ import {
 	HistoryFetchCallback,
 	MessageCallback,
 	MessageEvent,
-	StatusCallback
+	StatusCallback,
 } from "./broadcaster";
 import { PubnubHistory } from "./pubnubHistory";
 
@@ -83,7 +83,7 @@ export class PubnubConnection implements BroadcasterConnection {
 			logVerbosity: false,
 			// heartbeatInterval: 30,
 			autoNetworkDetection: true,
-			proxy: options.httpsAgent instanceof HttpsProxyAgent && options.httpsAgent.proxy
+			proxy: options.httpsAgent instanceof HttpsProxyAgent && options.httpsAgent.proxy,
 		} as Pubnub.PubnubConfig);
 
 		this._messageCallback = options.onMessage;
@@ -96,7 +96,7 @@ export class PubnubConnection implements BroadcasterConnection {
 			dispose: () => {
 				this.disconnect();
 				this._pubnub!.stop();
-			}
+			},
 		};
 	}
 
@@ -106,7 +106,7 @@ export class PubnubConnection implements BroadcasterConnection {
 		const subscribedChannels: string[] = [];
 		for (const channel of channels) {
 			const subscription = this._subscriptionMap[channel] || {
-				subscribed: false
+				subscribed: false,
 			};
 			if (subscription.subscribed) {
 				subscribedChannels.push(channel);
@@ -117,13 +117,13 @@ export class PubnubConnection implements BroadcasterConnection {
 		if (subscribedChannels.length > 0) {
 			this.onStatus({
 				status: BroadcasterStatusType.Connected,
-				channels: subscribedChannels
+				channels: subscribedChannels,
 			});
 		}
 		if (unsubscribedChannels.length > 0) {
 			this._debug(`Subscribing to ${JSON.stringify(unsubscribedChannels)}`);
 			this._pubnub!.subscribe({
-				channels: unsubscribedChannels
+				channels: unsubscribedChannels,
 			});
 		}
 	}
@@ -137,7 +137,7 @@ export class PubnubConnection implements BroadcasterConnection {
 	private addListener() {
 		this._listener = {
 			message: this.onMessage.bind(this),
-			status: this.onStatus.bind(this)
+			status: this.onStatus.bind(this),
 		} as Pubnub.ListenerParameters;
 		this._pubnub!.addListener(this._listener);
 	}
@@ -171,7 +171,7 @@ export class PubnubConnection implements BroadcasterConnection {
 		const messageEvent: MessageEvent = {
 			receivedAt,
 			message: event.message,
-			channel: event.channel
+			channel: event.channel,
 		};
 		if (this._messageCallback) {
 			this._messageCallback(messageEvent);
@@ -221,7 +221,7 @@ export class PubnubConnection implements BroadcasterConnection {
 				if (this._statusCallback) {
 					this._statusCallback!({
 						status: BroadcasterStatusType.NonCriticalFailure,
-						channels: nonCriticalChannels
+						channels: nonCriticalChannels,
 					});
 				}
 			}
@@ -243,7 +243,7 @@ export class PubnubConnection implements BroadcasterConnection {
 		if (this._statusCallback) {
 			this._statusCallback({
 				status: BroadcasterStatusType.Connected,
-				channels
+				channels,
 			});
 		}
 	}
@@ -251,7 +251,7 @@ export class PubnubConnection implements BroadcasterConnection {
 	private reset() {
 		if (this._statusCallback) {
 			this._statusCallback({
-				status: BroadcasterStatusType.Reset
+				status: BroadcasterStatusType.Reset,
 			});
 		}
 	}
@@ -266,14 +266,14 @@ export class PubnubConnection implements BroadcasterConnection {
 		return new PubnubHistory().fetchHistory({
 			pubnub: this._pubnub!,
 			historyFetchCallback: this._historyFetchCallback,
-			...options
+			...options,
 		});
 	}
 
 	private async netHiccup() {
 		if (this._statusCallback) {
 			this._statusCallback({
-				status: BroadcasterStatusType.NetworkProblem
+				status: BroadcasterStatusType.NetworkProblem,
 			});
 		}
 	}
@@ -293,7 +293,7 @@ export class PubnubConnection implements BroadcasterConnection {
 		if (this._statusCallback) {
 			this._statusCallback({
 				status: BroadcasterStatusType.Failed,
-				channels
+				channels,
 			});
 		}
 	}

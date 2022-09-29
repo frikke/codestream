@@ -1,5 +1,5 @@
-import { Index } from "../common";
 import { PostPlus } from "@codestream/protocols/agent";
+import { Index } from "../common";
 
 export interface PendingPost
 	extends Pick<
@@ -42,5 +42,5 @@ export enum PostsActionsType {
 	FailPendingPost = "PENDING_POST_FAILED",
 	CancelPendingPost = "CANCEL_PENDING_POST",
 	Delete = "DELETE_POST",
-	Save = "@posts/Save"
+	Save = "@posts/Save",
 }

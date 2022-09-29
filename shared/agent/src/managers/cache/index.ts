@@ -5,7 +5,7 @@ import { FetchFn, IdFn } from "./baseCache";
 
 export enum IndexType {
 	Unique = "unique",
-	Group = "group"
+	Group = "group",
 }
 
 export interface IndexParams<T> {

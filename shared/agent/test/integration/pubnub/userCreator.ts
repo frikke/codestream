@@ -26,24 +26,24 @@ export class UserCreator {
 			email,
 			password,
 			username,
-			_confirmationCheat: CONFIRMATION_CHEAT
+			_confirmationCheat: CONFIRMATION_CHEAT,
 		} as RegisterRequest;
 		this._registerResponse = (await this._apiRequester.request({
 			method: "POST",
 			path: "/no-auth/register",
-			data
+			data,
 		})) as RegisterResponse;
 	}
 
 	async confirmUser() {
 		const data = {
 			email: this._registerResponse!.user.email,
-			confirmationCode: this._registerResponse!.user.confirmationCode
+			confirmationCode: this._registerResponse!.user.confirmationCode,
 		} as ConfirmRequest;
 		this._userData = (await this._apiRequester.request({
 			method: "POST",
 			path: "/no-auth/confirm",
-			data
+			data,
 		})) as LoginResponse;
 	}
 }

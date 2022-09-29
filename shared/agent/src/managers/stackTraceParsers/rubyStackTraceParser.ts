@@ -50,7 +50,7 @@ export function Parser(stack: string): CSStackTraceInfo {
 		info.lines.push({
 			method,
 			fileFullPath: path,
-			line: lineNum
+			line: lineNum,
 		});
 	}
 

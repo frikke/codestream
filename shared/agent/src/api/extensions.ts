@@ -14,7 +14,7 @@ import {
 	CSReview,
 	CSSlackProviderInfo,
 	CSTeam,
-	CSTeamProviderInfos
+	CSTeamProviderInfos,
 } from "../protocol/api.protocol";
 
 export interface MarkerLocationArraysById {
@@ -36,8 +36,8 @@ export namespace MarkerLocation {
 			meta: {
 				startWasDeleted: true,
 				endWasDeleted: true,
-				entirelyDeleted: true
-			}
+				entirelyDeleted: true,
+			},
 		};
 	}
 
@@ -48,7 +48,7 @@ export namespace MarkerLocation {
 			colStart: array[1],
 			lineEnd: array[2],
 			colEnd: array[3],
-			meta: array[4]
+			meta: array[4],
 		};
 	}
 
@@ -58,7 +58,7 @@ export namespace MarkerLocation {
 			lineStart: range.start.line + 1,
 			colStart: range.start.character + 1,
 			lineEnd: range.end.line + 1,
-			colEnd: range.end.character + 1
+			colEnd: range.end.character + 1,
 		};
 	}
 
@@ -68,7 +68,7 @@ export namespace MarkerLocation {
 			location.colStart,
 			location.lineEnd,
 			location.colEnd,
-			location.meta
+			location.meta,
 		];
 	}
 
@@ -78,7 +78,7 @@ export namespace MarkerLocation {
 			range.start.character + 1,
 			range.end.line + 1,
 			range.end.character + 1,
-			undefined
+			undefined,
 		];
 	}
 
@@ -134,21 +134,21 @@ const remoteProviders: [
 		"GitHub",
 		/(?:^|\.)github\.com/i,
 		(remote: string, ref: string, file: string, start: number, end: number) =>
-			`https://${remote}/blob/${ref}/${file}#L${start}${start !== end ? `-L${end}` : ""}`
+			`https://${remote}/blob/${ref}/${file}#L${start}${start !== end ? `-L${end}` : ""}`,
 	],
 	[
 		"gitlab",
 		"GitLab",
 		/(?:^|\.)gitlab\.com/i,
 		(remote: string, ref: string, file: string, start: number, end: number) =>
-			`https://${remote}/blob/${ref}/${file}#L${start}${start !== end ? `-${end}` : ""}`
+			`https://${remote}/blob/${ref}/${file}#L${start}${start !== end ? `-${end}` : ""}`,
 	],
 	[
 		"bitBucket",
 		"Bitbucket",
 		/(?:^|\.)bitbucket\.org/i,
 		(remote: string, ref: string, file: string, start: number, end: number) =>
-			`https://${remote}/src/${ref}/${file}#${file}-${start}${start !== end ? `:${end}` : ""}`
+			`https://${remote}/src/${ref}/${file}#${file}-${start}${start !== end ? `:${end}` : ""}`,
 	],
 	[
 		"azure-devops",
@@ -157,7 +157,7 @@ const remoteProviders: [
 		(remote: string, ref: string, file: string, start: number, end: number) =>
 			`https://${remote}/commit/${ref}/?_a=contents&path=%2F${file}&line=${start}${
 				start !== end ? `&lineEnd=${end}` : ""
-			}`
+			}`,
 	],
 	[
 		"vsts",
@@ -166,8 +166,8 @@ const remoteProviders: [
 		(remote: string, ref: string, file: string, start: number, end: number) =>
 			`https://${remote}/commit/${ref}/?_a=contents&path=%2F${file}&line=${start}${
 				start !== end ? `&lineEnd=${end}` : ""
-			}`
-	]
+			}`,
+	],
 ];
 
 export namespace Marker {
@@ -315,7 +315,7 @@ export namespace User {
 		if (!namedProvider) {
 			return undefined;
 		}
-		const typedProvider = (namedProvider as any) as T;
+		const typedProvider = namedProvider as any as T;
 		if (!host) {
 			return typedProvider;
 		}
@@ -399,7 +399,7 @@ export function toReviewActionId(
 		id: id,
 		linkType: linkType,
 		teamId: review.teamId,
-		reviewId: review.id
+		reviewId: review.id,
 	};
 
 	return JSON.stringify(actionId);
@@ -416,7 +416,7 @@ export function toActionId(
 		linkType: linkType,
 		teamId: codemark.teamId,
 		codemarkId: codemark.id,
-		markerId: marker && marker.id
+		markerId: marker && marker.id,
 	};
 
 	return JSON.stringify(actionId);
@@ -430,7 +430,7 @@ export function toCodeErrorActionId(
 	const actionId: CodeErrorActionId = {
 		id: id,
 		codeErrorId: codeError.id,
-		linkType: linkType
+		linkType: linkType,
 	};
 
 	return JSON.stringify(actionId);
@@ -450,7 +450,7 @@ export function toExternalActionId(
 		externalProvider: provider,
 		teamId: codemark.teamId,
 		codemarkId: codemark.id,
-		markerId: marker && marker.id
+		markerId: marker && marker.id,
 	};
 
 	return JSON.stringify(actionId);
@@ -465,7 +465,7 @@ export function toCodeErrorReplyActionId(
 		id: id,
 		linkType: "code-error-reply",
 		ceId: codeError.id,
-		pcuId: providerCreatorUserId
+		pcuId: providerCreatorUserId,
 	};
 
 	return JSON.stringify(actionId);
@@ -480,7 +480,7 @@ export function toReviewReplyActionId(
 		id: id,
 		linkType: "review-reply",
 		rId: review.id,
-		pcuId: providerCreatorUserId
+		pcuId: providerCreatorUserId,
 	};
 
 	return JSON.stringify(actionId);
@@ -495,7 +495,7 @@ export function toReplyActionId(
 		id: id,
 		linkType: "reply",
 		cId: codemark.id,
-		pcuId: providerCreatorUserId
+		pcuId: providerCreatorUserId,
 	};
 
 	return JSON.stringify(actionId);
@@ -510,7 +510,7 @@ export function toReplyDisabledActionId(
 		id: id,
 		linkType: "reply-disabled",
 		cId: codemark.id,
-		pcuId: providerCreatorUserId
+		pcuId: providerCreatorUserId,
 	};
 
 	return JSON.stringify(actionId);

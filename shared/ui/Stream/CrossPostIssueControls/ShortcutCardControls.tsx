@@ -1,24 +1,24 @@
-import React from "react";
-import ReactDOM from "react-dom";
-import AsyncSelect from "react-select/async";
-import Icon from "../Icon";
-import Menu from "../Menu";
 import {
-	ThirdPartyProviderConfig,
+	FetchAssignableUsersRequestType,
 	FetchThirdPartyBoardsRequestType,
 	ShortcutProject,
-	FetchAssignableUsersRequestType
+	ThirdPartyProviderConfig,
 } from "@codestream/protocols/agent";
-import { useSelector, useDispatch } from "react-redux";
 import { CodeStreamState } from "@codestream/webview/store";
-import { getIntegrationData } from "@codestream/webview/store/activeIntegrations/reducer";
 import { updateForProvider } from "@codestream/webview/store/activeIntegrations/actions";
-import { emptyArray, mapFilter, keyFilter } from "@codestream/webview/utils";
-import { HostApi } from "@codestream/webview/webview-api";
+import { getIntegrationData } from "@codestream/webview/store/activeIntegrations/reducer";
 import { ShortcutIntegrationData } from "@codestream/webview/store/activeIntegrations/types";
 import { setIssueProvider } from "@codestream/webview/store/context/actions";
-import { CrossPostIssueContext } from "../CodemarkForm";
 import { useDidMount } from "@codestream/webview/utilities/hooks";
+import { emptyArray, mapFilter } from "@codestream/webview/utils";
+import { HostApi } from "@codestream/webview/webview-api";
+import React from "react";
+import ReactDOM from "react-dom";
+import { useDispatch, useSelector } from "react-redux";
+import AsyncSelect from "react-select/async";
+import { CrossPostIssueContext } from "../CodemarkForm";
+import Icon from "../Icon";
+import Menu from "../Menu";
 
 interface Props {
 	provider: ThirdPartyProviderConfig;
@@ -45,7 +45,7 @@ export function ShortcutCardControls(props: React.PropsWithChildren<Props>) {
 
 		if (!data.isLoading) {
 			updateDataState({
-				isLoading: true
+				isLoading: true,
 			});
 		}
 
@@ -53,23 +53,25 @@ export function ShortcutCardControls(props: React.PropsWithChildren<Props>) {
 
 		const fetchProjects = async () => {
 			const response = await HostApi.instance.send(FetchThirdPartyBoardsRequestType, {
-				providerId: props.provider.id
+				providerId: props.provider.id,
 			});
 
 			if (!isValid) return;
 			// make sure to persist current project selection if possible
-			const newCurrentProject = (data.currentProject
-				? response.boards.find(b => b.id === data.currentProject!.id)
-				: response.boards[0]) as ShortcutProject;
+			const newCurrentProject = (
+				data.currentProject
+					? response.boards.find(b => b.id === data.currentProject!.id)
+					: response.boards[0]
+			) as ShortcutProject;
 
 			updateDataState({
 				isLoading: false,
 				projects: response.boards as ShortcutProject[],
-				currentProject: newCurrentProject
+				currentProject: newCurrentProject,
 			});
 
 			crossPostIssueContext.setValues({
-				projectId: newCurrentProject.id
+				projectId: newCurrentProject.id,
 			});
 		};
 
@@ -94,7 +96,7 @@ export function ShortcutCardControls(props: React.PropsWithChildren<Props>) {
 		const target = event.target;
 		setProjectMenuState(state => ({
 			open: !state.open,
-			target
+			target,
 		}));
 	}, []);
 
@@ -102,10 +104,10 @@ export function ShortcutCardControls(props: React.PropsWithChildren<Props>) {
 		setProjectMenuState({ open: false });
 		if (project) {
 			crossPostIssueContext.setValues({
-				projectId: project.id
+				projectId: project.id,
 			});
 			updateDataState({
-				currentProject: project
+				currentProject: project,
 			});
 		}
 	}, []);
@@ -116,7 +118,7 @@ export function ShortcutCardControls(props: React.PropsWithChildren<Props>) {
 
 			const { users } = await HostApi.instance.send(FetchAssignableUsersRequestType, {
 				providerId: props.provider.id,
-				boardId: data.currentProject!.id
+				boardId: data.currentProject!.id,
 			});
 			return mapFilter(users, u => {
 				if (u.displayName.toLowerCase().includes(inputValue.toLowerCase()))
@@ -176,7 +178,7 @@ export function ShortcutCardControls(props: React.PropsWithChildren<Props>) {
 	const projectItems = (data.projects || emptyArray).map(project => ({
 		label: project.name,
 		key: project.id,
-		action: project
+		action: project,
 	}));
 
 	return (

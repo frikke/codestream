@@ -1,11 +1,11 @@
-import { Card, CardBody, CardBanner, CardFooter } from "./Card";
 import React from "react";
 import styled from "styled-components";
+import { Card, CardBanner, CardBody, CardFooter } from "./Card";
 
 export default {
 	title: "Card",
 	component: Card,
-	decorators: [storyFn => <div style={{ width: "300px" }}>{storyFn()}</div>]
+	decorators: [storyFn => <div style={{ width: "300px" }}>{storyFn()}</div>],
 };
 
 const P = styled.p`
@@ -32,7 +32,7 @@ export const withClickHandler = () => (
 			display: "flex",
 			flexDirection: "column",
 			justifyContent: "space-between",
-			minHeight: 100
+			minHeight: 100,
 		}}
 	>
 		<Card onClick={() => alert("hi")}>The cursor changes on hover</Card>

@@ -15,6 +15,8 @@ import {
 import { Strings } from "../system";
 import { Logger } from "../logger";
 import { InstrumentableSymbol, ISymbolLocator } from "./symbolLocator";
+import { Container } from "../container";
+import { configuration } from "../configuration";
 
 function allEmpty(arrays: (any[] | undefined)[]) {
 	for (const arr of arrays) {
@@ -32,6 +34,10 @@ function isEmpty(array: any[] | undefined) {
 	return array.length === 0;
 }
 
+class ErrorCodeLens extends vscode.CodeLens {
+	isErrorCodeLens = true;
+}
+
 export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider {
 	private documentManager: any = {};
 	private resetCache: boolean = false;
@@ -41,7 +47,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 		private symbolLocator: ISymbolLocator,
 		private observabilityService: {
 			getFileLevelTelemetry(
-				filePath: string,
+				fileUri: string,
 				languageId: string,
 				resetCache?: boolean,
 				locator?: FunctionLocator,
@@ -61,6 +67,61 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 			document: document,
 			tracked: false
 		};
+		if (document.uri.scheme === "codestream-diff") {
+			this.promptToEnableCodeLens(document);
+		}
+	}
+
+	private _isShowingPromptToEnableCodeLens = false;
+	private async promptToEnableCodeLens(document: TextDocument) {
+		try {
+			if (this._isShowingPromptToEnableCodeLens) return;
+			const promptToEnableCodeLensInDiffsSection = configuration.name(
+				"promptToEnableCodeLensInDiffs"
+			).value;
+			const promptToEnableCodeLensInDiffs = configuration.get<boolean>(
+				promptToEnableCodeLensInDiffsSection
+			);
+			const config = vscode.workspace.getConfiguration();
+			if (promptToEnableCodeLensInDiffs && !config.get("diffEditor.codeLens")) {
+				const codeLenses = await this.provideCodeLenses(document, {} as vscode.CancellationToken);
+				if (
+					codeLenses.length === 0 ||
+					codeLenses.every(_ => (_ as ErrorCodeLens).isErrorCodeLens)
+				) {
+					return;
+				}
+
+				const actions: vscode.MessageItem[] = [
+					{ title: "Yes" },
+					{ title: "No", isCloseAffordance: true },
+					{ title: "Don't ask me again" }
+				];
+
+				this._isShowingPromptToEnableCodeLens = true;
+				vscode.window
+					.showInformationMessage(
+						"Enable CodeLens in diffs to view code-level metrics",
+						...actions
+					)
+					.then(result => {
+						if (result?.title === "Yes") {
+							config.update("diffEditor.codeLens", true, true);
+						} else if (result?.title === "Don't ask me again") {
+							configuration.update(
+								promptToEnableCodeLensInDiffsSection,
+								false,
+								vscode.ConfigurationTarget.Global
+							);
+						}
+						this._isShowingPromptToEnableCodeLens = false;
+					});
+			}
+		} catch (ex) {
+			Logger.error(ex, "promptToEnableCodeLens", {
+				uri: document.uri.toString(true)
+			});
+		}
 	}
 
 	documentClosed(document: TextDocument) {
@@ -210,14 +271,14 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 		title: string,
 		tooltip?: string,
 		newRelicAccountId?: number
-	): vscode.CodeLens[] {
+	): ErrorCodeLens[] {
 		const viewCommandArgs: ViewMethodLevelTelemetryErrorCommandArgs = {
 			error: { type: errorCode },
 			newRelicAccountId,
 			languageId
 		};
-		const errorCodelens: vscode.CodeLens[] = [
-			new vscode.CodeLens(
+		const errorCodelens: ErrorCodeLens[] = [
+			new ErrorCodeLens(
 				new vscode.Range(new vscode.Position(0, 0), new vscode.Position(1, 1)),
 				new InstrumentableSymbolCommand(title, "codestream.viewMethodLevelTelemetry", tooltip, [
 					JSON.stringify(viewCommandArgs)
@@ -334,7 +395,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 			}
 
 			const fileLevelTelemetryResponse = await this.observabilityService.getFileLevelTelemetry(
-				document.fileName,
+				document.uri.toString(),
 				document.languageId,
 				this.resetCache,
 				functionLocator,
@@ -494,6 +555,20 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 			});
 
 			codeLenses = lenses.filter(_ => _ != null) as vscode.CodeLens[];
+
+			const localRanges = codeLenses.map(_ => _.range);
+			const uriRanges = await Container.agent.documentMarkers.getRangesForUri(
+				localRanges,
+				document.uri.toString(true)
+			);
+			codeLenses.forEach((lens, i) => {
+				const agentRange = uriRanges.ranges[i];
+				const start = new vscode.Position(agentRange.start.line, agentRange.start.character);
+				const end = new vscode.Position(agentRange.end.line, agentRange.end.character);
+				const newRange = new vscode.Range(start, end);
+				lens.range = newRange;
+			});
+			codeLenses = codeLenses.filter(_ => _.range.start.line >= 0);
 
 			if (codeLenses.length > 0) {
 				this.tryTrack(

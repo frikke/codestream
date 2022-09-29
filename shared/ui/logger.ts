@@ -20,7 +20,7 @@ export function logError(error: string | Error, extra?: any) {
 			type: ReportingMessageType.Error,
 			error: isInstanceOfError ? serializeError(error) : undefined,
 			message: isInstanceOfError ? error.message : error,
-			extra
+			extra,
 		});
 	} catch (e) {
 		console.error(e);

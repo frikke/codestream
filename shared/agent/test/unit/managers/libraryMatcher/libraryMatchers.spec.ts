@@ -8,7 +8,7 @@ describe("library matchers", () => {
 				"/usr/local/lib/python3.10/dist-packages/gunicorn/app/wsgiapp.py",
 				"/usr/local/lib/python3/site-packages/gunicorn/app/base.py",
 				"/usr/local/lib/python2/lib-dynload/flask/app.py",
-				"/usr/local/lib/python3.10/dist-packages/newrelic/api/wsgi_application.py"
+				"/usr/local/lib/python3.10/dist-packages/newrelic/api/wsgi_application.py",
 			];
 			for (const line of libraryLines) {
 				expect(libraryMatchers["python"](line)).toBe(true);

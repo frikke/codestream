@@ -14,16 +14,16 @@ describe("strings", () => {
 	describe("isWordy", () => {
 		it("should allow strings without url characters", () => {
 			const validStrs = ["9word", "nice-word", "split_word"];
-			for (const str of validStrs ) {
+			for (const str of validStrs) {
 				expect(isWordy(str)).toBe(true);
 			}
-		})
+		});
 
 		it("should not allow strings with url characters", () => {
 			const invalidStrs = ["https://something.org", "path/split", "spaced out", "spaced%20out", ""];
-			for (const str of invalidStrs ) {
+			for (const str of invalidStrs) {
 				expect(isWordy(str)).toBe(false);
 			}
-		})
-	})
+		});
+	});
 });

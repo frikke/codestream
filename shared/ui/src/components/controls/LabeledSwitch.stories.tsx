@@ -3,7 +3,7 @@ import { LabeledSwitch } from "./LabeledSwitch";
 
 export default {
 	title: "Inputs/LabeledSwitch",
-	component: LabeledSwitch
+	component: LabeledSwitch,
 };
 
 export const basic = () => {

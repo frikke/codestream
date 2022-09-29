@@ -1,6 +1,6 @@
 import {
 	ConnectionStatus,
-	DidChangeConnectionStatusNotificationType
+	DidChangeConnectionStatusNotificationType,
 } from "@codestream/protocols/agent";
 import { errorDismissed, errorOccurred } from "@codestream/webview/store/connectivity/actions";
 import { Disposable } from "@codestream/webview/utils";

@@ -1,13 +1,13 @@
-import React, { useState, useCallback } from "react";
-import Button from "../Stream/Button";
-import { TextInput } from "./TextInput";
-import { connect } from "react-redux";
-import { Link } from "../Stream/Link";
-import { goToLogin, goToSignup } from "../store/context/actions";
-import { DispatchProp } from "../store/common";
-import { HostApi } from "../webview-api";
+import React, { useCallback, useState } from "react";
 import { FormattedMessage } from "react-intl";
-import { startSSOSignin, SignupType, SSOAuthInfo } from "./actions";
+import { connect } from "react-redux";
+import { DispatchProp } from "../store/common";
+import { goToLogin, goToSignup } from "../store/context/actions";
+import Button from "../Stream/Button";
+import { Link } from "../Stream/Link";
+import { HostApi } from "../webview-api";
+import { SignupType, SSOAuthInfo, startSSOSignin } from "./actions";
+import { TextInput } from "./TextInput";
 
 const isHostUrlValid = (hostUrl: string) => hostUrl.length > 0;
 
@@ -42,7 +42,7 @@ export const OktaConfig = (connect() as any)((props: ConnectedProps & DispatchPr
 			try {
 				if (props.fromSignup) {
 					HostApi.instance.track("Provider Auth Selected", {
-						Provider: "Okta"
+						Provider: "Okta",
 					});
 				}
 				const info: SSOAuthInfo = props.fromSignup ? { fromSignup: true } : {};
@@ -71,10 +71,13 @@ export const OktaConfig = (connect() as any)((props: ConnectedProps & DispatchPr
 				<fieldset className="form-body">
 					<div className="border-bottom-box">
 						<h3>
-							<FormattedMessage id="oktaConfig.hostURL" defaultMessage="Host URL"/>
+							<FormattedMessage id="oktaConfig.hostURL" defaultMessage="Host URL" />
 						</h3>
 						<p>
-							<FormattedMessage id="oktaConfig.enterURL" defaultMessage="Enter the URL you use to access your Okta account."/>
+							<FormattedMessage
+								id="oktaConfig.enterURL"
+								defaultMessage="Enter the URL you use to access your Okta account."
+							/>
 						</p>
 						<div id="controls">
 							<div className="control-group">
@@ -88,7 +91,11 @@ export const OktaConfig = (connect() as any)((props: ConnectedProps & DispatchPr
 									onValidityChanged={onValidityChanged}
 									required
 								/>
-								{!hostUrlValidity && <small className="explainer error-message"><FormattedMessage id="oktaConfig.required" defaultMessage="Required"/></small>}
+								{!hostUrlValidity && (
+									<small className="explainer error-message">
+										<FormattedMessage id="oktaConfig.required" defaultMessage="Required" />
+									</small>
+								)}
 							</div>
 							<div className="button-group">
 								<Button className="control-button" type="submit" loading={isLoading}>
@@ -100,7 +107,7 @@ export const OktaConfig = (connect() as any)((props: ConnectedProps & DispatchPr
 					<div id="controls">
 						<div className="footer">
 							<Link onClick={onCancel}>
-								<FormattedMessage id="oktaConfig.cancel" defaultMessage="Cancel"/>
+								<FormattedMessage id="oktaConfig.cancel" defaultMessage="Cancel" />
 							</Link>
 						</div>
 					</div>

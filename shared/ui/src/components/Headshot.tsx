@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
-import styled from "styled-components";
-import Gravatar from "react-gravatar";
 import Icon from "@codestream/webview/Stream/Icon";
+import React, { useEffect, useState } from "react";
+import Gravatar from "react-gravatar";
+import styled from "styled-components";
 
 const Colors = {
 	[0]: "#666",
@@ -13,7 +13,7 @@ const Colors = {
 	[6]: "#876",
 	[7]: "#886",
 	[8]: "#868",
-	[9]: "#688"
+	[9]: "#688",
 	// [undefined]: "#666";
 } as const;
 

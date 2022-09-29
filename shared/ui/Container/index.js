@@ -1,27 +1,26 @@
-import React from "react";
+import { WebviewErrorRequestType } from "@codestream/protocols/agent";
+import { errorDismissed } from "@codestream/webview/store/connectivity/actions";
 import PropTypes from "prop-types";
+import React from "react";
 import { IntlProvider } from "react-intl";
 import { connect, Provider } from "react-redux";
-import Stream from "../Stream/index";
+import { ThemeProvider } from "styled-components";
 import { UnauthenticatedRoutes } from "../Authentication";
-import { logError } from "../logger";
-import { HostApi } from "../webview-api";
 import { ReloadWebviewRequestType, RestartRequestType } from "../ipc/webview.protocol";
-import { Loading } from "./Loading";
-import RoadBlock from "../Stream/RoadBlock";
-import Dismissable from "../Stream/Dismissable";
-import { SearchContextProvider } from "../Stream/SearchContextProvider";
-import { upgradeRecommendedDismissed } from "../store/versioning/actions";
-import { VersioningActionsType } from "../store/versioning/types";
+import { logError } from "../logger";
+import { Button } from "../src/components/Button";
+import { createTheme, darkTheme } from "../src/themes";
 import { apiUpgradeRecommendedDismissed } from "../store/apiVersioning/actions";
 import { ApiVersioningActionsType } from "../store/apiVersioning/types";
-import { errorDismissed } from "@codestream/webview/store/connectivity/actions";
-import { ThemeProvider } from "styled-components";
-import { darkTheme, createTheme } from "../src/themes";
 import { closeAllPanels } from "../store/context/actions";
-import { WebviewErrorRequestType } from "@codestream/protocols/agent";
-import { PresentTOS } from "../Authentication/PresentTOS";
-import { Button } from "../src/components/Button";
+import { upgradeRecommendedDismissed } from "../store/versioning/actions";
+import { VersioningActionsType } from "../store/versioning/types";
+import Dismissable from "../Stream/Dismissable";
+import Stream from "../Stream/index";
+import RoadBlock from "../Stream/RoadBlock";
+import { SearchContextProvider } from "../Stream/SearchContextProvider";
+import { HostApi } from "../webview-api";
+import { Loading } from "./Loading";
 
 const mapStateToProps = state => {
 	const team = state.teams[state.context.currentTeamId];
@@ -39,7 +38,7 @@ const mapStateToProps = state => {
 		isOnPrem: state.configs.isOnPrem,
 		offline: state.connectivity.offline,
 		acceptedTOS: state.session.userId ? state.preferences.acceptedTOS : state.session.acceptedTOS,
-		configChangeReloadRequired: state.configs.configChangeReloadRequired
+		configChangeReloadRequired: state.configs.configChangeReloadRequired,
 	};
 };
 
@@ -92,14 +91,14 @@ const Root = connect(mapStateToProps)(props => {
 						onClick: e => {
 							e.preventDefault();
 							props.dispatch(errorDismissed());
-						}
+						},
 					},
 					{
 						text: "Retry",
 						onClick: () => {
 							HostApi.instance.send(RestartRequestType);
-						}
-					}
+						},
+					},
 				]}
 			>
 				<p>
@@ -207,8 +206,8 @@ const Root = connect(mapStateToProps)(props => {
 						onClick: e => {
 							e.preventDefault();
 							props.dispatch(upgradeRecommendedDismissed());
-						}
-					}
+						},
+					},
 				]}
 			>
 				<p>
@@ -238,8 +237,8 @@ const Root = connect(mapStateToProps)(props => {
 						onClick: e => {
 							e.preventDefault();
 							props.dispatch(apiUpgradeRecommendedDismissed());
-						}
-					}
+						},
+					},
 				]}
 			>
 				<p>
@@ -277,14 +276,14 @@ export default class Container extends React.Component {
 		HostApi.instance.send(WebviewErrorRequestType, {
 			error: {
 				message: error.message,
-				stack: error.stack
-			}
+				stack: error.stack,
+			},
 		});
 		return { hasError: true };
 	}
 
 	static childContextTypes = {
-		store: PropTypes.object
+		store: PropTypes.object,
 	};
 
 	getChildContext() {
@@ -302,7 +301,7 @@ export default class Container extends React.Component {
 	componentDidCatch(error, info) {
 		logError(`Exception caught in React component tree: ${error.message}`, {
 			stacktrace: error.stack,
-			info
+			info,
 		});
 	}
 

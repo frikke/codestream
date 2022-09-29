@@ -1,30 +1,30 @@
-import React from "react";
-import { safe } from "../utils";
-import { HostApi } from "../webview-api";
-import { LocateRepoButton } from "./LocateRepoButton";
-import {
-	ApplyMarkerRequestType,
-	CompareMarkerRequestType,
-	EditorSelectRangeRequestType,
-	EditorHighlightRangeRequestType
-} from "../ipc/webview.protocol";
 import {
 	Capabilities,
 	CodemarkPlus,
 	DidChangeDocumentMarkersNotificationType,
 	GetCodemarkRangeRequestType,
-	TelemetryRequestType
+	TelemetryRequestType,
 } from "@codestream/protocols/agent";
-import { injectIntl, WrappedComponentProps } from "react-intl";
-import { CodeStreamState } from "../store";
-import { connect } from "react-redux";
-import { getById } from "../store/repos/reducer";
-import Icon from "./Icon";
 import { CSMarker } from "@codestream/protocols/api";
-import { getVisibleRanges } from "../store/editorContext/reducer";
-import { getDocumentFromMarker, highlightRange } from "./api-functions";
-import { Marker } from "./Marker";
 import { debounce } from "lodash-es";
+import React from "react";
+import { injectIntl, WrappedComponentProps } from "react-intl";
+import { connect } from "react-redux";
+import {
+	ApplyMarkerRequestType,
+	CompareMarkerRequestType,
+	EditorHighlightRangeRequestType,
+	EditorSelectRangeRequestType,
+} from "../ipc/webview.protocol";
+import { CodeStreamState } from "../store";
+import { getVisibleRanges } from "../store/editorContext/reducer";
+import { getById } from "../store/repos/reducer";
+import { safe } from "../utils";
+import { HostApi } from "../webview-api";
+import { getDocumentFromMarker, highlightRange } from "./api-functions";
+import Icon from "./Icon";
+import { LocateRepoButton } from "./LocateRepoButton";
+import { Marker } from "./Marker";
 
 interface State {
 	hasDiff: boolean;
@@ -80,7 +80,7 @@ class MarkerActions extends React.Component<Props, State> {
 			startLine: 0,
 			endLine: 0,
 			expandCodeBlock: false,
-			scrollingCodeBlock: false
+			scrollingCodeBlock: false,
 		};
 		this._codeBlockDiv = null;
 	}
@@ -93,7 +93,7 @@ class MarkerActions extends React.Component<Props, State> {
 	private _isJumping = false;
 
 	private _getDocumentFromMarkerDebounced = debounce(getDocumentFromMarker, 1000, {
-		leading: true
+		leading: true,
 	});
 	getDocumentFromMarkerDebounced(markerId: string, source: string) {
 		return this._getDocumentFromMarkerDebounced(markerId, source);
@@ -173,13 +173,13 @@ class MarkerActions extends React.Component<Props, State> {
 						selection: {
 							start: response.range.start,
 							end: response.range.start,
-							cursor: response.range.start
+							cursor: response.range.start,
 						},
-						preserveFocus: true
+						preserveFocus: true,
 					});
 					this.setState({
 						warning: success ? undefined : "FILE_NOT_FOUND",
-						textDocumentUri: response.textDocument.uri
+						textDocumentUri: response.textDocument.uri,
 					});
 					if (success) {
 						this.ensureMarkerInView();
@@ -199,7 +199,7 @@ class MarkerActions extends React.Component<Props, State> {
 		setTimeout(() => {
 			if (this._codeBlockDiv) {
 				this._codeBlockDiv.scrollIntoView({
-					behavior: "smooth"
+					behavior: "smooth",
 				});
 			}
 		}, 50);
@@ -212,13 +212,13 @@ class MarkerActions extends React.Component<Props, State> {
 		try {
 			const response = await HostApi.instance.send(GetCodemarkRangeRequestType, {
 				codemarkId: codemark.id,
-				markerId: marker.id
+				markerId: marker.id,
 			});
 			this.setState({
 				hasDiff: response.diff !== undefined,
 				currentContent: response.currentContent,
 				currentBranch: response.currentBranch,
-				diff: response.diff
+				diff: response.diff,
 			});
 		} catch (error) {}
 
@@ -234,9 +234,9 @@ class MarkerActions extends React.Component<Props, State> {
 							selection: {
 								start: response.range.start,
 								end: response.range.start,
-								cursor: response.range.start
+								cursor: response.range.start,
 							},
-							preserveFocus: true
+							preserveFocus: true,
 						});
 						this.setState({ warning: success ? undefined : "FILE_NOT_FOUND" });
 					} else {
@@ -254,7 +254,7 @@ class MarkerActions extends React.Component<Props, State> {
 		event.preventDefault();
 		HostApi.instance.send(TelemetryRequestType, {
 			eventName: "Jumped To Code",
-			properties: {}
+			properties: {},
 		});
 
 		await this.jump(this.props.marker);
@@ -270,36 +270,36 @@ class MarkerActions extends React.Component<Props, State> {
 					selection: {
 						start: response.range.start,
 						end: response.range.start,
-						cursor: response.range.start
+						cursor: response.range.start,
 					},
-					preserveFocus: true
+					preserveFocus: true,
 				});
 
 				if (success) {
 					highlightRange({
 						range: response.range,
 						uri: response.textDocument.uri,
-						highlight: true
+						highlight: true,
 					});
 					this._disposables.push({
 						dispose() {
 							highlightRange({
 								range: response.range,
 								uri: response.textDocument.uri,
-								highlight: false
+								highlight: false,
 							});
-						}
+						},
 					});
 				}
 				this.setState({
 					textDocumentUri: response.textDocument.uri,
-					warning: success ? undefined : "FILE_NOT_FOUND"
+					warning: success ? undefined : "FILE_NOT_FOUND",
 				});
 				return success;
 			} else {
 				// assumption based on GetDocumentFromMarkerRequestType api requiring the workspace to be available
 				this.setState({
-					warning: "REPO_NOT_IN_WORKSPACE"
+					warning: "REPO_NOT_IN_WORKSPACE",
 				});
 			}
 		} catch (ex) {
@@ -312,7 +312,7 @@ class MarkerActions extends React.Component<Props, State> {
 		event.preventDefault();
 		HostApi.instance.send(TelemetryRequestType, {
 			eventName: "Apply",
-			properties: { "Author?": this.props.isAuthor }
+			properties: { "Author?": this.props.isAuthor },
 		});
 		await this.jump(marker);
 		HostApi.instance.send(ApplyMarkerRequestType, { marker });
@@ -323,7 +323,7 @@ class MarkerActions extends React.Component<Props, State> {
 		event.stopPropagation();
 		HostApi.instance.send(TelemetryRequestType, {
 			eventName: "Compare",
-			properties: { "Author?": this.props.isAuthor }
+			properties: { "Author?": this.props.isAuthor },
 		});
 		HostApi.instance.send(CompareMarkerRequestType, { marker });
 	};
@@ -339,7 +339,7 @@ class MarkerActions extends React.Component<Props, State> {
 			case "NO_REMOTE": {
 				const message = intl.formatMessage({
 					id: "codeBlock.noRemote",
-					defaultMessage: "This code does not have a remote URL associated with it."
+					defaultMessage: "This code does not have a remote URL associated with it.",
 				});
 				const learnMore = intl.formatMessage({ id: "learnMore" });
 				return (
@@ -356,7 +356,7 @@ class MarkerActions extends React.Component<Props, State> {
 					<span>
 						{intl.formatMessage({
 							id: "codeBlock.fileNotFound",
-							defaultMessage: "You don’t currently have this file in your repo."
+							defaultMessage: "You don’t currently have this file in your repo.",
 						})}
 					</span>
 				);
@@ -368,7 +368,7 @@ class MarkerActions extends React.Component<Props, State> {
 							{intl.formatMessage(
 								{
 									id: "codeBlock.repoMissing",
-									defaultMessage: "You don’t currently have the {repoName} repo open."
+									defaultMessage: "You don’t currently have the {repoName} repo open.",
 								},
 								{ repoName: this.props.repoName }
 							)}
@@ -398,7 +398,7 @@ class MarkerActions extends React.Component<Props, State> {
 					<span>
 						{intl.formatMessage({
 							id: "codeBlock.locationUnknown",
-							defaultMessage: "Unknown code block location."
+							defaultMessage: "Unknown code block location.",
 						})}
 					</span>
 				);
@@ -414,7 +414,7 @@ class MarkerActions extends React.Component<Props, State> {
 		let {
 			codemarkCompare: canCompare = false,
 			codemarkApply: canApply = false,
-			codemarkOpenRevision: canOpenRevision = false
+			codemarkOpenRevision: canOpenRevision = false,
 		} = this.props.capabilities;
 
 		let ref;
@@ -526,16 +526,16 @@ class MarkerActions extends React.Component<Props, State> {
 						HostApi.instance.send(EditorHighlightRangeRequestType, {
 							uri: info.textDocument.uri,
 							range: info.range,
-							highlight
+							highlight,
 						});
 						this._highlightDisposable = {
 							dispose() {
 								HostApi.instance.send(EditorHighlightRangeRequestType, {
 									uri: info.textDocument.uri,
 									range: info.range,
-									highlight: false
+									highlight: false,
 								});
-							}
+							},
 						};
 					}
 				}
@@ -557,7 +557,7 @@ class MarkerActions extends React.Component<Props, State> {
 					marginTop: "20px",
 					marginLeft: sideMargin,
 					marginRight: sideMargin,
-					position: "relative"
+					position: "relative",
 				}}
 				onMouseEnter={e => {
 					e.preventDefault();
@@ -628,7 +628,7 @@ const mapStateToProps = (state: CodeStreamState, props: InheritedProps) => {
 		firstVisibleLine,
 		lastVisibleLine,
 		editorHasFocus: context.hasFocus,
-		currentReviewId: state.context.currentReviewId
+		currentReviewId: state.context.currentReviewId,
 	};
 };
 

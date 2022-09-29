@@ -5,7 +5,6 @@ import {
 	AsanaCard,
 	AsanaCreateCardRequest,
 	AsanaCreateCardResponse,
-	AsanaList,
 	AsanaProject,
 	AsanaUser,
 	AsanaWorkspace,
@@ -17,7 +16,7 @@ import {
 	MoveThirdPartyCardRequest,
 	ThirdPartyDisconnect,
 	ThirdPartyProviderBoard,
-	TransitionsEntity
+	TransitionsEntity,
 } from "../protocol/agent.protocol";
 import { CSAsanaProviderInfo } from "../protocol/api.protocol";
 import { log, lspProvider } from "../system";
@@ -45,7 +44,7 @@ export class AsanaProvider extends ThirdPartyIssueProviderBase<CSAsanaProviderIn
 
 	get headers() {
 		return {
-			Authorization: `Bearer ${this.accessToken}`
+			Authorization: `Bearer ${this.accessToken}`,
 		};
 	}
 
@@ -77,13 +76,13 @@ export class AsanaProvider extends ThirdPartyIssueProviderBase<CSAsanaProviderIn
 				id: project.gid,
 				name: project.name,
 				lists: [],
-				singleAssignee: true // asana cards allow only a single assignee
+				singleAssignee: true, // asana cards allow only a single assignee
 			};
 
 			for (const section of project.sections) {
 				const list: TransitionsEntity = {
 					id: section.gid,
-					name: section.name
+					name: section.name,
 				};
 				board?.lists?.push(list);
 			}
@@ -112,7 +111,7 @@ export class AsanaProvider extends ThirdPartyIssueProviderBase<CSAsanaProviderIn
 		try {
 			let apiResponse = await this.get<{ data: AsanaWorkspace[]; next_page: any }>(
 				`/api/1.0/workspaces?${qs.stringify({
-					limit: 100
+					limit: 100,
 				})}`
 			);
 			workspaces = apiResponse.body.data;
@@ -138,7 +137,7 @@ export class AsanaProvider extends ThirdPartyIssueProviderBase<CSAsanaProviderIn
 				`/api/1.0/workspaces/${workspace.gid}/projects?${qs.stringify({
 					opt_fields: "layout,name,sections,sections.name",
 					archived: false,
-					limit: 100
+					limit: 100,
 				})}`
 			);
 			projects = apiResponse.body.data;
@@ -168,7 +167,7 @@ export class AsanaProvider extends ThirdPartyIssueProviderBase<CSAsanaProviderIn
 					assignee: this._asanaUser?.gid,
 					completed_since: "now",
 					archived: false,
-					limit: 100
+					limit: 100,
 				})}`
 			);
 			cards = apiResponse.body.data;
@@ -207,7 +206,7 @@ export class AsanaProvider extends ThirdPartyIssueProviderBase<CSAsanaProviderIn
 				modifiedAt: new Date(task.modified_at).getTime(),
 				idList: memberships[0] && memberships[0].section ? memberships[0].section.gid : "",
 				tokenId: task.gid,
-				body: task.notes
+				body: task.notes,
 			};
 		});
 		// Logger.log("ASANA: ", JSON.stringify(cards, null, 4));
@@ -228,11 +227,11 @@ export class AsanaProvider extends ThirdPartyIssueProviderBase<CSAsanaProviderIn
 				memberships: [
 					{
 						project: data.boardId && data.boardId.toString(),
-						section: data.listId && data.listId.toString()
-					}
+						section: data.listId && data.listId.toString(),
+					},
 				],
-				assignee: data.assignee || undefined
-			}
+				assignee: data.assignee || undefined,
+			},
 		};
 		const response = await this.post<{}, AsanaCreateCardResponse>(`/api/1.0/tasks`, cardData);
 		const card = response.body.data;
@@ -275,7 +274,7 @@ export class AsanaProvider extends ThirdPartyIssueProviderBase<CSAsanaProviderIn
 		} else {
 			userResponse = await this.get<AsanaUsersData>(
 				`/api/1.0/workspaces/${response.body.data.workspace.gid}/users?${qs.stringify({
-					opt_fields: "name,email"
+					opt_fields: "name,email",
 				})}`
 			);
 		}

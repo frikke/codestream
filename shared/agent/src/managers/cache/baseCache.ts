@@ -7,7 +7,7 @@ import {
 	IndexParams,
 	IndexType,
 	makeIndex,
-	UniqueIndex
+	UniqueIndex,
 } from "./index";
 
 import { Logger } from "../../logger";
@@ -93,7 +93,7 @@ export class BaseCache<T> {
 			`[${context.id}] ${context.instance.entityName}${
 				context.instanceName ? `${context.instanceName}.` : ""
 			}${context.name}`,
-		singleLine: true
+		singleLine: true,
 	})
 	async get(
 		criteria: KeyValue<T>[],

@@ -6,7 +6,7 @@ import {
 	WebAPICallOptions,
 	WebAPICallResult,
 	WebClient,
-	WebClientEvent
+	WebClientEvent,
 } from "@slack/web-api";
 import { Agent as HttpsAgent } from "https";
 import HttpsProxyAgent from "https-proxy-agent";
@@ -24,18 +24,17 @@ import {
 	FetchStreamsResponse,
 	FetchUsersResponse,
 	UpdateThirdPartyStatusRequest,
-	UpdateThirdPartyStatusResponse
+	UpdateThirdPartyStatusResponse,
 } from "../../protocol/agent.protocol";
 import {
 	CSChannelStream,
 	CSDirectStream,
-	CSGetMeResponse,
 	CSObjectStream,
 	CSRepository,
 	CSSlackProviderInfo,
 	CSUser,
 	ProviderType,
-	StreamType
+	StreamType,
 } from "../../protocol/api.protocol";
 import { debug, Functions, log, Strings } from "../../system";
 import { LogCorrelationContext, TraceLevel } from "../../types";
@@ -55,7 +54,7 @@ import {
 	toSlackPostText,
 	toSlackReviewPostBlocks,
 	toSlackTextPostBlocks,
-	UserMaps
+	UserMaps,
 } from "./slackSharingApi.adapters";
 
 interface DeferredStreamRequest<TResult> {
@@ -103,7 +102,7 @@ export class SlackSharingApiProvider {
 		providerCanSupportRealtimeChat: false,
 		providerSupportsRealtimeChat: false,
 		// agent uses this
-		providerSupportsRealtimeEvents: false
+		providerSupportsRealtimeEvents: false,
 	};
 
 	constructor(
@@ -145,8 +144,8 @@ export class SlackSharingApiProvider {
 				error(...msgs) {
 					SlackSharingApiProvider.tryTrackConnectivityIssues(msgs);
 					Logger.warn("SLACK [ERROR]", ...msgs);
-				}
-			}
+				},
+			},
 		});
 	}
 
@@ -170,8 +169,8 @@ export class SlackSharingApiProvider {
 				eventName: "Connect Error",
 				properties: {
 					Error: msg,
-					Provider: "Slack"
-				}
+					Provider: "Slack",
+				},
 			});
 		} catch (error) {
 			Logger.error(error);
@@ -229,7 +228,7 @@ export class SlackSharingApiProvider {
 							return new Promise((res, rej) => {
 								this.slackApiCall("users.info", {
 									// user is the user id from Slack
-									user: _.user
+									user: _.user,
 								})
 									.then(response => {
 										const { ok, user } = response as WebAPICallResult & { user: any };
@@ -242,7 +241,7 @@ export class SlackSharingApiProvider {
 									.catch(ex => {
 										Logger.warn("Slack user error", {
 											error: ex,
-											user: _.user
+											user: _.user,
 										});
 										rej(undefined);
 									});
@@ -262,7 +261,7 @@ export class SlackSharingApiProvider {
 					slackUserIdsByUsername: new Map(),
 					slackUserIdsByEmail: new Map(),
 					codeStreamUsersByUsername: new Map(),
-					codeStreamUsersByUserId: new Map()
+					codeStreamUsersByUserId: new Map(),
 				};
 
 				for (const user of slackUsers) {
@@ -298,7 +297,7 @@ export class SlackSharingApiProvider {
 
 	@log({
 		prefix: (context, e: CreateSharedExternalPostRequest) =>
-			`${context.prefix}(${e.review != null ? "review" : "codemark"})`
+			`${context.prefix}(${e.review != null ? "review" : "codemark"})`,
 	})
 	async createExternalPost(request: CreateSharedExternalPostRequest): Promise<CreatePostResponse> {
 		let createdPostId;
@@ -315,12 +314,12 @@ export class SlackSharingApiProvider {
 
 			if (!channelId) {
 				const openResponse = await this.slackApiCall("conversations.open", {
-					users: [...memberIds!, request.providerServerTokenUserId].join(",")
+					users: [...memberIds!, request.providerServerTokenUserId].join(","),
 				});
 				const {
 					ok: openOk,
 					error: openError,
-					channel: openData
+					channel: openData,
 				} = openResponse as WebAPICallResult & {
 					channel: { id: string };
 				};
@@ -340,10 +339,14 @@ export class SlackSharingApiProvider {
 				const response = await this.slackApiCall("chat.meMessage", {
 					channel: channelId,
 					thread_ts: request.parentPostId,
-					text: text
+					text: text,
 				});
 
-				const { ok, error, ts: postId } = response as WebAPICallResult & {
+				const {
+					ok,
+					error,
+					ts: postId,
+				} = response as WebAPICallResult & {
 					message?: any;
 					ts?: any;
 				};
@@ -377,7 +380,7 @@ export class SlackSharingApiProvider {
 			if (repoHashSource) {
 				try {
 					const reposResponse = await SessionContainer.instance().repos.get({
-						repoIds: uniq(repoHashSource.map(_ => _.repoId))
+						repoIds: uniq(repoHashSource.map(_ => _.repoId)),
 					});
 					if (reposResponse && reposResponse.repos.length) {
 						repoHash = reposResponse.repos.reduce((map: any, obj: CSRepository) => {
@@ -403,9 +406,9 @@ export class SlackSharingApiProvider {
 				);
 
 				// Set the fallback (notification) content for the message
-				text = `${codemark.title || ""}${
-					codemark.title && codemark.text ? `\n\n` : ""
-				}${codemark.text || ""}`;
+				text = `${codemark.title || ""}${codemark.title && codemark.text ? `\n\n` : ""}${
+					codemark.text || ""
+				}`;
 			} else if (request.review != null) {
 				const review = request.review;
 				blocks = toSlackReviewPostBlocks(
@@ -416,8 +419,9 @@ export class SlackSharingApiProvider {
 					request.files
 				);
 				// Set the fallback (notification) content for the message
-				text = `${review.title || ""}${review.title && review.text ? `\n\n` : ""}${review.text ||
-					""}`;
+				text = `${review.title || ""}${review.title && review.text ? `\n\n` : ""}${
+					review.text || ""
+				}`;
 			} else if (request.codeError != null) {
 				const codeError = request.codeError;
 				blocks = toSlackCodeErrorPostBlocks(codeError, userMaps, repoHash, this._slackUserId);
@@ -431,7 +435,7 @@ export class SlackSharingApiProvider {
 				try {
 					const inviteResponse = await this.slackApiCall("conversations.invite", {
 						channel: channelId,
-						users: request.providerServerTokenUserId
+						users: request.providerServerTokenUserId,
 					});
 				} catch (error) {
 					Logger.log(`Could not invite bot user: ${error}`);
@@ -446,7 +450,7 @@ export class SlackSharingApiProvider {
 					text: text,
 					as_user: true,
 					reply_broadcast: false,
-					blocks: blocks !== undefined ? blocks : undefined
+					blocks: blocks !== undefined ? blocks : undefined,
 				});
 			} else {
 				response = await this.slackApiCall("chat.postMessage", {
@@ -456,7 +460,7 @@ export class SlackSharingApiProvider {
 					unfurl_links: true,
 					thread_ts: request.parentPostId,
 					reply_broadcast: false, // parentPostId ? true : undefined --- because of slack bug (https://trello.com/c/Y48QI6Z9/919)
-					blocks: blocks !== undefined ? blocks : undefined
+					blocks: blocks !== undefined ? blocks : undefined,
 				});
 			}
 
@@ -470,7 +474,7 @@ export class SlackSharingApiProvider {
 
 			const permalinkResponse = await this.slackApiCall("chat.getPermalink", {
 				channel: channelId,
-				message_ts: ts
+				message_ts: ts,
 			});
 
 			let thePermalink = "";
@@ -500,7 +504,7 @@ export class SlackSharingApiProvider {
 				post: post,
 				ts: ts,
 				permalink: thePermalink,
-				channelId: channelId
+				channelId: channelId,
 			};
 		} finally {
 			if (createdPostId) {
@@ -508,7 +512,7 @@ export class SlackSharingApiProvider {
 					provider: "slack",
 					teamId: this._codestreamTeamId,
 					streamId: channelId || memberIds?.join(",") || "",
-					postId: createdPostId
+					postId: createdPostId,
 				});
 			}
 		}
@@ -520,7 +524,7 @@ export class SlackSharingApiProvider {
 	): Promise<DeleteSharedExternalPostResponse> {
 		const response = await this.slackApiCall("chat.delete", {
 			channel: request.channelId,
-			ts: request.postId
+			ts: request.postId,
 		});
 		const { ok, error, ts } = response as WebAPICallResult & {
 			ts?: string;
@@ -538,15 +542,15 @@ export class SlackSharingApiProvider {
 				profile: {
 					status_text: request.text,
 					status_emoji: request.icon || ":desktop_computer:",
-					status_expiration: 0
-				}
+					status_expiration: 0,
+				},
 			});
 
 			const { ok, error } = response as WebAPICallResult;
 			if (!ok) throw new Error(error);
 
 			return {
-				status: ok
+				status: ok,
 			};
 		} finally {
 		}
@@ -558,11 +562,15 @@ export class SlackSharingApiProvider {
 		const responses = await this.slackApiCallPaginated("users.conversations", {
 			exclude_archived: true,
 			types: "public_channel,private_channel,mpim,im",
-			limit: 1000
+			limit: 1000,
 		});
 		const conversations = [];
 		for await (const response of responses) {
-			const { ok, error, channels: data } = response as WebAPICallResult & {
+			const {
+				ok,
+				error,
+				channels: data,
+			} = response as WebAPICallResult & {
 				channels: any[];
 			};
 			if (!ok) throw new Error(error);
@@ -589,7 +597,7 @@ export class SlackSharingApiProvider {
 						s.type === StreamType.Direct ? `, closed=${s.isClosed}` : ""
 					}`;
 				})
-				.join("\n")}\ncompleted`
+				.join("\n")}\ncompleted`,
 	})
 	async fetchStreams(request: FetchStreamsRequest) {
 		const cc = Logger.getCorrelationContext();
@@ -597,7 +605,7 @@ export class SlackSharingApiProvider {
 		try {
 			const conversations = await this.fetchConversations(cc);
 			const imConversations = this.filterConversationsByIm(conversations, undefined, [
-				this._slackUserId
+				this._slackUserId,
 			]);
 			const userMaps = await this.ensureUserMaps(imConversations);
 
@@ -618,7 +626,7 @@ export class SlackSharingApiProvider {
 					userMaps.slackUsernamesById,
 					undefined,
 					pendingRequestsQueue
-				)
+				),
 			]);
 
 			const streams = channels.concat(...groups);
@@ -636,7 +644,7 @@ export class SlackSharingApiProvider {
 
 			const members = Array.from(userMaps.slackUsernamesById, ([id, name]) => ({
 				id,
-				name
+				name,
 			}))
 				.filter(_ => _.id !== "USLACKBOT")
 				.filter(_ => _.id !== this._slackUserId);
@@ -651,7 +659,7 @@ export class SlackSharingApiProvider {
 	@log({
 		args: false,
 		correlate: true,
-		enter: q => `fetching ${q.length} stream(s) in the background...`
+		enter: q => `fetching ${q.length} stream(s) in the background...`,
 	})
 	protected async processPendingStreamsQueue(
 		queue: DeferredStreamRequest<CSChannelStream | CSDirectStream | CSObjectStream>[]
@@ -734,7 +742,7 @@ export class SlackSharingApiProvider {
 			const responses = await this.slackApiCallPaginated("channels.list", {
 				exclude_archived: true,
 				exclude_members: false,
-				limit: 1000
+				limit: 1000,
 			});
 
 			const start = process.hrtime();
@@ -742,7 +750,11 @@ export class SlackSharingApiProvider {
 
 			channels = [];
 			for await (const response of responses) {
-				const { ok, error, channels: data } = response as WebAPICallResult & {
+				const {
+					ok,
+					error,
+					channels: data,
+				} = response as WebAPICallResult & {
 					channels: any[];
 				};
 				if (!ok) throw new Error(error);
@@ -790,7 +802,7 @@ export class SlackSharingApiProvider {
 			pending.push({
 				action: () => this.fetchChannel(c.id),
 				id: c.id,
-				name: c.name as string
+				name: c.name as string,
 			});
 		}
 
@@ -808,14 +820,14 @@ export class SlackSharingApiProvider {
 
 	@log({
 		args: false,
-		prefix: (context, id) => `${context.prefix}(${id})`
+		prefix: (context, id) => `${context.prefix}(${id})`,
 	})
 	private async fetchChannel(id: string) {
 		const cc = Logger.getCorrelationContext();
 
 		try {
 			const response = await this.slackApiCall("channels.info", {
-				channel: id
+				channel: id,
 			});
 
 			const { ok, error, channel } = response as WebAPICallResult & { channel: any };
@@ -841,7 +853,7 @@ export class SlackSharingApiProvider {
 			const responses = await this.slackApiCallPaginated("groups.list", {
 				exclude_archived: true,
 				exclude_members: false,
-				limit: 1000
+				limit: 1000,
 			});
 
 			const start = process.hrtime();
@@ -849,7 +861,11 @@ export class SlackSharingApiProvider {
 
 			groups = [];
 			for await (const response of responses) {
-				const { ok, error, groups: data } = response as WebAPICallResult & {
+				const {
+					ok,
+					error,
+					groups: data,
+				} = response as WebAPICallResult & {
 					groups: any[];
 				};
 				if (!ok) throw new Error(error);
@@ -903,7 +919,7 @@ export class SlackSharingApiProvider {
 					action: () => this.fetchGroup(g.id, usernamesById),
 					grouping: g.is_mpim ? 1 : 5,
 					id: g.id,
-					priority: (g.priority || 0) as number
+					priority: (g.priority || 0) as number,
 				});
 			}
 		}
@@ -917,7 +933,7 @@ export class SlackSharingApiProvider {
 					action: p.action,
 					grouping: p.grouping,
 					order: index,
-					stream: { id: p.id, priority: p.priority }
+					stream: { id: p.id, priority: p.priority },
 				});
 			}
 		}
@@ -927,14 +943,14 @@ export class SlackSharingApiProvider {
 
 	@log({
 		args: false,
-		prefix: (context, id) => `${context.prefix}(${id})`
+		prefix: (context, id) => `${context.prefix}(${id})`,
 	})
 	private async fetchGroup(id: any, usernamesById: Map<string, string>) {
 		const cc = Logger.getCorrelationContext();
 
 		try {
 			const response = await this.slackApiCall("groups.info", {
-				channel: id
+				channel: id,
 			});
 
 			const { ok, error, group } = response as WebAPICallResult & { group: any };
@@ -970,7 +986,7 @@ export class SlackSharingApiProvider {
 
 		if (ims === undefined) {
 			const responses = await this.slackApiCallPaginated("im.list", {
-				limit: 1000
+				limit: 1000,
 			});
 
 			const start = process.hrtime();
@@ -978,7 +994,11 @@ export class SlackSharingApiProvider {
 
 			ims = [];
 			for await (const response of responses) {
-				const { ok, error, ims: data } = response as WebAPICallResult & {
+				const {
+					ok,
+					error,
+					ims: data,
+				} = response as WebAPICallResult & {
 					ims: any[];
 				};
 				if (!ok) throw new Error(error);
@@ -1029,7 +1049,7 @@ export class SlackSharingApiProvider {
 				pending.push({
 					action: () => this.fetchIM(im.id, usernamesById),
 					id: im.id,
-					priority: (im.priority || 0) as number
+					priority: (im.priority || 0) as number,
 				});
 			}
 		}
@@ -1043,7 +1063,7 @@ export class SlackSharingApiProvider {
 					action: p.action,
 					grouping: 0,
 					order: index,
-					stream: { id: p.id, priority: p.priority }
+					stream: { id: p.id, priority: p.priority },
 				});
 			}
 		}
@@ -1053,14 +1073,14 @@ export class SlackSharingApiProvider {
 
 	@log({
 		args: false,
-		prefix: (context, id) => `${context.prefix}(${id})`
+		prefix: (context, id) => `${context.prefix}(${id})`,
 	})
 	private async fetchIM(id: string, usernamesById: Map<string, string>) {
 		const cc = Logger.getCorrelationContext();
 
 		try {
 			const response = await this.slackApiCall("conversations.info", {
-				channel: id
+				channel: id,
 			});
 
 			const { ok, error, channel } = response as WebAPICallResult & { channel: any };
@@ -1086,7 +1106,7 @@ export class SlackSharingApiProvider {
 		me.id = this.userId;
 
 		const response = await this.slackApiCall("users.info", {
-			user: this.userId
+			user: this.userId,
 		});
 
 		let user;
@@ -1105,7 +1125,7 @@ export class SlackSharingApiProvider {
 				fullName: user.fullName,
 				id: user.id,
 				lastName: user.lastName,
-				username: user.username
+				username: user.username,
 			};
 		}
 
@@ -1122,12 +1142,16 @@ export class SlackSharingApiProvider {
 
 		const [responses, { user: me }] = await Promise.all([
 			this.slackApiCallPaginated("users.list", { limit: 1000 }),
-			this.getMeCore()
+			this.getMeCore(),
 		]);
 
 		const members = [];
 		for await (const response of responses) {
-			const { ok, error, members: data } = response as WebAPICallResult & {
+			const {
+				ok,
+				error,
+				members: data,
+			} = response as WebAPICallResult & {
 				members: any[];
 			};
 			if (!ok) throw new Error(error);
@@ -1154,7 +1178,7 @@ export class SlackSharingApiProvider {
 							logFilterKeys.has(key) ? `<${key}>` : Logger.sanitize(key, value)
 					  )
 					: ""
-			})`
+			})`,
 	})
 	protected async slackApiCall<
 		TRequest extends WebAPICallOptions,
@@ -1169,7 +1193,7 @@ export class SlackSharingApiProvider {
 				timeoutMs,
 				{
 					cancelMessage: cc && cc.prefix,
-					onDidCancel: () => Logger.warn(cc, `TIMEOUT ${timeoutMs / 1000}s exceeded`)
+					onDidCancel: () => Logger.warn(cc, `TIMEOUT ${timeoutMs / 1000}s exceeded`),
 				}
 			);
 
@@ -1190,7 +1214,7 @@ export class SlackSharingApiProvider {
 				const out = {
 					url: method,
 					request: request,
-					response: response
+					response: response,
 				};
 				const outString = JSON.stringify(out, null, 2);
 
@@ -1224,7 +1248,7 @@ export class SlackSharingApiProvider {
 							logFilterKeys.has(key) ? `<${key}>` : Logger.sanitize(key, value)
 					  )
 					: ""
-			})`
+			})`,
 	})
 	protected async slackApiCallPaginated<
 		TRequest extends WebAPICallOptions,
@@ -1254,12 +1278,12 @@ export class SlackSharingApiProvider {
 				cursor:
 					response && response.response_metadata && typeofResponseMetadata === "object"
 						? response.response_metadata.next_cursor
-						: ""
+						: "",
 			});
 		} catch (ex) {
 			Logger.warn("Failed to log paginated response", {
 				context: cc,
-				error: ex
+				error: ex,
 			});
 		}
 	}

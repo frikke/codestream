@@ -1,6 +1,6 @@
 import { ActionType } from "../common";
 import * as actions from "./actions";
-import { UnreadsState, UnreadsActionsType } from "./types";
+import { UnreadsActionsType, UnreadsState } from "./types";
 
 type UnreadsActions = ActionType<typeof actions>;
 
@@ -10,7 +10,7 @@ const initialState: UnreadsState = {
 	mentions: {},
 	unreads: {},
 	totalUnreads: 0,
-	totalMentions: 0
+	totalMentions: 0,
 };
 
 export function reduceUnreads(state = initialState, action: UnreadsActions) {
@@ -23,7 +23,7 @@ export function reduceUnreads(state = initialState, action: UnreadsActions) {
 				lastReads: { ...state.lastReads, ...payload.lastReads },
 				lastReadItems: { ...state.lastReadItems, ...payload.lastReadItems },
 				mentions: payload.mentions,
-				unreads: payload.unreads
+				unreads: payload.unreads,
 			};
 		}
 		case UnreadsActionsType.ResetLastReads: {

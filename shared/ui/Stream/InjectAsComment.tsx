@@ -1,18 +1,16 @@
-import cx from "classnames";
-import React, { useState, useCallback } from "react";
-import { connect } from "react-redux";
-import Menu from "./Menu";
-import Icon from "./Icon";
-import Button from "./Button";
-import { prettyPrintOne } from "code-prettify";
-import { CSUser, CSMarker } from "@codestream/protocols/api";
-import { CodemarkPlus } from "@codestream/protocols/agent";
-import { HostApi } from "../webview-api";
-import { TelemetryRequestType } from "@codestream/protocols/agent";
+import { CodemarkPlus, TelemetryRequestType } from "@codestream/protocols/agent";
+import { CSMarker, CSUser } from "@codestream/protocols/api";
 import { InsertTextRequestType } from "@codestream/protocols/webview";
+import cx from "classnames";
+import React, { useState } from "react";
+import { connect } from "react-redux";
 import { getPostsForStream } from "../store/posts/reducer";
+import { HostApi } from "../webview-api";
 import { fetchThread } from "./actions";
+import Button from "./Button";
 import CancelButton from "./CancelButton";
+import Icon from "./Icon";
+import Menu from "./Menu";
 
 const noop = () => Promise.resolve();
 
@@ -47,7 +45,7 @@ const mapStateToProps = (state, props) => {
 
 	return {
 		teamId: context.currentTeamId,
-		replies: posts
+		replies: posts,
 	};
 };
 
@@ -69,12 +67,12 @@ export const InjectAsComment = (connect(mapStateToProps, { fetchThread }) as any
 
 			HostApi.instance.send(TelemetryRequestType, {
 				eventName: "InjectAsComment",
-				properties: { "Author?": false }
+				properties: { "Author?": false },
 			});
 			HostApi.instance.send(InsertTextRequestType, {
 				marker: marker,
 				text: codemarkAsCommentString(),
-				indentAfterInsert: false // set this to true once vscode fixes their bug
+				indentAfterInsert: false, // set this to true once vscode fixes their bug
 			});
 			props.cancel();
 			if (archive) props.setPinned(false);
@@ -91,7 +89,7 @@ export const InjectAsComment = (connect(mapStateToProps, { fetchThread }) as any
 			"/*": ["/* ", " * ", " */"],
 			"#": ["", "# ", ""],
 			"<!-- -->": ["<!-- ", "  ", " -->"],
-			"'": ["", "' ", ""]
+			"'": ["", "' ", ""],
 		};
 
 		const stringDivider = (str, width, prefix, postfix) => {
@@ -130,7 +128,7 @@ export const InjectAsComment = (connect(mapStateToProps, { fetchThread }) as any
 		["//", "/*", "#", "<!-- -->", "'"].forEach(style => {
 			items.push({
 				label: <div className="monospace">{makeComment("the quick brown fox", style)}</div>,
-				action: style
+				action: style,
 			});
 		});
 
@@ -153,7 +151,7 @@ export const InjectAsComment = (connect(mapStateToProps, { fetchThread }) as any
 			return makeComment(string, selectedCommentStyle);
 		};
 
-		const prettyTimestamp = function(time) {
+		const prettyTimestamp = function (time) {
 			if (!includeTimestamps) return ":";
 
 			if (!time) return "";
@@ -161,7 +159,7 @@ export const InjectAsComment = (connect(mapStateToProps, { fetchThread }) as any
 			let dateStamp = new Intl.DateTimeFormat("en", {
 				day: "numeric",
 				month: "short",
-				year: "numeric"
+				year: "numeric",
 			}).format(time);
 
 			let timeStamp;
@@ -173,7 +171,7 @@ export const InjectAsComment = (connect(mapStateToProps, { fetchThread }) as any
 			return " on " + dateStamp + " at " + timeStamp;
 		};
 
-		const getPosts = async function() {
+		const getPosts = async function () {
 			const { codemark } = props;
 			await props.fetchThread(codemark.streamId, codemark.postId);
 		};
@@ -238,7 +236,7 @@ export const InjectAsComment = (connect(mapStateToProps, { fetchThread }) as any
 							marginTop: "5px",
 							float: "right",
 							width: "auto",
-							marginRight: 0
+							marginRight: 0,
 						}}
 					>
 						<CancelButton onClick={props.cancel} mode="button" />
@@ -247,7 +245,7 @@ export const InjectAsComment = (connect(mapStateToProps, { fetchThread }) as any
 							style={{
 								paddingLeft: "20px",
 								paddingRight: "20px",
-								marginRight: 0
+								marginRight: 0,
 							}}
 							className="control-button"
 							type="submit"

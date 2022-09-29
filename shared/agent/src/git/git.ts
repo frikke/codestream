@@ -34,7 +34,7 @@ import { findGitPath, GitLocation } from "./locator";
 import { CommandOptions, runCommand } from "./shell";
 
 export const GitErrors = {
-	badRevision: /bad revision \'.*?\'/i
+	badRevision: /bad revision \'.*?\'/i,
 };
 
 export const GitWarnings = {
@@ -47,7 +47,7 @@ export const GitWarnings = {
 	headNotABranch: /HEAD does not point to a branch/,
 	noUpstream: /no upstream configured for branch \'(.*?)\'/,
 	upstreamNotARepo: /'upstream' does not appear to be a git repository/,
-	unknownRevision: /ambiguous argument \'.*?\': unknown revision or path not in the working tree/
+	unknownRevision: /ambiguous argument \'.*?\': unknown revision or path not in the working tree/,
 };
 
 export const SupressedGitWarnings = [GitWarnings.noUpstream, GitWarnings.upstreamNotARepo];
@@ -73,8 +73,8 @@ export async function git(
 			...options.env,
 			GCM_INTERACTIVE: "NEVER",
 			GCM_PRESERVE_CREDS: "TRUE",
-			LC_ALL: "C"
-		}
+			LC_ALL: "C",
+		},
 	} as CommandOptions;
 
 	const gitCommand = `git ${args.join(" ")}`;

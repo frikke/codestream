@@ -1,5 +1,5 @@
-import styled from "styled-components";
 import React, { PropsWithChildren } from "react";
+import styled from "styled-components";
 
 interface Props extends PropsWithChildren<{}> {
 	className?: string;
@@ -21,5 +21,5 @@ export const ErrorMessage = React.forwardRef((props: Props, ref: React.Ref<HTMLD
 });
 
 ErrorMessage.defaultProps = {
-	align: "center"
+	align: "center",
 };

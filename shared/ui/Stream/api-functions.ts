@@ -1,23 +1,23 @@
-import { HostApi } from "../webview-api";
 import { GetDocumentFromMarkerRequestType } from "@codestream/protocols/agent";
-import { logError } from "../logger";
-import {
-	EditorHighlightRangeRequestType,
-	EditorHighlightRangeRequest
-} from "../ipc/host.protocol.editor";
 import { EditorSelectRangeRequestType } from "@codestream/protocols/webview";
+import {
+	EditorHighlightRangeRequest,
+	EditorHighlightRangeRequestType,
+} from "../ipc/host.protocol.editor";
+import { logError } from "../logger";
+import { HostApi } from "../webview-api";
 
 export async function getDocumentFromMarker(markerId: string, source?: string) {
 	try {
 		const response = await HostApi.instance.send(GetDocumentFromMarkerRequestType, {
 			markerId: markerId,
-			source: source
+			source: source,
 		});
 
 		return response || undefined;
 	} catch (error) {
 		logError("Error making request 'GetDocumentFromMarkerRequestType'", {
-			message: error.toString()
+			message: error.toString(),
 		});
 		return undefined;
 	}
@@ -41,7 +41,7 @@ export async function highlightRange(request: EditorHighlightRangeRequest) {
 		return success;
 	} catch (error) {
 		logError("Error making request 'EditorHighlightRangeRequestType'", {
-			message: error.toString()
+			message: error.toString(),
 		});
 		return false;
 	}
@@ -59,9 +59,9 @@ export async function moveCursorToLine(markerId: string) {
 				selection: {
 					start: response.range.start,
 					end: response.range.start,
-					cursor: response.range.start
+					cursor: response.range.start,
 				},
-				preserveFocus: true
+				preserveFocus: true,
 			});
 		}
 	} catch (error) {

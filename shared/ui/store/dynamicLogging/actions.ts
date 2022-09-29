@@ -2,7 +2,7 @@ import {
 	PixieDynamicLoggingCancelRequest,
 	PixieDynamicLoggingCancelRequestType,
 	PixieDynamicLoggingRequest,
-	PixieDynamicLoggingRequestType
+	PixieDynamicLoggingRequestType,
 } from "@codestream/protocols/agent";
 import { HostApi } from "@codestream/webview/webview-api";
 import { action } from "../common";
@@ -16,10 +16,9 @@ export const addDynamicLogging = (whatever: { status?: string; results: any[] })
 export const pixieDynamicLogging = (request: PixieDynamicLoggingRequest) => async dispatch => {
 	return await HostApi.instance.send(PixieDynamicLoggingRequestType, request);
 };
-export const pixieDynamicLoggingCancel = (
-	request: PixieDynamicLoggingCancelRequest
-) => async dispatch => {
-	return await HostApi.instance.send(PixieDynamicLoggingCancelRequestType, request);
-};
+export const pixieDynamicLoggingCancel =
+	(request: PixieDynamicLoggingCancelRequest) => async dispatch => {
+		return await HostApi.instance.send(PixieDynamicLoggingCancelRequestType, request);
+	};
 
 export const clearDynamicLogging = () => action(DynamicLoggingActionsTypes.ClearDynamicLogging);

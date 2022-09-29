@@ -6,7 +6,7 @@ describe("repositoryMappingManager.spec.ts", () => {
 		it("git@", async () => {
 			const manager = new RepositoryMappingManager({} as any);
 			const response = await manager.normalizeUrl({
-				url: "git@gitlab.com:foobar.io/development/api/largerepo.git"
+				url: "git@gitlab.com:foobar.io/development/api/largerepo.git",
 			});
 			expect(response.normalizedUrl).toEqual("gitlab.com/foobar.io/development/api/largerepo");
 		});

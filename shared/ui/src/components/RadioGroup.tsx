@@ -1,6 +1,5 @@
-import { PropsWithChildren } from "react";
-import React from "react";
-import styled, { CSSProperties } from "styled-components";
+import React, { PropsWithChildren } from "react";
+import styled from "styled-components";
 import Icon from "../../Stream/Icon";
 
 export interface IRadioGroupContext {
@@ -16,7 +15,7 @@ export const RadioGroupContext = React.createContext<IRadioGroupContext>({
 	selectedValue: "",
 	loading: false,
 	disabled: false,
-	onChange: () => {}
+	onChange: () => {},
 });
 
 interface RadioProps {

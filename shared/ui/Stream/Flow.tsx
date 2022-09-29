@@ -1,16 +1,14 @@
 import React from "react";
-import { Carousel, Content } from "../src/components/Carousel";
+import { useDispatch } from "react-redux";
 import styled from "styled-components";
-import Icon from "./Icon";
-import { useRect } from "../utilities/hooks";
-import { Tab, Tabs } from "../src/components/Tabs";
-import { HostApi } from "../webview-api";
-import { PanelHeader } from "../src/components/PanelHeader";
-import ScrollBox from "./ScrollBox";
-import CancelButton from "./CancelButton";
-import { closePanel } from "./actions";
-import { useDispatch, useSelector } from "react-redux";
+import { Carousel, Content } from "../src/components/Carousel";
 import { Dialog } from "../src/components/Dialog";
+import { PanelHeader } from "../src/components/PanelHeader";
+import { Tab, Tabs } from "../src/components/Tabs";
+import { useRect } from "../utilities/hooks";
+import { HostApi } from "../webview-api";
+import { closePanel } from "./actions";
+import Icon from "./Icon";
 
 const Root = styled.div`
 	color: var(--text-color);
@@ -718,7 +716,7 @@ const FLOW_CONTENT = {
 		RequestFeedback,
 		DiscussAndRefine,
 		GetFinalApproval,
-		CommitAndPush
+		CommitAndPush,
 	],
 	standard: [
 		CreateBranch,
@@ -727,8 +725,8 @@ const FLOW_CONTENT = {
 		DiscussAndRefine,
 		GetFinalApproval,
 		CreatePRAndMerge,
-		FinalThought
-	]
+		FinalThought,
+	],
 	// rigorous: [
 	// 	CreateBranch,
 	// 	StartWritingCode,
@@ -798,7 +796,7 @@ export const Flow = (props: { flow: "adhoc" | "simplified" | "standard"; active?
 		HostApi.instance.track("Flow Step Viewed", {
 			"Tour Step":
 				flow === "adhoc" ? "The Basics" : flow === "simplified" ? "Trunk Flow" : "Branch Flow",
-			"Flow Step Viewed": index
+			"Flow Step Viewed": index,
 		});
 
 		// if (flow === "rigorous" && index === 4) setRotate(!rotate);
@@ -832,7 +830,7 @@ export const Flow = (props: { flow: "adhoc" | "simplified" | "standard"; active?
 			<Desc>
 				Branch-based flow with frequent pushes, frequent code review, and final signoff on GitHub.
 			</Desc>
-		)
+		),
 	};
 
 	// 	<p>
@@ -853,7 +851,7 @@ export const Flow = (props: { flow: "adhoc" | "simplified" | "standard"; active?
 					width: "100%",
 					transformOrigin: "top left",
 					textAlign: "center",
-					marginTop: flow === "simplified" ? `${-50 * scale}px` : 0
+					marginTop: flow === "simplified" ? `${-50 * scale}px` : 0,
 				}}
 				className={flow}
 			>

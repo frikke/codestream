@@ -67,7 +67,7 @@ async function findSpecificGit(path: string): Promise<GitLocation> {
 		path,
 		version: parseVersion(version.trim()),
 		isWsl,
-		wslDistro
+		wslDistro,
 	};
 }
 

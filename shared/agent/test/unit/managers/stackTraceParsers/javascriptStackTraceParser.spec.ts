@@ -24,7 +24,7 @@ at processTicksAndRejections (internal/process/task_queues.js:94:5)`;
 					method: "LinkNewRelicRequest.createLauncherModel",
 					arguments: [],
 					line: 81,
-					column: 23
+					column: 23,
 				},
 				{
 					fileFullPath:
@@ -32,7 +32,7 @@ at processTicksAndRejections (internal/process/task_queues.js:94:5)`;
 					method: "LinkNewRelicRequest.render",
 					arguments: [],
 					line: 39,
-					column: 33
+					column: 33,
 				},
 				{
 					fileFullPath:
@@ -40,7 +40,7 @@ at processTicksAndRejections (internal/process/task_queues.js:94:5)`;
 					method: "LinkNewRelicRequest.process",
 					arguments: [],
 					line: 23,
-					column: 16
+					column: 16,
 				},
 				{
 					fileFullPath:
@@ -48,7 +48,7 @@ at processTicksAndRejections (internal/process/task_queues.js:94:5)`;
 					method: "LinkNewRelicRequest.executePhase",
 					arguments: [],
 					line: 62,
-					column: 20
+					column: 20,
 				},
 				{
 					fileFullPath:
@@ -56,27 +56,26 @@ at processTicksAndRejections (internal/process/task_queues.js:94:5)`;
 					method: "LinkNewRelicRequest.fulfill",
 					arguments: [],
 					line: 138,
-					column: 16
+					column: 16,
 				},
 				{
 					fileFullPath: "<anonymous>",
 					method: "runMicrotasks",
 					arguments: [],
 					line: undefined,
-					column: undefined
+					column: undefined,
 				},
 				{
 					fileFullPath: "internal/process/task_queues.js",
 					method: "processTicksAndRejections",
 					arguments: [],
 					line: 94,
-					column: 5
-				}
+					column: 5,
+				},
 			],
-			text:
-				"TypeError: this.request.csrfToken is not a function\nat LinkNewRelicRequest.createLauncherModel (/Users/cstryker/dev/sandboxes/csdemo/codestream-server/api_server/modules/web/link_newrelic_request.js:81:23)\nat LinkNewRelicRequest.render (/Users/cstryker/dev/sandboxes/csdemo/codestream-server/api_server/modules/web/link_newrelic_request.js:39:33)\nat LinkNewRelicRequest.process (/Users/cstryker/dev/sandboxes/csdemo/codestream-server/api_server/modules/web/link_newrelic_request.js:23:16)\nat LinkNewRelicRequest.executePhase (/Users/cstryker/dev/sandboxes/csdemo/codestream-server/api_server/lib/api_server/api_request.js:62:20)\nat LinkNewRelicRequest.fulfill (/Users/cstryker/dev/sandboxes/csdemo/codestream-server/api_server/lib/api_server/api_request.js:138:16)\nat runMicrotasks (<anonymous>)\nat processTicksAndRejections (internal/process/task_queues.js:94:5)",
+			text: "TypeError: this.request.csrfToken is not a function\nat LinkNewRelicRequest.createLauncherModel (/Users/cstryker/dev/sandboxes/csdemo/codestream-server/api_server/modules/web/link_newrelic_request.js:81:23)\nat LinkNewRelicRequest.render (/Users/cstryker/dev/sandboxes/csdemo/codestream-server/api_server/modules/web/link_newrelic_request.js:39:33)\nat LinkNewRelicRequest.process (/Users/cstryker/dev/sandboxes/csdemo/codestream-server/api_server/modules/web/link_newrelic_request.js:23:16)\nat LinkNewRelicRequest.executePhase (/Users/cstryker/dev/sandboxes/csdemo/codestream-server/api_server/lib/api_server/api_request.js:62:20)\nat LinkNewRelicRequest.fulfill (/Users/cstryker/dev/sandboxes/csdemo/codestream-server/api_server/lib/api_server/api_request.js:138:16)\nat runMicrotasks (<anonymous>)\nat processTicksAndRejections (internal/process/task_queues.js:94:5)",
 			header: "TypeError: this.request.csrfToken is not a function",
-			error: "this.request.csrfToken is not a function"
+			error: "this.request.csrfToken is not a function",
 		});
 	});
 
@@ -127,7 +126,7 @@ at processTicksAndRejections (internal/process/task_queues.js:94:5)`;
 					method: "createRouterError",
 					arguments: [],
 					line: 2066,
-					column: 15
+					column: 15,
 				},
 				{
 					fileFullPath:
@@ -135,7 +134,7 @@ at processTicksAndRejections (internal/process/task_queues.js:94:5)`;
 					method: "createNavigationDuplicatedError",
 					arguments: [],
 					line: 2036,
-					column: 15
+					column: 15,
 				},
 				{
 					fileFullPath:
@@ -143,7 +142,7 @@ at processTicksAndRejections (internal/process/task_queues.js:94:5)`;
 					method: "AbstractHistory.confirmTransition",
 					arguments: [],
 					line: 2329,
-					column: 18
+					column: 18,
 				},
 				{
 					fileFullPath:
@@ -151,7 +150,7 @@ at processTicksAndRejections (internal/process/task_queues.js:94:5)`;
 					method: "AbstractHistory.transitionTo",
 					arguments: [],
 					line: 2261,
-					column: 8
+					column: 8,
 				},
 				{
 					fileFullPath:
@@ -159,7 +158,7 @@ at processTicksAndRejections (internal/process/task_queues.js:94:5)`;
 					method: "AbstractHistory.replace",
 					arguments: [],
 					line: 2839,
-					column: 10
+					column: 10,
 				},
 				{
 					fileFullPath:
@@ -167,14 +166,14 @@ at processTicksAndRejections (internal/process/task_queues.js:94:5)`;
 					method: "eval",
 					arguments: [],
 					line: 3040,
-					column: 22
+					column: 22,
 				},
 				{
 					fileFullPath: "<anonymous>",
 					method: "new Promise",
 					arguments: [],
 					column: undefined,
-					line: undefined
+					line: undefined,
 				},
 				{
 					fileFullPath:
@@ -182,21 +181,21 @@ at processTicksAndRejections (internal/process/task_queues.js:94:5)`;
 					method: "VueRouter.replace",
 					arguments: [],
 					line: 3039,
-					column: 12
+					column: 12,
 				},
 				{
 					fileFullPath: "/src/app/modules/searchResults/components/ProductResults.vue",
 					method: "VueComponent.redirectToPdpOnOneResult",
 					arguments: [],
 					line: 340,
-					column: 30
+					column: 30,
 				},
 				{
 					fileFullPath: "/src/app/modules/searchResults/components/ProductResults.vue",
 					method: "VueComponent.$route",
 					arguments: [],
 					line: 209,
-					column: 18
+					column: 18,
 				},
 				{
 					fileFullPath:
@@ -204,7 +203,7 @@ at processTicksAndRejections (internal/process/task_queues.js:94:5)`;
 					method: "invokeWithErrorHandling",
 					arguments: [],
 					line: 1871,
-					column: 26
+					column: 26,
 				},
 				{
 					fileFullPath:
@@ -212,7 +211,7 @@ at processTicksAndRejections (internal/process/task_queues.js:94:5)`;
 					method: "Watcher.run",
 					arguments: [],
 					line: 4587,
-					column: 9
+					column: 9,
 				},
 				{
 					fileFullPath:
@@ -220,7 +219,7 @@ at processTicksAndRejections (internal/process/task_queues.js:94:5)`;
 					method: "flushSchedulerQueue",
 					arguments: [],
 					line: 4329,
-					column: 13
+					column: 13,
 				},
 				{
 					fileFullPath:
@@ -228,7 +227,7 @@ at processTicksAndRejections (internal/process/task_queues.js:94:5)`;
 					method: "Array.eval",
 					arguments: [],
 					line: 1997,
-					column: 12
+					column: 12,
 				},
 				{
 					fileFullPath:
@@ -236,17 +235,17 @@ at processTicksAndRejections (internal/process/task_queues.js:94:5)`;
 					method: "flushCallbacks",
 					arguments: [],
 					line: 1923,
-					column: 14
+					column: 14,
 				},
 				{
 					fileFullPath: "<anonymous>",
 					method: "runMicrotasks",
 					arguments: [],
 					column: undefined,
-					line: undefined
-				}
+					line: undefined,
+				},
 			],
-			text: str
+			text: str,
 		});
 	});
 });

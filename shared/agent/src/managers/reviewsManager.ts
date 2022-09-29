@@ -57,7 +57,7 @@ import {
 	StartReviewResponse,
 	UpdateReviewRequest,
 	UpdateReviewRequestType,
-	UpdateReviewResponse
+	UpdateReviewResponse,
 } from "../protocol/agent.protocol";
 import {
 	CSReview,
@@ -65,7 +65,7 @@ import {
 	CSReviewCheckpoint,
 	CSReviewDiffs,
 	CSTransformedReviewChangeset,
-	FileStatus
+	FileStatus,
 } from "../protocol/api.protocol";
 import { log, lsp, lspHandler, Strings } from "../system";
 import { gate } from "../system/decorators/gate";
@@ -77,9 +77,7 @@ const uriRegexp = /codestream-diff:\/\/(\w+)\/(\w+)\/(\w+)\/(\w+)\/(.+)/;
 
 @lsp
 export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
-	static parseUri(
-		uri: string
-	): {
+	static parseUri(uri: string): {
 		reviewId: string;
 		checkpoint: CSReviewCheckpoint;
 		repoId: string;
@@ -96,7 +94,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 			checkpoint: checkpoint === "undefined" ? undefined : parseInt(checkpoint, 10),
 			repoId,
 			version,
-			path
+			path,
 		};
 	}
 
@@ -216,7 +214,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 				repoId: request.repoId,
 				path: request.path,
 				reviewId: request.editingReviewId,
-				checkpoint: undefined
+				checkpoint: undefined,
 			});
 			leftContents = latestContentsInReview.right;
 		}
@@ -247,7 +245,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 		return {
 			repoRoot: repo.path,
 			left: Strings.normalizeFileContents(leftContents),
-			right: Strings.normalizeFileContents(rightContents || "")
+			right: Strings.normalizeFileContents(rightContents || ""),
 		};
 	}
 
@@ -276,20 +274,20 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 					reviewId: review.id,
 					repoId: changeset.repoId,
 					checkpoint,
-					path: file.file
+					path: file.file,
 				});
 				files.push({
 					leftPath: file.oldFile,
 					rightPath: file.file,
 					path: file.file,
 					left: contents.left || "",
-					right: contents.right || ""
+					right: contents.right || "",
 				});
 			}
 
 			repos.push({
 				repoId: changeset.repoId,
-				files
+				files,
 			});
 		}
 		return { repos };
@@ -314,8 +312,19 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 		);
 
 		return {
-			reviewIds
+			reviewIds,
 		};
+	}
+
+	async getContentsForUri(uri: string): Promise<string> {
+		const parsedUri = ReviewsManager.parseUri(uri);
+		const response = await this.getContents({
+			reviewId: parsedUri.reviewId,
+			checkpoint: parsedUri.checkpoint,
+			path: parsedUri.path,
+			repoId: parsedUri.repoId,
+		});
+		return (parsedUri.version === "left" ? response.left : response.right) || "";
 	}
 
 	@lspHandler(GetReviewContentsRequestType)
@@ -358,7 +367,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 				left: firstContents.left,
 				right: latestContents.right,
 				leftPath: firstContents.leftPath,
-				rightPath: latestContents.rightPath
+				rightPath: latestContents.rightPath,
 			};
 		} else if (checkpoint === 0) {
 			return this.getContentsForCheckpoint(reviewId, repoId, 0, path);
@@ -392,7 +401,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 			return {
 				repoRoot: repo?.path,
 				left: previousContents || atRequestedCheckpoint.left,
-				right: atRequestedCheckpoint.right
+				right: atRequestedCheckpoint.right,
 			};
 		}
 	}
@@ -465,7 +474,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 			left: leftContents,
 			right: rightContents,
 			leftPath: leftBaseRelativePath,
-			rightPath: rightBaseRelativePath
+			rightPath: rightBaseRelativePath,
 		};
 	}
 
@@ -483,7 +492,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 					.filter(_ => _ !== undefined)
 			)) as CSTransformedReviewChangeset[];
 			request.$addToSet = {
-				reviewChangesets: reviewChangesets
+				reviewChangesets: reviewChangesets,
 			};
 			delete request.repoChanges;
 		}
@@ -491,7 +500,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 		const updateResponse = await this.session.api.updateReview(request);
 		const [review] = await this.resolve({
 			type: MessageType.Reviews,
-			data: [updateResponse.review]
+			data: [updateResponse.review],
 		});
 
 		if (isAmending && reviewChangesets.length) {
@@ -526,8 +535,8 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 					success: false,
 					error: {
 						message: "The git repository for this review is not currently open in the IDE",
-						type: "REPO_NOT_FOUND"
-					}
+						type: "REPO_NOT_FOUND",
+					},
 				};
 			}
 			repoRoots[repoId] = repoPath;
@@ -555,8 +564,8 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 						success: false,
 						error: {
 							message: `A commit required to perform this review (${shortSha}, authored by ${author}) was not found in the local git repository. Fetch all remotes and try again.`,
-							type: "COMMIT_NOT_FOUND"
-						}
+							type: "COMMIT_NOT_FOUND",
+						},
 					};
 				}
 
@@ -572,7 +581,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 		Logger.log(`Review ${request.reviewId} preconditions check successful`);
 		return {
 			success: true,
-			repoRoots
+			repoRoots,
 		};
 	}
 
@@ -603,7 +612,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 			if (!repo) {
 				return {
 					success: false,
-					error: { type: "REPO_NOT_FOUND" }
+					error: { type: "REPO_NOT_FOUND" },
 				};
 			}
 			if (!request.headRefName) {
@@ -611,7 +620,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 					request.headRefName = await git.getCurrentBranch(repo.path);
 				} catch (ex) {
 					Logger.warn("checkPullRequestPreconditions currentBranch", {
-						error: ex
+						error: ex,
 					});
 				}
 			}
@@ -622,14 +631,14 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 				if (localModifications) {
 					return {
 						success: false,
-						error: { type: "HAS_LOCAL_MODIFICATIONS" }
+						error: { type: "HAS_LOCAL_MODIFICATIONS" },
 					};
 				}
 
 				if (localCommits) {
 					return {
 						success: false,
-						error: { type: "HAS_LOCAL_COMMITS" }
+						error: { type: "HAS_LOCAL_COMMITS" },
 					};
 				}
 			} else {
@@ -639,12 +648,12 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 				// local uncommitted changes
 				if (localModifications && request.headRefName === currentBranch) {
 					warning = {
-						type: "HAS_LOCAL_MODIFICATIONS"
+						type: "HAS_LOCAL_MODIFICATIONS",
 					};
 				}
 				if (localCommits) {
 					warning = {
-						type: "HAS_LOCAL_COMMITS"
+						type: "HAS_LOCAL_COMMITS",
 					};
 				}
 			}
@@ -689,7 +698,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 					// get repo info, delegating to the actual provider's api
 					const providerRepoInfo = await providerRegistry.getRepoInfo({
 						providerId: providerRepo.providerId,
-						remote: remoteUrl!
+						remote: remoteUrl!,
 					});
 					if (providerRepoInfo) {
 						lastError = providerRepoInfo.error;
@@ -697,12 +706,12 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 							Logger.debug("checkPullRequestPreconditions lastError", {
 								remoteUrl,
 								providerId: providerRepo.providerId,
-								error: lastError
+								error: lastError,
 							});
 							if (i === remotesLength - 1) {
 								return {
 									success: false,
-									error: providerRepoInfo.error
+									error: providerRepoInfo.error,
 								};
 							}
 							continue;
@@ -726,12 +735,12 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 										error: {
 											type: "ALREADY_HAS_PULL_REQUEST",
 											url: existingPullRequest.url,
-											id: existingPullRequest.id
+											id: existingPullRequest.id,
 										},
 										provider: {
 											id: providerRepo.providerId,
-											name: providerRepo.providerName
-										}
+											name: providerRepo.providerName,
+										},
 									};
 								}
 							}
@@ -762,8 +771,8 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 							type: "REQUIRES_PROVIDER_REPO",
 							message: `You are connected to ${Strings.phraseList(
 								connectedProviders.map(_ => _.displayName)
-							)}. To open a pull request with another provider please select your service`
-						}
+							)}. To open a pull request with another provider please select your service`,
+						},
 					};
 				}
 				// if we couldn't match a provider against a remote or there are multiple
@@ -771,8 +780,8 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 				return {
 					success: false,
 					error: {
-						type: "REQUIRES_PROVIDER"
-					}
+						type: "REQUIRES_PROVIDER",
+					},
 				};
 			}
 
@@ -783,7 +792,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 			if (!branchRemote) {
 				Logger.log(`Couldn't find branchRemote for ${repo.path} and ${headRefName}`);
 				warning = {
-					type: "REQUIRES_UPSTREAM"
+					type: "REQUIRES_UPSTREAM",
 				};
 			} else {
 				remoteBranch = branchRemote;
@@ -830,7 +839,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 					remoteBranches: remoteBranches
 						? remoteBranches.branchesMeta.filter(_ => _.branch.indexOf("HEAD ->") === -1)
 						: undefined,
-					commitsBehindOriginHeadBranch: commitsBehindOrigin
+					commitsBehindOriginHeadBranch: commitsBehindOrigin,
 				},
 				provider: {
 					id: providerId,
@@ -848,25 +857,25 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 						defaultBranch: providerRepoDefaultBranch,
 						isFork,
 						owner,
-						nameWithOwner
-					}
+						nameWithOwner,
+					},
 				},
 				review: {
 					title: review ? review.title : "",
-					text: review ? review.text : ""
+					text: review ? review.text : "",
 				},
-				warning: warning
+				warning: warning,
 			};
 		} catch (ex) {
 			Logger.error(ex, "checkPullRequestPreconditions", {
-				request
+				request,
 			});
 			return {
 				success: false,
 				error: {
 					message: typeof ex === "string" ? ex : ex.message,
-					type: "UNKNOWN"
-				}
+					type: "UNKNOWN",
+				},
 			};
 		}
 	}
@@ -908,7 +917,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 					Logger.warn(`createPullRequest: repoId=${repoId} not found`);
 					return {
 						success: false,
-						error: { type: "REPO_NOT_FOUND" }
+						error: { type: "REPO_NOT_FOUND" },
 					};
 				}
 				const branchRemote = await git.getBranchRemote(repo.path, request.headRefName);
@@ -939,7 +948,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 						);
 						return {
 							success: false,
-							error: { type: "BRANCH_REMOTE_CREATION_FAILED", message: message }
+							error: { type: "BRANCH_REMOTE_CREATION_FAILED", message: message },
 						};
 					}
 				} else {
@@ -955,8 +964,8 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 					reviewPermalink,
 					approvedAt,
 					reviewers: approvers,
-					addresses: request.addresses
-				}
+					addresses: request.addresses,
+				},
 			};
 
 			const result = await providerRegistry.createPullRequest(data);
@@ -970,8 +979,8 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 					success: false,
 					error: {
 						message: result && result.error && result.error.message ? result.error.message : "",
-						type: "PROVIDER"
-					}
+						type: "PROVIDER",
+					},
 				};
 			}
 
@@ -980,7 +989,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 					id: review.id,
 					pullRequestProviderId: request.providerId,
 					pullRequestTitle: result.title,
-					pullRequestUrl: result.url
+					pullRequestUrl: result.url,
 				}));
 
 				Logger.log(
@@ -995,7 +1004,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 			return {
 				success: true,
 				id: result.id,
-				url: result.url
+				url: result.url,
 			};
 		} catch (ex) {
 			Logger.error(ex, "createPullRequest");
@@ -1003,8 +1012,8 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 				success: false,
 				error: {
 					message: typeof ex === "string" ? ex : ex.message,
-					type: "UNKNOWN"
-				}
+					type: "UNKNOWN",
+				},
 			};
 		}
 	}
@@ -1013,7 +1022,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 	@log()
 	async startReview(request: StartReviewRequest): Promise<StartReviewResponse> {
 		return {
-			success: true
+			success: true,
 		};
 	}
 
@@ -1021,7 +1030,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 	@log()
 	async pauseReview(request: PauseReviewRequest): Promise<PauseReviewResponse> {
 		return {
-			success: true
+			success: true,
 		};
 	}
 
@@ -1029,7 +1038,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 	@log()
 	async endReview(request: EndReviewRequest): Promise<EndReviewResponse> {
 		return {
-			success: true
+			success: true,
 		};
 	}
 
@@ -1059,12 +1068,12 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 						.map(_ => _.commits.filter(c => c.localOnly).length)
 						.reduce((acc, x) => acc + x),
 					"Staged Changes Added": reviewChangesets.some(_ => _.includeStaged),
-					"Saved Changes Added": reviewChangesets.some(_ => _.includeSaved)
+					"Saved Changes Added": reviewChangesets.some(_ => _.includeSaved),
 				};
 
 				telemetry.track({
 					eventName: "Checkpoint Added",
-					properties: reviewProperties
+					properties: reviewProperties,
 				});
 			} catch (ex) {
 				Logger.error(ex);
@@ -1180,7 +1189,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 				sequence,
 				message: `You have ${unreviewedCommits.length} unreviewed commit${
 					unreviewedCommits.length > 0 ? "s" : ""
-				} from ${Array.from(authors).join(", ")}`
+				} from ${Array.from(authors).join(", ")}`,
 			});
 		}
 
@@ -1240,12 +1249,12 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 			}
 
 			return {
-				reviewIds
+				reviewIds,
 			};
 		} catch (ex) {
 			Logger.error(ex);
 			return {
-				reviewIds: []
+				reviewIds: [],
 			};
 		}
 	}
@@ -1265,7 +1274,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 			endCommit: newestCommit.ref,
 			includeStaged: false,
 			includeSaved: false,
-			currentUserEmail
+			currentUserEmail,
 		});
 
 		if (!repo.id || !repoStatus.scm) {
@@ -1282,7 +1291,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 					email: newestCommit.email,
 					fullName: newestCommit.author,
 					dontSendEmail: true,
-					inviteType: "reviewAuthorNotification"
+					inviteType: "reviewAuthorNotification",
 				});
 				author = inviteUserResponse.user;
 				addedUsers.push(newestCommit.email);
@@ -1335,10 +1344,10 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 						rightReverseDiffs: [],
 						latestCommitSha: newestCommit.ref,
 						rightToLatestCommitDiffs: [],
-						latestCommitToRightDiffs: []
-					}
-				}
-			]
+						latestCommitToRightDiffs: [],
+					},
+				},
+			],
 		};
 
 		const stream = await SessionContainer.instance().streams.getTeamStream();
@@ -1349,7 +1358,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 			dontSendEmail: false,
 			mentionedUserIds: [],
 			addedUsers: [],
-			files: []
+			files: [],
 		});
 		const review = response.review!;
 

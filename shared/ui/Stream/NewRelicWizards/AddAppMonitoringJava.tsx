@@ -1,24 +1,24 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { NewRelicOptions, RepoProjectType } from "@codestream/protocols/agent";
+import React, { useEffect, useState } from "react";
+import { FormattedMessage } from "react-intl";
 import { useDispatch, useSelector } from "react-redux";
+import { TextInput } from "../../Authentication/TextInput";
+import { logError } from "../../logger";
 import {
 	CreateNewRelicConfigFileRequestType,
 	CreateNewRelicConfigFileResponse,
 	InstallNewRelicRequestType,
-	InstallNewRelicResponse
+	InstallNewRelicResponse,
 } from "../../protocols/agent/agent.protocol.nr";
-import { logError } from "../../logger";
-import { NewRelicOptions, RepoProjectType } from "@codestream/protocols/agent";
+import { Button } from "../../src/components/Button";
+import { Dialog } from "../../src/components/Dialog";
 import { CodeStreamState } from "../../store";
 import { HostApi } from "../../webview-api";
 import { closeModal } from "../actions";
+import Icon from "../Icon";
+import { Link } from "../Link";
 import { SkipLink, Step } from "../Onboard";
 import { InstallRow, StepNumber } from "../OnboardNewRelic";
-import { Dialog } from "../../src/components/Dialog";
-import { FormattedMessage } from "react-intl";
-import { Button } from "../../src/components/Button";
-import { Link } from "../Link";
-import Icon from "../Icon";
-import { TextInput } from "../../Authentication/TextInput";
 
 export const AddAppMonitoringJava = (props: {
 	className: string;
@@ -71,7 +71,7 @@ export const AddAppMonitoringJava = (props: {
 		setInstallingLibrary(true);
 		const response = (await HostApi.instance.send(InstallNewRelicRequestType, {
 			type: RepoProjectType.Java,
-			cwd: repoPath!
+			cwd: repoPath!,
 		})) as InstallNewRelicResponse;
 		if (response.error) {
 			logError(`Unable to install New Relic module: ${response.error}`);
@@ -90,7 +90,7 @@ export const AddAppMonitoringJava = (props: {
 			type: RepoProjectType.Java,
 			filePath: repoPath!,
 			appName,
-			licenseKey
+			licenseKey,
 		})) as CreateNewRelicConfigFileResponse;
 		if (response.error) {
 			logError(`Unable to create New Relic config file: ${response.error}`);

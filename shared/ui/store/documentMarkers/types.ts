@@ -5,5 +5,5 @@ export interface DocumentMarkersState extends Index<(DocumentMarker | MarkerNotL
 
 export enum DocumentMarkersActionsType {
 	SaveForFile = "@documentMarkers/SaveForFile",
-	SaveOneForFile = "@documentMarkers/SaveOne"
+	SaveOneForFile = "@documentMarkers/SaveOne",
 }

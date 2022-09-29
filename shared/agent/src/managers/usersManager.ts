@@ -1,5 +1,4 @@
 "use strict";
-import { Logger } from "../logger";
 import {
 	BlameAuthor,
 	DeleteUserRequest,
@@ -19,7 +18,6 @@ import {
 	InviteUserRequestType,
 	KickUserRequest,
 	KickUserRequestType,
-	RepoScmStatus,
 	UpdateInvisibleRequest,
 	UpdateInvisibleRequestType,
 	UpdatePreferencesRequest,
@@ -31,9 +29,9 @@ import {
 	UpdateStatusRequestType,
 	UpdateStatusResponse,
 	UpdateUserRequest,
-	UpdateUserRequestType
+	UpdateUserRequestType,
 } from "../protocol/agent.protocol";
-import { CSMe, CSUser, FileStatus } from "../protocol/api.protocol";
+import { CSMe, CSUser } from "../protocol/api.protocol";
 import { lsp, lspHandler } from "../system";
 import { CachedEntityManagerBase, Id } from "./entityManager";
 
@@ -168,5 +166,4 @@ export class UsersManager extends CachedEntityManagerBase<CSUser> {
 	pipeUnescape(s: string) {
 		return s.replace(/\\\|/g, "|").replace(/\\\\/g, "\\");
 	}
-
 }

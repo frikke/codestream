@@ -4,11 +4,11 @@ import { ReviewsManager } from "../../../src/managers/reviewsManager";
 describe("ReviewsManager.spec.ts", () => {
 	describe("checkPullRequestPreconditions", () => {
 		it("REPO_NOT_FOUND", async () => {
-			const manager = new ReviewsManager({ onDidRequestReset: function() {} } as any);
+			const manager = new ReviewsManager({ onDidRequestReset: function () {} } as any);
 			const response = await manager.checkPullRequestPreconditions({} as any, null, {
 				session: {} as any,
 				git: {},
-				providerRegistry: {}
+				providerRegistry: {},
 			} as any);
 
 			expect(response.error?.type).toEqual("REPO_NOT_FOUND");
@@ -16,35 +16,35 @@ describe("ReviewsManager.spec.ts", () => {
 
 		describe("with review", () => {
 			it("HAS_LOCAL_MODIFICATIONS", async () => {
-				const manager = new ReviewsManager({ onDidRequestReset: function() {} } as any);
-				manager.getById = async function() {
+				const manager = new ReviewsManager({ onDidRequestReset: function () {} } as any);
+				manager.getById = async function () {
 					return {
 						reviewChangesets: [
 							{
-								repoId: "123"
-							}
-						]
+								repoId: "123",
+							},
+						],
 					} as any;
 				};
 				const response = await manager.checkPullRequestPreconditions(
 					{
-						reviewId: "123"
+						reviewId: "123",
 					} as any,
 					null,
 					{
 						session: {} as any,
 						git: {
-							getHasLocalCommits: async function() {
+							getHasLocalCommits: async function () {
 								return false;
 							},
-							getHasModifications: async function() {
+							getHasModifications: async function () {
 								return true;
 							},
-							getRepositoryById: async function() {
+							getRepositoryById: async function () {
 								return {};
-							}
+							},
 						},
-						providerRegistry: {}
+						providerRegistry: {},
 					} as any
 				);
 
@@ -52,35 +52,35 @@ describe("ReviewsManager.spec.ts", () => {
 			});
 
 			it("HAS_LOCAL_COMMITS", async () => {
-				const manager = new ReviewsManager({ onDidRequestReset: function() {} } as any);
-				manager.getById = async function() {
+				const manager = new ReviewsManager({ onDidRequestReset: function () {} } as any);
+				manager.getById = async function () {
 					return {
 						reviewChangesets: [
 							{
-								repoId: "123"
-							}
-						]
+								repoId: "123",
+							},
+						],
 					} as any;
 				};
 				const response = await manager.checkPullRequestPreconditions(
 					{
-						reviewId: "123"
+						reviewId: "123",
 					} as any,
 					null,
 					{
 						session: {} as any,
 						git: {
-							getHasLocalCommits: async function() {
+							getHasLocalCommits: async function () {
 								return true;
 							},
-							getHasModifications: async function() {
+							getHasModifications: async function () {
 								return false;
 							},
-							getRepositoryById: async function() {
+							getRepositoryById: async function () {
 								return {};
-							}
+							},
 						},
-						providerRegistry: {}
+						providerRegistry: {},
 					} as any
 				);
 
@@ -90,55 +90,55 @@ describe("ReviewsManager.spec.ts", () => {
 
 		describe("without review", () => {
 			it("REQUIRES_PROVIDER", async () => {
-				const manager = new ReviewsManager({ onDidRequestReset: function() {} } as any);
+				const manager = new ReviewsManager({ onDidRequestReset: function () {} } as any);
 
 				const response = await manager.checkPullRequestPreconditions(
 					{
 						headRefName: "develop",
-						repoId: "123"
+						repoId: "123",
 					} as any,
 					null,
 					{
 						users: {
-							getMe: async function() {
+							getMe: async function () {
 								return {
-									user: {}
+									user: {},
 								};
-							}
+							},
 						},
 						session: {},
 						git: {
-							getHasLocalCommits: async function() {
+							getHasLocalCommits: async function () {
 								return false;
 							},
-							getHasModifications: async function() {
+							getHasModifications: async function () {
 								return true;
 							},
-							getRepositoryById: async function() {
+							getRepositoryById: async function () {
 								return {
-									getPullRequestProvider: async function() {
+									getPullRequestProvider: async function () {
 										return undefined;
 									},
-									getWeightedRemotes: async function() {
+									getWeightedRemotes: async function () {
 										return [];
-									}
+									},
 								};
 							},
-							getCurrentBranch: async function() {
+							getCurrentBranch: async function () {
 								return "develop";
 							},
-							getWeightedRemotes: async function() {
+							getWeightedRemotes: async function () {
 								return [];
 							},
-							getWeightedRemotesByStrategy: function() {
+							getWeightedRemotesByStrategy: function () {
 								return [];
-							}
+							},
 						},
 						providerRegistry: {
-							getConnectedPullRequestProviders: async function() {
+							getConnectedPullRequestProviders: async function () {
 								return [];
-							}
-						}
+							},
+						},
 					} as any
 				);
 
@@ -146,86 +146,86 @@ describe("ReviewsManager.spec.ts", () => {
 			});
 
 			it("works", async () => {
-				const manager = new ReviewsManager({ onDidRequestReset: function() {} } as any);
+				const manager = new ReviewsManager({ onDidRequestReset: function () {} } as any);
 
 				const response = await manager.checkPullRequestPreconditions(
 					{ headRefName: "develop", repoId: "123" } as any,
 					null,
 					{
 						users: {
-							getMe: async function() {
+							getMe: async function () {
 								return {
-									user: {}
+									user: {},
 								};
-							}
+							},
 						},
 						git: {
-							getBranches: async function() {
+							getBranches: async function () {
 								return {
-									branchesMeta: []
+									branchesMeta: [],
 								};
 							},
-							getBranchCommitsStatus: async function() {
+							getBranchCommitsStatus: async function () {
 								return "0";
 							},
-							getBranchRemote: async function() {
+							getBranchRemote: async function () {
 								return "origin/develop";
 							},
-							getHasLocalCommits: async function() {
+							getHasLocalCommits: async function () {
 								return false;
 							},
-							getHasModifications: async function() {
+							getHasModifications: async function () {
 								return true;
 							},
-							getRepositoryById: async function() {
+							getRepositoryById: async function () {
 								return {
-									getPullRequestProvider: async function() {
+									getPullRequestProvider: async function () {
 										return {
 											provider: {
 												providerId: "github*com",
-												name: "github"
+												name: "github",
 											},
 											providerId: "github*com",
 											name: "github",
 											path: "",
 											remotes: [
 												{
-													webUrl: "something/a.git"
-												}
-											]
+													webUrl: "something/a.git",
+												},
+											],
 										};
 									},
-									getWeightedRemotes: async function() {
+									getWeightedRemotes: async function () {
 										return [];
 									},
-									getWeightedRemotesByStrategy: function() {
+									getWeightedRemotesByStrategy: function () {
 										return ["origin"];
-									}
+									},
 								};
 							},
-							getCurrentBranch: async function() {
+							getCurrentBranch: async function () {
 								return "develop";
 							},
-							getWeightedRemotes: async function() {
+							getWeightedRemotes: async function () {
 								return [];
-							}
+							},
 						},
 						providerRegistry: {
-							getRepoInfo: async function() {
+							getRepoInfo: async function () {
 								return {
 									provider: {
-										defaultBranch: "develop"
-									}
+										defaultBranch: "develop",
+									},
 								};
 							},
-							getConnectedPullRequestProviders: async function() {
+							getConnectedPullRequestProviders: async function () {
 								return [
 									{
-										id: "github*com"
-									}
+										id: "github*com",
+									},
 								];
-							}
-						}
+							},
+						},
 					} as any
 				);
 				if (response?.error) {

@@ -2,7 +2,7 @@ export enum TraceLevel {
 	Silent = "silent",
 	Errors = "errors",
 	Verbose = "verbose",
-	Debug = "debug"
+	Debug = "debug",
 }
 
 export interface LogCorrelationContext {
@@ -13,7 +13,7 @@ export interface LogCorrelationContext {
 
 export enum SessionStatus {
 	SignedOut = "signedOut",
-	SignedIn = "signedIn"
+	SignedIn = "signedIn",
 }
 
 export interface TelemetryData {

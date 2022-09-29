@@ -9,7 +9,7 @@ export interface Props {
 
 export default class RoadBlock extends React.Component<Props, State> {
 	static defaultProps = {
-		title: ""
+		title: "",
 	};
 
 	render() {

@@ -1,6 +1,6 @@
 import React, { Fragment } from "react";
-import Tooltip from "./Tooltip";
 import Icon from "./Icon";
+import Tooltip from "./Tooltip";
 
 export default class RetrySpinner extends React.Component {
 	state = { loading: false };

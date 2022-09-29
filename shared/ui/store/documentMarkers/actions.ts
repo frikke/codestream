@@ -1,11 +1,11 @@
-import { DocumentMarkersActionsType } from "./types";
 import {
 	DocumentMarker,
 	FetchDocumentMarkersRequestType,
-	MarkerNotLocated
+	MarkerNotLocated,
 } from "@codestream/protocols/agent";
-import { action } from "../common";
 import { HostApi } from "@codestream/webview/webview-api";
+import { action } from "../common";
+import { DocumentMarkersActionsType } from "./types";
 
 export const reset = () => action("RESET");
 
@@ -21,7 +21,7 @@ export const addDocumentMarker = (uri: string, marker: DocumentMarker) =>
 export const fetchDocumentMarkers = (uri: string) => async dispatch => {
 	const response = await HostApi.instance.send(FetchDocumentMarkersRequestType, {
 		textDocument: { uri },
-		applyFilters: false
+		applyFilters: false,
 	});
 
 	if (response) {

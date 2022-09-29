@@ -88,7 +88,7 @@ export namespace xfs {
 						partialPath: tree.partialPath.concat(file),
 						children: [],
 						id: tree.id,
-						depth: tree.depth + 1
+						depth: tree.depth + 1,
 					};
 					if (nextObj.depth >= DIRECTORY_TREE_DEPTH) {
 						tree.children.push(nextObj);

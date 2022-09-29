@@ -13,19 +13,15 @@ import {
 	CSRepository,
 	CSTeam,
 	CSUser,
-	StreamType
+	StreamType,
 } from "../../protocol/api.protocol";
 import { providerDisplayNamesByNameKey } from "../../providers/provider";
 import {
 	Marker,
 	toActionId,
 	toCodeErrorActionId,
-	toCodeErrorReplyActionId,
 	toExternalActionId,
-	toReplyActionId,
-	toReplyDisabledActionId,
 	toReviewActionId,
-	toReviewReplyActionId
 } from "../extensions";
 import getProviderDisplayName = Marker.getProviderDisplayName;
 
@@ -128,15 +124,13 @@ export function fromSlackChannel(
 		mostRecentPostCreatedAt: mostRecentTimestamp,
 		mostRecentPostId: mostRecentId,
 		priority: channel.priority,
-		privacy: (channel.is_private == null
-		? channel.is_group
-		: channel.is_private)
+		privacy: (channel.is_private == null ? channel.is_group : channel.is_private)
 			? "private"
 			: "public",
 		purpose: channel.purpose && channel.purpose.value,
 		sortId: undefined!,
 		teamId: codestreamTeamId,
-		type: StreamType.Channel
+		type: StreamType.Channel,
 	};
 }
 
@@ -185,7 +179,7 @@ export function fromSlackDirect(
 			privacy: "private",
 			sortId: undefined!,
 			teamId: codestreamTeamId,
-			type: StreamType.Direct
+			type: StreamType.Direct,
 		};
 	}
 
@@ -239,7 +233,7 @@ export function fromSlackDirect(
 		purpose: channel.purpose && channel.purpose.value,
 		sortId: undefined!,
 		teamId: codestreamTeamId,
-		type: StreamType.Direct
+		type: StreamType.Direct,
 	};
 }
 
@@ -326,7 +320,7 @@ export async function fromSlackPost(
 		text: text,
 		seqNum: post.ts,
 		streamId: streamId,
-		teamId: teamId
+		teamId: teamId,
 	};
 }
 
@@ -356,7 +350,7 @@ export async function fromMeMessageSlackPost(
 		text: text,
 		seqNum: ts,
 		streamId: streamId,
-		teamId: teamId
+		teamId: teamId,
 	};
 }
 
@@ -436,7 +430,7 @@ export function fromSlackPostFile(file: any) {
 		preview = {
 			url: file.thumb_480,
 			height: file.thumb_480_h,
-			width: file.thumb_480_w
+			width: file.thumb_480_w,
 		};
 	} else {
 		preview = file.preview;
@@ -467,7 +461,7 @@ export function fromSlackPostFile(file: any) {
 		title: file.title,
 		type: type,
 		url: file.permalink,
-		preview: preview
+		preview: preview,
 	};
 }
 
@@ -543,7 +537,7 @@ export function fromSlackUser(user: any, teamId: string): CSUser {
 	return {
 		avatar: {
 			image: user.profile.image_original,
-			image48: user.profile.image_48
+			image48: user.profile.image_48,
 		},
 		companyIds: [],
 		createdAt: defaultCreatedAt,
@@ -570,7 +564,7 @@ export function fromSlackUser(user: any, teamId: string): CSUser {
 		totalPosts: 0,
 		totalReviews: 0,
 		numUsersInvited: 0,
-		username: user.profile.display_name || user.name
+		username: user.profile.display_name || user.name,
 	};
 }
 
@@ -599,9 +593,9 @@ function blockTruncated(): KnownBlock {
 		elements: [
 			{
 				type: "mrkdwn",
-				text: "This was partially truncated. Open in IDE to view it in full."
-			}
-		]
+				text: "This was partially truncated. Open in IDE to view it in full.",
+			},
+		],
 	};
 }
 
@@ -620,9 +614,9 @@ function blockRepliedTo(text: string): KnownBlock {
 		elements: [
 			{
 				type: "mrkdwn",
-				text: `_reply to "${replyText}"_`
-			}
-		]
+				text: `_reply to "${replyText}"_`,
+			},
+		],
 	};
 }
 
@@ -631,8 +625,8 @@ function blockFile(name: string, url: string): KnownBlock {
 		type: "section",
 		text: {
 			type: "mrkdwn",
-			text: `<${url}|${name}>`
-		}
+			text: `<${url}|${name}>`,
+		},
 	};
 }
 
@@ -655,8 +649,8 @@ export function toSlackPostBlocks(
 				type: "section",
 				text: {
 					type: "mrkdwn",
-					text: slackText.text
-				}
+					text: slackText.text,
+				},
 			});
 
 			break;
@@ -668,8 +662,8 @@ export function toSlackPostBlocks(
 				type: "section",
 				text: {
 					type: "mrkdwn",
-					text: slackText.text
-				}
+					text: slackText.text,
+				},
 			});
 
 			break;
@@ -700,8 +694,8 @@ export function toSlackPostBlocks(
 					type: "section",
 					text: {
 						type: "mrkdwn",
-						text: text
-					}
+						text: text,
+					},
 				});
 			}
 
@@ -720,8 +714,8 @@ export function toSlackPostBlocks(
 				type: "section",
 				text: {
 					type: "mrkdwn",
-					text: `*Assignees*\n${assigneeText}`
-				}
+					text: `*Assignees*\n${assigneeText}`,
+				},
 			});
 		}
 	}
@@ -735,8 +729,8 @@ export function toSlackPostBlocks(
 			type: "section",
 			text: {
 				type: "mrkdwn",
-				text: `*Assignees*\n${codemark.externalAssignees.map(a => a.displayName).join(", ")}`
-			}
+				text: `*Assignees*\n${codemark.externalAssignees.map(a => a.displayName).join(", ")}`,
+			},
 		});
 	}
 
@@ -745,8 +739,8 @@ export function toSlackPostBlocks(
 			type: "section",
 			text: {
 				type: "mrkdwn",
-				text: `*Linked Issues*\n${codemark.externalProviderUrl}`
-			}
+				text: `*Linked Issues*\n${codemark.externalProviderUrl}`,
+			},
 		});
 	}
 
@@ -841,8 +835,8 @@ export function toSlackPostBlocks(
 						text: `${filename}\n\`\`\`${codeText.substring(
 							0,
 							slackBlockTextCodeMax - filenameLength - 6
-						)}\`\`\``
-					}
+						)}\`\`\``,
+					},
 				});
 				if (isTruncated) {
 					blocks.push(blockTruncated());
@@ -852,15 +846,15 @@ export function toSlackPostBlocks(
 					type: "section",
 					text: {
 						type: "mrkdwn",
-						text: `${filename}\n`
-					}
+						text: `${filename}\n`,
+					},
 				});
 			}
 			let actionId;
 			const actions: ActionsBlock = {
 				type: "actions",
 				block_id: `codeblock-actions:${counter}`,
-				elements: []
+				elements: [],
 			};
 
 			if (codemark.permalink) {
@@ -870,11 +864,11 @@ export function toSlackPostBlocks(
 					action_id: actionId,
 					text: {
 						type: "plain_text",
-						text: "Open in IDE"
+						text: "Open in IDE",
 					},
 					url: `${codemark.permalink}?ide=default&src=${encodeURIComponent(
 						providerDisplayNamesByNameKey.get("slack") || ""
-					)}&marker=${marker.id}`
+					)}&marker=${marker.id}`,
 				});
 			}
 			if (url !== undefined && url.url) {
@@ -890,11 +884,11 @@ export function toSlackPostBlocks(
 						action_id: actionId,
 						text: {
 							type: "plain_text",
-							text: `Open on ${url.displayName}`
+							text: `Open on ${url.displayName}`,
 						},
 						// users can have spaces in the paths to their source code...
 						// slack does not like them so they must be escaped
-						url: encodeURI(url.url)
+						url: encodeURI(url.url),
 					});
 				}
 			}
@@ -915,13 +909,13 @@ export function toSlackPostBlocks(
 					action_id: actionId,
 					text: {
 						type: "plain_text",
-						text: "Open in IDE"
+						text: "Open in IDE",
 					},
 					url: `${codemark.permalink}?ide=default&src=${encodeURIComponent(
 						providerDisplayNamesByNameKey.get("slack") || ""
-					)}`
-				}
-			]
+					)}`,
+				},
+			],
 		};
 
 		blocks.push(actions);
@@ -942,9 +936,9 @@ export function toSlackPostBlocks(
 		elements: [
 			{
 				type: "plain_text",
-				text: "Replies in thread will be shared to CodeStream"
-			}
-		]
+				text: "Replies in thread will be shared to CodeStream",
+			},
+		],
 	});
 
 	return blocks;
@@ -997,9 +991,9 @@ export function toSlackReviewPostBlocks(
 		elements: [
 			{
 				type: "mrkdwn",
-				text: `${creatorName}is requesting feedback`
-			}
-		]
+				text: `${creatorName}is requesting feedback`,
+			},
+		],
 	});
 
 	blocks.push({
@@ -1010,8 +1004,8 @@ export function toSlackReviewPostBlocks(
 				modifiedReposAndBranches && modifiedReposAndBranches.length
 					? modifiedReposAndBranches.join(", ")
 					: "no repos or branches"
-			}`
-		}
+			}`,
+		},
 	});
 
 	if (review.text) {
@@ -1019,8 +1013,8 @@ export function toSlackReviewPostBlocks(
 			type: "section",
 			text: {
 				type: "mrkdwn",
-				text: toSlackText(review.text, userMaps)
-			}
+				text: toSlackText(review.text, userMaps),
+			},
 		});
 	}
 
@@ -1031,8 +1025,8 @@ export function toSlackReviewPostBlocks(
 				type: "section",
 				text: {
 					type: "mrkdwn",
-					text: `*Assignees*\n${assigneeText}`
-				}
+					text: `*Assignees*\n${assigneeText}`,
+				},
 			});
 		}
 	}
@@ -1047,8 +1041,8 @@ export function toSlackReviewPostBlocks(
 				type: "mrkdwn",
 				text: `\`\`\`${modifiedFilesList.substring(0, slackBlockTextCodeMax - 9)}${
 					isTruncated ? "..." : ""
-				}\`\`\``
-			}
+				}\`\`\``,
+			},
 		});
 
 		if (isTruncated) {
@@ -1069,13 +1063,13 @@ export function toSlackReviewPostBlocks(
 					action_id: actionId,
 					text: {
 						type: "plain_text",
-						text: "Open in IDE"
+						text: "Open in IDE",
 					},
 					url: `${permalink}?ide=default&src=${encodeURIComponent(
 						providerDisplayNamesByNameKey.get("slack") || ""
-					)}`
-				}
-			]
+					)}`,
+				},
+			],
 		};
 
 		blocks.push(actions);
@@ -1096,9 +1090,9 @@ export function toSlackReviewPostBlocks(
 		elements: [
 			{
 				type: "plain_text",
-				text: "Replies in thread will be shared to CodeStream"
-			}
-		]
+				text: "Replies in thread will be shared to CodeStream",
+			},
+		],
 	});
 
 	return blocks;
@@ -1121,9 +1115,9 @@ export function toSlackCodeErrorPostBlocks(
 		elements: [
 			{
 				type: "mrkdwn",
-				text: `${creatorName}is diagnosing an issue`
-			}
-		]
+				text: `${creatorName}is diagnosing an issue`,
+			},
+		],
 	});
 
 	if (codeError.title) {
@@ -1131,8 +1125,8 @@ export function toSlackCodeErrorPostBlocks(
 			type: "section",
 			text: {
 				type: "mrkdwn",
-				text: toSlackText(codeError.title, userMaps)
-			}
+				text: toSlackText(codeError.title, userMaps),
+			},
 		});
 	}
 
@@ -1147,8 +1141,8 @@ export function toSlackCodeErrorPostBlocks(
 				type: "mrkdwn",
 				text: `\`\`\`${stackTrace.substring(0, slackBlockTextCodeMax - 9)}${
 					isTruncated ? "..." : ""
-				}\`\`\``
-			}
+				}\`\`\``,
+			},
 		});
 
 		if (isTruncated) {
@@ -1169,13 +1163,13 @@ export function toSlackCodeErrorPostBlocks(
 					action_id: actionId,
 					text: {
 						type: "plain_text",
-						text: "Open in IDE"
+						text: "Open in IDE",
 					},
 					url: `${permalink}?ide=default&src=${encodeURIComponent(
 						providerDisplayNamesByNameKey.get("slack") || ""
-					)}`
-				}
-			]
+					)}`,
+				},
+			],
 		};
 
 		blocks.push(actions);
@@ -1188,9 +1182,9 @@ export function toSlackCodeErrorPostBlocks(
 		elements: [
 			{
 				type: "plain_text",
-				text: "Replies in thread will be shared to CodeStream"
-			}
-		]
+				text: "Replies in thread will be shared to CodeStream",
+			},
+		],
 	});
 
 	return blocks;
@@ -1209,8 +1203,8 @@ export function toSlackTextPostBlocks(
 		type: "section",
 		text: {
 			type: "mrkdwn",
-			text: text
-		}
+			text: text,
+		},
 	});
 	if (files && files.length > 0) {
 		files.forEach(f => {
@@ -1263,10 +1257,7 @@ export function toSlackTextSafe(
 } {
 	if (text == null || text.length === 0) return { text: text };
 
-	text = text
-		.replace("&", "&amp;")
-		.replace("<", "&lt;")
-		.replace(">", "&gt;");
+	text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
 
 	if (
 		mentionedUserIds === undefined ||

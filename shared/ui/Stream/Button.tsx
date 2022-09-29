@@ -23,7 +23,7 @@ export default function Button({
 			className={createClassString("btn inline-block-tight", className, {
 				"btn-primary": !isSecondary,
 				"btn-secondary": isSecondary,
-				disabled: disabled
+				disabled: disabled,
 			})}
 			disabled={loading || disabled}
 		>

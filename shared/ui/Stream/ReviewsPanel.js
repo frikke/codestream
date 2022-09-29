@@ -1,22 +1,21 @@
+import createClassString from "classnames";
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import createClassString from "classnames";
-import * as actions from "./actions";
 import * as reviewSelectors from "../store/reviews/reducer";
 import * as userSelectors from "../store/users/reducer";
-import Tag from "./Tag";
+import * as actions from "./actions";
 import Icon from "./Icon";
 import ScrollBox from "./ScrollBox";
-import Filter from "./Filter";
+import Tag from "./Tag";
 // import Review from "./Review";
-import { ProTip } from "./ProTip";
-import Headshot from "./Headshot";
-import { HostApi } from "../webview-api";
-import { includes as _includes, sortBy as _sortBy, filter } from "lodash-es";
-import { PanelHeader } from "../src/components/PanelHeader";
+import { includes as _includes, sortBy as _sortBy } from "lodash-es";
 import styled from "styled-components";
 import FiltersButton from "../src/components/FiltersButton";
+import { PanelHeader } from "../src/components/PanelHeader";
 import { lightOrDark } from "../utils";
+import { HostApi } from "../webview-api";
+import Headshot from "./Headshot";
+import { ProTip } from "./ProTip";
 
 const SearchBar = styled.div`
 	display: flex;
@@ -51,17 +50,17 @@ export class SimpleReviewsPanel extends Component {
 				waitingForMe: true,
 				createdByMe: true,
 				open: true,
-				closed: true
+				closed: true,
 			},
 			selectedTags: {},
-			filters: {}
+			filters: {},
 		};
 
 		this.sectionLabel = {
 			waitingForMe: "Waiting For My Review",
 			createdByMe: "Created By Me",
 			open: "Open",
-			closed: "Closed"
+			closed: "Closed",
 		};
 	}
 
@@ -85,7 +84,7 @@ export class SimpleReviewsPanel extends Component {
 	toggleSection = (e, section) => {
 		e.stopPropagation();
 		this.setState({
-			expanded: { ...this.state.expanded, [section]: !this.state.expanded[section] }
+			expanded: { ...this.state.expanded, [section]: !this.state.expanded[section] },
 		});
 	};
 
@@ -120,7 +119,7 @@ export class SimpleReviewsPanel extends Component {
 		return (
 			<div
 				className={createClassString("section", "has-children", {
-					expanded: this.state.expanded[section]
+					expanded: this.state.expanded[section],
 				})}
 			>
 				<div className="header" onClick={e => this.toggleSection(e, section)}>
@@ -306,7 +305,7 @@ export class SimpleReviewsPanel extends Component {
 				),
 				noHover: true,
 				searchLabel: tag.label || tag.color,
-				action: e => this.setQ(`tag:${label}`)
+				action: e => this.setQ(`tag:${label}`),
 			};
 		});
 
@@ -320,7 +319,7 @@ export class SimpleReviewsPanel extends Component {
 						</span>
 					),
 					searchLabel: branch,
-					action: e => this.setQ(`branch:"${branch}"`)
+					action: e => this.setQ(`branch:"${branch}"`),
 				};
 			});
 
@@ -347,26 +346,26 @@ export class SimpleReviewsPanel extends Component {
 			{
 				label: "Your Issues",
 				key: "issues",
-				action: () => this.setQ("is:open is:issue author:@me")
+				action: () => this.setQ("is:open is:issue author:@me"),
 			},
 			{
 				label: "Your Code Reviews",
 				key: "reviews",
-				action: () => this.setQ("is:open is:cr author:@me ")
+				action: () => this.setQ("is:open is:cr author:@me "),
 			},
 			{
 				label: "Everything assigned to you",
 				key: "assigned",
-				action: () => this.setQ("is:open assignee:@me ")
+				action: () => this.setQ("is:open assignee:@me "),
 			},
 			{
 				label: "Everything mentioning you",
 				key: "mine",
-				action: () => this.setQ("is:open mentions:@me ")
+				action: () => this.setQ("is:open mentions:@me "),
 			},
 			// { label: "-"},
 			{ label: "By Tag", key: "tag", submenu: tagMenuItems },
-			{ label: "By Branch", key: "branch", submenu: branchMenuItems }
+			{ label: "By Branch", key: "branch", submenu: branchMenuItems },
 		];
 		// console.log("SELECTED AG FILTER: ", tagFilter);
 		return (
@@ -441,7 +440,7 @@ export class SimpleReviewsPanel extends Component {
 
 	toggleStatus = id => {
 		this.setState({
-			statusPosts: { ...this.state.statusPosts, [id]: !this.state.statusPosts[id] }
+			statusPosts: { ...this.state.statusPosts, [id]: !this.state.statusPosts[id] },
 		});
 	};
 
@@ -549,7 +548,7 @@ const mapStateToProps = state => {
 		authorArray,
 		branchArray,
 		// authorFiltersLabelsLower,
-		webviewFocused: context.hasFocus
+		webviewFocused: context.hasFocus,
 	};
 };
 

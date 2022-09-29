@@ -1,12 +1,12 @@
-import React, { useState, useReducer, useMemo } from "react";
-import { FetchThirdPartyPullRequestPullRequest } from "../protocols/agent/agent.protocol.providers";
-import { PRIconButton } from "./PullRequestComponents";
+import React, { useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { CodeStreamState } from "../store";
-import { CSMe } from "../protocols/agent/api.protocol.models";
-import Icon from "./Icon";
 import styled from "styled-components";
+import { FetchThirdPartyPullRequestPullRequest } from "../protocols/agent/agent.protocol.providers";
+import { CSMe } from "../protocols/agent/api.protocol.models";
 import { PRHeadshotName } from "../src/components/HeadshotName";
+import { CodeStreamState } from "../store";
+import Icon from "./Icon";
+import { PRIconButton } from "./PullRequestComponents";
 
 export const PRStatusRow = styled.div`
 	position: relative;
@@ -88,7 +88,7 @@ export const PullRequestReviewStatus = (props: {
 				? state.context.currentPullRequest.id
 				: undefined,
 			composeCodemarkActive: state.context.composeCodemarkActive,
-			team
+			team,
 		};
 	});
 
@@ -111,7 +111,7 @@ export const PullRequestReviewStatus = (props: {
 			approvals,
 			changeRequests,
 			totalReviews,
-			degrees
+			degrees,
 		};
 	}, [pr]);
 

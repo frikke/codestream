@@ -7,12 +7,12 @@ import {
 	CSBitbucketProviderInfo,
 	CSFileStream,
 	CSMe,
-	CSRepository
+	CSRepository,
 } from "../../protocol/api.protocol";
 import {
 	RepoPullRequestProvider,
 	ThirdPartyProvider,
-	ThirdPartyProviderSupportsPullRequests
+	ThirdPartyProviderSupportsPullRequests,
 } from "../../providers/provider";
 import { GitRemote } from "./models";
 
@@ -161,7 +161,7 @@ export class GitRepository {
 								providerId: providerId,
 								providerName: provider.name,
 								provider: provider,
-								remotes: remotes.filter(_ => remotePaths.includes(_.path))
+								remotes: remotes.filter(_ => remotePaths.includes(_.path)),
 							};
 						}
 					}

@@ -35,7 +35,8 @@ import { GitRemote, GitRemoteType } from "../models/remote";
 const emptyStr = "";
 
 const remoteRegex = /^(.*)\t(.*)\s\((.*)\)$/gm;
-const urlRegex = /^(?:(git:\/\/)(.*?)(?::.*?)?\/|(https?:\/\/)(?:.*?@)?(.*?)(?::.*?)?\/|git@(.*):|(ssh:\/\/)(?:.*@)?(.*?)(?::.*?)?(?:\/|(?=~))|(?:.*?@)(.*?):)(.*)$/;
+const urlRegex =
+	/^(?:(git:\/\/)(.*?)(?::.*?)?\/|(https?:\/\/)(?:.*?@)?(.*?)(?::.*?)?\/|git@(.*):|(ssh:\/\/)(?:.*@)?(.*?)(?::.*?)?(?:\/|(?=~))|(?:.*?@)(.*?):)(.*)$/;
 const hostnameRegex = new RegExp("hostname (.*)");
 export class GitRemoteParser {
 	static async parse(data: string, repoPath: string): Promise<GitRemote[]> {
@@ -100,7 +101,7 @@ export class GitRemoteParser {
 			host || GitRemoteParser.getHostFromMatch(match),
 			// remove any starting slashes for odd remotes that look like
 			// git@github.com:/TeamCodeStream/codestream.git
-			match[9].replace(/^\/+/g, emptyStr).replace(/\.git\/?$/, emptyStr)
+			match[9].replace(/^\/+/g, emptyStr).replace(/\.git\/?$/, emptyStr),
 		];
 	}
 	/**
@@ -116,9 +117,7 @@ export class GitRemoteParser {
 	 * 	>)}
 	 * @memberof GitRemoteParser
 	 */
-	static async getRepoRemoteVariants(
-		httpOrSshEndpoint: string
-	): Promise<
+	static async getRepoRemoteVariants(httpOrSshEndpoint: string): Promise<
 		{
 			type: "ssh" | "https" | "git";
 			value: string;
@@ -154,7 +153,7 @@ export class GitRemoteParser {
 		} else {
 			results.push({
 				type: httpOrSshEndpoint.indexOf("http") === 0 ? "https" : "ssh",
-				value: httpOrSshEndpoint
+				value: httpOrSshEndpoint,
 			});
 		}
 
@@ -183,29 +182,29 @@ export class GitRemoteParser {
 				// if, for some reason this fails, fall back to doing the old (current) logic
 
 				// use -T to prevent `Pseudo-terminal will not be allocated because stdin is not a terminal`
-				childProcess.execFile("ssh", ["-T", "-G", host], function(
-					err: any,
-					stdout: any,
-					stderr: any
-				) {
-					try {
-						if (!stdout) {
-							Logger.warn(`remoteParser: parseGitUrl err=${err} stderr=${stderr}`);
-							resolve(GitRemoteParser.matchToTuple(match!));
-						} else {
-							const hostnameMatch = hostnameRegex.exec(stdout);
-							// passing undefined into the child process will result in "undefined" as a string for the hostname
-							if (hostnameMatch && hostnameMatch[1] && hostnameMatch[1] !== "undefined") {
-								resolve(GitRemoteParser.matchToTuple(match!, hostnameMatch[1]));
-							} else {
+				childProcess.execFile(
+					"ssh",
+					["-T", "-G", host],
+					function (err: any, stdout: any, stderr: any) {
+						try {
+							if (!stdout) {
+								Logger.warn(`remoteParser: parseGitUrl err=${err} stderr=${stderr}`);
 								resolve(GitRemoteParser.matchToTuple(match!));
+							} else {
+								const hostnameMatch = hostnameRegex.exec(stdout);
+								// passing undefined into the child process will result in "undefined" as a string for the hostname
+								if (hostnameMatch && hostnameMatch[1] && hostnameMatch[1] !== "undefined") {
+									resolve(GitRemoteParser.matchToTuple(match!, hostnameMatch[1]));
+								} else {
+									resolve(GitRemoteParser.matchToTuple(match!));
+								}
 							}
+						} catch (ex) {
+							Logger.warn(`remoteParser: parseGitUrl ex=${ex}`);
+							resolve(GitRemoteParser.matchToTuple(match!));
 						}
-					} catch (ex) {
-						Logger.warn(`remoteParser: parseGitUrl ex=${ex}`);
-						resolve(GitRemoteParser.matchToTuple(match!));
 					}
-				});
+				);
 			} catch (ex) {
 				Logger.warn(`remoteParser: parseGitUrl execFile ex=${ex}`);
 				resolve(GitRemoteParser.matchToTuple(match!));

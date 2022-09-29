@@ -1,9 +1,9 @@
+import { GetPostsRequestType } from "@codestream/protocols/agent";
 import { CSPost } from "@codestream/protocols/api";
+import { logError } from "@codestream/webview/logger";
+import { HostApi } from "@codestream/webview/webview-api";
 import { action } from "../common";
 import { PendingPost, Post, PostsActionsType } from "./types";
-import { HostApi } from "@codestream/webview/webview-api";
-import { GetPostsRequestType } from "@codestream/protocols/agent";
-import { logError } from "@codestream/webview/logger";
 
 export const reset = () => action("RESET");
 
@@ -32,23 +32,20 @@ export const updatePost = (post: CSPost) => action(PostsActionsType.Update, post
 
 export const deletePost = (post: CSPost) => action(PostsActionsType.Delete, post);
 
-export const getPosts = (
-	streamId: string,
-	postIds: string[],
-	parentPostId?: string
-) => async dispatch => {
-	try {
-		const { posts } = await HostApi.instance.send(GetPostsRequestType, {
-			streamId,
-			postIds,
-			parentPostId
-		});
-		dispatch(savePosts(posts));
-	} catch (error) {
-		logError(error, {
-			streamId,
-			postIds,
-			parentPostId
-		});
-	}
-};
+export const getPosts =
+	(streamId: string, postIds: string[], parentPostId?: string) => async dispatch => {
+		try {
+			const { posts } = await HostApi.instance.send(GetPostsRequestType, {
+				streamId,
+				postIds,
+				parentPostId,
+			});
+			dispatch(savePosts(posts));
+		} catch (error) {
+			logError(error, {
+				streamId,
+				postIds,
+				parentPostId,
+			});
+		}
+	};

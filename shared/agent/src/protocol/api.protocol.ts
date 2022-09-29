@@ -31,7 +31,7 @@ import {
 	CSUser,
 	ProviderType,
 	ReviewChangesetFileInfo,
-	StreamType
+	StreamType,
 } from "./api.protocol.models";
 
 export * from "./api.protocol.models";
@@ -43,7 +43,7 @@ export enum ApiErrors {
 	NotOnTeam = "USER_NOT_ON_TEAM",
 	NotFound = "NOT_FOUND",
 	Unknown = "UNKNOWN",
-	VersionUnsupported = "VERSION_UNSUPPORTED"
+	VersionUnsupported = "VERSION_UNSUPPORTED",
 }
 
 export enum LoginResult {
@@ -70,7 +70,7 @@ export enum LoginResult {
 	Timeout = "TIMEOUT",
 	ExpiredCode = "CODE_EXPIRED",
 	TooManyAttempts = "TOO_MANY_ATTEMPTS",
-	InvalidCode = "CODE_INVALID"
+	InvalidCode = "CODE_INVALID",
 }
 
 export interface CSCompleteSignupRequest {
@@ -510,7 +510,7 @@ export interface CSGetMeResponse {
 
 export enum CSPresenceStatus {
 	Online = "online",
-	Away = "away"
+	Away = "away",
 }
 
 export interface CSCreateCodemarkRequest {
@@ -713,7 +713,7 @@ export enum FileStatus {
 	deleted = "D",
 	copied = "C",
 	unmerged = "U",
-	modified = "M"
+	modified = "M",
 }
 
 export interface ModifiedFile {

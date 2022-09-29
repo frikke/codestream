@@ -1,9 +1,9 @@
-import { contextChangeObserver } from "./context-changes";
-import { sideEffects } from "./side-effects";
-import { logging } from "./logging";
-import { middlewareInjector } from "../middleware-injector";
 import { activityFeedMiddleware } from "../activityFeed/middleware";
+import { middlewareInjector } from "../middleware-injector";
 import { sessionMiddleware } from "../session/middleware";
+import { contextChangeObserver } from "./context-changes";
+import { logging } from "./logging";
+import { sideEffects } from "./side-effects";
 
 export default [
 	contextChangeObserver,
@@ -11,5 +11,5 @@ export default [
 	sideEffects,
 	logging,
 	activityFeedMiddleware,
-	sessionMiddleware
+	sessionMiddleware,
 ];

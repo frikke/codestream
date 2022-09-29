@@ -13,7 +13,7 @@ import {
 	Emitter,
 	Event,
 	MessageActionItem,
-	WorkspaceFolder
+	WorkspaceFolder,
 } from "vscode-languageserver";
 import { CodeStreamAgent } from "./agent";
 import { AgentError, ServerError } from "./agentError";
@@ -23,13 +23,13 @@ import {
 	CodeStreamApiMiddlewareContext,
 	LoginOptions,
 	MessageType,
-	RTMessage
+	RTMessage,
 } from "./api/apiProvider";
 import { CodeStreamApiProvider } from "./api/codestream/codestreamApi";
 import {
 	ApiVersionCompatibilityChangedEvent,
 	VersionCompatibilityChangedEvent,
-	VersionMiddlewareManager
+	VersionMiddlewareManager,
 } from "./api/middleware/versionMiddleware";
 import { Container, SessionContainer } from "./container";
 import { DocumentEventHandler } from "./documentEventHandler";
@@ -94,7 +94,7 @@ import {
 	UserDidCommitNotificationType,
 	VerifyConnectivityRequestType,
 	VerifyConnectivityResponse,
-	VersionCompatibility
+	VersionCompatibility,
 } from "./protocol/agent.protocol";
 import {
 	CSApiCapabilities,
@@ -112,7 +112,7 @@ import {
 	CSStream,
 	CSTeam,
 	CSUser,
-	LoginResult
+	LoginResult,
 } from "./protocol/api.protocol";
 import { log, memoize, registerDecoratedHandlers, registerProviders, Strings } from "./system";
 import { testGroups } from "./testGroups";
@@ -127,8 +127,8 @@ const PROVIDERS_TO_REGISTER_BEFORE_SIGNIN = {
 		id: "newrelic*com",
 		isEnterprise: false,
 		name: "newrelic",
-		needsConfigure: true
-	}
+		needsConfigure: true,
+	},
 };
 
 export const loginApiErrorMappings: { [k: string]: LoginResult } = {
@@ -157,12 +157,12 @@ export const loginApiErrorMappings: { [k: string]: LoginResult } = {
 	"PRVD-1005": LoginResult.SignupRequired,
 	"PRVD-1006": LoginResult.SignInRequired,
 	"USRC-1020": LoginResult.InviteConflict,
-	"AUTH-1006": LoginResult.TokenNotFound
+	"AUTH-1006": LoginResult.TokenNotFound,
 };
 
 export enum SessionStatus {
 	SignedOut = "signedOut",
-	SignedIn = "signedIn"
+	SignedIn = "signedIn",
 }
 
 export interface SessionStatusChangedEvent {
@@ -309,7 +309,7 @@ export class CodeStreamSession {
 				);
 				this._httpsAgent = new HttpsProxyAgent({
 					...url.parse(_options.proxy.url),
-					rejectUnauthorized: _options.proxy.strictSSL
+					rejectUnauthorized: _options.proxy.strictSSL,
 				} as any);
 			} else {
 				Logger.log("Proxy support is in override, but no proxy settings were provided");
@@ -329,7 +329,7 @@ export class CodeStreamSession {
 				if (proxyUri) {
 					this._httpsAgent = new HttpsProxyAgent({
 						...proxyUri,
-						rejectUnauthorized: this.rejectUnauthorized
+						rejectUnauthorized: this.rejectUnauthorized,
 					} as any);
 				}
 			} else {
@@ -341,7 +341,7 @@ export class CodeStreamSession {
 
 		if (!this._httpsAgent) {
 			this._httpsAgent = new HttpsAgent({
-				rejectUnauthorized: this.rejectUnauthorized
+				rejectUnauthorized: this.rejectUnauthorized,
 			});
 		}
 
@@ -387,7 +387,7 @@ export class CodeStreamSession {
 							: ConnectionCode.ApiBroadcasterAcknowledgementFailure;
 						this.agent.sendNotification(DidChangeConnectionStatusNotificationType, {
 							status: ConnectionStatus.Reconnecting,
-							code
+							code,
 						});
 						if (!this._broadcasterRecoveryTimer) {
 							Logger.log("Will check for recovery in 30s...");
@@ -402,10 +402,10 @@ export class CodeStreamSession {
 					Logger.log("API server cleared all active alerts");
 					this._activeServerAlerts = [];
 					this.agent.sendNotification(DidChangeConnectionStatusNotificationType, {
-						status: ConnectionStatus.Reconnected
+						status: ConnectionStatus.Reconnected,
 					});
 				}
-			}
+			},
 		});
 
 		this.verifyConnectivity();
@@ -458,7 +458,7 @@ export class CodeStreamSession {
 					teams.get(),
 					users.getUnreads({}),
 					users.get(),
-					users.getPreferences()
+					users.getPreferences(),
 				]);
 
 				const [
@@ -468,7 +468,7 @@ export class CodeStreamSession {
 					teamsResponse,
 					unreadsResponse,
 					usersResponse,
-					preferencesResponse
+					preferencesResponse,
 				] = await promise;
 
 				return {
@@ -481,7 +481,7 @@ export class CodeStreamSession {
 					users: usersResponse.users,
 					providers: this.providers,
 					apiCapabilities: this.apiCapabilities,
-					environmentInfo: this.environmentInfo
+					environmentInfo: this.environmentInfo,
 				};
 			}
 		);
@@ -502,7 +502,7 @@ export class CodeStreamSession {
 		this._options.disableStrictSSL = options.disableStrictSSL;
 		this._api?.setServerUrl(this._options.serverUrl);
 		this.agent.sendNotification(DidChangeServerUrlNotificationType, {
-			serverUrl: options.serverUrl
+			serverUrl: options.serverUrl,
 		});
 		if (options.environment) {
 			this._environmentInfo.environment = options.environment;
@@ -520,8 +520,8 @@ export class CodeStreamSession {
 			token: {
 				email: this._email!,
 				url: this._options.serverUrl,
-				value: this._codestreamAccessToken!
-			}
+				value: this._codestreamAccessToken!,
+			},
 		});
 	}
 
@@ -548,13 +548,13 @@ export class CodeStreamSession {
 				this._onDidChangeCodemarks.fire(codemarks);
 				this.agent.sendNotification(DidChangeDataNotificationType, {
 					type: ChangeDataType.Codemarks,
-					data: codemarks
+					data: codemarks,
 				});
 				break;
 			case MessageType.Companies:
 				this.agent.sendNotification(DidChangeDataNotificationType, {
 					type: ChangeDataType.Companies,
-					data: e.data
+					data: e.data,
 				});
 				break;
 			case MessageType.Connection:
@@ -572,14 +572,14 @@ export class CodeStreamSession {
 				this._onDidChangeMarkerLocations.fire(e.data);
 				this.agent.sendNotification(DidChangeDataNotificationType, {
 					type: ChangeDataType.MarkerLocations,
-					data: e.data
+					data: e.data,
 				});
 				break;
 			case MessageType.Markers:
 				this._onDidChangeMarkers.fire(e.data);
 				this.agent.sendNotification(DidChangeDataNotificationType, {
 					type: ChangeDataType.Markers,
-					data: e.data
+					data: e.data,
 				});
 				break;
 			case MessageType.Posts:
@@ -587,53 +587,53 @@ export class CodeStreamSession {
 				this._onDidChangePosts.fire(posts);
 				this.agent.sendNotification(DidChangeDataNotificationType, {
 					type: ChangeDataType.Posts,
-					data: posts
+					data: posts,
 				});
 				break;
 			case MessageType.Preferences:
 				this._onDidChangePreferences.fire(e.data);
 				this.agent.sendNotification(DidChangeDataNotificationType, {
 					type: ChangeDataType.Preferences,
-					data: e.data
+					data: e.data,
 				});
 				break;
 			case MessageType.Repositories:
 				this._onDidChangeRepositories.fire(e.data);
 				this.agent.sendNotification(DidChangeDataNotificationType, {
 					type: ChangeDataType.Repositories,
-					data: e.data
+					data: e.data,
 				});
 				break;
 			case MessageType.Reviews:
 				this.agent.sendNotification(DidChangeDataNotificationType, {
 					type: ChangeDataType.Reviews,
-					data: e.data
+					data: e.data,
 				});
 				break;
 			case MessageType.CodeErrors:
 				this.agent.sendNotification(DidChangeDataNotificationType, {
 					type: ChangeDataType.CodeErrors,
-					data: e.data
+					data: e.data,
 				});
 				break;
 			case MessageType.Streams:
 				this._onDidChangeStreams.fire(e.data);
 				this.agent.sendNotification(DidChangeDataNotificationType, {
 					type: ChangeDataType.Streams,
-					data: e.data
+					data: e.data,
 				});
 				break;
 			case MessageType.Teams:
 				this._onDidChangeTeams.fire(e.data);
 				this.agent.sendNotification(DidChangeDataNotificationType, {
 					type: ChangeDataType.Teams,
-					data: e.data
+					data: e.data,
 				});
 				break;
 			case MessageType.Unreads:
 				this.agent.sendNotification(DidChangeDataNotificationType, {
 					type: ChangeDataType.Unreads,
-					data: e.data
+					data: e.data,
 				});
 				break;
 			case MessageType.Users:
@@ -648,7 +648,7 @@ export class CodeStreamSession {
 				this._onDidChangeUsers.fire(e.data);
 				this.agent.sendNotification(DidChangeDataNotificationType, {
 					type: ChangeDataType.Users,
-					data: e.data
+					data: e.data,
 				});
 				break;
 			case MessageType.Echo:
@@ -664,11 +664,11 @@ export class CodeStreamSession {
 	async resolveUserAndNotify(user: CSUser): Promise<CSUser> {
 		const data = (await SessionContainer.instance().users.resolve({
 			type: MessageType.Users,
-			data: [user]
+			data: [user],
 		})) as CSMe[];
 		this.agent.sendNotification(DidChangeDataNotificationType, {
 			type: ChangeDataType.Users,
-			data
+			data,
 		});
 		return data[0];
 	}
@@ -697,7 +697,7 @@ export class CodeStreamSession {
 				this.registerApiCapabilities(newCapabilities, currentTeam);
 				this.agent.sendNotification(DidChangeDataNotificationType, {
 					type: ChangeDataType.ApiCapabilities,
-					data: this._apiCapabilities // Use filtered apiCapabilities
+					data: this._apiCapabilities, // Use filtered apiCapabilities
 				});
 			}
 		}
@@ -726,7 +726,7 @@ export class CodeStreamSession {
 	private _environmentInfo: CodeStreamEnvironmentInfo = {
 		environment: CodeStreamEnvironment.Unknown,
 		isOnPrem: false,
-		isProductionCloud: false
+		isProductionCloud: false,
 	};
 	get environmentInfo() {
 		if (this._environmentInfo.environment === CodeStreamEnvironment.Unknown) {
@@ -787,7 +787,7 @@ export class CodeStreamSession {
 		this._status = status;
 		const e: SessionStatusChangedEvent = {
 			getStatus: () => this._status,
-			session: this
+			session: this,
 		};
 
 		this._onDidChangeSessionStatus.fire(e);
@@ -804,7 +804,7 @@ export class CodeStreamSession {
 	}
 
 	private _telemetryData: TelemetryData = {
-		hasCreatedPost: false
+		hasCreatedPost: false,
 	};
 	get telemetryData() {
 		return this._telemetryData;
@@ -828,7 +828,7 @@ export class CodeStreamSession {
 		return {
 			extension: { ...this._options.extension },
 			ide: { ...this._options.ide },
-			machine: { machineId: this._options.machineId }
+			machine: { machineId: this._options.machineId },
 		};
 	}
 
@@ -865,8 +865,8 @@ export class CodeStreamSession {
 					resolve([
 						{
 							uri: uri,
-							name: path.basename(this.agent.rootUri)
-						}
+							name: path.basename(this.agent.rootUri),
+						},
 					]);
 				} else {
 					resolve([]);
@@ -904,7 +904,7 @@ export class CodeStreamSession {
 			isProductionCloud: response.isProductionCloud || false,
 			newRelicLandingServiceUrl: response.newRelicLandingServiceUrl,
 			newRelicApiUrl: response.newRelicApiUrl,
-			environmentHosts: response.environmentHosts
+			environmentHosts: response.environmentHosts,
 		};
 		Logger.log("Got environment from connectivity response:", this._environmentInfo);
 		this.agent.sendNotification(DidSetEnvironmentNotificationType, this._environmentInfo);
@@ -921,7 +921,7 @@ export class CodeStreamSession {
 
 		return this.login({
 			type: "credentials",
-			...request
+			...request,
 		});
 	}
 
@@ -944,7 +944,7 @@ export class CodeStreamSession {
 
 		return this.login({
 			type: "token",
-			...request
+			...request,
 		});
 	}
 
@@ -970,7 +970,7 @@ export class CodeStreamSession {
 		try {
 			return this.login({
 				type: "otc",
-				...request
+				...request,
 			});
 		} catch (e) {
 			debugger;
@@ -985,7 +985,7 @@ export class CodeStreamSession {
 
 		return this.login({
 			type: "loginCode",
-			...request
+			...request,
 		});
 	}
 
@@ -997,8 +997,8 @@ export class CodeStreamSession {
 				source: "agent",
 				message: "There was a redundant attempt to login while already logged in.",
 				extra: {
-					loginType: "loginCode"
-				}
+					loginType: "loginCode",
+				},
 			});
 			return { status: LoginResult.AlreadySignedIn };
 		}
@@ -1014,7 +1014,7 @@ export class CodeStreamSession {
 					let error = loginApiErrorMappings[ex.info.code] || LoginResult.Unknown;
 					return {
 						status: error,
-						extra: ex.info
+						extra: ex.info,
 					};
 				}
 			}
@@ -1024,19 +1024,19 @@ export class CodeStreamSession {
 				message: "Unexpected error generating login code",
 				source: "agent",
 				extra: {
-					...ex
-				}
+					...ex,
+				},
 			});
 			throw AgentError.wrap(ex, `Login failed:\n${ex.message}`);
 		}
 
 		return {
-			status: LoginResult.Success
+			status: LoginResult.Success,
 		};
 	}
 
 	@log({
-		singleLine: true
+		singleLine: true,
 	})
 	async login(options: LoginOptions): Promise<LoginResponse> {
 		if (this.status === SessionStatus.SignedIn) {
@@ -1045,8 +1045,8 @@ export class CodeStreamSession {
 				source: "agent",
 				message: "There was a redundant attempt to login while already logged in.",
 				extra: {
-					loginType: options.type
-				}
+					loginType: options.type,
+				},
 			});
 			return { error: LoginResult.AlreadySignedIn };
 		}
@@ -1066,15 +1066,15 @@ export class CodeStreamSession {
 							eventName: "Provider Connect Failed",
 							properties: {
 								Error: ex.info && ex.info.error,
-								Provider: ex.info && ex.info.provider
-							}
+								Provider: ex.info && ex.info.provider,
+							},
 						});
 						// map the reason for provider auth failure
 						error = loginApiErrorMappings[ex.info.error];
 					}
 					return {
 						error: error,
-						extra: ex.info
+						extra: ex.info,
 					};
 				}
 			}
@@ -1092,8 +1092,8 @@ export class CodeStreamSession {
 				message: "Unexpected error logging in",
 				source: "agent",
 				extra: {
-					...ex
-				}
+					...ex,
+				},
 			});
 			throw AgentError.wrap(ex, `Login failed:\n${ex.message}`);
 		}
@@ -1163,14 +1163,14 @@ export class CodeStreamSession {
 		SessionContainer.instance().git.onRepositoryChanged(data => {
 			SessionContainer.instance().session.agent.sendNotification(DidChangeDataNotificationType, {
 				type: ChangeDataType.Commits,
-				data: data
+				data: data,
 			});
 		});
 
 		SessionContainer.instance().git.onGitWorkspaceChanged(data => {
 			SessionContainer.instance().session.agent.sendNotification(DidChangeDataNotificationType, {
 				type: ChangeDataType.Workspace,
-				data: data
+				data: data,
 			});
 		});
 
@@ -1204,8 +1204,8 @@ export class CodeStreamSession {
 				userId: response.user.id,
 				codemarkId: options.codemarkId,
 				reviewId: options.reviewId,
-				codeErrorId: options.codeErrorId
-			}
+				codeErrorId: options.codeErrorId,
+			},
 		};
 
 		setImmediate(() => {
@@ -1225,7 +1225,7 @@ export class CodeStreamSession {
 	}
 
 	@log({
-		singleLine: true
+		singleLine: true,
 	})
 	async register(request: RegisterUserRequest) {
 		function isCSLoginResponse(r: CSRegisterResponse | CSLoginResponse): r is CSLoginResponse {
@@ -1257,15 +1257,15 @@ export class CodeStreamSession {
 				message: "Unexpected error during registration",
 				source: "agent",
 				extra: {
-					...error
-				}
+					...error,
+				},
 			});
 			throw AgentError.wrap(error, `Registration failed:\n${error.message}`);
 		}
 	}
 
 	@log({
-		singleLine: true
+		singleLine: true,
 	})
 	async registerNr(request: RegisterNrUserRequest) {
 		function isCSNRLoginResponse(r: CSNRRegisterResponse | CSLoginResponse): r is CSLoginResponse {
@@ -1283,7 +1283,7 @@ export class CodeStreamSession {
 						email: response.user?.email,
 						eligibleJoinCompanies: response.eligibleJoinCompanies,
 						isWebmail: response.isWebmail,
-						accountIsConnected: response.accountIsConnected
+						accountIsConnected: response.accountIsConnected,
 					};
 				}
 				this._teamId = response.teams.find(_ => _.isEveryoneTeam)!.id;
@@ -1295,7 +1295,7 @@ export class CodeStreamSession {
 					companies: response.companies,
 					eligibleJoinCompanies: response.eligibleJoinCompanies,
 					isWebmail: response.isWebmail,
-					accountIsConnected: response.accountIsConnected
+					accountIsConnected: response.accountIsConnected,
 				};
 			} else {
 				// @TODO: This specific logical path could use some QA
@@ -1307,7 +1307,7 @@ export class CodeStreamSession {
 					companies: response.companies,
 					eligibleJoinCompanies: response.eligibleJoinCompanies,
 					isWebmail: response.isWebmail,
-					accountIsConnected: response.accountIsConnected
+					accountIsConnected: response.accountIsConnected,
 				};
 			}
 		} catch (error) {
@@ -1316,7 +1316,7 @@ export class CodeStreamSession {
 					return {
 						status: loginApiErrorMappings[error.info.code] || LoginResult.Unknown,
 						email: error.info.info,
-						notInviteRelated: true
+						notInviteRelated: true,
 					};
 				}
 			}
@@ -1326,8 +1326,8 @@ export class CodeStreamSession {
 				message: "Unexpected error during registration",
 				source: "agent",
 				extra: {
-					...error
-				}
+					...error,
+				},
 			});
 			return error;
 		}
@@ -1342,14 +1342,14 @@ export class CodeStreamSession {
 
 			const result: ConfirmRegistrationResponse = {
 				user: {
-					id: response.user.id
+					id: response.user.id,
 				},
 				status: LoginResult.Unknown,
 				token: response.accessToken,
 				companies: response.companies,
 				eligibleJoinCompanies: response.eligibleJoinCompanies,
 				accountIsConnected: response.accountIsConnected,
-				isWebmail: response.isWebmail
+				isWebmail: response.isWebmail,
 			};
 			if (response.setEnvironment) {
 				Logger.log(
@@ -1357,7 +1357,7 @@ export class CodeStreamSession {
 				);
 				result.setEnvironment = {
 					environment: response.setEnvironment.environment,
-					serverUrl: response.setEnvironment.publicApiUrl
+					serverUrl: response.setEnvironment.publicApiUrl,
 				};
 			}
 
@@ -1377,7 +1377,7 @@ export class CodeStreamSession {
 			if (error instanceof ServerError) {
 				if (error.statusCode !== undefined && error.statusCode >= 400 && error.statusCode < 500) {
 					return {
-						status: loginApiErrorMappings[error.info.code] || LoginResult.Unknown
+						status: loginApiErrorMappings[error.info.code] || LoginResult.Unknown,
 					};
 				}
 			}
@@ -1387,8 +1387,8 @@ export class CodeStreamSession {
 				message: "Unexpected error confirming registration",
 				source: "agent",
 				extra: {
-					...error
-				}
+					...error,
+				},
 			});
 			throw AgentError.wrap(error, `Registration confirmation failed:\n${error.message}`);
 			// }
@@ -1412,8 +1412,8 @@ export class CodeStreamSession {
 				message: "Unexpected error getting invite info",
 				source: "agent",
 				extra: {
-					...error
-				}
+					...error,
+				},
 			});
 			throw AgentError.wrap(error, `Get invite info failed:\n${error.message}`);
 		}
@@ -1466,7 +1466,7 @@ export class CodeStreamSession {
 			return {
 				environment: CodeStreamEnvironment.Unknown,
 				isOnPrem: true,
-				isProductionCloud: false
+				isProductionCloud: false,
 			};
 		}
 
@@ -1477,7 +1477,7 @@ export class CodeStreamSession {
 			return {
 				environment: CodeStreamEnvironment.Local,
 				isOnPrem: false,
-				isProductionCloud: false
+				isProductionCloud: false,
 			};
 		}
 
@@ -1492,7 +1492,7 @@ export class CodeStreamSession {
 				return {
 					environment: CodeStreamEnvironment.Production,
 					isOnPrem: false,
-					isProductionCloud: true
+					isProductionCloud: true,
 				};
 			} else {
 				// the need for this goes away when delivered from the server
@@ -1503,7 +1503,7 @@ export class CodeStreamSession {
 			return {
 				environment: CodeStreamEnvironment.Unknown,
 				isOnPrem: false,
-				isProductionCloud: false
+				isProductionCloud: false,
 			};
 		}
 	}
@@ -1523,7 +1523,7 @@ export class CodeStreamSession {
 			"Endpoint Detail": this.versionInfo.ide.detail,
 			"IDE Version": this.versionInfo.ide.version,
 			Deployment: this.isOnPrem ? "OnPrem" : "Cloud",
-			Country: user.countryCode
+			Country: user.countryCode,
 		};
 
 		if (team != null && companies != null) {
@@ -1542,7 +1542,7 @@ export class CodeStreamSession {
 					id: company.id,
 					name: company.name,
 					plan: company.plan,
-					created_at: new Date(company.createdAt!).toISOString()
+					created_at: new Date(company.createdAt!).toISOString(),
 				};
 				if (company.trialStartDate && company.trialEndDate) {
 					props["company"]["trialStart_at"] = new Date(company.trialStartDate).toISOString();
@@ -1611,7 +1611,7 @@ export class CodeStreamSession {
 		return this.addSuperProps({
 			"NR User ID": userId,
 			"NR Organization ID": orgId,
-			"NR Connected Org": true
+			"NR Connected Org": true,
 		});
 	}
 
@@ -1623,7 +1623,7 @@ export class CodeStreamSession {
 			registerProviders(this._providers, this);
 			this.agent.sendNotification(DidChangeDataNotificationType, {
 				type: ChangeDataType.Providers,
-				data: this._providers
+				data: this._providers,
 			});
 		}
 	}
@@ -1679,7 +1679,7 @@ export class CodeStreamSession {
 		const commit = await git.getCommit(repo.path, "HEAD");
 		this.agent.sendNotification(DidChangeRepositoryCommitHashNotificationType, {
 			sha: commit?.ref,
-			repoPath: repo.path
+			repoPath: repo.path,
 		});
 
 		const me = await users.getMe();
@@ -1710,7 +1710,7 @@ export class CodeStreamSession {
 			new Date().getTime() - commit.authorDate.getTime() < twentySeconds
 		) {
 			this.agent.sendNotification(UserDidCommitNotificationType, {
-				sha: commit.ref
+				sha: commit.ref,
 			});
 		}
 	}
@@ -1736,7 +1736,7 @@ export class CodeStreamSession {
 		);
 		this.agent.sendNotification(DidChangeConnectionStatusNotificationType, {
 			status: ConnectionStatus.Reconnecting,
-			code: ConnectionCode.EchoTimeout
+			code: ConnectionCode.EchoTimeout,
 		});
 		this._echoDidTimeout = true;
 		if (this.isOnPrem && this.apiCapabilities.echoes) {
@@ -1751,7 +1751,7 @@ export class CodeStreamSession {
 		if (this._echoDidTimeout) {
 			Logger.log("Echo received after a timeout, setting connection status to Reconnecting");
 			this.agent.sendNotification(DidChangeConnectionStatusNotificationType, {
-				status: ConnectionStatus.Reconnected
+				status: ConnectionStatus.Reconnected,
 			});
 			this._echoDidTimeout = false;
 		}
@@ -1805,15 +1805,15 @@ export class CodeStreamSession {
 			files = uniq(files).reverse();
 			if (files.length) {
 				Logger.log(`onFileSearch ${path} found ${files.length} file(s)`, {
-					files: files
+					files: files,
 				});
 			}
 			return {
-				files: files
+				files: files,
 			};
 		} catch (ex) {
 			Logger.warn(`Could not find file[s] for ${path}`, {
-				error: ex
+				error: ex,
 			});
 			return { files: [] };
 		}

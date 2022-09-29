@@ -23,7 +23,7 @@ import {
 	RequestType,
 	RequestType0,
 	TextDocuments,
-	TextDocumentSyncKind
+	TextDocumentSyncKind,
 } from "vscode-languageserver";
 
 import { DocumentManager } from "./documentManager";
@@ -33,7 +33,7 @@ import {
 	AgentInitializedNotificationType,
 	BaseAgentOptions,
 	DidChangeDataNotificationType,
-	LogoutReason
+	LogoutReason,
 } from "./protocol/agent.protocol";
 import { CodeStreamSession } from "./session";
 import { Disposables, Functions, log, memoize } from "./system";
@@ -165,10 +165,10 @@ export class CodeStreamAgent implements Disposable {
 
 			return {
 				capabilities: {
-					textDocumentSync: TextDocumentSyncKind.Full
+					textDocumentSync: TextDocumentSyncKind.Full,
 					// hoverProvider: true
 				},
-				result: {}
+				result: {},
 			} as InitializeResult;
 		} catch (ex) {
 			// debugger;
@@ -215,11 +215,11 @@ export class CodeStreamAgent implements Disposable {
 	@log({
 		args: false,
 		prefix: (context, type) => `${context.prefix}(${type.method})`,
-		timed: false
+		timed: false,
 	})
 	registerHandler(type: any, handler: any): void {
 		if (this.recordRequests) {
-			this._connection.onRequest(type, async function() {
+			this._connection.onRequest(type, async function () {
 				const now = Date.now();
 				const fs = require("fs");
 				const sanitize = require("sanitize-filename");
@@ -233,7 +233,7 @@ export class CodeStreamAgent implements Disposable {
 				const out = {
 					method: method,
 					request: arguments[0],
-					response: result
+					response: result,
 				};
 				const outString = JSON.stringify(out, null, 2);
 				const filename = `/tmp/dump-${now}-agent-${sanitizedURL}.json`;
@@ -247,18 +247,19 @@ export class CodeStreamAgent implements Disposable {
 		} else {
 			if (this._agentOptions?.newRelicTelemetryEnabled) {
 				const that = this;
-				return this._connection.onRequest(type, function() {
+				return this._connection.onRequest(type, function () {
 					const args = arguments;
 					let addition = "";
+					const arg = args[0] || {};
 					if (type?.method === "codestream/provider/generic") {
-						const arg = args[0] || {};
-						addition = `/${arg.providerId?.replace(/\*/g, "-")}/${arg.method}`;
+						addition = `/${arg.method}`;
 					}
 
 					return NewRelic.startWebTransaction(type.method + addition, () => {
 						NewRelic.addCustomAttributes({
 							...(that.createNewRelicCustomAttributes() as any),
-							messageType: "request"
+							providerId: arg?.providerId,
+							messageType: "request",
 						});
 						return handler.apply(null, args);
 					});
@@ -274,7 +275,7 @@ export class CodeStreamAgent implements Disposable {
 		prefix: (context, type, params) =>
 			`${context.prefix}(${type.method}${
 				type.method === DidChangeDataNotificationType.method ? `:${params.type}` : ""
-			})`
+			})`,
 	})
 	sendNotification<NT extends NotificationType<any, any>>(
 		type: NT,
@@ -282,10 +283,11 @@ export class CodeStreamAgent implements Disposable {
 	): void {
 		if (this._agentOptions?.newRelicTelemetryEnabled) {
 			const that = this;
-			return NewRelic.startWebTransaction(type.method, function() {
+			return NewRelic.startWebTransaction(type.method, function () {
 				NewRelic.addCustomAttributes({
 					...(that.createNewRelicCustomAttributes() as any),
-					messageType: "notification"
+					providerId: params?.providerId,
+					messageType: "notification",
 				});
 				return that._connection.sendNotification(type, params);
 			});
@@ -297,12 +299,12 @@ export class CodeStreamAgent implements Disposable {
 	@log({
 		args: {
 			0: type => type.method,
-			1: params => params
+			1: params => params,
 		},
 		prefix: (context, type, params) =>
 			`${context.prefix}(${type.method}${
 				type.method === DidChangeDataNotificationType.method ? `:${params.type}` : ""
-			})`
+			})`,
 	})
 	sendRequest<RT extends RequestType<any, any, any, any>>(
 		type: RT,
@@ -311,10 +313,11 @@ export class CodeStreamAgent implements Disposable {
 	): Thenable<RequestResponseOf<RT>> {
 		if (this._agentOptions?.newRelicTelemetryEnabled) {
 			const that = this;
-			return NewRelic.startWebTransaction(type.method, function() {
+			return NewRelic.startWebTransaction(type.method, function () {
 				NewRelic.addCustomAttributes({
 					...(that.createNewRelicCustomAttributes() as any),
-					messageType: "request"
+					providerId: params?.providerId,
+					messageType: "request",
 				});
 				return that._connection.sendRequest(type, params, token);
 			});
@@ -344,7 +347,7 @@ export class CodeStreamAgent implements Disposable {
 				proxySupport: that._agentOptions?.proxySupport,
 				serverUrl: that._agentOptions?.serverUrl,
 				teamId: session.teamId || "",
-				userId: session.userId || ""
+				userId: session.userId || "",
 			};
 		} catch (ex) {
 			Logger.warn(`createNewRelicCustomAttributes error - ${ex.message}`);
@@ -406,7 +409,7 @@ export class FileLspLogger implements LspLogger {
 
 	constructor(logPath: string) {
 		this._logFile = fs.createWriteStream(logPath, {
-			flags: "w"
+			flags: "w",
 		});
 		this.log(`initialized log at ${logPath}`);
 	}

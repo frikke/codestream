@@ -4,5 +4,5 @@ export type ActivityFeedActivity = string;
 
 export enum ActivityFeedActionType {
 	AddOlder = "@activityFeed/AddOlderActivity",
-	AddNew = "@activityFeed/AddNewActivity"
+	AddNew = "@activityFeed/AddNewActivity",
 }

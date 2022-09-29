@@ -3,7 +3,7 @@ import { CSUser } from "protocol/api.protocol";
 import {
 	toSlackPostBlocks,
 	toSlackTextSafe,
-	UserMaps
+	UserMaps,
 } from "../../../../src/api/slack/slackSharingApi.adapters";
 
 describe("slackSharingApi.adapters.ts", () => {
@@ -12,7 +12,7 @@ describe("slackSharingApi.adapters.ts", () => {
 	const user = {
 		id: "123",
 		username: "cheese",
-		email: "cheese@codestream.com"
+		email: "cheese@codestream.com",
 	};
 	userMaps.codeStreamUsersByUsername.set("cheese", user as any);
 	userMaps.slackUserIdsByEmail = new Map<string, string>();
@@ -37,14 +37,14 @@ describe("slackSharingApi.adapters.ts", () => {
 			const blocks = toSlackPostBlocks(
 				{
 					text: "hey @cheese, what is going on this this `variable`?",
-					type: "comment"
+					type: "comment",
 				} as any,
 				undefined,
 				userMaps as UserMaps,
 				{
 					r123: {
-						name: "repo123"
-					} as any
+						name: "repo123",
+					} as any,
 				},
 				""
 			);

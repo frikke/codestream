@@ -2,7 +2,7 @@
 import {
 	FetchCompaniesRequest,
 	FetchCompaniesRequestType,
-	FetchCompaniesResponse
+	FetchCompaniesResponse,
 } from "../protocol/agent.protocol";
 import { CSCompany } from "../protocol/api.protocol";
 import { lsp, lspHandler } from "../system";

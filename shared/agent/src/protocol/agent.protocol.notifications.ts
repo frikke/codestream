@@ -18,7 +18,7 @@ import {
 	CSReview,
 	CSStream,
 	CSTeam,
-	CSUser
+	CSUser,
 } from "./api.protocol";
 
 export interface RestartRequiredNotification {}
@@ -32,13 +32,13 @@ export enum ConnectionCode {
 	"BroadcasterConnectionLost" = "BCOM-1001",
 	"ApiBroadcasterConnectionFailure" = "BCOM-1002",
 	"ApiBroadcasterAcknowledgementFailure" = "BCOM-1003",
-	"EchoTimeout" = "BCOM-1004"
+	"EchoTimeout" = "BCOM-1004",
 }
 
 export enum ConnectionStatus {
 	Disconnected = "disconnected",
 	Reconnected = "reconnected",
-	Reconnecting = "reconnecting"
+	Reconnecting = "reconnecting",
 }
 
 export interface DidChangeConnectionStatusNotification {
@@ -71,7 +71,7 @@ export enum ChangeDataType {
 	Users = "users",
 	Providers = "providers",
 	ApiCapabilities = "apiCapabilities",
-	Workspace = "workspace"
+	Workspace = "workspace",
 }
 
 export interface CodemarksChangedNotification {
@@ -256,7 +256,7 @@ export enum VersionCompatibility {
 	CompatibleUpgradeAvailable = "outdated",
 	CompatibleUpgradeRecommended = "deprecated",
 	UnsupportedUpgradeRequired = "incompatible",
-	Unknown = "unknownVersion"
+	Unknown = "unknownVersion",
 }
 
 export interface DidChangeVersionCompatibilityNotification {
@@ -273,7 +273,7 @@ export const DidChangeVersionCompatibilityNotificationType = new NotificationTyp
 export enum ApiVersionCompatibility {
 	ApiCompatible = "apiCompatible",
 	ApiUpgradeRecommended = "apiUpgradeRecommended",
-	ApiUpgradeRequired = "apiUpgradeRequired"
+	ApiUpgradeRequired = "apiUpgradeRequired",
 }
 
 export interface DidChangeApiVersionCompatibilityNotification {
@@ -291,7 +291,7 @@ export enum LogoutReason {
 	Token = "token",
 	Unknown = "unknown",
 	UnsupportedVersion = "unsupportedVersion",
-	UnsupportedApiVersion = "unsupportedApiVersion"
+	UnsupportedApiVersion = "unsupportedApiVersion",
 }
 
 export interface DidLogoutNotification {
