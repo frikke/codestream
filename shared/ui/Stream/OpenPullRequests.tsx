@@ -289,7 +289,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 			hideDiffs: preferences.pullRequestQueryHideDiffs,
 			hideDescriptions: preferences.pullRequestQueryHideDescriptions,
 			prLabel: getPRLabel(state),
-			pullRequestProviderHidden: preferences.pullRequestProviderHidden,
+			pullRequestProviderHidden: preferences.pullRequestProviderHidden || {},
 			expandedPullRequestId,
 			currentPullRequestProviderId: state.context.currentPullRequest
 				? state.context.currentPullRequest.providerId
