@@ -28,6 +28,20 @@ import { EMPTY_STATUS } from "./StartWork";
 const RegionSubtext = styled.div`
 	font-size: smaller;
 	margin: 0 0 0 21px;
+	color: var(--text-color-subtle);
+`;
+
+export const MailHighlightedIconWrapper = styled.div`
+	right: 4px;
+	border-radius: 50%;
+	width: 15px;
+	height: 15px;
+	top: 10px;
+	color: var(--text-color-highlight);
+	text-align: center;
+	font-size: 11px;
+	display: inline;
+	background: var(--text-color-info-muted);
 `;
 
 interface EllipsisMenuProps {
@@ -112,21 +126,32 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		} = derivedState;
 
 		const buildSubmenu = () => {
-			const items = userCompanies.map(company => {
+			const items = eligibleJoinCompanies.map(company => {
 				const isCurrentCompany = company.id === currentCompanyId;
+				const isInvited = company.byInvite && !company.accessToken;
 				const companyHost = company.host || currentHost;
 				const companyRegion = supportsMultiRegion && hasMultipleEnvironments && companyHost?.name;
+				const signedStatusText = isInvited ? "Invited" : "Signed In";
+				let checked: any;
+				if (isCurrentCompany) {
+					checked = true;
+				} else if (isInvited) {
+					checked = "custom";
+				} else {
+					checked = false;
+				}
 
 				return {
 					key: company.id,
 					label: (
 						<>
 							{company.name}
-							{companyRegion && <RegionSubtext>{companyRegion}</RegionSubtext>}
+							<RegionSubtext>
+								{signedStatusText} {companyRegion && { companyRegion }}
+							</RegionSubtext>
 						</>
 					),
-					// icon: isCurrentTeam ? <Icon name="check" /> : undefined,
-					checked: isCurrentCompany,
+					checked: checked,
 					noHover: isCurrentCompany,
 					action: () => {
 						trackSwitchOrg(isCurrentCompany, company);
@@ -465,8 +490,27 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 	}
 	const text = <span style={{ fontSize: "smaller" }}>{versionStatement}</span>;
 	menuItems.push({ label: text, action: "", noHover: true, disabled: true });
-
+	// &#9993;
 	return (
-		<Menu items={menuItems} target={props.menuTarget} action={props.closeMenu} align="bottomLeft" />
+		<Menu
+			customIcon={
+				<Icon
+					style={{
+						background: "var(--text-color-info-muted)",
+						color: "var(--text-color-highlight)",
+						borderRadius: "50%",
+						margin: "0px 0px 0px -5px",
+						padding: "3px 4px 3px 4px",
+						top: "5px",
+						right: "2px",
+					}}
+					name="mail"
+				/>
+			}
+			items={menuItems}
+			target={props.menuTarget}
+			action={props.closeMenu}
+			align="bottomLeft"
+		/>
 	);
 }

@@ -90,12 +90,14 @@ export interface CSCodeLoginRequest {
 }
 
 export interface CSEligibleJoinCompany {
+	accessToken?: string;
 	codeHostJoining?: string[];
 	domainJoining?: string[];
 	id: string;
 	memberCount?: number;
 	name: string;
 	host?: EnvironmentHost;
+	byInvite?: boolean;
 }
 
 export interface CSLoginResponse {
