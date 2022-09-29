@@ -4,7 +4,6 @@
 
 ### Added
 
-- Adds support for new pull request paradigm, with tree view of changed files and full-file diffs
 - Adds code-level metrics into diffs for pull requests and feedback requests
 
 ### Changed

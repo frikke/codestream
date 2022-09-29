@@ -86,15 +86,7 @@ namespace CodeStream.VisualStudio.Shared.Services {
 			cancellationToken = cancellationToken ?? CancellationToken.None;
 			try {
 				// the arguments might have sensitive data in it -- don't include arguments here
-				using (Log.CriticalOperation($"name=REQ,Method={name}"))
-				{
-					var args = arguments?.ToJToken();
-					if (DiffExtensions.IsTempFile(args?.SelectToken("$..uri")?.Value<string>()))
-					{
-						//we're sending a method to the agent for a temp file that
-						//it won't know about, or be able to find, so just skip it
-						return Task.FromResult(default(T));
-					}
+				using (Log.CriticalOperation($"name=REQ,Method={name}")) {
 
 					return _rpc.InvokeWithParameterObjectAsync<T>(name, arguments, cancellationToken.Value);
 				}
@@ -436,19 +428,6 @@ namespace CodeStream.VisualStudio.Shared.Services {
 				RepoId = repoId,
 				Path = path
 			});
-		}
-
-		public Task<GetFileContentsAtRevisionResponse> GetFileContentsAtRevisionAsync(
-			string repoId,
-			string path,
-			string sha)
-		{
-			return SendCoreAsync<GetFileContentsAtRevisionResponse>(GetFileContentsAtRevisionRequestType.MethodName,
-				new GetFileContentsAtRevisionRequest {
-					RepoId = repoId,
-					Path = path,
-					Sha = sha
-				});
 		}
 
 		public Task<GetReviewContentsLocalResponse> GetReviewContentsLocalAsync(
