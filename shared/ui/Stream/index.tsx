@@ -40,6 +40,7 @@ import {
 	setCurrentCodeError,
 	setCurrentCodemark,
 	setCurrentInstrumentationOptions,
+	setCurrentOrganizationInvite,
 	setCurrentPixieDynamicLoggingOptions,
 	setCurrentPullRequest,
 	setCurrentReview,
@@ -116,6 +117,7 @@ interface DispatchProps {
 	setCurrentCodemark: typeof setCurrentCodemark;
 	setCurrentPixieDynamicLoggingOptions: typeof setCurrentPixieDynamicLoggingOptions;
 	setCurrentPullRequest: typeof setCurrentPullRequest;
+	setCurrentOrganizationInvite: typeof setCurrentOrganizationInvite;
 	setCurrentReview: typeof setCurrentReview;
 	setCurrentReviewOptions: typeof setCurrentReviewOptions;
 	setCurrentStream: typeof setCurrentStream;
@@ -833,6 +835,7 @@ export default connect(mapStateToProps, {
 	setCurrentInstrumentationOptions,
 	setCurrentPixieDynamicLoggingOptions,
 	setCurrentPullRequest,
+	setCurrentOrganizationInvite,
 	setCurrentReview,
 	setCurrentReviewOptions,
 	setCurrentStream,

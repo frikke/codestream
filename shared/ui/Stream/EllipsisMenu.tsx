@@ -15,7 +15,7 @@ import styled from "styled-components";
 import { WebviewModals, WebviewPanelNames, WebviewPanels } from "../ipc/webview.protocol.common";
 import { CodeStreamState } from "../store";
 import { isFeatureEnabled } from "../store/apiVersioning/reducer";
-import { openModal, setProfileUser } from "../store/context/actions";
+import { openModal, setCurrentOrganizationInvite, setProfileUser } from "../store/context/actions";
 import { HostApi } from "../webview-api";
 import { openPanel, setUserPreference } from "./actions";
 import Icon from "./Icon";
@@ -24,7 +24,6 @@ import Menu from "./Menu";
 import { multiStageConfirmPopup } from "./MultiStageConfirm";
 import { AVAILABLE_PANES, DEFAULT_PANE_SETTINGS } from "./Sidebar";
 import { EMPTY_STATUS } from "./StartWork";
-
 const RegionSubtext = styled.div`
 	font-size: smaller;
 	margin: 0 0 0 21px;
@@ -125,7 +124,6 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 
 	const buildSwitchTeamMenuItem = () => {
 		const {
-			userCompanies,
 			eligibleJoinCompanies,
 			currentCompanyId,
 			userTeams,
@@ -169,12 +167,20 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 						if (company.host && !isInvited) {
 							dispatch(switchToForeignCompany(company.id));
 						} else if (isInvited) {
-							dispatch(
-								setUserPreference({
-									prefPath: ["currentCompanyInvite"],
-									value: company.name,
-								})
-							);
+							// dispatch(
+							// 	setUserPreference({
+							// 		prefPath: ["sidebarPanes", id, "removed"],
+							// 		value: !settings.removed,
+							// 	})
+							// );
+							// dispatch(
+							// 	setUserPreference({
+							// 		prefPath: ["currentCompanyInvite"],
+							// 		value: { name: company.name, host: company.host, id: company.id },
+							// 	})
+							// );
+
+							dispatch(setCurrentOrganizationInvite(company.name, company.id, company.host));
 							dispatch(openModal(WebviewModals.AcceptCompanyInvite));
 						} else {
 							const team = userTeams.find(_ => _.companyId === company.id);
