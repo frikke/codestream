@@ -699,13 +699,11 @@ export class CodeStreamSession implements Disposable {
 			}
 		}
 
-		if (!teamId || teamId !== response.state.teamId) {
-			teamId = response.state.teamId;
-			try {
-				await Container.context.workspaceState.update(WorkspaceState.TeamId, teamId);
-			} catch (ex) {
-				Logger.error(ex, "failed to update workspaceState");
-			}
+		teamId = response.state.teamId;
+		try {
+			await Container.context.workspaceState.update(WorkspaceState.TeamId, teamId);
+		} catch (ex) {
+			Logger.error(ex, "failed to update workspaceState");
 		}
 		let companyId = "";
 		if (teamId) {
