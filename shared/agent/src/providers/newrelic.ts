@@ -2554,7 +2554,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 					  entity(guid: $entityGuid) {
 						name
 						guid
-						recentAlertViolations(count: 20) {
+						recentAlertViolations(count: 50) {
 						  agentUrl
 						  alertSeverity
 						  closedAt
@@ -2575,7 +2575,9 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 
 			if (response?.actor?.entity) {
 				let entity = response?.actor?.entity;
-				const recentAlertViolationsArray = entity?.recentAlertViolations;
+				const recentAlertViolationsArray = entity?.recentAlertViolations.filter(
+					_ => _.closedAt === null
+				);
 
 				const ALERT_SEVERITY_SORTING_ORDER: string[] = [
 					"",

@@ -78,6 +78,27 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		};
 	});
 
+	const trackSwitchOrg = (isCurrentCompany, company) => {
+		HostApi.instance.track("Switched Organizations", {});
+
+		// slight delay so tracking call completes
+		setTimeout(() => {
+			const { userTeams } = derivedState;
+
+			if (isCurrentCompany) return;
+			if (company.host) {
+				dispatch(switchToForeignCompany(company.id));
+			} else {
+				const team = userTeams.find(_ => _.companyId === company.id);
+				if (team) {
+					dispatch(switchToTeam({ teamId: team.id }));
+				} else {
+					console.error(`Could not switch to a team in ${company.id}`);
+				}
+			}
+		}, 1000);
+	};
+
 	const buildSwitchTeamMenuItem = () => {
 		const {
 			userCompanies,
@@ -106,19 +127,7 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 					checked: isCurrentCompany,
 					noHover: isCurrentCompany,
 					action: () => {
-						if (isCurrentCompany) return;
-						if (company.host) {
-							dispatch(switchToForeignCompany(company.id));
-							HostApi.instance.track("Switched Organizations", {});
-						} else {
-							const team = userTeams.find(_ => _.companyId === company.id);
-							if (team) {
-								HostApi.instance.track("Switched Organizations", {});
-								dispatch(switchToTeam({ teamId: team.id }));
-							} else {
-								console.error(`Could not switch to a team in ${company.id}`);
-							}
-						}
+						trackSwitchOrg(isCurrentCompany, company);
 					},
 				};
 			}) as any;
