@@ -75,6 +75,30 @@ export const JoinCompanyRequestType = new RequestType<
 	void
 >("codestream/companies/join");
 
+export interface DeclineInviteRequest {
+	companyId: string;
+	fromEnvironment?: {
+		serverUrl: string;
+		userId: string;
+		toServerUrl: string;
+	};
+}
+
+export interface DeclineInviteResponse {
+	// company: CSCompany;
+	// team: CSTeam;
+	// user: CSUser;
+	// teamId: string;
+	// accessToken: string;
+}
+
+export const DeclineInviteRequestType = new RequestType<
+	DeclineInviteRequest,
+	DeclineInviteResponse,
+	void,
+	void
+>("codestream/companies/decline");
+
 export interface UpdateCompanyRequest {
 	companyId: string;
 	name?: string;

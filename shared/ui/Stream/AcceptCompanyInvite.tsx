@@ -1,4 +1,7 @@
 import {
+	DeclineInviteRequest,
+	DeclineInviteRequestType,
+	DeclineInviteResponse,
 	JoinCompanyRequest,
 	JoinCompanyRequestType,
 	JoinCompanyResponse,
@@ -98,8 +101,30 @@ export function AcceptCompanyInvite() {
 		dispatch(closeModal());
 	};
 
-	const handleClickDecline = () => {
-		//@TODO handle decline logic once server-side work is complete
+	const handleClickDecline = async () => {
+		const { currentOrganizationInvite } = derivedState;
+
+		const request: DeclineInviteRequest = {
+			companyId: currentOrganizationInvite.id,
+		};
+		if (currentOrganizationInvite.host) {
+			// explicitly add the environment to the request, since the switch-over may still be in progress
+			// NOTE: we also add the server we are switching TO, since the call to set environments, above,
+			// may not have actually sync'd through to the agent
+			// isn't this fun???
+			request.fromEnvironment = {
+				serverUrl: derivedState.serverUrl,
+				userId: derivedState.userId!,
+				toServerUrl: currentOrganizationInvite.host.publicApiUrl,
+			};
+		}
+		const result = (await HostApi.instance.send(
+			DeclineInviteRequestType,
+			request
+		)) as DeclineInviteResponse;
+
+		console.warn(result);
+
 		dispatch(closeModal());
 	};
 

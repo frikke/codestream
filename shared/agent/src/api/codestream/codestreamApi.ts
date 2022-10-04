@@ -49,6 +49,8 @@ import {
 	CreateTeamRequest,
 	CreateTeamRequestType,
 	CreateTeamTagRequestType,
+	DeclineInviteRequest,
+	DeclineInviteResponse,
 	DeleteBlameMapRequest,
 	DeleteBlameMapRequestType,
 	DeleteCodeErrorRequest,
@@ -1941,6 +1943,10 @@ export class CodeStreamApiProvider implements ApiProvider {
 
 	async joinCompany(request: JoinCompanyRequest): Promise<JoinCompanyResponse> {
 		return this.put(`/join-company/${request.companyId}`, {}, this._token);
+	}
+
+	async declineInvite(request: DeclineInviteRequest): Promise<DeclineInviteResponse> {
+		return this.put(`/decline-invite/${request.companyId}`, {}, this._token);
 	}
 
 	async joinCompanyFromEnvironment(request: JoinCompanyRequest): Promise<JoinCompanyResponse> {
