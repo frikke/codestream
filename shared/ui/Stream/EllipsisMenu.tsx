@@ -67,7 +67,7 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 			sidebarPaneOrder: state.preferences.sidebarPaneOrder || AVAILABLE_PANES,
 			userCompanies: _sortBy(Object.values(state.companies), "name"),
 			userTeams: _sortBy(
-				Object.values(state.teams).filter(t => !t.deactivated),
+				Object.values(state.teams).filter(t => !t?.deactivated),
 				"name"
 			),
 			currentCompanyId,
@@ -126,7 +126,6 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		const {
 			eligibleJoinCompanies,
 			currentCompanyId,
-			userTeams,
 			currentHost,
 			hasMultipleEnvironments,
 			supportsMultiRegion,
@@ -167,25 +166,17 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 						if (company.host && !isInvited) {
 							dispatch(switchToForeignCompany(company.id));
 						} else if (isInvited) {
-							// dispatch(
-							// 	setUserPreference({
-							// 		prefPath: ["sidebarPanes", id, "removed"],
-							// 		value: !settings.removed,
-							// 	})
-							// );
-							// dispatch(
-							// 	setUserPreference({
-							// 		prefPath: ["currentCompanyInvite"],
-							// 		value: { name: company.name, host: company.host, id: company.id },
-							// 	})
-							// );
-
 							dispatch(setCurrentOrganizationInvite(company.name, company.id, company.host));
 							dispatch(openModal(WebviewModals.AcceptCompanyInvite));
 						} else {
-							const team = userTeams.find(_ => _.companyId === company.id);
+							const team = eligibleJoinCompanies.find(_ => _.id === company.id);
 							if (team) {
-								dispatch(switchToTeam({ teamId: team.id }));
+								dispatch(
+									switchToTeam({
+										teamId: team.id,
+										accessTokenFromEligibleCompany: team?.accessToken,
+									})
+								);
 							} else {
 								console.error(`Could not switch to a team in ${company.id}`);
 							}

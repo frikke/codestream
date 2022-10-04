@@ -37,14 +37,20 @@ export const logout = createAppAsyncThunk<void, void>(
 export interface SwitchToTeamRequest {
 	teamId: string;
 	options?: { codemarkId?: string; reviewId?: string };
+	accessTokenFromEligibleCompany?: string;
 }
 
 export const switchToTeam = createAppAsyncThunk<
 	LoginResponse | LoginSuccessResponse | { type: BootstrapActionType } | void,
 	SwitchToTeamRequest
 >("session/switchToTeam", async (request, { dispatch, getState }) => {
-	const { teamId, options } = request;
-	const { accessToken } = await HostApi.instance.send(GetAccessTokenRequestType, {});
+	const { teamId, options, accessTokenFromEligibleCompany } = request;
+	let accessToken;
+	if (!accessTokenFromEligibleCompany) {
+		accessToken = { accessToken } = await HostApi.instance.send(GetAccessTokenRequestType, {});
+	} else {
+		accessToken = accessTokenFromEligibleCompany;
+	}
 
 	const { configs, context, users, session } = getState(); // TODO restore codemarks
 	const user = users[session.userId!] as CSMe;

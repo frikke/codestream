@@ -3,8 +3,7 @@ import {
 	JoinCompanyRequestType,
 	JoinCompanyResponse,
 } from "@codestream/protocols/agent";
-import { completeSignup } from "@codestream/webview/Authentication/actions";
-import { setEnvironment } from "@codestream/webview/store/session/thunks";
+import { setEnvironment, switchToTeam } from "@codestream/webview/store/session/thunks";
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import { HostApi } from "@codestream/webview/webview-api";
 import React from "react";
@@ -81,17 +80,11 @@ export function AcceptCompanyInvite() {
 				Availability: currentOrganizationInvite._type,
 				"Auth Provider": "CodeStream",
 			});
+
 			dispatch(
-				completeSignup(derivedState.userEmail!, result?.accessToken, result?.teamId, {
-					createdTeam: false,
-					provider: undefined,
-					byDomain: true,
-					setEnvironment: currentOrganizationInvite.host
-						? {
-								environment: currentOrganizationInvite.host.shortName,
-								serverUrl: currentOrganizationInvite.host.publicApiUrl,
-						  }
-						: undefined,
+				switchToTeam({
+					teamId: result?.teamId,
+					accessTokenFromEligibleCompany: result?.accessToken,
 				})
 			);
 		} catch (error) {

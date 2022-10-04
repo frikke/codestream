@@ -14,13 +14,15 @@ import {
 	TokenLoginRequestType,
 } from "@codestream/protocols/agent";
 import { CodemarkType, LoginResult } from "@codestream/protocols/api";
+import { LogoutRequestType } from "@codestream/protocols/webview";
+import { setBootstrapped } from "@codestream/webview/store/bootstrapped/actions";
 import { withExponentialConnectionRetry } from "@codestream/webview/store/common";
+import { reset } from "@codestream/webview/store/session/actions";
 import {
 	BootstrapInHostRequestType,
 	ConnectToIDEProviderRequestType,
 	OpenUrlRequestType,
 } from "../ipc/host.protocol";
-
 import { GetActiveEditorContextRequestType } from "../ipc/host.protocol.editor";
 import { logError } from "../logger";
 import { CodeStreamState } from "../store";
@@ -330,6 +332,54 @@ export const completeSignup =
 	async (dispatch, getState: () => CodeStreamState) => {
 		const tokenUrl =
 			(extra.setEnvironment && extra.setEnvironment.serverUrl) || getState().configs.serverUrl;
+		const response = await HostApi.instance.send(TokenLoginRequestType, {
+			token: {
+				value: token,
+				email,
+				url: tokenUrl,
+				teamId,
+			},
+			teamId,
+			setEnvironment: extra.setEnvironment,
+		});
+
+		if (isLoginFailResponse(response)) {
+			logError("There was an error completing signup", response);
+			dispatch(goToLogin());
+			throw response.error;
+		}
+
+		const providerName = extra.provider
+			? ProviderNames[extra.provider.toLowerCase()] || extra.provider
+			: "CodeStream";
+		HostApi.instance.track("Signup Completed", {
+			"Signup Type": extra.byDomain ? "Domain" : extra.createdTeam ? "Organic" : "Viral",
+			"Auth Provider": providerName,
+		});
+		dispatch(onLogin(response, true, extra.createdTeam));
+	};
+
+export const completeAcceptInvite =
+	(
+		email: string,
+		token: string,
+		teamId: string,
+		extra: {
+			createdTeam: boolean;
+			provider?: string;
+			byDomain?: boolean;
+			setEnvironment?: { environment: string; serverUrl: string };
+		}
+	) =>
+	async (dispatch, getState: () => CodeStreamState) => {
+		const tokenUrl =
+			(extra.setEnvironment && extra.setEnvironment.serverUrl) || getState().configs.serverUrl;
+
+		dispatch(setBootstrapped(false));
+		dispatch(reset());
+
+		await HostApi.instance.send(LogoutRequestType, {});
+
 		const response = await HostApi.instance.send(TokenLoginRequestType, {
 			token: {
 				value: token,
