@@ -1,28 +1,27 @@
-import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
-import React from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { CodeStreamState } from "../store";
-import { WebviewPanels } from "../ipc/webview.protocol.common";
-import Icon from "./Icon";
-import Tooltip, { TipTitle, placeArrowTopRight } from "./Tooltip";
-import { Link } from "./Link";
-import cx from "classnames";
-import { openPanel, setUserPreference } from "./actions";
-import { PlusMenu } from "./PlusMenu";
-import { TeamMenu } from "./TeamMenu";
-import { EllipsisMenu } from "./EllipsisMenu";
-import {
-	setCurrentReview,
-	clearCurrentPullRequest,
-	setCreatePullRequest,
-} from "../store/context/actions";
-import { setCurrentCodemark } from "../store/context/actions";
-import { HostApi } from "../webview-api";
 import {
 	LocalFilesCloseDiffRequestType,
 	ReviewCloseDiffRequestType,
 } from "@codestream/protocols/webview";
+import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
+import cx from "classnames";
+import React from "react";
+import { WebviewPanels } from "../ipc/webview.protocol.common";
 import { HeadshotName } from "../src/components/HeadshotName";
+import { CodeStreamState } from "../store";
+import {
+	clearCurrentPullRequest,
+	setCreatePullRequest,
+	setCurrentCodemark,
+	setCurrentReview,
+} from "../store/context/actions";
+import { HostApi } from "../webview-api";
+import { openPanel, setUserPreference } from "./actions";
+import { EllipsisMenu } from "./EllipsisMenu";
+import Icon from "./Icon";
+import { Link } from "./Link";
+import { PlusMenu } from "./PlusMenu";
+import { TeamMenu } from "./TeamMenu";
+import Tooltip, { placeArrowTopRight, TipTitle } from "./Tooltip";
 
 const sum = (total, num) => total + Math.round(num);
 
@@ -45,6 +44,7 @@ export function GlobalNav() {
 			currentPullRequestId: state.context.currentPullRequest
 				? state.context.currentPullRequest.id
 				: undefined,
+			eligibleJoinCompanies: state.session.eligibleJoinCompanies,
 		};
 	});
 
@@ -54,6 +54,7 @@ export function GlobalNav() {
 
 	const {
 		activePanel,
+		eligibleJoinCompanies,
 		totalUnread,
 		totalMentions,
 		currentCodemarkId,
@@ -110,6 +111,9 @@ export function GlobalNav() {
 		}
 	};
 
+	const hasInvites =
+		eligibleJoinCompanies && eligibleJoinCompanies.some(_ => _.byInvite && !_.accessToken);
+
 	// const selected = panel => activePanel === panel && !currentPullRequestId && !currentReviewId; // && !plusMenuOpen && !menuOpen;
 	const selected = panel => false;
 	return React.useMemo(() => {
@@ -124,8 +128,26 @@ export function GlobalNav() {
 						className={cx({ active: false && ellipsisMenuOpen })}
 						id="global-nav-more-label"
 					>
-						<HeadshotName id={derivedState.currentUserId} size={16} className="no-padding" />
+						<HeadshotName
+							id={derivedState.currentUserId}
+							size={16}
+							hasInvites={hasInvites}
+							className="no-padding"
+						/>
 						<Icon name="chevron-down" className="smaller" style={{ verticalAlign: "-2px" }} />
+						{hasInvites && (
+							<Icon
+								style={{
+									background: "var(--text-color-info-muted)",
+									color: "var(--text-color-highlight)",
+									borderRadius: "50%",
+									padding: "2px 4px 3px 4px",
+									height: "21px",
+									width: "21px",
+								}}
+								name="mail"
+							/>
+						)}
 						{ellipsisMenuOpen && (
 							<EllipsisMenu
 								closeMenu={() => setEllipsisMenuOpen(undefined)}

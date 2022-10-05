@@ -1,9 +1,9 @@
-import React from "react";
-import styled from "styled-components";
-import { Headshot, PRHeadshot } from "./Headshot";
-import { useSelector } from "react-redux";
 import { CodeStreamState } from "@codestream/webview/store";
 import cx from "classnames";
+import React from "react";
+import { useSelector } from "react-redux";
+import styled from "styled-components";
+import { Headshot, PRHeadshot } from "./Headshot";
 
 export interface HeadshotNameProps {
 	person?: {
@@ -21,6 +21,7 @@ export interface HeadshotNameProps {
 	highlightMe?: boolean;
 	addThumbsUp?: boolean;
 	noName?: boolean;
+	hasInvites?: boolean;
 }
 
 interface ClickProps {
