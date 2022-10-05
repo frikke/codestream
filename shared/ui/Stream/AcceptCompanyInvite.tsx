@@ -9,6 +9,7 @@ import {
 import { setEnvironment, switchToTeam } from "@codestream/webview/store/session/thunks";
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import { HostApi } from "@codestream/webview/webview-api";
+import { sortBy as _sortBy } from "lodash-es";
 import React from "react";
 import styled from "styled-components";
 import { logError } from "../logger";
@@ -16,6 +17,7 @@ import { Button } from "../src/components/Button";
 import { Dialog } from "../src/components/Dialog";
 import { CodeStreamState } from "../store";
 import { goToLogin } from "../store/context/actions";
+import { SetEligibleJoinCompanies } from "../store/session/actions";
 import { closeModal } from "./actions";
 
 export function AcceptCompanyInvite() {
@@ -27,6 +29,7 @@ export function AcceptCompanyInvite() {
 			userId: state.session.userId,
 			userEmail: user.email,
 			serverUrl: state.configs.serverUrl,
+			eligibleJoinCompanies: _sortBy(state.session.eligibleJoinCompanies, "name"),
 		};
 	});
 
@@ -102,7 +105,7 @@ export function AcceptCompanyInvite() {
 	};
 
 	const handleClickDecline = async () => {
-		const { currentOrganizationInvite } = derivedState;
+		const { currentOrganizationInvite, eligibleJoinCompanies } = derivedState;
 
 		const request: DeclineInviteRequest = {
 			companyId: currentOrganizationInvite.id,
@@ -118,12 +121,17 @@ export function AcceptCompanyInvite() {
 				toServerUrl: currentOrganizationInvite.host.publicApiUrl,
 			};
 		}
+
 		const result = (await HostApi.instance.send(
 			DeclineInviteRequestType,
 			request
 		)) as DeclineInviteResponse;
 
-		console.warn(result);
+		let _eligibleJoinCompanies = eligibleJoinCompanies.filter(_ => {
+			return _.id !== currentOrganizationInvite.id;
+		});
+
+		dispatch(SetEligibleJoinCompanies(_eligibleJoinCompanies));
 
 		dispatch(closeModal());
 	};
