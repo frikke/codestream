@@ -26,8 +26,8 @@ export function reduceTeams(state = initialState, action: TeamsActions) {
 			return { ...state, [action.payload.id]: updateTeam(action.payload, state) };
 		case TeamsActionsType.Add:
 			// @TODO: This likely needs to be fixed/changed
-			// return { ...state, ...toMapBy("id", action.payload) };
-			return { ...state };
+			return { ...state, ...toMapBy("id", action.payload) };
+		// return { ...state };
 		case "RESET":
 			return initialState;
 		default:
