@@ -250,8 +250,8 @@ export function CompanyCreation(props: {
 			dispatch(
 				completeSignup(
 					props.email!,
-					result?.accessToken || props.token!,
-					result?.teamId || result?.team?.id,
+					result.accessToken || props.token!,
+					result.teamId || result?.team?.id,
 					{
 						createdTeam: false,
 						provider: props.provider,
