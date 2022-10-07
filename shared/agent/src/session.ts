@@ -1362,8 +1362,6 @@ export class CodeStreamSession {
 		try {
 			const response = await (this._api as CodeStreamApiProvider).confirmRegistration(request);
 
-			this.setSuperPropsAndCallTelemetry(response.user);
-
 			const result: ConfirmRegistrationResponse = {
 				user: {
 					id: response.user.id,
