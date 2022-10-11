@@ -1964,6 +1964,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 			serverUrl,
 			userId,
 		};
+
 		return this.put(`/xenv/join-company/${request.companyId}`, xenvRequest, this._token);
 	}
 

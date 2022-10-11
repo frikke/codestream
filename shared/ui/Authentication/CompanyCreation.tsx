@@ -403,10 +403,10 @@ export function CompanyCreation(props: {
 
 												{organizationsDomain.length > 0 && (
 													<>
-														<div>
+														<div style={{ marginTop: "20px" }}>
 															<FormattedMessage
 																id="signUp.joinOrganizationHelp"
-																defaultMessage="Organizations you can join based on email domain"
+																defaultMessage="Organizations you can join based on email domain."
 															/>
 														</div>
 														{organizationsDomain.map(_ => {
