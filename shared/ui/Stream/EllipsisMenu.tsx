@@ -67,7 +67,7 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 			sidebarPaneOrder: state.preferences.sidebarPaneOrder || AVAILABLE_PANES,
 			userCompanies: _sortBy(Object.values(state.companies), "name"),
 			userTeams: _sortBy(
-				Object.values(state.teams).filter(t => !t?.deactivated),
+				Object.values(state.teams).filter(t => !t.deactivated),
 				"name"
 			),
 			currentCompanyId,
@@ -96,23 +96,23 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		HostApi.instance.track("Switched Organizations", {});
 		// slight delay so tracking call completes
 		setTimeout(() => {
-			const { userTeams } = derivedState;
+			const { eligibleJoinCompanies } = derivedState;
 			const isInvited = company.byInvite && !company.accessToken;
 			if (isCurrentCompany) return;
 			if (company.host && !isInvited) {
 				dispatch(switchToForeignCompany(company.id));
 			} else if (isInvited) {
-				dispatch(
-					setUserPreference({
-						prefPath: ["currentCompanyInvite"],
-						value: company.name,
-					})
-				);
+				dispatch(setCurrentOrganizationInvite(company.name, company.id, company.host));
 				dispatch(openModal(WebviewModals.AcceptCompanyInvite));
 			} else {
-				const team = userTeams.find(_ => _.companyId === company.id);
+				const team = eligibleJoinCompanies.find(_ => _.id === company.id);
 				if (team) {
-					dispatch(switchToTeam({ teamId: team.id }));
+					dispatch(
+						switchToTeam({
+							teamId: team.id,
+							accessTokenFromEligibleCompany: team?.accessToken,
+						})
+					);
 				} else {
 					console.error(`Could not switch to a team in ${company.id}`);
 				}
@@ -136,7 +136,8 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 				const isCurrentCompany = company.id === currentCompanyId;
 				const isInvited = company.byInvite && !company.accessToken;
 				const companyHost = company.host || currentHost;
-				const companyRegion = supportsMultiRegion && hasMultipleEnvironments && companyHost?.name;
+				const companyRegion =
+					supportsMultiRegion && hasMultipleEnvironments && companyHost?.shortName;
 				const signedStatusText = isInvited ? "Invited" : "Signed In";
 				let checked: any;
 				if (isCurrentCompany) {
@@ -153,35 +154,15 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 						<>
 							{company.name}
 							<RegionSubtext>
-								{signedStatusText} {companyRegion && { companyRegion }}
+								{signedStatusText} {companyRegion && <>({companyRegion})</>}
 							</RegionSubtext>
 						</>
 					),
+					// label: <>{company.name}</>,
 					checked: checked,
 					noHover: isCurrentCompany,
 					action: () => {
 						trackSwitchOrg(isCurrentCompany, company);
-
-						if (isCurrentCompany) return;
-						if (company.host && !isInvited) {
-							dispatch(switchToForeignCompany(company.id));
-						} else if (isInvited) {
-							dispatch(setCurrentOrganizationInvite(company.name, company.id, company.host));
-							dispatch(openModal(WebviewModals.AcceptCompanyInvite));
-						} else {
-							const team = eligibleJoinCompanies.find(_ => _.id === company.id);
-							if (team) {
-								dispatch(
-									switchToTeam({
-										teamId: team.id,
-										accessTokenFromEligibleCompany: team?.accessToken,
-									})
-								);
-							} else {
-								console.error(`Could not switch to a team in ${company.id}`);
-							}
-						}
-						return;
 					},
 				};
 			}) as any;

@@ -38,8 +38,13 @@ export const createForeignCompany =
 			request,
 			host,
 		});
-		response.company.host = host;
-		response.company.host.accessToken = response.accessToken;
+
+		HostApi.instance.track("Additional Foreign Organization Created", {});
+
+		let _host = JSON.parse(JSON.stringify(host));
+		_host.accessToken = response.accessToken;
+		response.company.host = _host;
 		await dispatch(addCompanies([response.company]));
+
 		return response.company;
 	};

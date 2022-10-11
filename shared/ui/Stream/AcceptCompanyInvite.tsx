@@ -16,6 +16,7 @@ import { logError } from "../logger";
 import { Button } from "../src/components/Button";
 import { Dialog } from "../src/components/Dialog";
 import { CodeStreamState } from "../store";
+import { isFeatureEnabled } from "../store/apiVersioning/reducer";
 import { goToLogin } from "../store/context/actions";
 import { SetEligibleJoinCompanies } from "../store/session/actions";
 import { closeModal } from "./actions";
@@ -23,13 +24,20 @@ import { closeModal } from "./actions";
 export function AcceptCompanyInvite() {
 	const dispatch = useAppDispatch();
 	const derivedState = useAppSelector((state: CodeStreamState) => {
+		const { environmentHosts, environment } = state.configs;
+		const currentHost = environmentHosts?.find(host => host.shortName === environment);
 		const user = state.users[state.session.userId!];
+		const supportsMultiRegion = isFeatureEnabled(state, "multiRegion");
+
 		return {
 			currentOrganizationInvite: state.context.currentOrganizationInvite,
+			hasMultipleEnvironments: environmentHosts && environmentHosts.length > 1,
 			userId: state.session.userId,
 			userEmail: user.email,
 			serverUrl: state.configs.serverUrl,
 			eligibleJoinCompanies: _sortBy(state.session.eligibleJoinCompanies, "name"),
+			currentHost,
+			supportsMultiRegion,
 		};
 	});
 
@@ -47,8 +55,19 @@ export function AcceptCompanyInvite() {
 		}
 	`;
 
+	const inviteRegion =
+		derivedState.supportsMultiRegion &&
+		derivedState.hasMultipleEnvironments &&
+		derivedState.currentOrganizationInvite?.host?.shortName;
+	const companyRegion =
+		derivedState.supportsMultiRegion &&
+		derivedState.hasMultipleEnvironments &&
+		derivedState.currentHost?.shortName;
+	const inviteIsFromForeignRegion = companyRegion && inviteRegion && companyRegion !== inviteRegion;
+
 	const handleClickAccept = async () => {
 		const { currentOrganizationInvite } = derivedState;
+
 		try {
 			if (currentOrganizationInvite.host) {
 				// now switch environments (i.e., host, region, etc) to join this organization
@@ -105,7 +124,12 @@ export function AcceptCompanyInvite() {
 	};
 
 	const handleClickDecline = async () => {
-		const { currentOrganizationInvite, eligibleJoinCompanies } = derivedState;
+		const { eligibleJoinCompanies, currentOrganizationInvite } = derivedState;
+
+		if (inviteIsFromForeignRegion) {
+			dispatch(closeModal());
+			return;
+		}
 
 		const request: DeclineInviteRequest = {
 			companyId: currentOrganizationInvite.id,
@@ -139,15 +163,22 @@ export function AcceptCompanyInvite() {
 	return (
 		<Dialog title="Accept Invitation?" onClose={() => dispatch(closeModal())}>
 			<p style={{ wordBreak: "break-word" }}>
-				Do you want to accept your inviation to join {derivedState.currentOrganizationInvite.name}
+				Do you want to accept your inviation to join {derivedState.currentOrganizationInvite?.name}
 			</p>
 			<ButtonRow>
 				<Button onClick={handleClickAccept} tabIndex={0}>
 					Accept
 				</Button>
-				<Button variant="secondary" onClick={handleClickDecline} tabIndex={0}>
-					Decline
-				</Button>
+				{inviteIsFromForeignRegion && (
+					<Button variant="destructive" onClick={handleClickDecline} tabIndex={0}>
+						Cancel
+					</Button>
+				)}
+				{!inviteIsFromForeignRegion && (
+					<Button variant="destructive" onClick={handleClickDecline} tabIndex={0}>
+						Decline
+					</Button>
+				)}
 			</ButtonRow>
 		</Dialog>
 	);
