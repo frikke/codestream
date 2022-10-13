@@ -5,7 +5,7 @@ import FormData from "form-data";
 import { Agent as HttpAgent } from "http";
 import { Agent as HttpsAgent } from "https";
 import HttpsProxyAgent from "https-proxy-agent";
-import { isEqual } from "lodash";
+import { isEmpty, isEqual } from "lodash";
 import fetch, { Headers, RequestInit, Response } from "node-fetch";
 import * as qs from "querystring";
 import { ParsedUrlQueryInput } from "querystring";
@@ -32,6 +32,7 @@ import {
 	ClaimCodeErrorRequest,
 	ClaimCodeErrorResponse,
 	CloseStreamRequest,
+	CodeStreamEnvironment,
 	CreateChannelStreamRequest,
 	CreateCodemarkPermalinkRequest,
 	CreateCodemarkRequest,
@@ -428,10 +429,11 @@ export class CodeStreamApiProvider implements ApiProvider {
 				break;
 
 			case "token":
-				if (options.token.url.trim() !== this.baseUrl)
+				if (options.token.url.trim() !== this.baseUrl) {
 					throw new Error(
 						`Invalid token, options.token.url="${options.token.url}" this.baseUrl="${this.baseUrl}"`
 					);
+				}
 
 				response = await this.put<{}, CSLoginResponse>("/login", {}, options.token.value);
 
@@ -1923,8 +1925,9 @@ export class CodeStreamApiProvider implements ApiProvider {
 	fetchCompanies(request: FetchCompaniesRequest): Promise<FetchCompaniesResponse> {
 		const params: { [k: string]: any } = {};
 
-		if (request.mine) params.mine = true;
-		else if (request.companyIds?.length ?? 0 > 0) {
+		if (request.mine) {
+			params.mine = true;
+		} else if (request.companyIds?.length ?? 0 > 0) {
 			params.ids = request.companyIds!.join(",");
 		}
 
@@ -2062,6 +2065,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 			this._token
 		);
 	}
+
 	@lspHandler(UpdateTeamRequestType)
 	async updateTeam(request: UpdateTeamRequest) {
 		await this.put(`/teams/${request.teamId}`, { ...request }, this._token);
@@ -2473,9 +2477,14 @@ export class CodeStreamApiProvider implements ApiProvider {
 	async getNewRelicSignupJwtToken(
 		request: GetNewRelicSignupJwtTokenRequest
 	): Promise<GetNewRelicSignupJwtTokenResponse> {
+		const session = SessionContainer.instance().session;
+		Logger.log(`getNewRelicSignupJwtToken environment: ${session.environment}`);
+		if (session.environment === CodeStreamEnvironment.Unknown || isEmpty(session.environment)) {
+			await session.verifyConnectivity();
+		}
 		const response = await this.get<GetNewRelicSignupJwtTokenResponse>(`/signup-jwt`, this._token);
 		const baseLandingUrl =
-			SessionContainer.instance().session.newRelicLandingServiceUrl ||
+			SessionContainer.instance().session.newRelicLandingServiceUrl ??
 			"https://landing.service.newrelic.com";
 		return {
 			...response,
@@ -2551,11 +2560,8 @@ export class CodeStreamApiProvider implements ApiProvider {
 		);
 	}
 
-	/*private*/ async fetch<R extends object>(
-		url: string,
-		init?: RequestInit,
-		token?: string
-	): Promise<R> {
+	/*private*/
+	async fetch<R extends object>(url: string, init?: RequestInit, token?: string): Promise<R> {
 		const start = process.hrtime();
 
 		const sanitizedUrl = CodeStreamApiProvider.sanitizeUrl(url);

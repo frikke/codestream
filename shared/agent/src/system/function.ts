@@ -152,7 +152,7 @@ export namespace Functions {
 	): T & IDeferrable {
 		const { track, ...opts } = { track: false, ...(options || ({} as DebounceOptions)) };
 
-		if (track !== true) return _debounce(fn, wait, opts);
+		if (track !== true) return _debounce(fn, wait, opts) as T & IDeferrable;
 
 		let pending = false;
 

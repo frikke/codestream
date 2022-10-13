@@ -4,7 +4,7 @@ import glob from "glob-promise";
 import { Agent as HttpAgent } from "http";
 import { Agent as HttpsAgent } from "https";
 import HttpsProxyAgent from "https-proxy-agent";
-import { isEqual, omit, uniq } from "lodash";
+import { isEmpty, isEqual, omit, uniq } from "lodash";
 import * as path from "path";
 import * as url from "url";
 import {
@@ -167,6 +167,7 @@ export enum SessionStatus {
 
 export interface SessionStatusChangedEvent {
 	getStatus(): SessionStatus;
+
 	session: CodeStreamSession;
 }
 
@@ -751,8 +752,11 @@ export class CodeStreamSession {
 			this._environmentInfo.environmentHosts.find(host => {
 				return host.shortName === this._environmentInfo.environment;
 			});
-		if (host) return host.name;
-		else return undefined;
+		if (host) {
+			return host.name;
+		} else {
+			return undefined;
+		}
 	}
 
 	get isOnPrem() {
@@ -783,6 +787,7 @@ export class CodeStreamSession {
 	get status() {
 		return this._status;
 	}
+
 	private setStatus(status: SessionStatus) {
 		this._status = status;
 		const e: SessionStatusChangedEvent = {
@@ -809,6 +814,7 @@ export class CodeStreamSession {
 	get telemetryData() {
 		return this._telemetryData;
 	}
+
 	set telemetryData(data: TelemetryData) {
 		this._telemetryData = data;
 	}
@@ -1128,6 +1134,15 @@ export class CodeStreamSession {
 		);
 
 		const cc = Logger.getCorrelationContext();
+
+		Logger.log(`Login environment: ${this._environmentInfo.environment}`);
+
+		if (
+			this._environmentInfo.environment === CodeStreamEnvironment.Unknown ||
+			isEmpty(this._environmentInfo.environment)
+		) {
+			await this.verifyConnectivity();
+		}
 
 		SessionContainer.initialize(this);
 		try {
