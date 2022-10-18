@@ -43,15 +43,6 @@ class WebViewTheme(val name: String, val stylesheet: String) {
             return Color(152, 152, 152, 1)
         }
 
-        private fun getFilenameHighlightColor(): Color {
-            //hard coding a color here, there isn't a suitable value to pull
-            //for is orangish color from the UIUtil ie (UIUtil.FontColor.NORMAL)
-            if (ColorUtil.isDark(JBColor.background())) {
-                return Color(223, 189, 139)
-            }
-            return Color(172, 138, 88)
-        }
-
         fun build(): WebViewTheme {
             val font = UIUtil.getLabelFont()
             // TODO local(font.family)
@@ -111,7 +102,7 @@ class WebViewTheme(val name: String, val stylesheet: String) {
 
                 textColorInfoMuted = link.darken(10)
 
-                textColorFilenameHighlight = getFilenameHighlightColor()
+                textColorFilenameHighlight = Color(223, 189, 139)
 
                 textFocusBorderColor = textColorInfoMuted.opacity(60)
 
@@ -133,7 +124,7 @@ class WebViewTheme(val name: String, val stylesheet: String) {
 
                 textColorInfoMuted = link
 
-                textColorFilenameHighlight = getFilenameHighlightColor()
+                textColorFilenameHighlight = Color(172, 138, 88)
 
                 textFocusBorderColor = textColorInfoMuted.opacity(60)
 

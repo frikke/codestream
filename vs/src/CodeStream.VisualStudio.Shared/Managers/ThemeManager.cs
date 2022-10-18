@@ -95,6 +95,7 @@ namespace CodeStream.VisualStudio.Shared.Managers {
 
 					new ThemeColorMetadata { Key = "text-color-info", Color = VSColorTheme.GetThemedColor(EnvironmentColors.StartPageTextControlLinkSelectedColorKey) },
 					new ThemeColorMetadata { Key = "text-color-info-muted", Color = VSColorTheme.GetThemedColor(EnvironmentColors.StartPageTextControlLinkSelectedColorKey), DarkModifier = c => c.Darken(0.1f) },
+					new ThemeColorMetadata { Key = "text-color-filename-highlight", Color = textColor, DarkModifier = c => c.Opacity(80), LightModifier = c => c.Opacity(80) },
 
 					new ThemeColorMetadata { Key = "text-focus-border-color", Color = VSColorTheme.GetThemedColor(EnvironmentColors.StartPageTextControlLinkSelectedColorKey), DarkModifier = c => c.Darken(0.1f).Opacity(60), LightModifier = c => c.Opacity(60) },
 
