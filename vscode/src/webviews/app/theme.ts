@@ -1,5 +1,6 @@
 "use strict";
-const cssColorRegEx = /^(?:(#?)([0-9a-f]{3}|[0-9a-f]{6})|((?:rgb|hsl)a?)\((-?\d+%?)[,\s]+(-?\d+%?)[,\s]+(-?\d+%?)[,\s]*(-?[\d\.]+%?)?\))$/i;
+const cssColorRegEx =
+	/^(?:(#?)([0-9a-f]{3}|[0-9a-f]{6})|((?:rgb|hsl)a?)\((-?\d+%?)[,\s]+(-?\d+%?)[,\s]+(-?\d+%?)[,\s]*(-?[\d\.]+%?)?\))$/i;
 
 function adjustLight(color: number, amount: number) {
 	const cc = color + amount;
@@ -145,6 +146,16 @@ export function initializeColorPalette() {
 			case "light":
 				bodyStyle.setProperty("--text-color-info-muted", color);
 				bodyStyle.setProperty("--text-focus-border-color", opacity(color, 60));
+				break;
+		}
+
+		color = "#dfbd8b";
+		switch (theme) {
+			case "dark":
+				bodyStyle.setProperty("--text-color-filename-highlight", color);
+				break;
+			case "light":
+				bodyStyle.setProperty("--text-color-filename-highlight", darken(color, 20));
 				break;
 		}
 
