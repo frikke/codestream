@@ -589,12 +589,14 @@ export const Observability = React.memo((props: Props) => {
 		let filteredPaneNodes = getFilteredPaneNodes(id);
 
 		Object.keys(filteredPaneNodes).map(function (key) {
-			if (filteredPaneNodes[key] === false) {
+			let hiddenPaneNodeString = key;
+			let n = hiddenPaneNodeString.lastIndexOf("-");
+			let repoIdFromHiddenPane = hiddenPaneNodeString.substring(n + 1);
+			if (filteredPaneNodes[key] === false && currentRepoId === repoIdFromHiddenPane) {
 				dispatch(setUserPreference({ prefPath: ["hiddenPaneNodes"], value: { [key]: true } }));
 			}
 		});
 		dispatch(setUserPreference({ prefPath: ["hiddenPaneNodes"], value: { [id]: !collapsed } }));
-
 		if (entityGuid === expandedEntity) {
 			setExpandedEntity(null);
 		} else {
