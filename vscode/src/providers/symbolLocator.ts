@@ -3,7 +3,6 @@ import * as vscode from "vscode";
 
 import { BuiltInCommands } from "../constants";
 import { Logger } from "../logger";
-import { Container } from "../container";
 
 const sleep = async (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -20,12 +19,20 @@ export type SymboslLocated = {
 };
 
 export interface ISymbolLocator {
-	locate(document: TextDocument, token: vscode.CancellationToken): Promise<SymboslLocated>;
+	locate(
+		document: TextDocument,
+		overrideUri: vscode.Uri | undefined,
+		token: vscode.CancellationToken
+	): Promise<{
+		instrumentableSymbols: InstrumentableSymbol[];
+		allSymbols: DocumentSymbol[];
+	}>;
 }
 
 export class SymbolLocator implements ISymbolLocator {
 	async locate(
 		document: TextDocument,
+		overrideUri: vscode.Uri | undefined,
 		token: vscode.CancellationToken
 	): Promise<{
 		instrumentableSymbols: InstrumentableSymbol[];
@@ -42,7 +49,7 @@ export class SymbolLocator implements ISymbolLocator {
 				return emptyResult;
 			}
 
-			const symbolResult = await this.locateCore(document, token);
+			const symbolResult = await this.locateCore(document, overrideUri, token);
 			this.buildLensCollection(undefined, symbolResult, instrumentableSymbols, token);
 			return {
 				instrumentableSymbols,
@@ -59,17 +66,10 @@ export class SymbolLocator implements ISymbolLocator {
 
 	private async locateCore(
 		document: TextDocument,
+		overrideUri: vscode.Uri | undefined,
 		token: vscode.CancellationToken
 	): Promise<DocumentSymbol[]> {
 		let symbols: DocumentSymbol[] | undefined = [];
-
-		let localUri;
-		if (document.uri.scheme === "codestream-diff") {
-			const { uri: localUriString } = await Container.agent.urls.resolveLocalUri(
-				document.uri.toString(true)
-			);
-			localUri = localUriString && vscode.Uri.parse(localUriString);
-		}
 
 		for (const timeout of [0, 750, 1000, 1500, 2000]) {
 			if (token.isCancellationRequested) {
@@ -79,7 +79,7 @@ export class SymbolLocator implements ISymbolLocator {
 			try {
 				symbols = await vscode.commands.executeCommand<DocumentSymbol[]>(
 					BuiltInCommands.ExecuteDocumentSymbolProvider,
-					localUri || document.uri
+					overrideUri || document.uri
 				);
 				if (!symbols || symbols.length === 0) {
 					await sleep(timeout);

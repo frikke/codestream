@@ -10,7 +10,8 @@ import { Event, Range, SymbolKind } from "vscode-languageclient";
 import {
 	FileLevelTelemetryRequestOptions,
 	FunctionLocator,
-	GetFileLevelTelemetryResponse
+	GetFileLevelTelemetryResponse,
+	ResolveLocalUriResponse
 } from "@codestream/protocols/agent";
 import { Strings } from "../system";
 import { Logger } from "../logger";
@@ -56,6 +57,9 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 		private telemetryService: { track: Function },
 		private documentMarkersService: {
 			getRangesForUri(ranges: any[], uri: string): Promise<{ ranges: Range[] }>;
+		},
+		private urlService: {
+			resolveLocalUri(uri: string): Promise<ResolveLocalUriResponse>;
 		}
 	) {}
 
@@ -102,10 +106,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 
 				this._isShowingPromptToEnableCodeLens = true;
 				vscode.window
-					.showInformationMessage(
-						"Enable CodeLens in diffs to view code-level metrics",
-						...actions
-					)
+					.showInformationMessage("Enable CodeLens in diffs to view code-level metrics", ...actions)
 					.then(result => {
 						if (result?.title === "Yes") {
 							config.update("diffEditor.codeLens", true, true);
@@ -200,7 +201,8 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 			}
 			case "go": {
 				return this.checkGoPlugin();
-			} case "php" : {
+			}
+			case "php": {
 				return this.checkPhpPlugin();
 			}
 		}
@@ -284,7 +286,6 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 			newRelicAccountId
 		);
 	}
-	
 
 	private errorCodelens(
 		errorCode: string,
@@ -354,7 +355,14 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 				Logger.log("provideCodeLenses isCancellationRequested0");
 				return [];
 			}
-			const result = await this.symbolLocator.locate(document, token);
+			let overrideUri: vscode.Uri | undefined = undefined;
+			if (document.uri.scheme === "codestream-diff") {
+				const { uri: localUriString } = await this.urlService.resolveLocalUri(
+					document.uri.toString(true)
+				);
+				overrideUri = localUriString ? vscode.Uri.parse(localUriString) : undefined;
+			}
+			const result = await this.symbolLocator.locate(document, overrideUri, token);
 			instrumentableSymbols = result.instrumentableSymbols;
 			allSymbols = result.allSymbols;
 		} catch (ex) {
@@ -418,10 +426,12 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 				};
 			}
 
-			if (document.languageId === "php") {				
+			if (document.languageId === "php") {
 				const phpNamespace = allSymbols.find(_ => _.kind === vscode.SymbolKind.Namespace)?.name;
-				const classesAndFunctions = allSymbols.filter(_ => _.kind === vscode.SymbolKind.Class || _.kind === vscode.SymbolKind.Function);
-				const prefix = phpNamespace ? (phpNamespace + "\\") : "";
+				const classesAndFunctions = allSymbols.filter(
+					_ => _.kind === vscode.SymbolKind.Class || _.kind === vscode.SymbolKind.Function
+				);
+				const prefix = phpNamespace ? phpNamespace + "\\" : "";
 				const namespaces = classesAndFunctions.map(_ => prefix + _.name);
 				functionLocator = { namespaces };
 			}
@@ -526,7 +536,9 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 						(simpleClassName === symbol.parent.name && data.functionName === simpleSymbolName);
 				} else {
 					// if no parent (aka class) ensure we find a function that doesn't have a parent
-					result = !symbol.parent && (data.functionName === simpleSymbolName || simpleFunctionName === simpleSymbolName);
+					result =
+						!symbol.parent &&
+						(data.functionName === simpleSymbolName || simpleFunctionName === simpleSymbolName);
 				}
 				if (!result) {
 					// Since nothing matched, relax criteria and base just on function name

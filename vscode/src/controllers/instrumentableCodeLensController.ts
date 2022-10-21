@@ -93,7 +93,8 @@ export class InstrumentableCodeLensController implements Disposable {
 			new SymbolLocator(),
 			Container.agent.observability!,
 			Container.agent.telemetry!,
-			Container.agent.documentMarkers
+			Container.agent.documentMarkers,
+			Container.agent.urls!
 		);
 		this._providerDisposable = Disposable.from(
 			languages.registerCodeLensProvider(

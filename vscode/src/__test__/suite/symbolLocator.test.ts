@@ -20,7 +20,11 @@ suite("SymbolLocator Test Suite", () => {
 
 		const document = await vscode.workspace.openTextDocument(uri);
 
-		const result = await new SymbolLocator().locate(document, new CancellationTokenSource().token);
+		const result = await new SymbolLocator().locate(
+			document,
+			undefined,
+			new CancellationTokenSource().token
+		);
 
 		assert.strictEqual(result.instrumentableSymbols.length, 9);
 	}).timeout(45000);
@@ -38,7 +42,11 @@ suite("SymbolLocator Test Suite", () => {
 
 		const document = await vscode.workspace.openTextDocument(uri);
 
-		const result = await new SymbolLocator().locate(document, new CancellationTokenSource().token);
+		const result = await new SymbolLocator().locate(
+			document,
+			undefined,
+			new CancellationTokenSource().token
+		);
 		// console.log(JSON.stringify(result, null, 4));
 		assert.strictEqual(result.instrumentableSymbols.length, 1);
 	}).timeout(45000);

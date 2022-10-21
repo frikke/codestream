@@ -11,6 +11,7 @@ import {
 	FunctionLocator,
 	GetFileLevelTelemetryResponse
 } from "@codestream/protocols/agent";
+import { DocumentSymbol } from "vscode";
 
 import {
 	InstrumentableSymbol,
@@ -20,7 +21,14 @@ import {
 import { InstrumentationCodeLensProvider } from "../../providers/instrumentationCodeLensProvider";
 
 class MockSymbolLocator implements ISymbolLocator {
-	locate(document: vscode.TextDocument, token: vscode.CancellationToken): Promise<SymboslLocated> {
+	locate(
+		document: vscode.TextDocument,
+		overrideUri: vscode.Uri | undefined,
+		token: vscode.CancellationToken
+	): Promise<{
+		instrumentableSymbols: InstrumentableSymbol[];
+		allSymbols: DocumentSymbol[];
+	}> {
 		return new Promise(resolve => {
 			resolve({
 				instrumentableSymbols: [
@@ -101,7 +109,65 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 			new MockSymbolLocator(),
 			observabilityService,
 			{ track: function () {} } as any,
-			{ getRangesForUri: function () {} } as any
+			{ getRangesForUri: function () {} } as any,
+			{ resolveLocalUri: function () {} } as any
+		);
+
+		stubbedExtension = sinon.stub(vscode.extensions, "getExtension").returns((<
+			Partial<vscode.Extension<any>>
+		>{
+			id: "ms-python.vscode-pylance",
+			isActive: true
+		}) as vscode.Extension<any>);
+
+		const codeLenses = await provider.provideCodeLenses(
+			documentFactory("app.py", "app.py", "python"),
+			new CancellationTokenSource().token
+		);
+		assert.strictEqual(codeLenses.length, 1);
+		assert.strictEqual(codeLenses[0].command!.title!.indexOf("3.33") > -1, true);
+	});
+
+	test("Smoke test with override", async () => {
+		const observabilityService = {
+			getFileLevelTelemetry: function (
+				filePath: string,
+				languageId: string,
+				resetCache?: boolean,
+				locator?: FunctionLocator,
+				options?: FileLevelTelemetryRequestOptions | undefined
+			): Promise<GetFileLevelTelemetryResponse> {
+				return new Promise(resolve => {
+					return resolve({
+						repo: {
+							id: "123",
+							name: "repo",
+							remote: "remote"
+						},
+						relativeFilePath: "/hello/foo.py",
+						newRelicAccountId: 1,
+						newRelicEntityGuid: "123",
+						newRelicEntityAccounts: [] as any,
+						codeNamespace: "fooNamespace",
+						averageDuration: [
+							{
+								functionName: "hello_world",
+								averageDuration: 3.333,
+								metricTimesliceName: "d"
+							}
+						]
+					} as GetFileLevelTelemetryResponse);
+				});
+			}
+		};
+
+		const provider = new InstrumentationCodeLensProvider(
+			"avg duration: ${averageDuration} | throughput: ${throughput} | error rate: ${errorsPerMinute} - since ${since}",
+			new MockSymbolLocator(),
+			observabilityService,
+			{ track: function () {} } as any,
+			{ getRangesForUri: function () {} } as any,
+			{ resolveLocalUri: function () {} } as any
 		);
 
 		stubbedExtension = sinon.stub(vscode.extensions, "getExtension").returns((<
@@ -153,7 +219,8 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 			new MockSymbolLocator(),
 			observabilityService,
 			{ track: function () {} } as any,
-			{ getRangesForUri: function () {} } as any
+			{ getRangesForUri: function () {} } as any,
+			{ resolveLocalUri: function () {} } as any
 		);
 
 		stubbedExtension = sinon.stub(vscode.extensions, "getExtension").returns((<
@@ -195,7 +262,8 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 			new MockSymbolLocator(),
 			observabilityService,
 			{ track: function () {} } as any,
-			{ getRangesForUri: function () {} } as any
+			{ getRangesForUri: function () {} } as any,
+			{ resolveLocalUri: function () {} } as any
 		);
 
 		const codeLenses = await provider.provideCodeLenses(
@@ -233,7 +301,8 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 			new MockSymbolLocator(),
 			observabilityService,
 			{ track: function () {} } as any,
-			{ getRangesForUri: function () {} } as any
+			{ getRangesForUri: function () {} } as any,
+			{ resolveLocalUri: function () {} } as any
 		);
 
 		const codeLenses = await provider.provideCodeLenses(
@@ -271,7 +340,8 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 			new MockSymbolLocator(),
 			observabilityService,
 			{ track: function () {} } as any,
-			{ getRangesForUri: function () {} } as any
+			{ getRangesForUri: function () {} } as any,
+			{ resolveLocalUri: function () {} } as any
 		);
 
 		const codeLenses = await provider.provideCodeLenses(
@@ -307,7 +377,8 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 			new MockSymbolLocator(),
 			observabilityService,
 			{ track: function () {} } as any,
-			{ getRangesForUri: function () {} } as any
+			{ getRangesForUri: function () {} } as any,
+			{ resolveLocalUri: function () {} } as any
 		);
 
 		const mockGetConfig: Partial<vscode.WorkspaceConfiguration> = {
@@ -361,7 +432,8 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 			new MockSymbolLocator(),
 			observabilityService,
 			{ track: function () {} } as any,
-			{ getRangesForUri: function () {} } as any
+			{ getRangesForUri: function () {} } as any,
+			{ resolveLocalUri: function () {} } as any
 		);
 
 		const codeLenses = await provider.provideCodeLenses(
@@ -399,7 +471,8 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 			new MockSymbolLocator(),
 			observabilityService,
 			{ track: function () {} } as any,
-			{ getRangesForUri: function () {} } as any
+			{ getRangesForUri: function () {} } as any,
+			{ resolveLocalUri: function () {} } as any
 		);
 
 		const codeLenses = await provider.provideCodeLenses(
@@ -449,7 +522,8 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 			new MockSymbolLocator(),
 			observabilityService,
 			{ track: function () {} } as any,
-			{ getRangesForUri: function () {} } as any
+			{ getRangesForUri: function () {} } as any,
+			{ resolveLocalUri: function () {} } as any
 		);
 
 		const mockGetConfig: Partial<vscode.WorkspaceConfiguration> = {
