@@ -100,6 +100,7 @@ export const WebviewPanelNames = {
 };
 
 export enum WebviewModals {
+	AcceptCompanyInvite = "accept-company-invite",
 	ChangeAvatar = "change-avatar",
 	ChangeEmail = "change-email",
 	ChangeFullName = "change-full-name",

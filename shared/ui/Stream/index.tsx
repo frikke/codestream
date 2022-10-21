@@ -54,6 +54,7 @@ import { getPost } from "../store/posts/reducer";
 import { getStreamForId, getStreamForTeam } from "../store/streams/reducer";
 import { ComponentUpdateEmitter, Disposable } from "../utils";
 import { HostApi } from "../webview-api";
+import { AcceptCompanyInvite } from "./AcceptCompanyInvite";
 import { SetUserPreferenceRequest } from "./actions.types";
 import { ActivityPanel } from "./ActivityPanel";
 import { BlameMap } from "./BlameMap";
@@ -459,6 +460,7 @@ export class SimpleStream extends PureComponent<Props> {
 				)}
 				{activeModal && (
 					<Modal translucent>
+						{activeModal === WebviewModals.AcceptCompanyInvite && <AcceptCompanyInvite />}
 						{activeModal === WebviewModals.CreateTeam && <CreateTeamPage />}
 						{activeModal === WebviewModals.CreateCompany && <CreateCompanyPage />}
 						{activeModal === WebviewModals.ReviewSettings && <ReviewSettings />}

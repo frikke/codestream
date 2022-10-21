@@ -95,14 +95,21 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 
 	const trackSwitchOrg = (isCurrentCompany, company) => {
 		HostApi.instance.track("Switched Organizations", {});
-
 		// slight delay so tracking call completes
 		setTimeout(() => {
 			const { userTeams } = derivedState;
-
+			const isInvited = company.byInvite && !company.accessToken;
 			if (isCurrentCompany) return;
-			if (company.host) {
+			if (company.host && !isInvited) {
 				dispatch(switchToForeignCompany(company.id));
+			} else if (isInvited) {
+				dispatch(
+					setUserPreference({
+						prefPath: ["currentCompanyInvite"],
+						value: company.name,
+					})
+				);
+				dispatch(openModal(WebviewModals.AcceptCompanyInvite));
 			} else {
 				const team = userTeams.find(_ => _.companyId === company.id);
 				if (team) {
@@ -111,7 +118,9 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 					console.error(`Could not switch to a team in ${company.id}`);
 				}
 			}
-		}, 1000);
+		}, 500);
+
+		return;
 	};
 
 	const buildSwitchTeamMenuItem = () => {
@@ -155,6 +164,27 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 					noHover: isCurrentCompany,
 					action: () => {
 						trackSwitchOrg(isCurrentCompany, company);
+
+						if (isCurrentCompany) return;
+						if (company.host && !isInvited) {
+							dispatch(switchToForeignCompany(company.id));
+						} else if (isInvited) {
+							dispatch(
+								setUserPreference({
+									prefPath: ["currentCompanyInvite"],
+									value: company.name,
+								})
+							);
+							dispatch(openModal(WebviewModals.AcceptCompanyInvite));
+						} else {
+							const team = userTeams.find(_ => _.companyId === company.id);
+							if (team) {
+								dispatch(switchToTeam({ teamId: team.id }));
+							} else {
+								console.error(`Could not switch to a team in ${company.id}`);
+							}
+						}
+						return;
 					},
 				};
 			}) as any;
