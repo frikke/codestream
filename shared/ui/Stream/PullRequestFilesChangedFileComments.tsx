@@ -412,7 +412,7 @@ export const PullRequestFilesChangedFileComments = (props: Props) => {
 					key={index + ":" + fileObject.file}
 					depth={depth}
 					{...fileObject}
-					customFilenameColor={"#dfbd8b"}
+					customFilenameColor={"var(--text-color-filename-highlight)"}
 				/>
 			</div>
 		);
@@ -502,7 +502,7 @@ export const PullRequestFilesChangedFileComments = (props: Props) => {
 						key={index + ":" + fileObject.file}
 						depth={depth}
 						{...fileObject}
-						customFilenameColor={"#dfbd8b"}
+						customFilenameColor={"var(--text-color-filename-highlight)"}
 					/>
 				</FileWithComments>
 				{showComments && (

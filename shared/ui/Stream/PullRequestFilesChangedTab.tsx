@@ -99,8 +99,13 @@ export const PullRequestFilesChangedTab = (props: {
 	};
 
 	const _mapCommitsData = (data: FetchThirdPartyPullRequestCommitsResponse[]) => {
+		// typescript complains if we directly edit arguments (like with sort())
+		// this spread fixes that
+		let _dataForSort = [...data];
 		setPrCommits(
-			data.sort((a, b) => new Date(a.authoredDate).getTime() - new Date(b.authoredDate).getTime())
+			_dataForSort.sort(
+				(a, b) => new Date(a.authoredDate).getTime() - new Date(b.authoredDate).getTime()
+			)
 		);
 	};
 
