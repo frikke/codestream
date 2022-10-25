@@ -9,7 +9,7 @@ import {
 	switchToTeam,
 } from "@codestream/webview/store/session/thunks";
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
-import { sortBy as _sortBy } from "lodash-es";
+import { isEmpty as _isEmpty, sortBy as _sortBy } from "lodash-es";
 import React from "react";
 import styled from "styled-components";
 import { WebviewModals, WebviewPanelNames, WebviewPanels } from "../ipc/webview.protocol.common";
@@ -132,40 +132,51 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		} = derivedState;
 
 		const buildSubmenu = () => {
-			const items = eligibleJoinCompanies.map(company => {
-				const isCurrentCompany = company.id === currentCompanyId;
-				const isInvited = company.byInvite && !company.accessToken;
-				const companyHost = company.host || currentHost;
-				const companyRegion =
-					supportsMultiRegion && hasMultipleEnvironments && companyHost?.shortName;
-				const signedStatusText = isInvited ? "Invited" : "Signed In";
-				let checked: any;
-				if (isCurrentCompany) {
-					checked = true;
-				} else if (isInvited) {
-					checked = "custom";
-				} else {
-					checked = false;
-				}
+			const items = eligibleJoinCompanies
+				.filter(company => {
+					// Skip companys eligible to join by domain
+					const domainJoining = company?.domainJoining;
+					const canJoinByDomain = !_isEmpty(domainJoining);
+					if (canJoinByDomain) return false;
+					return true;
+				})
+				.map(company => {
+					const isCurrentCompany = company.id === currentCompanyId;
+					const isInvited = company.byInvite && !company.accessToken;
+					const companyHost = company.host || currentHost;
+					const companyRegion =
+						supportsMultiRegion && hasMultipleEnvironments && companyHost?.shortName;
 
-				return {
-					key: company.id,
-					label: (
-						<>
-							{company.name}
-							<RegionSubtext>
-								{signedStatusText} {companyRegion && <>({companyRegion})</>}
-							</RegionSubtext>
-						</>
-					),
-					// label: <>{company.name}</>,
-					checked: checked,
-					noHover: isCurrentCompany,
-					action: () => {
-						trackSwitchOrg(isCurrentCompany, company);
-					},
-				};
-			}) as any;
+					// @TODO: add in for UI phase 2, with "Signed Out" messaging as well
+					// const signedStatusText = isInvited ? "Invited" : "Signed In";
+					const signedStatusText = isInvited ? "Invited" : "";
+					let checked: any;
+					if (isCurrentCompany) {
+						checked = true;
+					} else if (isInvited) {
+						checked = "custom";
+					} else {
+						checked = false;
+					}
+
+					return {
+						key: company.id,
+						label: (
+							<>
+								{company.name}
+								<RegionSubtext>
+									{signedStatusText} {companyRegion && <>{companyRegion}</>}
+								</RegionSubtext>
+							</>
+						),
+						// label: <>{company.name}</>,
+						checked: checked,
+						noHover: isCurrentCompany,
+						action: () => {
+							trackSwitchOrg(isCurrentCompany, company);
+						},
+					};
+				}) as any;
 
 			items.push(
 				{ label: "-" },
