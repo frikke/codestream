@@ -92,6 +92,10 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		};
 	});
 
+	const hasInvites = derivedState.eligibleJoinCompanies.some(
+		company => company.byInvite && !company.accessToken
+	);
+
 	const trackSwitchOrg = (isCurrentCompany, company) => {
 		HostApi.instance.track("Switched Organizations", {});
 		// slight delay so tracking call completes
@@ -149,7 +153,6 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 
 					// @TODO: add in for UI phase 2, with "Signed Out" messaging as well
 					// const signedStatusText = isInvited ? "Invited" : "Signed In";
-					const signedStatusText = isInvited ? "Invited" : "";
 					let checked: any;
 					if (isCurrentCompany) {
 						checked = true;
@@ -164,12 +167,9 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 						label: (
 							<>
 								{company.name}
-								<RegionSubtext>
-									{signedStatusText} {companyRegion && <>{companyRegion}</>}
-								</RegionSubtext>
+								<RegionSubtext>{companyRegion && <>{companyRegion}</>}</RegionSubtext>
 							</>
 						),
-						// label: <>{company.name}</>,
 						checked: checked,
 						noHover: isCurrentCompany,
 						action: () => {
@@ -194,7 +194,27 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		};
 
 		return {
-			label: "Switch Organization",
+			label: (
+				<>
+					{hasInvites ? (
+						<>
+							<span>Switch Organization</span>
+							<Icon
+								style={{
+									background: "var(--text-color-info-muted)",
+									color: "var(--text-color-highlight)",
+									borderRadius: "50%",
+									margin: "0px 0px 0px 5px",
+									padding: "3px 4px 3px 4px",
+								}}
+								name="mail"
+							/>
+						</>
+					) : (
+						<span>Switch Organization</span>
+					)}
+				</>
+			),
 			submenu: buildSubmenu(),
 		};
 	};
