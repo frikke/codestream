@@ -111,8 +111,18 @@ export function GlobalNav() {
 		}
 	};
 
-	const hasInvites =
-		eligibleJoinCompanies && eligibleJoinCompanies.some(_ => _.byInvite && !_.accessToken);
+	// Count of invites for tooltip
+	let inviteCount: number = 0;
+	if (eligibleJoinCompanies) {
+		eligibleJoinCompanies.forEach(company => {
+			if (company.byInvite && !company.accessToken) {
+				inviteCount++;
+			}
+		});
+	}
+
+	// Plural handling
+	const tooltipText = inviteCount < 2 ? "Invitation" : "Invitations";
 
 	// const selected = panel => activePanel === panel && !currentPullRequestId && !currentReviewId; // && !plusMenuOpen && !menuOpen;
 	const selected = panel => false;
@@ -131,39 +141,48 @@ export function GlobalNav() {
 						<HeadshotName
 							id={derivedState.currentUserId}
 							size={16}
-							hasInvites={hasInvites}
+							hasInvites={inviteCount > 0}
 							className="no-padding"
 						/>
 						<Icon name="chevron-down" className="smaller" style={{ verticalAlign: "-2px" }} />
 
-						{hasInvites && (
-							<ul style={{ listStyle: "none", margin: "0", padding: "0", display: "inline-block" }}>
-								<li
-									style={{
-										display: "inline-block",
-										backgroundColor: "var(--text-color-info-muted)",
-										margin: "0",
-										borderRadius: "50%",
-										verticalAlign: "-5px",
-									}}
+						{inviteCount > 0 && (
+							<Tooltip
+								placement="topLeft"
+								title={`${inviteCount} ${tooltipText}`}
+								align={{ offset: [-10, 0] }}
+								delay={1}
+							>
+								<ul
+									style={{ listStyle: "none", margin: "0", padding: "0", display: "inline-block" }}
 								>
-									<a
+									<li
 										style={{
-											color: "var(--text-color-highlight)",
-											display: "table-cell",
-											verticalAlign: "middle",
-											textAlign: "center",
-											textDecoration: "none",
-											height: "20px",
-											width: "20px",
-											paddingTop: "1px",
+											display: "inline-block",
+											backgroundColor: "var(--text-color-info-muted)",
+											margin: "0",
+											borderRadius: "50%",
+											verticalAlign: "-5px",
 										}}
-										href="#"
 									>
-										<Icon name="mail" />
-									</a>
-								</li>
-							</ul>
+										<a
+											style={{
+												color: "var(--text-color-highlight)",
+												display: "table-cell",
+												verticalAlign: "middle",
+												textAlign: "center",
+												textDecoration: "none",
+												height: "20px",
+												width: "20px",
+												paddingTop: "1px",
+											}}
+											href="#"
+										>
+											<Icon name="mail" />
+										</a>
+									</li>
+								</ul>
+							</Tooltip>
 						)}
 
 						{ellipsisMenuOpen && (
