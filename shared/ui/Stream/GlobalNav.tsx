@@ -114,29 +114,6 @@ export function GlobalNav() {
 	const hasInvites =
 		eligibleJoinCompanies && eligibleJoinCompanies.some(_ => _.byInvite && !_.accessToken);
 
-	// {!hasInvites && (
-	// 	<span
-	// 		style={{
-	// 			display: "inline-block",
-	// 			paddingLeft: "2.5px",
-	// 			width: "21px",
-	// 		}}
-	// 	>
-	// 		<Icon
-	// 			name="mail"
-	// 			style={{
-	// 				background: "var(--text-color-info-muted)",
-	// 				color: "var(--text-color-highlight)",
-	// 				borderRadius: "50%",
-	// 				margin: "0px 0px 0px -5px",
-	// 				padding: "3px 4px 3px 4px",
-	// 				top: "5px",
-	// 				right: "2px",
-	// 			}}
-	// 		/>
-	// 	</span>
-	// )}
-
 	// const selected = panel => activePanel === panel && !currentPullRequestId && !currentReviewId; // && !plusMenuOpen && !menuOpen;
 	const selected = panel => false;
 	return React.useMemo(() => {
