@@ -92,9 +92,9 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		};
 	});
 
-	const hasInvites = derivedState.eligibleJoinCompanies.some(
-		company => company.byInvite && !company.accessToken
-	);
+	const hasInvites =
+		derivedState.eligibleJoinCompanies &&
+		derivedState.eligibleJoinCompanies.some(company => company.byInvite && !company.accessToken);
 
 	const trackSwitchOrg = (isCurrentCompany, company) => {
 		HostApi.instance.track("Switched Organizations", {});
