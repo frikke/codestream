@@ -492,7 +492,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 					token: response.accessToken,
 					email: response.user.email,
 					userId: response.user.id,
-					eligibleJoinCompanies: response.eligibleJoinCompanies,
+					eligibleJoinCompanies: response.user.eligibleJoinCompanies,
 					accountIsConnected: response.accountIsConnected,
 					isWebmail: response.isWebmail,
 					// isRegistered and user object passed for early segment identify call

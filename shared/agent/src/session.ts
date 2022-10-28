@@ -1365,11 +1365,11 @@ export class CodeStreamSession {
 			const result: ConfirmRegistrationResponse = {
 				user: {
 					id: response.user.id,
+					eligibleJoinCompanies: response.user.eligibleJoinCompanies,
 				},
 				status: LoginResult.Unknown,
 				token: response.accessToken,
 				companies: response.companies,
-				eligibleJoinCompanies: response.eligibleJoinCompanies,
 				accountIsConnected: response.accountIsConnected,
 				isWebmail: response.isWebmail,
 			};

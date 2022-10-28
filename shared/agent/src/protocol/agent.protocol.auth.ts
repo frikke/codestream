@@ -146,10 +146,10 @@ export interface ConfirmRegistrationRequest extends CSConfirmRegistrationRequest
 export interface ConfirmRegistrationResponse {
 	user?: {
 		id: string;
+		eligibleJoinCompanies?: CSEligibleJoinCompany[];
 	};
 	status: LoginResult;
 	token?: string;
-	eligibleJoinCompanies?: CSEligibleJoinCompany[];
 	accountIsConnected?: boolean;
 	isWebmail?: boolean;
 	companies?: CSCompany[];
