@@ -76,15 +76,9 @@ export function CompanyCreation(props: {
 }) {
 	const dispatch = useAppDispatch();
 	const derivedState = useAppSelector((state: CodeStreamState) => {
-		const { users, configs, session } = state;
-		// const user = users[session.userId!];
-		// const eligibleJoinCompanies = _isEmpty(user?.eligibleJoinCompanies)
-		// 	? undefined
-		// 	: _sortBy(user?.eligibleJoinCompanies, "name");
-
+		const { configs } = state;
 		return {
 			serverUrl: configs.serverUrl,
-			// eligibleJoinCompanies,
 		};
 	});
 	const providerName = props.provider
@@ -177,11 +171,6 @@ export function CompanyCreation(props: {
 			setInitialLoad(false);
 		}
 	});
-
-	// useEffect(() => {
-	// 	const { eligibleJoinCompanies } = derivedState;
-	// 	console.warn(eligibleJoinCompanies);
-	// }, [derivedState.eligibleJoinCompanies]);
 
 	const domain = React.useMemo(() => {
 		return props.email?.split("@")[1].toLowerCase();
