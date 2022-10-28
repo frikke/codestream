@@ -131,8 +131,6 @@ export const EmailConfirmation = (connect() as any)((props: Props) => {
 						goToCompanyCreation({
 							...result,
 							userId: result.user?.id,
-							// @TODO fix ts
-							// @ts-ignore
 							eligibleJoinCompanies: result.user?.eligibleJoinCompanies,
 							email: props.email,
 						})
