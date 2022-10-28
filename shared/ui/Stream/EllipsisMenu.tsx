@@ -88,7 +88,7 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 			environment,
 			isProductionCloud,
 			supportsMultiRegion,
-			eligibleJoinCompanies: _sortBy(state.session.eligibleJoinCompanies, "name"),
+			eligibleJoinCompanies: _sortBy(user?.eligibleJoinCompanies, "name"),
 		};
 	});
 

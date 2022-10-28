@@ -6,7 +6,7 @@ import {
 	FetchProviderDefaultPullResponse,
 	ThirdPartyProviders,
 } from "./agent.protocol";
-import { CSReviewCheckpoint } from "./api.protocol";
+import { CSEligibleJoinCompany, CSReviewCheckpoint } from "./api.protocol";
 
 export interface CSEntity {
 	deactivated?: boolean;
@@ -682,7 +682,7 @@ export interface CSUser extends CSEntity {
 	codestreamId?: string;
 	externalUserId?: string;
 	status?: { [teamId: string]: CSMeStatus };
-
+	eligibleJoinCompanies?: CSEligibleJoinCompany[];
 	avatar?: {
 		image?: string;
 		image48?: string;

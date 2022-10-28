@@ -35,7 +35,7 @@ export function AcceptCompanyInvite() {
 			userId: state.session.userId,
 			userEmail: user.email,
 			serverUrl: state.configs.serverUrl,
-			eligibleJoinCompanies: _sortBy(state.session.eligibleJoinCompanies, "name"),
+			eligibleJoinCompanies: _sortBy(user?.eligibleJoinCompanies, "name"),
 			currentHost,
 			supportsMultiRegion,
 		};

@@ -28,7 +28,8 @@ const sum = (total, num) => total + Math.round(num);
 export function GlobalNav() {
 	const dispatch = useAppDispatch();
 	const derivedState = useAppSelector((state: CodeStreamState) => {
-		const { umis, preferences } = state;
+		const { users, umis, preferences } = state;
+		const user = users[state.session.userId!];
 
 		return {
 			clickedPlus: preferences.clickedPlus,
@@ -44,7 +45,7 @@ export function GlobalNav() {
 			currentPullRequestId: state.context.currentPullRequest
 				? state.context.currentPullRequest.id
 				: undefined,
-			eligibleJoinCompanies: state.session.eligibleJoinCompanies,
+			eligibleJoinCompanies: user?.eligibleJoinCompanies,
 		};
 	});
 
