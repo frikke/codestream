@@ -30,7 +30,15 @@ export function GlobalNav() {
 	const derivedState = useAppSelector((state: CodeStreamState) => {
 		const { users, umis, preferences } = state;
 		const user = users[state.session.userId!];
-
+		const eligibleJoinCompanies = user?.eligibleJoinCompanies;
+		let inviteCount: number = 0;
+		if (eligibleJoinCompanies) {
+			eligibleJoinCompanies.forEach(company => {
+				if (company.byInvite && !company.accessToken) {
+					inviteCount++;
+				}
+			});
+		}
 		return {
 			clickedPlus: preferences.clickedPlus,
 			clickedInvite: preferences.clickedInvite,
@@ -45,7 +53,8 @@ export function GlobalNav() {
 			currentPullRequestId: state.context.currentPullRequest
 				? state.context.currentPullRequest.id
 				: undefined,
-			eligibleJoinCompanies: user?.eligibleJoinCompanies,
+			eligibleJoinCompanies,
+			inviteCount,
 		};
 	});
 
@@ -56,6 +65,7 @@ export function GlobalNav() {
 	const {
 		activePanel,
 		eligibleJoinCompanies,
+		inviteCount,
 		totalUnread,
 		totalMentions,
 		currentCodemarkId,
@@ -111,16 +121,6 @@ export function GlobalNav() {
 			HostApi.instance.send(LocalFilesCloseDiffRequestType, {});
 		}
 	};
-
-	// Count of invites for tooltip
-	let inviteCount: number = 0;
-	if (eligibleJoinCompanies) {
-		eligibleJoinCompanies.forEach(company => {
-			if (company.byInvite && !company.accessToken) {
-				inviteCount++;
-			}
-		});
-	}
 
 	// Plural handling
 	const tooltipText = inviteCount < 2 ? "Invitation" : "Invitations";
@@ -305,5 +305,6 @@ export function GlobalNav() {
 		plusMenuOpen,
 		teamMenuOpen,
 		ellipsisMenuOpen,
+		inviteCount,
 	]);
 }
