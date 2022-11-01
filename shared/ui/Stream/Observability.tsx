@@ -730,11 +730,8 @@ export const Observability = React.memo((props: Props) => {
 	}, [currentRepoId, observabilityRepos, expandedEntity, currentEntityAccountIndex]);
 
 	/*
-	 *	State telemetry tracking for the obervability panel, logic is as follows for "State" parameter:
-	 *	"No Entities" - We don’t find any entities on NR and are showing the instrument-your-app message.
-	 *	"No Services" - There are entities but the current repo isn’t associated with one, so we’re
-	 *					displaying the repo-association prompt.
-	 * 	"Services" - We’re displaying one or more services for the current repo.
+	 *	When all parts of the observability panel are done loading
+	 *  and a user is connected to NR, fire off a tracking event
 	 */
 	useEffect(() => {
 		if (
