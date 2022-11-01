@@ -521,6 +521,11 @@ export const Observability = React.memo((props: Props) => {
 				telemetryStateValue = "Services";
 			}
 
+			// "Not Connected" - not connected to NR, this goes away with UID completion
+			if (!derivedState.newRelicIsConnected) {
+				telemetryStateValue = "Not Connected";
+			}
+
 			if (!isEmpty(telemetryStateValue)) {
 				HostApi.instance.track("O11y Rendered ", {
 					State: telemetryStateValue,
@@ -737,7 +742,6 @@ export const Observability = React.memo((props: Props) => {
 			// Checks if any value in loadingErrors object is false
 			Object.keys(loadingErrors).some(k => !loadingErrors[k]) &&
 			!loadingAssigments &&
-			derivedState.newRelicIsConnected &&
 			hasLoadedOnce === false
 		) {
 			hasLoadedOnce = true;
