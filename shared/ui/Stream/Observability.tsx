@@ -23,12 +23,7 @@ import {
 import { RefreshEditorsCodeLensRequestType } from "@codestream/webview/ipc/host.protocol";
 import { CurrentMethodLevelTelemetry } from "@codestream/webview/store/context/types";
 import cx from "classnames";
-import {
-	forEach as _forEach,
-	head as _head,
-	isEmpty as _isEmpty,
-	isNil as _isNil,
-} from "lodash-es";
+import { head as _head, isEmpty, isEmpty as _isEmpty, isNil as _isNil } from "lodash-es";
 import React, { useEffect, useState } from "react";
 import { shallowEqual } from "react-redux";
 import styled from "styled-components";
@@ -388,7 +383,7 @@ export const Observability = React.memo((props: Props) => {
 	};
 
 	useDidMount(() => {
-		_useDidMount();
+		_useDidMount(false);
 
 		const disposable = HostApi.instance.on(HostDidChangeWorkspaceFoldersNotificationType, () => {
 			_useDidMount();
@@ -497,6 +492,43 @@ export const Observability = React.memo((props: Props) => {
 		}
 	};
 
+	/*
+	 *	After initial load, every time repo context changes, do telemetry tracking
+	 */
+	useEffect(() => {
+		if (hasLoadedOnce) {
+			callObservabilityTelemetry();
+		}
+	}, [currentEntityAccounts]);
+
+	/*
+	 *	State telemetry tracking for the obervability panel
+	 */
+	const callObservabilityTelemetry = () => {
+		setTimeout(() => {
+			let telemetryStateValue;
+			// "No Entities" - We don’t find any entities on NR and are showing the instrument-your-app message.
+			if (!hasEntities && !genericError) {
+				telemetryStateValue = "No Entities";
+			}
+			// "No Services" - There are entities but the current repo isn’t associated with one, so we’re
+			// 				   displaying the repo-association prompt.
+			if (hasEntities && !_isEmpty(repoForEntityAssociator)) {
+				telemetryStateValue = "No Services";
+			}
+			// "Services" - We’re displaying one or more services for the current repo.
+			if (currentEntityAccounts && currentEntityAccounts?.length !== 0 && hasEntities) {
+				telemetryStateValue = "Services";
+			}
+
+			if (!isEmpty(telemetryStateValue)) {
+				HostApi.instance.track("O11y Rendered ", {
+					State: telemetryStateValue,
+				});
+			}
+		}, 1000);
+	};
+
 	const fetchObservabilityRepos = (entityGuid?: string, repoId?, force = false) => {
 		loading(repoId, true);
 		setLoadingEntities(true);
@@ -576,7 +608,7 @@ export const Observability = React.memo((props: Props) => {
 		}
 	};
 
-	const handleClickErrorsInRepo = (e, id, entityGuid) => {
+	const handleClickTopLevelService = (e, id, entityGuid) => {
 		e.preventDefault();
 		e.stopPropagation();
 
@@ -602,6 +634,14 @@ export const Observability = React.memo((props: Props) => {
 		} else {
 			setExpandedEntity(entityGuid);
 		}
+
+		let currentRepoErrors = observabilityErrors.find(_ => _.repoId === currentRepoId)?.errors;
+		let filteredCurrentRepoErrors = currentRepoErrors?.filter(_ => _.entityId === entityGuid);
+		let filteredAssigments = observabilityAssignments?.filter(_ => _.entityId === entityGuid);
+
+		HostApi.instance.track("O11y Rendered ", {
+			"Errors Listed": !_isEmpty(filteredCurrentRepoErrors) || !_isEmpty(filteredAssigments),
+		});
 	};
 
 	const getFilteredPaneNodes = id => {
@@ -685,8 +725,11 @@ export const Observability = React.memo((props: Props) => {
 	}, [currentRepoId, observabilityRepos, expandedEntity, currentEntityAccountIndex]);
 
 	/*
-	 *	When all parts of the observability panel are done loading
-	 *  and a user is connected to NR, fire off a tracking event
+	 *	State telemetry tracking for the obervability panel, logic is as follows for "State" parameter:
+	 *	"No Entities" - We don’t find any entities on NR and are showing the instrument-your-app message.
+	 *	"No Services" - There are entities but the current repo isn’t associated with one, so we’re
+	 *					displaying the repo-association prompt.
+	 * 	"Services" - We’re displaying one or more services for the current repo.
 	 */
 	useEffect(() => {
 		if (
@@ -699,31 +742,7 @@ export const Observability = React.memo((props: Props) => {
 		) {
 			hasLoadedOnce = true;
 
-			let errorCount = 0,
-				unassociatedRepoCount = 0,
-				hasObservabilityErrors = false;
-
-			// Count all errors for each element of observabilityErrors
-			// Also set to hasObservability errors to true if nested errors array is populated
-			_forEach(observabilityErrors, oe => {
-				if (oe?.errors?.length) {
-					errorCount += oe.errors.length;
-					hasObservabilityErrors = true;
-				}
-			});
-
-			_forEach(observabilityRepos, ore => {
-				if (!ore.hasRepoAssociation) {
-					unassociatedRepoCount++;
-				}
-			});
-
-			HostApi.instance.track("NR Error List Rendered", {
-				"Errors Listed": !_isEmpty(observabilityAssignments) || hasObservabilityErrors,
-				"Assigned Errors": observabilityAssignments.length,
-				"Repo Errors": errorCount,
-				"Unassociated Repos": unassociatedRepoCount,
-			});
+			callObservabilityTelemetry();
 		}
 	}, [loadingErrors, loadingAssigments]);
 
@@ -940,7 +959,9 @@ export const Observability = React.memo((props: Props) => {
 																		}
 																		id={paneId}
 																		labelIsFlex={true}
-																		onClick={e => handleClickErrorsInRepo(e, paneId, ea.entityGuid)}
+																		onClick={e =>
+																			handleClickTopLevelService(e, paneId, ea.entityGuid)
+																		}
 																		collapsed={collapsed}
 																		showChildIconOnCollapse={true}
 																		actionsVisibleIfOpen={true}
