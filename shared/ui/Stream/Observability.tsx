@@ -248,6 +248,7 @@ export const Observability = React.memo((props: Props) => {
 	const [goldenMetrics, setGoldenMetrics] = useState<GoldenMetricsResult[]>([]);
 	const [newRelicUrl, setNewRelicUrl] = useState<string | undefined>("");
 	const [expandedEntity, setExpandedEntity] = useState<string | null>(null);
+	const [pendingTelemetryCall, setPendingTelemetryCall] = useState<boolean>(false);
 	const [currentEntityAccountIndex, setCurrentEntityAccountIndex] = useState<string | null>(null);
 	const [currentRepoId, setCurrentRepoId] = useState<string>("");
 	const [loadingGoldenMetrics, setLoadingGoldenMetrics] = useState<boolean>(false);
@@ -527,7 +528,7 @@ export const Observability = React.memo((props: Props) => {
 			}
 
 			if (!isEmpty(telemetryStateValue)) {
-				HostApi.instance.track("O11y Rendered ", {
+				HostApi.instance.track("O11y Rendered", {
 					State: telemetryStateValue,
 				});
 			}
@@ -640,14 +641,30 @@ export const Observability = React.memo((props: Props) => {
 			setExpandedEntity(entityGuid);
 		}
 
-		let currentRepoErrors = observabilityErrors.find(_ => _.repoId === currentRepoId)?.errors;
-		let filteredCurrentRepoErrors = currentRepoErrors?.filter(_ => _.entityId === entityGuid);
-		let filteredAssigments = observabilityAssignments?.filter(_ => _.entityId === entityGuid);
-
-		HostApi.instance.track("O11y Rendered ", {
-			"Errors Listed": !_isEmpty(filteredCurrentRepoErrors) || !_isEmpty(filteredAssigments),
-		});
+		setTimeout(() => {
+			setPendingTelemetryCall(true);
+		}, 500);
 	};
+
+	// Telemetry calls post clicking service and loading of errors
+	useEffect(() => {
+		if (
+			pendingTelemetryCall &&
+			expandedEntity &&
+			!_isNil(loadingErrors) &&
+			Object.keys(loadingErrors).some(k => !loadingErrors[k]) &&
+			!loadingAssigments
+		) {
+			let currentRepoErrors = observabilityErrors.find(_ => _.repoId === currentRepoId)?.errors;
+			let filteredCurrentRepoErrors = currentRepoErrors?.filter(_ => _.entityId === expandedEntity);
+			let filteredAssigments = observabilityAssignments?.filter(_ => _.entityId === expandedEntity);
+
+			HostApi.instance.track("NR Service Clicked", {
+				"Errors Listed": !_isEmpty(filteredCurrentRepoErrors) || !_isEmpty(filteredAssigments),
+			});
+			setPendingTelemetryCall(false);
+		}
+	}, [loadingErrors, loadingAssigments]);
 
 	const getFilteredPaneNodes = id => {
 		return Object.keys(derivedState.hiddenPaneNodes)
