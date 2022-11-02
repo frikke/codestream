@@ -1,12 +1,12 @@
 import { LoginResult } from "@codestream/protocols/api";
-import React, { useCallback, useState } from "react";
-import { FormattedMessage } from "react-intl";
-import { connect, useDispatch } from "react-redux";
+import React, { useCallback, useEffect, useState } from "react";
+import { FormattedMessage, useIntl } from "react-intl";
+import { connect } from "react-redux";
 import { DispatchProp } from "../store/common";
 import { goToLogin, goToSignup, SupportedSSOProvider } from "../store/context/actions";
 import { PROVIDER_MAPPINGS } from "../Stream/CrossPostIssueControls/types";
 import { Link } from "../Stream/Link";
-import { useInterval, useRetryingCallback, useTimeout } from "../utilities/hooks";
+import { useAppDispatch, useInterval, useRetryingCallback, useTimeout } from "../utilities/hooks";
 import { inMillis } from "../utils";
 import { SignupType, startIDESignin, startSSOSignin, validateSignup } from "./actions";
 
@@ -24,7 +24,9 @@ interface Props extends DispatchProp {
 
 export const ProviderAuth = (connect(undefined) as any)((props: Props) => {
 	const [isWaiting, setIsWaiting] = useState(true);
-	const dispatch = useDispatch();
+	const [tryAgainDisabled, setTryAgainDisabled] = useState(true);
+	const intl = useIntl();
+	const dispatch = useAppDispatch();
 
 	const providerName = PROVIDER_MAPPINGS[props.provider].displayName;
 
@@ -35,6 +37,21 @@ export const ProviderAuth = (connect(undefined) as any)((props: Props) => {
 	const waitFor = inMillis(300, "sec"); // changed to hopefully avoid timeouts
 	useTimeout(stopWaiting, waitFor);
 
+	const stopTryAgainWaiting = () => {
+		setTryAgainDisabled(false);
+	};
+
+	useEffect(() => {
+		if (!tryAgainDisabled) {
+			return;
+		}
+		const id = setTimeout(function () {
+			stopTryAgainWaiting();
+		}, inMillis(5, "sec"));
+
+		return () => clearTimeout(id);
+	}, [tryAgainDisabled]);
+
 	const onClickGoToSignup = (event: React.SyntheticEvent) => {
 		event.preventDefault();
 		props.dispatch(goToSignup());
@@ -42,6 +59,7 @@ export const ProviderAuth = (connect(undefined) as any)((props: Props) => {
 
 	const onClickTryAgain = (event: React.SyntheticEvent) => {
 		event.preventDefault();
+		setTryAgainDisabled(true);
 		if (props.provider === "github" && props.useIDEAuth) {
 			props.dispatch(
 				startIDESignin(
@@ -117,6 +135,11 @@ export const ProviderAuth = (connect(undefined) as any)((props: Props) => {
 		props.gotError.match("PRVD-105") &&
 		props.useIDEAuth;
 
+	const tryAgainHoverContent = intl.formatMessage({
+		id: "providerAuth.tryAgainHoverContent",
+		defaultMessage: "Please check your browser and finish authenticating before trying again.",
+	});
+
 	return (
 		<div className="onboarding-page">
 			<form className="standard-form">
@@ -177,7 +200,11 @@ export const ProviderAuth = (connect(undefined) as any)((props: Props) => {
 							<FormattedMessage id="providerAuth.contact" defaultMessage="Contact support" />
 						</Link>{" "}
 						<FormattedMessage id="providerAuth.or" defaultMessage="or " />
-						<Link onClick={onClickTryAgain}>
+						<Link
+							onClick={onClickTryAgain}
+							disabled={tryAgainDisabled}
+							disabledHover={tryAgainHoverContent}
+						>
 							<FormattedMessage id="providerAuth.tryAgain" defaultMessage="Try again" />
 						</Link>
 					</p>
