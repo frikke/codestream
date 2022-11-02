@@ -102,7 +102,7 @@ export function AcceptCompanyInvite() {
 			)) as JoinCompanyResponse;
 
 			HostApi.instance.track("Joined Organization", {
-				Availability: currentOrganizationInvite._type,
+				Availability: "Invite",
 				"Auth Provider": "CodeStream",
 			});
 

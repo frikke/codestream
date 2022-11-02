@@ -245,8 +245,10 @@ export function CompanyCreation(props: {
 				request
 			)) as JoinCompanyResponse;
 
+			const availabilityType = organization?.byInvite ? "Invite" : organization._type;
+
 			HostApi.instance.track("Joined Organization", {
-				Availability: organization._type,
+				Availability: availabilityType,
 				"Auth Provider": providerName,
 			});
 			dispatch(
