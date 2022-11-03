@@ -394,6 +394,7 @@ export const Signup = (props: Props) => {
 			HostApi.instance.track("Provider Auth Selected", {
 				Provider: "New Relic",
 			});
+			//@TODO: Change to idp signup page event
 			dispatch(goToNewRelicSignup({}));
 		},
 		[props.type]
@@ -480,7 +481,7 @@ export const Signup = (props: Props) => {
 								<h3>Sign into CodeStream with your New Relic account</h3>
 								{!limitAuthentication && (
 									<Button
-										style={{ marginBottom: "40px" }}
+										style={{ marginBottom: "30px" }}
 										className="row-button no-top-margin"
 										onClick={onClickNewRelicSignup}
 									>
