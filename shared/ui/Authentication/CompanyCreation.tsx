@@ -250,6 +250,7 @@ export function CompanyCreation(props: {
 			HostApi.instance.track("Joined Organization", {
 				Availability: availabilityType,
 				"Auth Provider": providerName,
+				Location: "Signup",
 			});
 			dispatch(
 				completeSignup(

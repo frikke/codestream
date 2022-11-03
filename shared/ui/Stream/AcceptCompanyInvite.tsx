@@ -104,23 +104,28 @@ export function AcceptCompanyInvite() {
 			HostApi.instance.track("Joined Organization", {
 				Availability: "Invite",
 				"Auth Provider": "CodeStream",
+				Location: "In-product",
 			});
 
-			dispatch(
-				switchToTeam({
-					teamId: result?.teamId,
-					accessTokenFromEligibleCompany: result?.accessToken,
-				})
-			);
+			// slight delay so tracking call completes before ide refreshes
+			setTimeout(() => {
+				dispatch(
+					switchToTeam({
+						teamId: result?.teamId,
+						accessTokenFromEligibleCompany: result?.accessToken,
+					})
+				);
+
+				dispatch(closeModal());
+			}, 500);
 		} catch (error) {
 			const errorMessage = typeof error === "string" ? error : error.message;
 			logError(`Unexpected error during company join: ${errorMessage}`, {
 				companyId: currentOrganizationInvite.id,
 			});
+			dispatch(closeModal());
 			dispatch(goToLogin());
 		}
-
-		dispatch(closeModal());
 	};
 
 	const handleClickDecline = async () => {
