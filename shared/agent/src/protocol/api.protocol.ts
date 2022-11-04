@@ -928,3 +928,12 @@ export interface CSThirdPartyProviderSetInfoRequestData {
 	data: { [key: string]: any };
 	pendingVerification?: boolean;
 }
+
+export interface CodespacesApiAuthRequest {
+	authToken: string;
+}
+
+export interface CodespacesApiAuthResponse {
+	accessToken: string;
+	email: string;
+}

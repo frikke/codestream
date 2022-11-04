@@ -15,9 +15,6 @@ import {
 	ClaimCodeErrorResponse,
 	CloseStreamRequest,
 	CloseStreamResponse,
-	CodespacesAuthApiRequest,
-	CodespacesAuthRequest,
-	CodespacesAuthResponse,
 	ConnectionStatus,
 	CreateChannelStreamRequest,
 	CreateChannelStreamResponse,
@@ -190,6 +187,8 @@ import {
 	VerifyConnectivityResponse,
 } from "../protocol/agent.protocol";
 import {
+	CodespacesApiAuthRequest,
+	CodespacesApiAuthResponse,
 	CSApiCapabilities,
 	CSApiFeatures,
 	CSChannelStream,
@@ -400,7 +399,7 @@ export interface ApiProvider {
 	login(options: LoginOptions): Promise<ApiProviderLoginResponse>;
 	generateLoginCode(request: GenerateLoginCodeRequest): Promise<void>;
 	subscribe(types?: MessageType[]): Promise<void>;
-	codespacesAuth(request: CodespacesAuthApiRequest): Promise<CodespacesAuthResponse>;
+	codespacesAuth(request: CodespacesApiAuthRequest): Promise<CodespacesApiAuthResponse>;
 
 	grantBroadcasterChannelAccess(token: string, channel: string): Promise<{}>;
 

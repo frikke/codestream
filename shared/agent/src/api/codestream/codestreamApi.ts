@@ -37,9 +37,6 @@ import {
 	ClaimCodeErrorResponse,
 	CloseStreamRequest,
 	CodeStreamEnvironment,
-	CodespacesAuthApiRequest,
-	CodespacesAuthRequest,
-	CodespacesAuthResponse,
 	CreateChannelStreamRequest,
 	CreateCodemarkPermalinkRequest,
 	CreateCodemarkRequest,
@@ -189,6 +186,8 @@ import {
 	VerifyConnectivityResponse,
 } from "../../protocol/agent.protocol";
 import {
+	CodespacesApiAuthRequest,
+	CodespacesApiAuthResponse,
 	CSAddMarkersRequest,
 	CSAddMarkersResponse,
 	CSAddProviderHostRequest,
@@ -476,8 +475,8 @@ export class CodeStreamApiProvider implements ApiProvider {
 		);
 
 		/*
-			💩: the session needs the accessToken token in order to rectify the user's account state
-		*/
+            💩: the session needs the accessToken token in order to rectify the user's account state
+        */
 		if (response.user.mustSetPassword) {
 			// save the accessToken for the call to set password
 			this._token = response.accessToken;
@@ -527,26 +526,26 @@ export class CodeStreamApiProvider implements ApiProvider {
 		}
 
 		/*
-		NOTE - slack/msteams login, where the user is assigned to a team by the server, is deprecated
-			github login is treated like a normal login, but without providing password
+        NOTE - slack/msteams login, where the user is assigned to a team by the server, is deprecated
+            github login is treated like a normal login, but without providing password
 
-		// If we are a slack/msteams team or have no overrides, then use the response teamId directly
-		if (
-			provider != null &&
-			(provider !== "codestream" ||
-				(options.team == null && (options.teamId == null || options.teamId === response.teamId)))
-		) {
-			const teamId = response.teamId;
-			team = teams.find(t => t.id === teamId);
+        // If we are a slack/msteams team or have no overrides, then use the response teamId directly
+        if (
+            provider != null &&
+            (provider !== "codestream" ||
+                (options.team == null && (options.teamId == null || options.teamId === response.teamId)))
+        ) {
+            const teamId = response.teamId;
+            team = teams.find(t => t.id === teamId);
 
-			if (team != null) {
-				pickedTeamReason = " because the team was associated with the authentication token";
-			} else {
-				// If we can't find the team, make sure to filter to only teams that match the current provider
-				teams = response.teams.filter(t => Team.isProvider(t, provider));
-			}
-		}
-		*/
+            if (team != null) {
+                pickedTeamReason = " because the team was associated with the authentication token";
+            } else {
+                // If we can't find the team, make sure to filter to only teams that match the current provider
+                teams = response.teams.filter(t => Team.isProvider(t, provider));
+            }
+        }
+        */
 
 		if (team == null) {
 			// If there is only 1 team, use it regardless of config
@@ -639,8 +638,13 @@ export class CodeStreamApiProvider implements ApiProvider {
 		await this.post<GenerateLoginCodeRequest, {}>("/no-auth/generate-login-code", request);
 	}
 
-	async codespacesAuth(request: CodespacesAuthApiRequest): Promise<CodespacesAuthResponse> {
-		return this.post(`/no-auth/codespaces-auth`, request);
+	async codespacesAuth(request: CodespacesApiAuthRequest): Promise<CodespacesApiAuthResponse> {
+		const response = await this.post<CodespacesApiAuthRequest, CodespacesApiAuthResponse>(
+			`/no-auth/codespaces-auth`,
+			request
+		);
+		this._token = response.accessToken;
+		return response;
 	}
 
 	async register(request: CSRegisterRequest) {
@@ -720,14 +724,14 @@ export class CodeStreamApiProvider implements ApiProvider {
 		this._events.onDidReceiveMessage(this.onPubnubMessageReceivedWithBlocking, this);
 
 		/* No longer need to subscribe to streams
-		if (types === undefined || types.includes(MessageType.Streams)) {
-			const streams = (await SessionContainer.instance().streams.getSubscribable(this.teamId))
-				.streams;
-			await this._events.connect(streams.map(s => s.id));
-		} else {
-			await this._events.connect();
-		}
-		*/
+        if (types === undefined || types.includes(MessageType.Streams)) {
+            const streams = (await SessionContainer.instance().streams.getSubscribable(this.teamId))
+                .streams;
+            await this._events.connect(streams.map(s => s.id));
+        } else {
+            await this._events.connect();
+        }
+        */
 		await this._events.connect();
 
 		this._onDidSubscribe.fire();
@@ -820,12 +824,12 @@ export class CodeStreamApiProvider implements ApiProvider {
 				if (e.data == null || e.data.length === 0) return;
 
 				/*
-				if (this._events !== undefined) {
-					for (const codeError of e.data as CSCodeError[]) {
-						this._events.subscribeToObject(codeError.id);
-					}
-				}
-				*/
+                if (this._events !== undefined) {
+                    for (const codeError of e.data as CSCodeError[]) {
+                        this._events.subscribeToObject(codeError.id);
+                    }
+                }
+                */
 
 				break;
 			}
@@ -834,18 +838,18 @@ export class CodeStreamApiProvider implements ApiProvider {
 				if (e.data == null || e.data.length === 0) return;
 
 				/*
-				if (this._events !== undefined) {
-					for (const stream of e.data as (CSChannelStream | CSDirectStream | CSObjectStream)[]) {
-						if (
-							CodeStreamApiProvider.isStreamSubscriptionRequired(stream, this.userId, this.teamId)
-						) {
-							this._events.subscribeToStream(stream.id);
-						} else if (CodeStreamApiProvider.isStreamUnsubscribeRequired(stream, this.userId)) {
-							this._events.unsubscribeFromStream(stream.id);
-						}
-					}
-				}
-				*/
+                if (this._events !== undefined) {
+                    for (const stream of e.data as (CSChannelStream | CSDirectStream | CSObjectStream)[]) {
+                        if (
+                            CodeStreamApiProvider.isStreamSubscriptionRequired(stream, this.userId, this.teamId)
+                        ) {
+                            this._events.subscribeToStream(stream.id);
+                        } else if (CodeStreamApiProvider.isStreamUnsubscribeRequired(stream, this.userId)) {
+                            this._events.unsubscribeFromStream(stream.id);
+                        }
+                    }
+                }
+                */
 				break;
 			case MessageType.Teams:
 				const { session, teams } = SessionContainer.instance();
@@ -1179,13 +1183,15 @@ export class CodeStreamApiProvider implements ApiProvider {
 
 	@log()
 	fetchCodemarks(request: FetchCodemarksRequest) {
-		return this.get<CSGetCodemarksResponse>(
+		const response = this.get<CSGetCodemarksResponse>(
 			`/codemarks?${qs.stringify({
 				teamId: this.teamId,
 				byLastAcivityAt: request.byLastAcivityAt,
 			})}${request.before ? `&before=${request.before}` : ""}`,
 			this._token
 		);
+		Logger.log(`*** fetchCodemarks ${JSON.stringify(response)}`);
+		return response;
 	}
 
 	@log()
@@ -1420,10 +1426,10 @@ export class CodeStreamApiProvider implements ApiProvider {
 		}
 
 		/*
-		(response.codeErrors || []).forEach(codeError => {
-			this._events?.subscribeToObject(codeError.id);
-		});
-		*/
+        (response.codeErrors || []).forEach(codeError => {
+            this._events?.subscribeToObject(codeError.id);
+        });
+        */
 
 		await this.fetchAndStoreUnknownAuthors(response.posts);
 
@@ -1596,20 +1602,20 @@ export class CodeStreamApiProvider implements ApiProvider {
 			params.ids = request.codeErrorIds;
 		}
 		/* The need to pass streamId or streamIds is deprecated
-		if (request.streamIds != null) {
-			params.streamIds = request.streamIds;
-		}
-		*/
+        if (request.streamIds != null) {
+            params.streamIds = request.streamIds;
+        }
+        */
 		const response = await this.get<CSGetCodeErrorsResponse>(
 			`/code-errors?${qs.stringify(params)}`,
 			this._token
 		);
 
 		/*
-		(response.codeErrors || []).forEach(codeError => {
-			this._events?.subscribeToObject(codeError.id);
-		});
-		*/
+        (response.codeErrors || []).forEach(codeError => {
+            this._events?.subscribeToObject(codeError.id);
+        });
+        */
 
 		return response;
 	}
@@ -1733,31 +1739,37 @@ export class CodeStreamApiProvider implements ApiProvider {
 			request.types.length === 0 ||
 			(request.types.includes(StreamType.Channel) && request.types.includes(StreamType.Direct))
 		) {
-			return this.getStreams<
+			const result = this.getStreams<
 				CSGetStreamsResponse<CSChannelStream | CSDirectStream | CSObjectStream>
 			>(`/streams?teamId=${this.teamId}`, this._token);
+			Logger.log(`*** Channel/Direct streams ${JSON.stringify(result)}`);
+			return result;
 		}
 
-		return this.getStreams<CSGetStreamsResponse<CSChannelStream | CSDirectStream | CSObjectStream>>(
-			`/streams?teamId=${this.teamId}&type=${request.types[0]}`,
-			this._token
-		);
+		const result = this.getStreams<
+			CSGetStreamsResponse<CSChannelStream | CSDirectStream | CSObjectStream>
+		>(`/streams?teamId=${this.teamId}&type=${request.types[0]}`, this._token);
+		Logger.log(`*** Streams ${JSON.stringify(result)}`);
+		return result;
 	}
 
 	@log()
 	fetchUnreadStreams(request: FetchUnreadStreamsRequest) {
-		return this.getStreams<CSGetStreamsResponse<CSChannelStream | CSDirectStream | CSObjectStream>>(
-			`/streams?teamId=${this.teamId}&unread`,
-			this._token
-		);
+		const result = this.getStreams<
+			CSGetStreamsResponse<CSChannelStream | CSDirectStream | CSObjectStream>
+		>(`/streams?teamId=${this.teamId}&unread`, this._token);
+		Logger.log(`*** fetchUnreadStreams ${JSON.stringify(result)}`);
+		return result;
 	}
 
 	@log()
 	async getStream(request: GetStreamRequest) {
-		return this.get<CSGetStreamResponse<CSChannelStream | CSDirectStream | CSObjectStream>>(
+		const result = this.get<CSGetStreamResponse<CSChannelStream | CSDirectStream | CSObjectStream>>(
 			`/streams/${request.streamId}`,
 			this._token
 		);
+		Logger.log(`*** getStream ${JSON.stringify(result)}`);
+		return result;
 	}
 
 	@log()
@@ -2043,7 +2055,16 @@ export class CodeStreamApiProvider implements ApiProvider {
 	@log()
 	@lspHandler(CreateCompanyRequestType)
 	createCompany(request: CreateCompanyRequest) {
-		return this.post("/companies", request, this._token);
+		const url = request.demo ? "/companies?demo=true" : "/companies";
+		return this.post(
+			url,
+			{
+				name: request.name,
+				domainJoining: request.domainJoining,
+				streamId: request.streamId,
+			},
+			this._token
+		);
 	}
 
 	@log()

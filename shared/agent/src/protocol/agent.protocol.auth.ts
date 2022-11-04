@@ -69,13 +69,18 @@ export const OtcLoginRequestType = new RequestType<OtcLoginRequest, LoginRespons
 	"codestream/login/otc"
 );
 
-export interface CodespacesAuthApiRequest {
-	authToken: string;
+// export interface CodespacesAuthApiRequest {
+// 	authToken: string;
+// }
+
+export interface CodespacesAuthRequest {
+	// authToken: string;
 }
 
-export interface CodespacesAuthRequest {}
-
-export interface CodespacesAuthResponse {}
+export interface CodespacesAuthResponse {
+	accessToken: string;
+	email: string;
+}
 
 export const CodespacesAuthRequestType = new RequestType<
 	CodespacesAuthRequest,

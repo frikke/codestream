@@ -36,6 +36,8 @@ export const GetCompanyRequestType = new RequestType<
 export interface CreateCompanyRequest {
 	name: string;
 	domainJoining?: string[];
+	demo?: boolean;
+	streamId?: string;
 }
 
 export interface CreateCompanyResponse {

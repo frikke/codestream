@@ -14,7 +14,9 @@ import {
 	PasswordLoginRequestType,
 	TokenLoginRequestType,
 	Unreads,
-	CodespacesAuthRequestType
+	CodespacesAuthRequestType,
+	CodespacesAuthResponse,
+	CreateCompanyRequestType
 } from "@codestream/protocols/agent";
 import {
 	ChannelServiceType,
@@ -59,6 +61,7 @@ import {
 	PreferencesChangedEvent
 } from "./sessionEvents";
 import { SessionState } from "./sessionState";
+import wait = Functions.wait;
 import * as TokenManager from "./tokenManager";
 
 export {
@@ -228,35 +231,55 @@ export class CodeStreamSession implements Disposable {
 		);
 
 		if (config.autoSignIn) {
-			const teamId = Container.context.workspaceState.get(WorkspaceState.TeamId) as string;
-			if (teamId) {
-				this.setStatus(SessionStatus.SigningIn);
-				const disposable = Container.agent.onDidStart(async () => {
-					await this.autoSignin(teamId);
-					disposable.dispose();
-				});
-			}
+			const teamId = Container.context.workspaceState.get<string>(WorkspaceState.TeamId);
+			Logger.log(`*** autoSignin with teamId ${teamId}`);
+			this.setStatus(SessionStatus.SigningIn);
+			const disposable = Container.agent.onDidStart(async () => {
+				await this.autoSignin(teamId);
+				disposable.dispose();
+			});
+		} else {
+			Logger.log(`*** autoSignin disabled`);
 		}
 	}
 
-	async autoSignin(teamId: string) {
+	async autoSignin(teamId?: string) {
+		Logger.log(`*** autoSignin with teamId ${teamId}`);
 		const config = Container.config;
-		let token =
-			(await TokenManager.get(this._serverUrl, config.email, teamId)) ||
-			(await TokenManager.get(this._serverUrl, config.email));
-		if (token) {
-			this.login(config.email, token, teamId);
-		} else if (this.codespaceEnv()) {
-			await this.codespaceLogin();
+		if (teamId) {
+			const token =
+				(await TokenManager.get(this._serverUrl, config.email, teamId)) ||
+				(await TokenManager.get(this._serverUrl, config.email));
+			if (token) {
+				Logger.log("*** autoSignin token");
+				this.login(config.email, token, teamId);
+				return;
+			}
+		}
+		if (this.codespaceEnv()) {
+			const result = await this.codespaceLogin();
+			Logger.log(`*** codespaceLogin result ${JSON.stringify(result)}`);
+			const companyResponse = await this.createCompany();
+			const accessToken: AccessToken = {
+				email: result.email,
+				url: this._serverUrl,
+				teamId: companyResponse.teamId,
+				value: companyResponse.accessToken
+			}
+			// await wait(5000);
+			Logger.log(`*** codespaceLogin calling login with token`);
+			await this.login(result.email, accessToken, teamId);
 		} else {
+			Logger.log("*** autoSignin signedOut");
 			this.setStatus(SessionStatus.SignedOut);
 		}
 	}
 
-	private async codespaceLogin() {
+	private async codespaceLogin(): Promise<CodespacesAuthResponse> {
 		// const githubToken = process.env.GITHUB_TOKEN!;
 		// const githubUrl = process.env.GITHUB_API_URL!;
-		await Container.agent.sendRequest(CodespacesAuthRequestType, {});
+		Logger.log("*** vscode codespaceLogin");
+		return await Container.agent.sendRequest(CodespacesAuthRequestType, {});
 		// const result = fetch(`${githubUrl}/user`, {
 		// 	headers: {
 		// 		authorization: `token ${githubToken}`,
@@ -265,8 +288,21 @@ export class CodeStreamSession implements Disposable {
 	// });
 	}
 
+	private async createCompany(): Promise<{accessToken: string, userId: string, teamId: string}> {
+		Logger.log("*** vscode createCompany");
+		const result = await Container.agent.sendRequest(CreateCompanyRequestType, {
+			name: "Demo org",
+			demo: true,
+		});
+		Logger.log(`*** vscode createCompany complete ${JSON.stringify(result)}`);
+		// return (result as any).teamId; // TODO FIX TYPE
+		return result as any; // TODO FIX TYPE
+	}
+
 	private codespaceEnv(): boolean {
-		return (process.env.CODESPACES === "true" && process.env.GITHUB_TOKEN !== undefined);
+		const isCodespaces = (process.env.CODESPACES === "true" && process.env.GITHUB_TOKEN !== undefined);
+		Logger.log(`*** isCodespaces: ${isCodespaces}`);
+		return isCodespaces;
 	}
 
 	dispose() {

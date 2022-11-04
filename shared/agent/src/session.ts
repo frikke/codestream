@@ -948,7 +948,7 @@ export class CodeStreamSession {
 	@log({ singleLine: true })
 	async codespacesAuth(request: CodespacesAuthRequest) {
 		const cc = Logger.getCorrelationContext();
-		Logger.log(cc, `Codespaces login into CodeStream (@ ${this._options.serverUrl})`);
+		Logger.log(cc, `*** Codespaces login into CodeStream (@ ${this._options.serverUrl})`);
 
 		const githubToken = process.env.GITHUB_TOKEN;
 		const codespaces = process.env.CODESPACES;
