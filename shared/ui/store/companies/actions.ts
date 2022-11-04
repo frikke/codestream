@@ -44,7 +44,7 @@ export const createForeignCompany =
 		let _host = JSON.parse(JSON.stringify(host));
 		_host.accessToken = response.accessToken;
 		response.company.host = _host;
-		await dispatch(addCompanies([response.company]));
+		if (response.company != undefined) dispatch(addCompanies([response.company]));
 
 		return response.company;
 	};
