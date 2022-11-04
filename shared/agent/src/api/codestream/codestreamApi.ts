@@ -2034,8 +2034,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 	@log()
 	@lspHandler(CreateCompanyRequestType)
 	createCompany(request: CreateCompanyRequest) {
-		const response = this.post("/companies", request, this._token);
-		return response;
+		return this.post("/companies", request, this._token);
 	}
 
 	@log()
