@@ -98,6 +98,7 @@ export interface CSEligibleJoinCompany {
 	name: string;
 	host?: EnvironmentHost;
 	byInvite?: boolean;
+	teamId?: string;
 }
 
 export interface CSLoginResponse {
