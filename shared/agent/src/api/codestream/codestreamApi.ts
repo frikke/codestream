@@ -44,6 +44,7 @@ import {
 	CreateExternalPostRequest,
 	CreateForeignCompanyRequest,
 	CreateForeignCompanyRequestType,
+	CreateForeignCompanyResponse,
 	CreateMarkerLocationRequest,
 	CreateMarkerRequest,
 	CreatePostRequest,
@@ -2045,16 +2046,17 @@ export class CodeStreamApiProvider implements ApiProvider {
 			serverUrl: request.host.publicApiUrl,
 		};
 
-		const response = await this.post("/create-xenv-company", body, this._token);
+		const response: CreateForeignCompanyResponse = await this.post(
+			"/create-xenv-company",
+			body,
+			this._token
+		);
 
-		//@TODO, fix ts-ignores
 		await SessionContainer.instance().users.resolve({
 			type: MessageType.Users,
-			// @ts-ignore
 			data: [response.user],
 		});
 
-		// @ts-ignore
 		return response;
 	}
 

@@ -386,6 +386,7 @@ export interface CreateForeignCompanyRequest {
 
 export interface CreateForeignCompanyResponse extends CreateCompanyResponse {
 	accessToken: string;
+	user?: CSUser;
 }
 
 export const CreateForeignCompanyRequestType = new RequestType<
