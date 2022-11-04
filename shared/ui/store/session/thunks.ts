@@ -94,9 +94,14 @@ export const switchToForeignCompany = createAppAsyncThunk<any, string>(
 	"session/switchToForeignCompany",
 	async (companyId, { dispatch, getState }) => {
 		const { companies, session, users } = getState();
-		const company = companies[companyId];
+
 		const user = users[session.userId!] as CSMe;
-		const teamId = company.everyoneTeamId;
+
+		// const company = companies[companyId];
+
+		const company = user?.eligibleJoinCompanies?.find(_ => _.id === companyId);
+
+		const teamId = "";
 		let error;
 		if (!company) {
 			error = "Failed to switch to foreign company, companyId not found";
@@ -104,7 +109,7 @@ export const switchToForeignCompany = createAppAsyncThunk<any, string>(
 		} else if (!company.host) {
 			error = "Failed to switch to organization, not a foreign company";
 			return;
-		} else if (!company.host.accessToken) {
+		} else if (!company.accessToken) {
 			error = "Failed to switch to organization, no access token";
 		}
 		if (error) {
