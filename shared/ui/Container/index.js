@@ -82,7 +82,8 @@ const getIdeInstallationInstructions = props => {
 };
 
 const Root = connect(mapStateToProps)(props => {
-	if (props.inMaintenanceMode)
+	// disabled only for this special test version, restore when deploy to one-user-per-org is complete
+	if (false /*props.inMaintenanceMode*/)
 		return (
 			<RoadBlock title="Pardon the Interruption">
 				<p>

@@ -2603,7 +2603,6 @@ export class CodeStreamApiProvider implements ApiProvider {
 				if (init.headers instanceof Headers) {
 					init.headers.append("Accept", "application/json");
 					init.headers.append("Content-Type", "application/json");
-
 					if (token !== undefined) {
 						init.headers.append("Authorization", `Bearer ${token}`);
 					}
@@ -2615,6 +2614,9 @@ export class CodeStreamApiProvider implements ApiProvider {
 						`${this._version.extension.version}+${this._version.extension.build}`
 					);
 					init.headers.append("X-CS-IDE-Version", this._version.ide.version);
+
+					// only for this special test version, remove when deploy to one-user-per-org is complete
+					init.headers.append("X-CS-Override-Maintenance-Mode", "xyz123");
 				}
 			}
 
@@ -2859,6 +2861,11 @@ export class CodeStreamApiProvider implements ApiProvider {
 			const resp = await customFetch(this.baseUrl + "/no-auth/capabilities", {
 				agent: this._httpsAgent,
 				signal: controller.signal,
+
+				// only for this special test version, remove when deploy to one-user-per-org is complete
+				headers: {
+					"X-CS-Override-Maintenance-Mode": "xyz123",
+				},
 			});
 
 			Logger.log(`API server status: ${resp.status}`);
