@@ -224,7 +224,7 @@ export const Observability = React.memo((props: Props) => {
 		};
 	}, shallowEqual);
 
-	const NO_ERRORS_ACCESS_ERROR_MESSAGE = "403";
+	const NO_ERRORS_ACCESS_ERROR_MESSAGE = undefined; // "403";
 	const GENERIC_ERROR_MESSAGE = "There was an error loading this data.";
 
 	const [noErrorsAccess, setNoErrorsAccess] = useState<string | undefined>(undefined);
