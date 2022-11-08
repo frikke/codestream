@@ -48,6 +48,7 @@ import com.intellij.psi.SyntaxTraverser
 import com.intellij.refactoring.suggested.endOffset
 import com.intellij.refactoring.suggested.startOffset
 import com.intellij.util.concurrency.NonUrgentExecutor
+import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -93,7 +94,7 @@ abstract class CLMEditorManager(
 ) : DocumentListener, GoldenSignalListener, Disposable, FocusListener {
     private val path = editor.document.getUserData(LOCAL_PATH) ?: editor.document.file?.path
     private val project = editor.project
-    private val metricsBySymbol = mutableMapOf<MethodLevelTelemetrySymbolIdentifier, Metrics>()
+    private var metricsBySymbol = mapOf<MethodLevelTelemetrySymbolIdentifier, Metrics>()
     private val inlays = mutableSetOf<Inlay<CLMCustomRenderer>>()
     private var lastResult: FileLevelTelemetryResult? = null
     private var currentError: FileLevelTelemetryResultError? = null
@@ -174,7 +175,7 @@ abstract class CLMEditorManager(
                         if (result.error != null) {
                             currentError = result.error
                             if (result.error?.type == NOT_ASSOCIATED || result.error?.type == NOT_CONNECTED) {
-                                metricsBySymbol.clear()
+                                metricsBySymbol = mapOf()
                                 updateInlays()
                             }
                             logger.info("Not updating CLM metrics due to error ${result.error?.type}")
@@ -184,20 +185,23 @@ abstract class CLMEditorManager(
                         }
 
                         lastResult = result
-                        metricsBySymbol.clear()
+                        metricsBySymbol = mapOf()
+
+                        val updatedMetrics = mutableMapOf<MethodLevelTelemetrySymbolIdentifier, Metrics>()
 
                         lastResult?.errorRate?.forEach { errorRate ->
-                            val metrics = metricsBySymbol.getOrPut(errorRate.symbolIdentifier) { Metrics() }
+                            val metrics = updatedMetrics.getOrPut(errorRate.symbolIdentifier) { Metrics() }
                             metrics.errorRate = errorRate
                         }
                         lastResult?.averageDuration?.forEach { averageDuration ->
-                            val metrics = metricsBySymbol.getOrPut(averageDuration.symbolIdentifier) { Metrics() }
+                            val metrics = updatedMetrics.getOrPut(averageDuration.symbolIdentifier) { Metrics() }
                             metrics.averageDuration = averageDuration
                         }
                         lastResult?.throughput?.forEach { throughput ->
-                            val metrics = metricsBySymbol.getOrPut(throughput.symbolIdentifier) { Metrics() }
+                            val metrics = updatedMetrics.getOrPut(throughput.symbolIdentifier) { Metrics() }
                             metrics.throughput = throughput
                         }
+                        metricsBySymbol = updatedMetrics.toImmutableMap()
                         updateInlays()
                     } catch (ex: Exception) {
                         logger.error("Error getting fileLevelTelemetry", ex)
