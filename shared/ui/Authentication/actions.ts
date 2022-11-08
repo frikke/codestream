@@ -295,6 +295,7 @@ export const onLogin =
 		if (response.state.codemarkId) {
 			let { codemarks } = getState();
 			if (Object.keys(codemarks).length === 0) {
+				console.log(`*** Authentication/actions fetchCodemarks`);
 				await dispatch(fetchCodemarks());
 				codemarks = getState().codemarks;
 			}

@@ -1182,8 +1182,8 @@ export class CodeStreamApiProvider implements ApiProvider {
 	}
 
 	@log()
-	fetchCodemarks(request: FetchCodemarksRequest) {
-		const response = this.get<CSGetCodemarksResponse>(
+	async fetchCodemarks(request: FetchCodemarksRequest) {
+		const response = await this.get<CSGetCodemarksResponse>(
 			`/codemarks?${qs.stringify({
 				teamId: this.teamId,
 				byLastAcivityAt: request.byLastAcivityAt,
@@ -2054,9 +2054,10 @@ export class CodeStreamApiProvider implements ApiProvider {
 
 	@log()
 	@lspHandler(CreateCompanyRequestType)
-	createCompany(request: CreateCompanyRequest) {
+	async createCompany(request: CreateCompanyRequest) {
 		const url = request.demo ? "/companies?demo=true" : "/companies";
-		return this.post(
+		Logger.log(`*** POST ${url} ${JSON.stringify(request)}`);
+		const response = await this.post(
 			url,
 			{
 				name: request.name,
@@ -2065,6 +2066,8 @@ export class CodeStreamApiProvider implements ApiProvider {
 			},
 			this._token
 		);
+		Logger.log(`*** createCompany response ${JSON.stringify(response)}`);
+		return response;
 	}
 
 	@log()
