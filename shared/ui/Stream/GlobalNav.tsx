@@ -1,36 +1,44 @@
-import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
-import React from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { CodeStreamState } from "../store";
-import { WebviewPanels } from "../ipc/webview.protocol.common";
-import Icon from "./Icon";
-import Tooltip, { TipTitle, placeArrowTopRight } from "./Tooltip";
-import { Link } from "./Link";
-import cx from "classnames";
-import { openPanel, setUserPreference } from "./actions";
-import { PlusMenu } from "./PlusMenu";
-import { TeamMenu } from "./TeamMenu";
-import { EllipsisMenu } from "./EllipsisMenu";
-import {
-	setCurrentReview,
-	clearCurrentPullRequest,
-	setCreatePullRequest,
-} from "../store/context/actions";
-import { setCurrentCodemark } from "../store/context/actions";
-import { HostApi } from "../webview-api";
 import {
 	LocalFilesCloseDiffRequestType,
 	ReviewCloseDiffRequestType,
 } from "@codestream/protocols/webview";
+import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
+import cx from "classnames";
+import React from "react";
+import { WebviewPanels } from "../ipc/webview.protocol.common";
 import { HeadshotName } from "../src/components/HeadshotName";
+import { CodeStreamState } from "../store";
+import {
+	clearCurrentPullRequest,
+	setCreatePullRequest,
+	setCurrentCodemark,
+	setCurrentReview,
+} from "../store/context/actions";
+import { HostApi } from "../webview-api";
+import { openPanel, setUserPreference } from "./actions";
+import { EllipsisMenu } from "./EllipsisMenu";
+import Icon from "./Icon";
+import { Link } from "./Link";
+import { PlusMenu } from "./PlusMenu";
+import { TeamMenu } from "./TeamMenu";
+import Tooltip, { placeArrowTopRight, TipTitle } from "./Tooltip";
 
 const sum = (total, num) => total + Math.round(num);
 
 export function GlobalNav() {
 	const dispatch = useAppDispatch();
 	const derivedState = useAppSelector((state: CodeStreamState) => {
-		const { umis, preferences } = state;
-
+		const { users, umis, preferences } = state;
+		const user = users[state.session.userId!];
+		const eligibleJoinCompanies = user?.eligibleJoinCompanies;
+		let inviteCount: number = 0;
+		if (eligibleJoinCompanies) {
+			eligibleJoinCompanies.forEach(company => {
+				if (company.byInvite && !company.accessToken) {
+					inviteCount++;
+				}
+			});
+		}
 		return {
 			clickedPlus: preferences.clickedPlus,
 			clickedInvite: preferences.clickedInvite,
@@ -45,6 +53,8 @@ export function GlobalNav() {
 			currentPullRequestId: state.context.currentPullRequest
 				? state.context.currentPullRequest.id
 				: undefined,
+			eligibleJoinCompanies,
+			inviteCount,
 		};
 	});
 
@@ -54,6 +64,8 @@ export function GlobalNav() {
 
 	const {
 		activePanel,
+		eligibleJoinCompanies,
+		inviteCount,
 		totalUnread,
 		totalMentions,
 		currentCodemarkId,
@@ -110,6 +122,9 @@ export function GlobalNav() {
 		}
 	};
 
+	// Plural handling
+	const tooltipText = inviteCount < 2 ? "Invitation" : "Invitations";
+
 	// const selected = panel => activePanel === panel && !currentPullRequestId && !currentReviewId; // && !plusMenuOpen && !menuOpen;
 	const selected = panel => false;
 	return React.useMemo(() => {
@@ -124,8 +139,53 @@ export function GlobalNav() {
 						className={cx({ active: false && ellipsisMenuOpen })}
 						id="global-nav-more-label"
 					>
-						<HeadshotName id={derivedState.currentUserId} size={16} className="no-padding" />
+						<HeadshotName
+							id={derivedState.currentUserId}
+							size={16}
+							hasInvites={inviteCount > 0}
+							className="no-padding"
+						/>
 						<Icon name="chevron-down" className="smaller" style={{ verticalAlign: "-2px" }} />
+
+						{inviteCount > 0 && (
+							<Tooltip
+								placement="topLeft"
+								title={`${inviteCount} ${tooltipText}`}
+								align={{ offset: [-10, 0] }}
+								delay={1}
+							>
+								<ul
+									style={{ listStyle: "none", margin: "0", padding: "0", display: "inline-block" }}
+								>
+									<li
+										style={{
+											display: "inline-block",
+											backgroundColor: "var(--text-color-info-muted)",
+											margin: "0",
+											borderRadius: "50%",
+											verticalAlign: "-5px",
+										}}
+									>
+										<a
+											style={{
+												color: "var(--text-color-highlight)",
+												display: "table-cell",
+												verticalAlign: "middle",
+												textAlign: "center",
+												textDecoration: "none",
+												height: "20px",
+												width: "20px",
+												paddingTop: "1px",
+											}}
+											href="#"
+										>
+											<Icon name="mail" />
+										</a>
+									</li>
+								</ul>
+							</Tooltip>
+						)}
+
 						{ellipsisMenuOpen && (
 							<EllipsisMenu
 								closeMenu={() => setEllipsisMenuOpen(undefined)}
@@ -245,5 +305,6 @@ export function GlobalNav() {
 		plusMenuOpen,
 		teamMenuOpen,
 		ellipsisMenuOpen,
+		inviteCount,
 	]);
 }

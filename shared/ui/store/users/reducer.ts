@@ -73,7 +73,7 @@ export const getTeamMembers = createSelector(getCurrentTeam, getUsers, (team, us
 	return mapFilter(memberIds, (id: string) => {
 		const user: CSUser = users[id];
 		return user && !user.deactivated && !user.externalUserId ? user : undefined;
-	}).sort((a, b) => a.username.localeCompare(b.username));
+	}).sort((a, b) => a?.username?.localeCompare(b?.username));
 });
 
 export const getTeamMates = createSelector(

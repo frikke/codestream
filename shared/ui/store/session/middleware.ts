@@ -1,6 +1,10 @@
+import { VerifyConnectivityRequestType } from "@codestream/protocols/agent";
 import { authenticate } from "@codestream/webview/Authentication/actions";
+import { errorDismissed } from "@codestream/webview/store/connectivity/actions";
 import { Middleware } from "redux";
 import { AppDispatch, CodeStreamState } from "..";
+import { RestartRequestType } from "../../ipc/webview.protocol";
+import { HostApi } from "../../webview-api";
 import { setMaintenanceMode } from "./actions";
 import { SessionActionType } from "./types";
 
@@ -19,7 +23,16 @@ export const sessionMiddleware: Middleware =
 					pollingTask = new Poller(10000, async () => {
 						if (getState().session.inMaintenanceMode) {
 							try {
-								await dispatch(authenticate(meta as any));
+								if (meta) {
+									await dispatch(authenticate(meta as any));
+								} else {
+									const resp = await HostApi.instance.send(VerifyConnectivityRequestType, void {});
+									if (resp.ok) {
+										await dispatch(setMaintenanceMode(false));
+										await dispatch(errorDismissed());
+										HostApi.instance.send(RestartRequestType, void {});
+									}
+								}
 								return !getState().session.inMaintenanceMode;
 							} catch (error) {
 								return;

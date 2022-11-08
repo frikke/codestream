@@ -1,40 +1,36 @@
 import { handleSelectedRegion, setSelectedRegion } from "@codestream/webview/store/session/thunks";
-import React, { useCallback, useEffect, useState } from "react";
 import cx from "classnames";
-import { CodeStreamState } from "../store";
+import React, { useCallback, useEffect, useState } from "react";
 import { FormattedMessage } from "react-intl";
-import Icon from "../Stream/Icon";
+import { CodeStreamState } from "../store";
 import Button from "../Stream/Button";
-import { InlineMenu } from "../src/components/controls/InlineMenu";
+import Icon from "../Stream/Icon";
 import { Link } from "../Stream/Link";
 // TODO: BRIAN FIX (remove this dependency)...
-import { ModalRoot } from "../Stream/Modal"; // HACK ALERT: including this component is NOT the right way
+import { GetUserInfoRequestType, RegisterUserRequestType } from "@codestream/protocols/agent";
+import { LoginResult } from "@codestream/protocols/api";
+import styled from "styled-components";
+import { Loading } from "../Container/Loading";
+import { logError } from "../logger";
+import { isFeatureEnabled } from "../store/apiVersioning/reducer";
+import { supportsSSOSignIn } from "../store/configs/slice";
 import {
-	goToNewUserEntry,
-	goToEmailConfirmation,
-	goToTeamCreation,
-	goToOktaConfig,
 	goToCompanyCreation,
+	goToEmailConfirmation,
 	goToLogin,
 	goToNewRelicSignup,
+	goToOktaConfig,
+	goToTeamCreation,
 } from "../store/context/actions";
-import { TextInput } from "./TextInput";
-import { LoginResult } from "@codestream/protocols/api";
-import { RegisterUserRequestType, GetUserInfoRequestType } from "@codestream/protocols/agent";
-import { HostApi } from "../webview-api";
-import { completeSignup, startIDESignin, startSSOSignin, SignupType } from "./actions";
-import { logError } from "../logger";
-import { useDispatch, useSelector } from "react-redux";
-import { useAppDispatch, useAppSelector, useDidMount } from "../utilities/hooks";
-import { Loading } from "../Container/Loading";
-import { supportsSSOSignIn } from "../store/configs/slice";
-import { Server } from "../webview-api";
-import { PresentTOS } from "./PresentTOS";
-import Tooltip from "../Stream/Tooltip";
-import { Dropdown } from "../Stream/Dropdown";
 import { confirmPopup } from "../Stream/Confirm";
-import styled from "styled-components";
-import { isFeatureEnabled } from "../store/apiVersioning/reducer";
+import { Dropdown } from "../Stream/Dropdown";
+import { ModalRoot } from "../Stream/Modal"; // HACK ALERT: including this component is NOT the right way
+import Tooltip from "../Stream/Tooltip";
+import { useAppDispatch, useAppSelector, useDidMount } from "../utilities/hooks";
+import { HostApi, Server } from "../webview-api";
+import { completeSignup, SignupType, startIDESignin, startSSOSignin } from "./actions";
+import { PresentTOS } from "./PresentTOS";
+import { TextInput } from "./TextInput";
 
 const isPasswordValid = (password: string) => password.length >= 6;
 export const isEmailValid = (email: string) => {
@@ -45,8 +41,6 @@ export const isEmailValid = (email: string) => {
 };
 export const isUsernameValid = (username: string) =>
 	new RegExp("^[-a-zA-Z0-9_.]{1,21}$").test(username);
-
-const isNotEmpty = s => s.length > 0;
 
 const OnPremTooltipCopy = styled.span`
 	color: var(--text-color-info);

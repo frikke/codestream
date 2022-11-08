@@ -78,7 +78,7 @@ export interface AccessToken {
 	email: string;
 	url: string;
 	value: string;
-	teamId?: string;
+	teamId: string;
 	provider?: string;
 	providerAccess?: "strict";
 }
@@ -178,6 +178,7 @@ export interface VerifyConnectivityResponse {
 	error?: {
 		message: string;
 		details?: string;
+		maintenanceMode?: boolean;
 	};
 	capabilities?: {
 		[key: string]: any;
@@ -385,6 +386,7 @@ export interface CreateForeignCompanyRequest {
 
 export interface CreateForeignCompanyResponse extends CreateCompanyResponse {
 	accessToken: string;
+	user?: CSUser;
 }
 
 export const CreateForeignCompanyRequestType = new RequestType<

@@ -215,6 +215,14 @@ export const setCurrentPullRequest = (
 		groupIndex,
 	});
 
+export const setCurrentOrganizationInvite = (name: string, id: string, host?: any, _type?: any) =>
+	action(ContextActionsType.SetCurrentOrganizationInvite, {
+		name,
+		id,
+		host,
+		_type,
+	});
+
 export const setCurrentErrorsInboxOptions = (
 	stack?: string,
 	customAttributes?: string,

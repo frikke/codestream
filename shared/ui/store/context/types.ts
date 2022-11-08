@@ -44,6 +44,7 @@ export enum ContextActionsType {
 	SetCurrentRepo = "@context/SetCurrentRepo",
 	SetCreatePullRequest = "@context/SetCreatePullRequest",
 	SetCurrentPullRequest = "@context/SetCurrentPullRequest",
+	SetCurrentOrganizationInvite = "@context/SetCurrentOrganizationInvite",
 	SetCurrentPullRequestNeedsRefresh = "@context/SetCurrentPullRequestNeedsRefresh",
 	SetCurrentErrorsInboxOptions = "@context/SetCurrentErrorsInboxOptions",
 	SetCurrentInstrumentationOptions = "@context/SetCurrentInstrumentationOptions",
@@ -116,7 +117,7 @@ export interface ContextState extends WebviewContext {
 	chatProviderAccess: ChatProviderAccess;
 
 	composeCodemarkActive: CodemarkType | undefined;
-
+	currentOrganizationInvite?: any;
 	pullRequestCheckoutBranch: boolean;
 	newPullRequestOptions?: { branch: NewPullRequestBranch };
 	currentInstrumentation?: any;

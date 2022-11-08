@@ -17,6 +17,7 @@ import { upgradeRecommendedDismissed } from "../store/versioning/actions";
 import { VersioningActionsType } from "../store/versioning/types";
 import Dismissable from "../Stream/Dismissable";
 import Stream from "../Stream/index";
+import { Link } from "../Stream/Link";
 import RoadBlock from "../Stream/RoadBlock";
 import { SearchContextProvider } from "../Stream/SearchContextProvider";
 import { HostApi } from "../webview-api";
@@ -81,6 +82,15 @@ const getIdeInstallationInstructions = props => {
 };
 
 const Root = connect(mapStateToProps)(props => {
+	if (props.inMaintenanceMode)
+		return (
+			<RoadBlock title="Pardon the Interruption">
+				<p>
+					CodeStream is undergoing an update. Check{" "}
+					<Link href="https://twitter.com/teamcodestream">@teamcodestream</Link> for status updates.
+				</p>
+			</RoadBlock>
+		);
 	if (props.connectivityError) {
 		return (
 			<Dismissable
@@ -153,12 +163,6 @@ const Root = connect(mapStateToProps)(props => {
 					recent.
 				</p>
 				{getIdeInstallationInstructions(props)}
-			</RoadBlock>
-		);
-	if (props.inMaintenanceMode)
-		return (
-			<RoadBlock title="Pardon the Interruption">
-				<p>CodeStream is undergoing a quick update. We'll be right back!</p>
 			</RoadBlock>
 		);
 	if (!props.bootstrapped) return <Loading />;

@@ -368,6 +368,7 @@ export interface GitLabMergeRequest {
 		name: string;
 		nameWithOwner: string;
 		url: string;
+		prRepoId?: string;
 	};
 	resolvable: boolean;
 	resolved: boolean;

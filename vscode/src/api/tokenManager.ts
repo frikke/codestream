@@ -13,8 +13,12 @@ interface TokenMap {
 }
 
 export namespace TokenManager {
-	function toKey(url: string, email: string) {
-		return `${url}|${email}`.toLowerCase();
+	function toKey(url: string, email: string, teamId?: string) {
+		let key = `${url}|${email}`;
+		if (teamId) {
+			key += `|${teamId}`;
+		}
+		return key.toLowerCase();
 	}
 
 	function getTokenMap() {
@@ -24,10 +28,15 @@ export namespace TokenManager {
 		);
 	}
 
-	export async function addOrUpdate(url: string, email: string, token: AccessToken) {
+	export async function addOrUpdate(
+		url: string,
+		email: string,
+		teamId: string,
+		token: AccessToken
+	) {
 		if (!url || !email) return;
 
-		const key = toKey(url, email);
+		const key = toKey(url, email, teamId);
 
 		if (keychain !== undefined) {
 			try {
@@ -45,10 +54,10 @@ export namespace TokenManager {
 		await Container.context.globalState.update(GlobalState.AccessTokens, tokens);
 	}
 
-	export async function clear(url: string, email: string) {
+	export async function clear(url: string, email: string, teamId?: string) {
 		if (!url || !email) return;
 
-		const key = toKey(url, email);
+		const key = toKey(url, email, teamId);
 
 		if (keychain !== undefined) {
 			try {
@@ -69,11 +78,14 @@ export namespace TokenManager {
 	// 	await Container.context.globalState.update(GlobalState.AccessTokens, undefined);
 	// }
 
-	export async function get(url: string, email: string): Promise<AccessToken | undefined> {
+	export async function get(
+		url: string,
+		email: string,
+		teamId?: string
+	): Promise<AccessToken | undefined> {
 		if (!url || !email) return undefined;
 
-		const key = toKey(url, email);
-
+		const key = toKey(url, email, teamId);
 		let migrate = false;
 		if (keychain !== undefined) {
 			migrate = true;

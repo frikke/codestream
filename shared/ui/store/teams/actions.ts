@@ -21,9 +21,9 @@ export const createTeam = (request: CreateTeamRequest) => async dispatch => {
 		Organization: `${(request as any).companyId ? "Existing" : "New"} Org`,
 	});
 
-	dispatch(addTeams([response.team]));
+	if (response.team) dispatch(addTeams([response.team]));
 	if (response.company != undefined) dispatch(addCompanies([response.company]));
 	if (response.streams != undefined) dispatch(addStreams(response.streams));
 
-	return response.team;
+	return response.team || response;
 };

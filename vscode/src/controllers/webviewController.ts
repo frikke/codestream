@@ -1182,10 +1182,12 @@ export class WebviewController implements Disposable {
 		await this.ensureSignedInOrOut();
 		const userId = this.session.signedIn ? this.session.userId : undefined;
 		const currentTeamId = this.session.signedIn ? this.session.team.id : undefined;
+
 		return {
 			session: {
 				userId: userId,
-				machineId: env.machineId
+				machineId: env.machineId,
+				eligibleJoinCompanies: this.session?.eligibleJoinCompanies || []
 			},
 			capabilities: this.session.capabilities,
 			configs: {

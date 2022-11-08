@@ -48,7 +48,6 @@ export const BootstrapInHostRequestType = new RequestType<
 
 export interface SignedInBootstrapData extends BootstrapInHostResponse {
 	editorContext: EditorContext;
-
 	preferences: CSMePreferences;
 	repos: CSRepository[];
 	streams: CSStream[];

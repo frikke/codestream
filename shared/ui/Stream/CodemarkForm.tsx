@@ -2319,8 +2319,21 @@ class CodemarkForm extends React.Component<Props, State> {
 				linkWithCodeBlock += "*\n```\n" + codeBlock.contents + "\n```\n";
 			}
 		}
+
+		const prReviewInProgressAndOutsideChangeset =
+			this.props.textEditorUriHasPullRequestContext &&
+			!this.state.isInsidePrChangeSet &&
+			this.props.currentPullRequestSupportsReview &&
+			!!hasExistingPullRequestReview;
+
 		const commentIsDisabled =
 			hasError || (this.state.isInsidePrChangeSet && !!hasExistingPullRequestReview);
+
+		const displayAddReviewButton =
+			prReviewInProgressAndOutsideChangeset ||
+			(this.props.currentPullRequestSupportsReview &&
+				this.props.textEditorUriHasPullRequestContext &&
+				this.state.isInsidePrChangeSet);
 
 		return [
 			<form
@@ -2340,6 +2353,13 @@ class CodemarkForm extends React.Component<Props, State> {
 							{this.props.error}
 						</div>
 					)}
+
+					{prReviewInProgressAndOutsideChangeset && (
+						<div className="error-message" style={{ marginTop: 10 }}>
+							Cannot add comment outside of changeset while review is in progress.
+						</div>
+					)}
+
 					<div id="controls" className="control-group" key="controls1">
 						<div key="headshot" className="headline">
 							<Headshot person={currentUser} />
@@ -2525,7 +2545,7 @@ class CodemarkForm extends React.Component<Props, State> {
 											? this.copyPermalink
 											: this.handleClickSubmit
 									}
-									disabled={commentIsDisabled}
+									disabled={commentIsDisabled || prReviewInProgressAndOutsideChangeset}
 								>
 									{commentType === "link"
 										? this.state.copied
@@ -2546,34 +2566,32 @@ class CodemarkForm extends React.Component<Props, State> {
 										: "Submit"}
 								</Button>
 							</Tooltip>
-							{this.props.currentPullRequestSupportsReview &&
-								this.props.textEditorUriHasPullRequestContext &&
-								this.state.isInsidePrChangeSet && (
-									<Tooltip title={hasError ? null : reviewTooltip} placement="bottom" delay={1}>
-										<Button
-											key="submit-review"
-											loading={this.state.isReviewLoading}
-											disabled={hasError}
-											onClick={e => {
-												this.setState({ isProviderReview: true }, () => {
-													this.handleClickSubmit(e);
-												});
-											}}
-											style={{
-												paddingLeft: "10px",
-												paddingRight: "10px",
-												// fixed width to handle the isReviewLoading case
-												width: "auto",
-												marginRight: 0,
-											}}
-											className="control-button"
-											type="submit"
-										>
-											{hasExistingPullRequestReview && <>Add to review</>}
-											{!hasExistingPullRequestReview && <>Start a review</>}
-										</Button>
-									</Tooltip>
-								)}
+							{displayAddReviewButton && (
+								<Tooltip title={hasError ? null : reviewTooltip} placement="bottom" delay={1}>
+									<Button
+										key="submit-review"
+										loading={this.state.isReviewLoading}
+										disabled={hasError || prReviewInProgressAndOutsideChangeset}
+										onClick={e => {
+											this.setState({ isProviderReview: true }, () => {
+												this.handleClickSubmit(e);
+											});
+										}}
+										style={{
+											paddingLeft: "10px",
+											paddingRight: "10px",
+											// fixed width to handle the isReviewLoading case
+											width: "auto",
+											marginRight: 0,
+										}}
+										className="control-button"
+										type="submit"
+									>
+										{hasExistingPullRequestReview && <>Add to review</>}
+										{!hasExistingPullRequestReview && <>Start a review</>}
+									</Button>
+								</Tooltip>
+							)}
 							{/*
 							<span className="hint">Styling with Markdown is supported</span>
 						*/}

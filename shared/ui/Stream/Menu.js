@@ -400,6 +400,8 @@ export default class Menu extends Component {
 				{item.checked === false && <span className="checkmark"> </span>}
 				{item.checked === true && <span className="checkmark">✔</span>}
 				{item.checked === "dot" && <span className="checkmark">&middot;</span>}
+				{item.checked === "mail" && <span className="badge unread">&#9993;</span>}
+				{item.checked === "custom" && <span className="checkmark">{this.props?.customIcon}</span>}
 				{item.icon && <span className="icon">{item.icon}</span>}
 				{item.submenu && <Icon name="triangle-right" className="triangle-right" />}
 				{item.label && <span className="label">{item.label}</span>}

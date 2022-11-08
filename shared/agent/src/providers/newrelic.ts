@@ -14,6 +14,7 @@ import { join, relative, sep } from "path";
 import Cache from "timed-cache";
 import { ResponseError } from "vscode-jsonrpc/lib/messages";
 import { URI } from "vscode-uri";
+import { customFetch } from "../system/fetchCore";
 import * as csUri from "../system/uri";
 
 import { InternalError, ReportSuppressedMessages } from "../agentError";
@@ -132,7 +133,7 @@ import { ThirdPartyIssueProviderBase } from "./thirdPartyIssueProviderBase";
 
 const ignoredErrors = [GraphqlNrqlTimeoutError];
 
-const supportedLanguages = ["python", "ruby", "csharp", "java", "go", "php"] as const;
+const supportedLanguages = ["python", "ruby", "csharp", "java", "kotlin", "go", "php"] as const;
 export type LanguageId = typeof supportedLanguages[number];
 
 export function escapeNrql(nrql: string) {
@@ -273,10 +274,10 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				"Could not get a New Relic API key"
 			);
 		}
-		const options: { [key: string]: any } = {};
-		if (this._httpsAgent) {
-			options.agent = this._httpsAgent;
-		}
+		const options = {
+			agent: this._httpsAgent ?? undefined,
+			fetch: customFetch,
+		};
 		const client = new GraphQLClient(graphQlBaseUrl, options);
 
 		// set accessToken on a per-usage basis... possible for accessToken
@@ -1178,6 +1179,23 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 					entityUrl: `${this.productUrl}/redirect/entity/${errorGroupResponse.entityGuid}`,
 				};
 
+				if (errorGroupResponse.eventsQuery) {
+					const timestampRange = this.generateTimestampRange(request.timestamp);
+					const nrql =
+						errorGroupResponse.eventsQuery +
+						`since ${timestampRange?.startTime}` +
+						`until ${timestampRange?.endTime}` +
+						"LIMIT 1";
+					const result = await this.runNrql<{
+						"tags.releaseTag": string;
+						"tags.commit": string;
+					}>(accountId, nrql);
+					if (result.length) {
+						errorGroup.releaseTag = result[0]["tags.releaseTag"];
+						errorGroup.commit = result[0]["tags.commit"];
+					}
+				}
+
 				if (
 					errorGroupFullResponse.actor?.entity?.exception?.stackTrace ||
 					errorGroupFullResponse.actor?.entity?.crash?.stackTrace
@@ -1992,6 +2010,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 					);
 					break;
 				case "java":
+				case "kotlin":
 				case "go":
 				case "php":
 					functionInfo = {
@@ -2027,6 +2046,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			case "go":
 			case "csharp":
 			case "java":
+			case "kotlin":
 				return "locator";
 			case "php":
 				return "hybrid";
@@ -3134,6 +3154,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 					  }
 					}
 					state
+					eventsQuery
 				  }
 				}
 			  }

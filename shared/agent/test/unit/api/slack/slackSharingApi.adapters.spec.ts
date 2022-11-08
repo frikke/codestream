@@ -23,7 +23,7 @@ describe("slackSharingApi.adapters.ts", () => {
 			// const userMaps: Partial<UserMaps> = {};
 			const text = toSlackTextSafe("x".repeat(3200), userMaps as UserMaps, undefined, 3000);
 			expect(text.wasTruncated).toBe(true);
-			expect(text.text.length).toBeLessThan(3000);
+			expect(text.text.length).toBeLessThanOrEqual(3000);
 		});
 
 		it("has replaceable mentions", () => {

@@ -121,6 +121,9 @@ class CodeStreamLanguageClient(private val project: Project) : LanguageClient {
     @JsonNotification("codestream/didStartLogin")
     fun didStartLogin(json: JsonElement?) {}
 
+    @JsonNotification("codestream/didStartLoginCodeGeneration")
+    fun didStartLoginCodeGeneration(json: JsonElement?) {}
+
     @JsonNotification("codestream/didFailLogin")
     fun didFailLogin(json: JsonElement?) {}
 

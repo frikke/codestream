@@ -24,11 +24,11 @@ import {
 import { CodemarkType, CSApiCapabilities, CSCodeError, CSMe } from "@codestream/protocols/api";
 import { logError } from "@codestream/webview/logger";
 import { setBootstrapped } from "@codestream/webview/store/bootstrapped/actions";
-import "@formatjs/intl-listformat/polyfill-locales";
 import { openErrorGroup, resolveStackTraceLine } from "@codestream/webview/store/codeErrors/thunks";
 import { updateConfigs } from "@codestream/webview/store/configs/slice";
 import { fetchReview } from "@codestream/webview/store/reviews/thunks";
 import { switchToTeam } from "@codestream/webview/store/session/thunks";
+import "@formatjs/intl-listformat/polyfill-locales";
 import * as path from "path-browserify";
 import React from "react";
 import { render } from "react-dom";
@@ -67,12 +67,12 @@ import {
 	apiUpgradeRecommended,
 	apiUpgradeRequired,
 } from "./store/apiVersioning/actions";
-import { fetchCodeError, handleDirectives } from "./store/codeErrors/actions";
+import apiCapabilities from "./store/capabilities/slice";
+import { fetchCodeError } from "./store/codeErrors/actions";
 import { getCodeError } from "./store/codeErrors/reducer";
 import { getCodemark } from "./store/codemarks/reducer";
 import { CodemarksState } from "./store/codemarks/types";
 import { errorOccurred, offline, online } from "./store/connectivity/actions";
-import apiCapabilities from "./store/capabilities/slice";
 import {
 	blur,
 	clearCurrentPullRequest,
@@ -98,6 +98,7 @@ import {
 } from "./store/editorContext/actions";
 import { EditorContextState } from "./store/editorContext/types";
 import { updatePreferences } from "./store/preferences/actions";
+import { handleDirectives } from "./store/providerPullRequests/slice";
 import { openPullRequestByUrl } from "./store/providerPullRequests/thunks";
 import { configureProvider, updateProviders } from "./store/providers/actions";
 import { isConnected } from "./store/providers/reducer";
@@ -148,7 +149,12 @@ export async function initialize(selector: string) {
 	// we get the api server's capabilities and our environment
 	const resp = await HostApi.instance.send(VerifyConnectivityRequestType, void {});
 	if (resp.error) {
-		store.dispatch(errorOccurred(resp.error.message, resp.error.details));
+		if (resp.error.maintenanceMode) {
+			await store.dispatch(setMaintenanceMode(true));
+		}
+		store.dispatch(
+			errorOccurred(resp.error.message, resp.error.details, resp.error.maintenanceMode)
+		);
 	} else {
 		if (resp.capabilities) {
 			store.dispatch(apiCapabilities.actions.updateCapabilities(resp.capabilities));
@@ -792,11 +798,11 @@ function listenForEvents(store) {
 
 	api.on(HandlePullRequestDirectivesNotificationType, params => {
 		store.dispatch(
-			handleDirectives(
-				// params.pullRequest.providerId, // TODO verify not needed
-				params.pullRequest.id,
-				params.directives.directives
-			)
+			handleDirectives({
+				id: params.pullRequest.id,
+				providerId: params.pullRequest.providerId,
+				data: params.directives.directives,
+			})
 		);
 	});
 }

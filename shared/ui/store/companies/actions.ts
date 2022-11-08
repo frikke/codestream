@@ -25,12 +25,11 @@ export const createCompany = (request: CreateCompanyRequest) => async dispatch =
 
 	HostApi.instance.track("Additional Organization Created", {});
 
-	dispatch(addTeams([response.team]));
-
+	if (response.team) dispatch(addTeams([response.team]));
 	if (response.company != undefined) dispatch(addCompanies([response.company]));
 	if (response.streams != undefined) dispatch(addStreams(response.streams));
 
-	return response.team;
+	return response;
 };
 
 export const createForeignCompany =
@@ -39,8 +38,13 @@ export const createForeignCompany =
 			request,
 			host,
 		});
-		response.company.host = host;
-		response.company.host.accessToken = response.accessToken;
-		await dispatch(addCompanies([response.company]));
+
+		HostApi.instance.track("Additional Foreign Organization Created", {});
+
+		let _host = JSON.parse(JSON.stringify(host));
+		_host.accessToken = response.accessToken;
+		response.company.host = _host;
+		if (response.company != undefined) dispatch(addCompanies([response.company]));
+
 		return response.company;
 	};

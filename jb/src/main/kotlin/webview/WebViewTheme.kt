@@ -82,6 +82,7 @@ class WebViewTheme(val name: String, val stylesheet: String) {
             val textColorSubtleExtra: Color
             val textColorInfo = link
             val textColorInfoMuted: Color
+            val textColorFilenameHighlight: Color
             val lineNumbersFgColor = fg.opacity(40)
             val buttonBgColor = buttonBg
             val buttonBgColorHover: Color
@@ -100,6 +101,8 @@ class WebViewTheme(val name: String, val stylesheet: String) {
                 textColorSubtleExtra = fg.opacity(60).lighten(50)
 
                 textColorInfoMuted = link.darken(10)
+
+                textColorFilenameHighlight = Color(223, 189, 139)
 
                 textFocusBorderColor = textColorInfoMuted.opacity(60)
 
@@ -120,6 +123,8 @@ class WebViewTheme(val name: String, val stylesheet: String) {
                 textColorSubtleExtra = fg.opacity(60).darken(50)
 
                 textColorInfoMuted = link
+
+                textColorFilenameHighlight = Color(172, 138, 88)
 
                 textFocusBorderColor = textColorInfoMuted.opacity(60)
 
@@ -157,6 +162,8 @@ body {
 
     --text-color-info: ${textColorInfo.rgba};
     --text-color-info-muted: ${textColorInfoMuted.rgba};
+
+    --text-color-filename-highlight: ${textColorFilenameHighlight.rgba};
 
     --text-focus-border-color: ${textFocusBorderColor.rgba};
 

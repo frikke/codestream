@@ -1,30 +1,29 @@
+import {
+	ConfirmRegistrationRequestType,
+	GenerateLoginCodeRequestType,
+	RegisterUserRequest,
+	RegisterUserRequestType,
+} from "@codestream/protocols/agent";
+import { LoginResult } from "@codestream/protocols/api";
 import { CodeStreamState } from "@codestream/webview/store";
 import { setEnvironment } from "@codestream/webview/store/session/thunks";
 import { useAppSelector } from "@codestream/webview/utilities/hooks";
-import React, { useState, useCallback, useRef, useEffect } from "react";
-import { connect, useSelector } from "react-redux";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { FormattedMessage } from "react-intl";
-import { Link } from "../Stream/Link";
+import { connect } from "react-redux";
+import { DispatchProp } from "../store/common";
 import {
+	goToCompanyCreation,
+	goToLogin,
 	goToSignup,
 	goToTeamCreation,
-	goToLogin,
-	goToCompanyCreation,
 } from "../store/context/actions";
-import { TextInput } from "./TextInput";
 import Button from "../Stream/Button";
-import { DispatchProp } from "../store/common";
-import { HostApi } from "../webview-api";
-import {
-	ConfirmRegistrationRequestType,
-	RegisterUserRequestType,
-	RegisterUserRequest,
-	ConfirmLoginCodeRequestType,
-	GenerateLoginCodeRequestType,
-} from "@codestream/protocols/agent";
-import { LoginResult } from "@codestream/protocols/api";
-import { authenticate, completeSignup } from "./actions";
 import Icon from "../Stream/Icon";
+import { Link } from "../Stream/Link";
+import { HostApi } from "../webview-api";
+import { authenticate, completeSignup } from "./actions";
+import { TextInput } from "./TextInput";
 
 const errorToMessageId = {
 	[LoginResult.InvalidToken]: "confirmation.invalid",
@@ -132,6 +131,7 @@ export const EmailConfirmation = (connect() as any)((props: Props) => {
 						goToCompanyCreation({
 							...result,
 							userId: result.user?.id,
+							eligibleJoinCompanies: result.user?.eligibleJoinCompanies,
 							email: props.email,
 						})
 					);

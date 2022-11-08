@@ -40,6 +40,7 @@ import {
 	setCurrentCodeError,
 	setCurrentCodemark,
 	setCurrentInstrumentationOptions,
+	setCurrentOrganizationInvite,
 	setCurrentPixieDynamicLoggingOptions,
 	setCurrentPullRequest,
 	setCurrentReview,
@@ -54,6 +55,7 @@ import { getPost } from "../store/posts/reducer";
 import { getStreamForId, getStreamForTeam } from "../store/streams/reducer";
 import { ComponentUpdateEmitter, Disposable } from "../utils";
 import { HostApi } from "../webview-api";
+import { AcceptCompanyInvite } from "./AcceptCompanyInvite";
 import { SetUserPreferenceRequest } from "./actions.types";
 import { ActivityPanel } from "./ActivityPanel";
 import { BlameMap } from "./BlameMap";
@@ -115,6 +117,7 @@ interface DispatchProps {
 	setCurrentCodemark: typeof setCurrentCodemark;
 	setCurrentPixieDynamicLoggingOptions: typeof setCurrentPixieDynamicLoggingOptions;
 	setCurrentPullRequest: typeof setCurrentPullRequest;
+	setCurrentOrganizationInvite: typeof setCurrentOrganizationInvite;
 	setCurrentReview: typeof setCurrentReview;
 	setCurrentReviewOptions: typeof setCurrentReviewOptions;
 	setCurrentStream: typeof setCurrentStream;
@@ -459,6 +462,7 @@ export class SimpleStream extends PureComponent<Props> {
 				)}
 				{activeModal && (
 					<Modal translucent>
+						{activeModal === WebviewModals.AcceptCompanyInvite && <AcceptCompanyInvite />}
 						{activeModal === WebviewModals.CreateTeam && <CreateTeamPage />}
 						{activeModal === WebviewModals.CreateCompany && <CreateCompanyPage />}
 						{activeModal === WebviewModals.ReviewSettings && <ReviewSettings />}
@@ -831,6 +835,7 @@ export default connect(mapStateToProps, {
 	setCurrentInstrumentationOptions,
 	setCurrentPixieDynamicLoggingOptions,
 	setCurrentPullRequest,
+	setCurrentOrganizationInvite,
 	setCurrentReview,
 	setCurrentReviewOptions,
 	setCurrentStream,

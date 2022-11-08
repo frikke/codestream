@@ -102,7 +102,7 @@ function Build-Extension {
 	if ($CI) {
 		Write-Host "Running UnitTests..."
 
-		& $msbuild './src/CodeStream.VisualStudio.sln' /t:restore,$target /p:Configuration=Debug /p:AllowUnsafeBlocks=true /verbosity:$Verbosity /p:Platform='x86'
+		& $msbuild './src/CodeStream.VisualStudio.sln' /t:restore,$target /p:Configuration=Debug /p:AllowUnsafeBlocks=true /verbosity:$Verbosity /p:Platform='x86' /p:DeployExtension=False
 
 		if((Test-Path -Path "./src/CodeStream.VisualStudio.UnitTests/bin/x86/Debug/.codestream-out") -eq $True) {
 			Remove-Item -Path "./src/CodeStream.VisualStudio.UnitTests/bin/x86/Debug/.codestream-out" -Force -Recurse
@@ -148,9 +148,9 @@ function Build-Extension {
 	Try-Create-Directory($x64OutputDir)
 
 	Write-Log "Running MSBuild (x86)..."
-	& $msbuild './src/CodeStream.VisualStudio.Vsix.x86/CodeStream.VisualStudio.Vsix.x86.csproj' /t:restore,$target /p:Configuration=$Mode /p:AllowUnsafeBlocks=true /verbosity:$Verbosity /p:Platform='x86' /p:OutputPath=$x86OutputDir /p:DeployExtension=false
+	& $msbuild './src/CodeStream.VisualStudio.Vsix.x86/CodeStream.VisualStudio.Vsix.x86.csproj' /t:restore,$target /p:Configuration=$Mode /p:AllowUnsafeBlocks=true /verbosity:$Verbosity /p:Platform='x86' /p:OutputPath=$x86OutputDir /p:DeployExtension=False
 	Write-Log "Running MSBuild (x64)..."
-	& $msbuild './src/CodeStream.VisualStudio.Vsix.x64/CodeStream.VisualStudio.Vsix.x64.csproj' /t:restore,$target /p:Configuration=$Mode /p:AllowUnsafeBlocks=true /verbosity:$Verbosity /p:Platform='x64' /p:OutputPath=$x64OutputDir /p:DeployExtension=false
+	& $msbuild './src/CodeStream.VisualStudio.Vsix.x64/CodeStream.VisualStudio.Vsix.x64.csproj' /t:restore,$target /p:Configuration=$Mode /p:AllowUnsafeBlocks=true /verbosity:$Verbosity /p:Platform='x64' /p:OutputPath=$x64OutputDir /p:DeployExtension=False
 
 	if ($LastExitCode -ne 0) {
 		throw "MSBuild failed"

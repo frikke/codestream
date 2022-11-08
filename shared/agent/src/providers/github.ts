@@ -15,7 +15,6 @@ import { Logger } from "../logger";
 import {
 	CreateThirdPartyCardRequest,
 	DidChangePullRequestCommentsNotificationType,
-	FetchReposResponse,
 	FetchThirdPartyBoardsRequest,
 	FetchThirdPartyBoardsResponse,
 	FetchThirdPartyCardsRequest,
@@ -25,7 +24,6 @@ import {
 	FetchThirdPartyPullRequestCommitsRequest,
 	FetchThirdPartyPullRequestCommitsResponse,
 	FetchThirdPartyPullRequestFilesResponse,
-	FetchThirdPartyPullRequestPullRequest,
 	FetchThirdPartyPullRequestRequest,
 	FetchThirdPartyPullRequestResponse,
 	GetMyPullRequestsRequest,
@@ -45,8 +43,9 @@ import {
 	ThirdPartyProviderCard,
 	ThirdPartyProviderConfig,
 } from "../protocol/agent.protocol";
-import { CSGitHubProviderInfo, CSRepository } from "../protocol/api.protocol";
+import { CSGitHubProviderInfo } from "../protocol/api.protocol";
 import { Dates, Functions, log, lspProvider } from "../system";
+import { customFetch } from "../system/fetchCore";
 import { TraceLevel } from "../types";
 import { Directive, Directives } from "./directives";
 import {
@@ -215,10 +214,10 @@ export class GitHubProvider
 
 	protected async client(): Promise<GraphQLClient> {
 		if (this._client === undefined) {
-			const options: { [key: string]: any } = {};
-			if (this._httpsAgent) {
-				options.agent = this._httpsAgent;
-			}
+			const options = {
+				agent: this._httpsAgent ?? undefined,
+				fetch: customFetch,
+			};
 			this._client = new GraphQLClient(this.graphQlBaseUrl, options);
 		}
 		if (!this.accessToken) {
@@ -586,46 +585,6 @@ export class GitHubProvider
 		}
 	}
 
-	async getPullRequestRepo(
-		allRepos: FetchReposResponse,
-		pullRequest: FetchThirdPartyPullRequestPullRequest
-	): Promise<CSRepository | undefined> {
-		let currentRepo: CSRepository | undefined = undefined;
-		try {
-			const repoName = pullRequest.repository.name.toLowerCase();
-			const repoUrl = pullRequest.repository.url.toLowerCase();
-			const repos = allRepos.repos;
-
-			const matchingRepos = repos.filter(_ =>
-				_.remotes.some(
-					r =>
-						r.normalizedUrl &&
-						r.normalizedUrl.length > 2 &&
-						r.normalizedUrl.match(/([a-zA-Z0-9]+)/) &&
-						repoUrl.indexOf(r.normalizedUrl.toLowerCase()) > -1
-				)
-			);
-			if (matchingRepos.length === 1) {
-				currentRepo = matchingRepos[0];
-			} else {
-				let matchingRepos2 = repos.filter(_ => _.name && _.name.toLowerCase() === repoName);
-				if (matchingRepos2.length !== 1) {
-					matchingRepos2 = repos.filter(_ =>
-						_.remotes.some(r => repoUrl.indexOf(r.normalizedUrl.toLowerCase()) > -1)
-					);
-					if (matchingRepos2.length === 1) {
-						currentRepo = matchingRepos2[0];
-					} else {
-						Logger.warn(`Could not find repo for repoName=${repoName} repoUrl=${repoUrl}`);
-					}
-				} else {
-					currentRepo = matchingRepos2[0];
-				}
-			}
-		} catch (error) {}
-		return currentRepo;
-	}
-
 	@log()
 	async getPullRequest(
 		request: FetchThirdPartyPullRequestRequest
@@ -715,22 +674,24 @@ export class GitHubProvider
 				response.repository.pullRequest.commits = response2.repository.pullRequest.commits;
 
 				const { repos } = SessionContainer.instance();
-				const prRepo = await this.getPullRequestRepo(
-					await repos.get(),
-					response.repository.pullRequest
-				);
+				const allRepos = await repos.get();
+				const { currentRepo } = await this.getProviderRepo({
+					repoName: response.repository.pullRequest.repository.name.toLowerCase(),
+					repoUrl: response.repository.pullRequest.repository.url.toLowerCase(),
+					repos: allRepos.repos,
+				});
 
-				if (prRepo?.id) {
+				if (currentRepo?.id) {
 					try {
 						const prForkPointSha = await scmManager.getForkPointRequestType({
-							repoId: prRepo.id,
+							repoId: currentRepo.id,
 							baseSha: response.repository.pullRequest.baseRefOid,
 							headSha: response.repository.pullRequest.headRefOid,
 						});
 
 						response.repository.pullRequest.forkPointSha = prForkPointSha?.sha;
 					} catch (err) {
-						Logger.error(err, `Could not find forkPoint for repoId=${prRepo.id}`);
+						Logger.error(err, `Could not find forkPoint for repoId=${currentRepo.id}`);
 					}
 				}
 
@@ -745,6 +706,8 @@ export class GitHubProvider
 
 				response.repository.repoOwner = repoOwner!;
 				response.repository.repoName = repoName!;
+
+				response.repository.prRepoId = currentRepo?.id;
 
 				response.repository.pullRequest.providerId = this.providerConfig.id;
 				response.repository.providerId = this.providerConfig.id;
@@ -3079,6 +3042,15 @@ export class GitHubProvider
 		request: GetMyPullRequestsRequest
 	): Promise<GetMyPullRequestsResponse[][] | undefined> {
 		void (await this.ensureConnected());
+		if (!(await this.isPRApiCompatible())) {
+			const currentVersion = await this.getVersion();
+			// InternalErrors don't get sent to sentry
+			throw new InternalError(
+				`Pull requests are not available for ${this.displayName} ${
+					currentVersion.version
+				}. Please upgrade to ${this.minPRApiVersion()} or later.`
+			);
+		}
 		Logger.log(`github getMyPullRequests ${JSON.stringify(request)}`);
 		if (!this.isValidGetMyPullRequest(request)) {
 			Logger.warn(`Invalid GetMyPullRequestsRequest`);
@@ -3205,12 +3177,7 @@ export class GitHubProvider
 								.reverse()
 								.find(review => review.state !== "COMMENTED")?.state;
 
-							if (
-								!isDefaultQuery ||
-								pullRequest.closed ||
-								pullRequest.isDraft ||
-								pullRequest.viewerDidAuthor
-							) {
+							if (!isDefaultQuery || pullRequest.closed || pullRequest.viewerDidAuthor) {
 								return false;
 							}
 

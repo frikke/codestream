@@ -11,6 +11,7 @@ import {
 	FetchAssignableUsersResponse,
 	GetMyPullRequestsRequest,
 } from "../protocol/agent.protocol.providers";
+import { CSRepository } from "../protocol/api.protocol";
 import { CSProviderInfos } from "../protocol/api.protocol.models";
 import { log } from "../system/decorators/log";
 import {
@@ -110,6 +111,107 @@ export abstract class ThirdPartyIssueProviderBase<
 		}
 		request.description += `\n\n${codeStreamAttribution}`;
 		return request.description;
+	}
+
+	async getProviderRepo(request: {
+		repoName: string;
+		repoUrl: string;
+		repos: CSRepository[];
+	}): Promise<{ reason: string; currentRepo: CSRepository | undefined; error?: Error }> {
+		Logger.log(`getProviderRepo arguments: repoName, repoUrl`, request.repoName, request.repoUrl);
+
+		let result: { reason: string; currentRepo: CSRepository | undefined; error?: Error } = {
+			reason: "",
+			currentRepo: undefined,
+		};
+
+		try {
+			const repoName = request.repoName;
+			const repoUrl = request.repoUrl;
+			const repos = request.repos;
+
+			const matchingRepos = repos?.filter((_: CSRepository) =>
+				_?.remotes.some(
+					r =>
+						r?.normalizedUrl &&
+						r?.normalizedUrl.length > 2 &&
+						r?.normalizedUrl.match(/([a-zA-Z0-9]+)/) &&
+						(repoUrl?.includes(r?.normalizedUrl?.toLowerCase() + "/") ||
+							repoUrl?.endsWith(r?.normalizedUrl?.toLowerCase()))
+				)
+			);
+
+			if (matchingRepos.length === 1) {
+				result.currentRepo = matchingRepos[0];
+				result.reason = "remote";
+			} else {
+				let matchingRepos2 = repos.filter(
+					(_: CSRepository) => _.name && _.name.toLowerCase() === repoName
+				);
+				if (matchingRepos2.length != 1) {
+					matchingRepos2 = repos.filter((_: CSRepository) =>
+						_.remotes.some(r => repoUrl?.includes(r?.normalizedUrl?.toLowerCase()))
+					);
+					if (matchingRepos2.length === 1) {
+						result.currentRepo = matchingRepos2[0];
+						result.reason = "matchedOnProviderUrl";
+					} else {
+						// try to match on the best/closet repo
+						const bucket: { repo: CSRepository; points: number }[] = [];
+						const splitRepoUrl = repoUrl?.split("/");
+						for (const repo of repos) {
+							let points = 0;
+							for (const remote of repo.remotes) {
+								const split = remote.normalizedUrl?.split("/");
+								if (split?.length) {
+									for (const s of split) {
+										if (s && splitRepoUrl?.includes(s)) {
+											points++;
+										}
+									}
+								}
+							}
+							bucket.push({ repo: repo, points: points });
+						}
+						if (bucket.length) {
+							bucket.sort((a, b) => b.points - a.points);
+							result.currentRepo = bucket[0].repo;
+							result.currentRepo.repoFoundReason = "closestMatch";
+							result.reason = "closestMatch";
+						} else {
+							result.error = {
+								name: "REPO_NOT_FOUND",
+								message: `Could not find repo for repoName=${repoName} repoUrl=${repoUrl}`,
+							};
+						}
+					}
+				} else {
+					result.currentRepo = matchingRepos2[0];
+					result.reason = "repoName";
+				}
+			}
+		} catch (ex) {
+			result.error = typeof ex === "string" ? ex : ex.message;
+		}
+		if (result.error || !result.currentRepo) {
+			if (!result.currentRepo) {
+				result.error = {
+					name: "REPO_NOT_FOUND",
+					message: `Could not find repo for repoName=${request.repoName} repoUrl=${request.repoUrl}`,
+				};
+			}
+			Logger.error(
+				result.error!,
+				`Could not find currentRepo.
+				repoName: ${request.repoName}, repoUrl: ${request.repoUrl}, repos: ${request.repos}`
+			);
+		}
+		Logger.log(`getProviderPullRequestRepoObjectCore result`, result);
+		return result;
+	}
+
+	protected minPRApiVersion(): string {
+		return "0.0.0";
 	}
 
 	protected async isPRApiCompatible(): Promise<boolean> {

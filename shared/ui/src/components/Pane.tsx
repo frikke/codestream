@@ -1,21 +1,20 @@
-import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
-import React, { PropsWithChildren } from "react";
-import styled from "styled-components";
-import Icon from "@codestream/webview/Stream/Icon";
-import ScrollBox from "../../Stream/ScrollBox";
-import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { CodeStreamState } from "@codestream/webview/store";
 import { WebviewPanels } from "@codestream/protocols/webview";
+import { CodeStreamState } from "@codestream/webview/store";
 import {
-	setUserPreference,
 	setPaneCollapsed,
 	setPaneMaximized,
+	setUserPreference,
 } from "@codestream/webview/Stream/actions";
-import Draggable from "react-draggable";
+import Icon from "@codestream/webview/Stream/Icon";
 import { DragHeaderContext } from "@codestream/webview/Stream/Sidebar";
+import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import cx from "classnames";
-import { HostApi } from "@codestream/webview/webview-api";
-import { isUndefined } from "lodash-es";
+import { isNil as _isNil } from "lodash-es";
+import React, { PropsWithChildren } from "react";
+import Draggable from "react-draggable";
+import { shallowEqual } from "react-redux";
+import styled from "styled-components";
+import ScrollBox from "../../Stream/ScrollBox";
 
 export enum PaneState {
 	Open = "open",
@@ -53,8 +52,15 @@ export const PaneNodeName = styled((props: PropsWithChildren<PaneNodeNameProps>)
 	const derivedState = useAppSelector((state: CodeStreamState) => {
 		const { preferences } = state;
 		const hiddenPaneNodes = preferences.hiddenPaneNodes || EMPTY_HASH;
-		const collapsed =
-			props?.id && hiddenPaneNodes[props?.id] ? hiddenPaneNodes[props.id] : props?.collapsed;
+		// If we have a defined, boolean collapsed prop value, use that.
+		// Otherwise, use the hiddenPaneNodes user preference based on props.id
+		// If that is still null, set collapsed default value to true.
+		const collapsed = !_isNil(props?.collapsed)
+			? props?.collapsed
+			: props?.id && hiddenPaneNodes[props?.id]
+			? hiddenPaneNodes[props.id]
+			: true;
+
 		return {
 			collapsed,
 		};

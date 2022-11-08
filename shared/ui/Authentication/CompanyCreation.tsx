@@ -1,28 +1,28 @@
-import { updateConfigs } from "@codestream/webview/store/configs/slice";
-import { changeRegistrationEmail, setEnvironment } from "@codestream/webview/store/session/thunks";
-import React, { useState, useCallback } from "react";
-import Button from "../Stream/Button";
-import { Link } from "../Stream/Link";
-import { FormattedMessage } from "react-intl";
-import { goToLogin } from "../store/context/actions";
-import { logError } from "../logger";
-import Icon from "../Stream/Icon";
-import { useAppDispatch, useAppSelector, useDidMount } from "../utilities/hooks";
-import styled from "styled-components";
-import { HostApi } from "@codestream/webview/webview-api";
-import { completeSignup, ProviderNames } from "./actions";
 import {
 	CreateCompanyRequestType,
 	EnvironmentHost,
-	JoinCompanyRequestType,
 	JoinCompanyRequest,
+	JoinCompanyRequestType,
 	JoinCompanyResponse,
 } from "@codestream/protocols/agent";
-import { CSCompany, CSEligibleJoinCompany } from "@codestream/protocols/api";
-import { isUndefined as _isUndefined } from "lodash-es";
-import { ReloadAllWindows } from "./ReloadAllWindows";
-import { ModalRoot } from "../Stream/Modal";
+import { CSCompany, CSEligibleJoinCompany, CSUser } from "@codestream/protocols/api";
 import { CodeStreamState } from "@codestream/webview/store";
+import { updateConfigs } from "@codestream/webview/store/configs/slice";
+import { changeRegistrationEmail, setEnvironment } from "@codestream/webview/store/session/thunks";
+import { HostApi } from "@codestream/webview/webview-api";
+import { isUndefined as _isUndefined } from "lodash-es";
+import React, { useCallback, useState } from "react";
+import { FormattedMessage } from "react-intl";
+import styled from "styled-components";
+import { logError } from "../logger";
+import { goToLogin } from "../store/context/actions";
+import Button from "../Stream/Button";
+import Icon from "../Stream/Icon";
+import { Link } from "../Stream/Link";
+import { ModalRoot } from "../Stream/Modal";
+import { useAppDispatch, useAppSelector, useDidMount } from "../utilities/hooks";
+import { completeSignup, ProviderNames } from "./actions";
+import { ReloadAllWindows } from "./ReloadAllWindows";
 
 export const CheckboxRow = styled.div`
 	padding: 5px 0 5px 0;
@@ -58,10 +58,12 @@ interface EnhancedCSCompany {
 	name: string;
 	_type: "Domain" | "Invite Detected";
 	host?: EnvironmentHost;
+	byInvite?: boolean;
 }
 
 export function CompanyCreation(props: {
 	userId?: string;
+	user?: CSUser;
 	email?: string;
 	token?: string;
 	domain?: string;
@@ -74,8 +76,9 @@ export function CompanyCreation(props: {
 }) {
 	const dispatch = useAppDispatch();
 	const derivedState = useAppSelector((state: CodeStreamState) => {
+		const { configs } = state;
 		return {
-			serverUrl: state.configs.serverUrl,
+			serverUrl: configs.serverUrl,
 		};
 	});
 	const providerName = props.provider
@@ -92,7 +95,10 @@ export function CompanyCreation(props: {
 		dispatch(changeRegistrationEmail(props.userId!));
 	}, []);
 
-	const [organizations, setOrganizations] = React.useState<EnhancedCSCompany[]>([]);
+	const [organizationsDomain, setOrganizationsDomain] = React.useState<EnhancedCSCompany[]>([]);
+	const [organizationsInvite, setOrganizationsInvite] = React.useState<EnhancedCSCompany[]>([]);
+	const [hasOrganizations, setHasOrganizations] = React.useState<boolean>(false);
+
 	const [isLoading, setIsLoading] = React.useState(false);
 	const [isCreatingOrg, setIsCreatingOrg] = React.useState(false);
 	const [initialLoad, setInitialLoad] = React.useState(true);
@@ -113,7 +119,6 @@ export function CompanyCreation(props: {
 			: "",
 	});
 	const [teamNameValidity, setTeamNameValidity] = useState(true);
-	const [requiresHelpText, setRequiresHelpText] = useState(false);
 
 	useDidMount(() => {
 		if (!_isUndefined(props.isWebmail)) {
@@ -121,6 +126,8 @@ export function CompanyCreation(props: {
 		}
 
 		let companiesToJoin: EnhancedCSCompany[] | undefined = undefined;
+		let organizationsByDomain = [] as EnhancedCSCompany[];
+		let organizationsByInvite = [] as EnhancedCSCompany[];
 		if (props.eligibleJoinCompanies || props.companies) {
 			setIsLoading(true);
 			let obj = {};
@@ -137,8 +144,19 @@ export function CompanyCreation(props: {
 			companiesToJoin = Object.keys(obj).map(_ => {
 				return obj[_];
 			}) as EnhancedCSCompany[];
-			setOrganizations(companiesToJoin);
 
+			if (companiesToJoin.length > 0) setHasOrganizations(true);
+
+			companiesToJoin.forEach(_ => {
+				if (_.byInvite) {
+					organizationsByInvite.push(_);
+				} else {
+					organizationsByDomain.push(_);
+				}
+			});
+
+			setOrganizationsDomain(organizationsByDomain);
+			setOrganizationsInvite(organizationsByInvite);
 			setIsLoading(false);
 		}
 
@@ -146,8 +164,8 @@ export function CompanyCreation(props: {
 			createOrganization();
 		} else {
 			HostApi.instance.track("Organization Options Presented", {
-				"Domain Orgs":
-					props.eligibleJoinCompanies && props.eligibleJoinCompanies.length ? true : false,
+				"Domain Orgs": organizationsByDomain && organizationsByDomain.length ? true : false,
+				"Invite Orgs": organizationsByInvite && organizationsByInvite.length ? true : false,
 				"Auth Provider": providerName,
 			});
 			setInitialLoad(false);
@@ -227,22 +245,30 @@ export function CompanyCreation(props: {
 				request
 			)) as JoinCompanyResponse;
 
+			const availabilityType = organization?.byInvite ? "Invite" : organization._type;
+
 			HostApi.instance.track("Joined Organization", {
-				Availability: organization._type,
+				Availability: availabilityType,
 				"Auth Provider": providerName,
+				Location: "Signup",
 			});
 			dispatch(
-				completeSignup(props.email!, props.token!, result.team.id, {
-					createdTeam: false,
-					provider: props.provider,
-					byDomain: true,
-					setEnvironment: organization.host
-						? {
-								environment: organization.host.shortName,
-								serverUrl: organization.host.publicApiUrl,
-						  }
-						: undefined,
-				})
+				completeSignup(
+					props.email!,
+					result.accessToken || props.token!,
+					result.teamId || result?.team?.id,
+					{
+						createdTeam: false,
+						provider: props.provider,
+						byDomain: true,
+						setEnvironment: organization.host
+							? {
+									environment: organization.host.shortName,
+									serverUrl: organization.host.publicApiUrl,
+							  }
+							: undefined,
+					}
+				)
 			);
 		} catch (error) {
 			const errorMessage = typeof error === "string" ? error : error.message;
@@ -310,12 +336,6 @@ export function CompanyCreation(props: {
 													defaultMessage="Join your teammates on CodeStream"
 												/>
 											</JoinHeader>
-											<div>
-												<FormattedMessage
-													id="signUp.joinOrganizationHelp"
-													defaultMessage="These organizations are available based on your email domain."
-												/>
-											</div>
 										</>
 									)}
 
@@ -354,34 +374,77 @@ export function CompanyCreation(props: {
 									<div>
 										{!orgCallIsLoading() && (
 											<>
-												{organizations.map(_ => {
-													return (
-														<div className="key-value-actions pt-3">
-															<div className="key-value-key">
-																{_.name} <br />
-																{_.memberCount} member{_.memberCount == 1 ? "" : "s"}
-															</div>
-															<div className="key-value-value">
-																<Button
-																	onClick={e => onClickJoinOrganization(_)}
-																	className="control-button"
-																	loading={isLoadingJoinTeam === _.id}
-																>
-																	<div className="copy">
-																		<b>Join</b>
-																	</div>
-																</Button>
-															</div>
+												{organizationsInvite.length > 0 && (
+													<>
+														<div style={{ marginTop: "10px" }}>
+															<FormattedMessage
+																id="signUp.joinOrganizationHelp"
+																defaultMessage="Organizations you've been invited to."
+															/>
 														</div>
-													);
-												})}
-												{!organizations.length && props.accountIsConnected && (
+														{organizationsInvite.map(_ => {
+															return (
+																<div className="key-value-actions pt-3">
+																	<div className="key-value-key">
+																		{_.name} <br />
+																		{_.memberCount} member{_.memberCount == 1 ? "" : "s"}
+																	</div>
+																	<div className="key-value-value">
+																		<Button
+																			onClick={e => onClickJoinOrganization(_)}
+																			className="control-button"
+																			loading={isLoadingJoinTeam === _.id}
+																		>
+																			<div className="copy">
+																				<b>Join</b>
+																			</div>
+																		</Button>
+																	</div>
+																</div>
+															);
+														})}
+													</>
+												)}
+
+												{organizationsDomain.length > 0 && (
+													<>
+														<div style={{ marginTop: "20px" }}>
+															<FormattedMessage
+																id="signUp.joinOrganizationHelp"
+																defaultMessage="Organizations you can join based on email domain."
+															/>
+														</div>
+														{organizationsDomain.map(_ => {
+															return (
+																<div className="key-value-actions pt-3">
+																	<div className="key-value-key">
+																		{_.name} <br />
+																		{_.memberCount} member{_.memberCount == 1 ? "" : "s"}
+																	</div>
+																	<div className="key-value-value">
+																		<Button
+																			onClick={e => onClickJoinOrganization(_)}
+																			className="control-button"
+																			loading={isLoadingJoinTeam === _.id}
+																		>
+																			<div className="copy">
+																				<b>Join</b>
+																			</div>
+																		</Button>
+																	</div>
+																</div>
+															);
+														})}
+													</>
+												)}
+
+												{!hasOrganizations && props.accountIsConnected && (
 													<div>
 														Some people from your account on New Relic are already in an
 														organization on CodeStream. Ask them to invite you.
 													</div>
 												)}
-												{!organizations.length && !props.accountIsConnected && (
+												{!hasOrganizations && !props.accountIsConnected && (
 													<div>
 														We didn't find any organizations for you to join based on email domain.
 														<br />

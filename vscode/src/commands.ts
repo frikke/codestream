@@ -550,12 +550,19 @@ export class Commands implements Disposable {
 	@command("signIn", { customErrorHandling: true })
 	async signIn() {
 		try {
-			const token = await TokenManager.get(Container.config.serverUrl, Container.config.email);
-			if (!token) {
-				await Container.context.workspaceState.update(WorkspaceState.TeamId, undefined);
-				await Container.webview.show();
-			} else {
-				await Container.session.login(Container.config.email, token);
+			const teamId = Container.context.workspaceState.get(WorkspaceState.TeamId) as string;
+			if (teamId) {
+				const token = await TokenManager.get(
+					Container.config.serverUrl,
+					Container.config.email,
+					teamId
+				);
+				if (!token) {
+					await Container.context.workspaceState.update(WorkspaceState.TeamId, undefined);
+					await Container.webview.show();
+				} else {
+					await Container.session.login(Container.config.email, token, teamId);
+				}
 			}
 		} catch (ex) {
 			Logger.error(ex);

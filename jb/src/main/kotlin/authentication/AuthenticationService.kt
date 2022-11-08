@@ -43,7 +43,7 @@ class AuthenticationService(val project: Project) {
         val session = project.sessionService ?: return Unit
 
         return BootstrapResponse(
-            UserSession(session.userLoggedIn?.userId),
+            UserSession(session.userLoggedIn?.userId, session.eligibleJoinCompanies),
             mergedCapabilities,
             appSettings.webViewConfigs,
             settings.getWebViewContextJson(),
@@ -65,7 +65,8 @@ class AuthenticationService(val project: Project) {
                 ?: return true.also { logger.warn("Auto sign-in failed: settings service not available") }
             if (!appSettings.autoSignIn)
                 return true.also { logger.warn("Auto sign-in failed: auto sign-in disabled") }
-            val tokenStr = PasswordSafe.instance.getPassword(appSettings.credentialAttributes)
+            val tokenStr = PasswordSafe.instance.getPassword(settings.credentialAttributes())
+                ?: PasswordSafe.instance.getPassword(settings.credentialAttributes(false))
                 ?: return true.also { logger.warn("Auto sign-in failed: unable to retrieve token from password safe") }
             val agent = project.agentService?.agent
                 ?: return true.also { logger.warn("Auto sign-in failed: agent service not available") }
@@ -103,7 +104,7 @@ class AuthenticationService(val project: Project) {
                 project.settingsService?.state?.teamId = it.teamId
                 saveAccessToken(it.token)
             }
-            project.sessionService?.login(result.userLoggedIn)
+            project.sessionService?.login(result.userLoggedIn, result.eligibleJoinCompanies)
         }
     }
 
@@ -114,8 +115,8 @@ class AuthenticationService(val project: Project) {
 
         session.logout()
         agent.restart(newServerUrl)
-        settings.state.teamId = null
         saveAccessToken(null)
+        settings.state.teamId = null
     }
 
     fun onApiVersionChanged(notification: DidChangeApiVersionCompatibilityNotification) {
@@ -133,6 +134,7 @@ class AuthenticationService(val project: Project) {
     }
 
     private fun saveAccessToken(accessToken: JsonObject?) {
+        val settings = project.settingsService ?: return
         if (accessToken != null) {
             logger.info("Saving access token to password safe")
         } else {
@@ -144,7 +146,7 @@ class AuthenticationService(val project: Project) {
         }
 
         PasswordSafe.instance.set(
-            appSettings.credentialAttributes,
+            settings.credentialAttributes(),
             credentials
         )
     }

@@ -252,13 +252,6 @@ class ApplicationSettingsService : PersistentStateComponent<ApplicationSettingsS
             state.proxyStrictSSL = value
         }
 
-    val credentialAttributes: CredentialAttributes
-        get() {
-            val serviceName = generateServiceName("CodeStream", state.serverUrl)
-            val userName = state.email
-            return CredentialAttributes(serviceName, userName)
-        }
-
     val webViewConfigs
         get() = Configs(
             "unknown",

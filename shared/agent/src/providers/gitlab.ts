@@ -46,6 +46,7 @@ import { CSGitLabProviderInfo } from "../protocol/api.protocol";
 import { CodeStreamSession } from "../session";
 import { Dates, log, lspProvider, Strings } from "../system";
 import { gate } from "../system/decorators/gate";
+import { customFetch } from "../system/fetchCore";
 import { Directive, Directives } from "./directives";
 import mergeRequestNoteMutation from "./gitlab/createMergeRequestNote.graphql";
 import { GraphqlQueryBuilder } from "./gitlab/graphqlQueryBuilder";
@@ -947,10 +948,10 @@ export class GitLabProvider
 
 	protected async client(): Promise<GraphQLClient> {
 		if (this._client === undefined) {
-			const options: { [key: string]: any } = {};
-			if (this._httpsAgent) {
-				options.agent = this._httpsAgent;
-			}
+			const options = {
+				agent: this._httpsAgent ?? undefined,
+				fetch: customFetch,
+			};
 			this._client = new GraphQLClient(this.graphQlBaseUrl, options);
 		}
 		if (!this.accessToken) {
@@ -1350,6 +1351,15 @@ export class GitLabProvider
 					return { content: _, data };
 				}) || [];
 
+			const { repos } = SessionContainer.instance();
+			const allRepos = await repos.get();
+			// get current mrRepo
+			const { currentRepo } = await this.getProviderRepo({
+				repoName: response.project.mergeRequest.project.path.toLowerCase(),
+				repoUrl: response.project.mergeRequest.project.webUrl.toLowerCase(),
+				repos: allRepos.repos,
+			});
+
 			response.project.mergeRequest = {
 				...response.project.mergeRequest,
 				providerId: this.providerConfig?.id,
@@ -1363,6 +1373,7 @@ export class GitLabProvider
 					name: response.project.mergeRequest.project.path,
 					nameWithOwner: response.project.mergeRequest.project.fullPath,
 					url: response.project.mergeRequest.project.webUrl,
+					prRepoId: currentRepo?.id,
 				},
 				number: parseInt(response.project.mergeRequest.iid, 10),
 				url: response.project.mergeRequest.project.webUrl,

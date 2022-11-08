@@ -46,7 +46,8 @@ class Services {
 }
 
 class UserSession(
-    val userId: String? = null
+    val userId: String? = null,
+    val eligibleJoinCompanies: List<JsonObject>
 )
 
 enum class CodeStreamEnvironment {

@@ -1,21 +1,20 @@
+import { CSCompany } from "@codestream/protocols/api";
 import { switchToForeignCompany, switchToTeam } from "@codestream/webview/store/session/thunks";
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import React from "react";
-import { TextInput } from "../Authentication/TextInput";
-import { TooltipIconWrapper } from "../Authentication/Signup";
-import { Button } from "../src/components/Button";
 import { FormattedMessage } from "react-intl";
-import { CodeStreamState } from "../store";
-import { useSelector, useDispatch } from "react-redux";
-import { CSCompany } from "@codestream/protocols/api";
-import { wait } from "../utils";
+import { TooltipIconWrapper } from "../Authentication/Signup";
+import { TextInput } from "../Authentication/TextInput";
+import { Button } from "../src/components/Button";
 import { Dialog } from "../src/components/Dialog";
-import { closeModal } from "./actions";
-import { createCompany, createForeignCompany } from "../store/companies/actions";
-import Tooltip from "./Tooltip";
-import Icon from "./Icon";
-import { Dropdown } from "../Stream/Dropdown";
+import { CodeStreamState } from "../store";
 import { isFeatureEnabled } from "../store/apiVersioning/reducer";
+import { createCompany, createForeignCompany } from "../store/companies/actions";
+import { Dropdown } from "../Stream/Dropdown";
+import { wait } from "../utils";
+import { closeModal } from "./actions";
+import Icon from "./Icon";
+import Tooltip from "./Tooltip";
 
 export function CreateCompanyPage() {
 	const dispatch = useAppDispatch();
@@ -110,12 +109,15 @@ export function CreateCompanyPage() {
 					await dispatch(switchToForeignCompany(company.id));
 				}
 			} else {
-				const team = (await dispatch(createCompany({ name: companyName }))) as unknown as CSCompany;
+				const team = (await dispatch(createCompany({ name: companyName }))) as unknown as any;
 				// artificial delay to ensure analytics from creating the team are actually processed before we logout below
 				await wait(1000);
-				await dispatch(switchToTeam({ teamId: team.id }));
+				await dispatch(
+					switchToTeam({ teamId: team.teamId, accessTokenFromEligibleCompany: team?.accessToken })
+				);
 			}
 		} catch (error) {
+			console.error(error);
 		} finally {
 			setIsLoading(false);
 		}

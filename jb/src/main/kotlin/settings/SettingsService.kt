@@ -12,6 +12,8 @@ import com.github.salomonbrys.kotson.jsonObject
 import com.github.salomonbrys.kotson.set
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import com.intellij.credentialStore.CredentialAttributes
+import com.intellij.credentialStore.generateServiceName
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.State
@@ -61,6 +63,13 @@ class SettingsService(val project: Project) : PersistentStateComponent<SettingsS
 
     var webViewContext by Delegates.observable<WebViewContext?>(null) { _, _, new ->
         _webViewContextObservers.forEach { it(new) }
+    }
+
+    fun credentialAttributes(includeTeam: Boolean = true): CredentialAttributes {
+        val teamSuffix = if (includeTeam && state.teamId != null) state.teamId.let { "|${it}" } else ""
+        val serviceName = generateServiceName("CodeStream", applicationSettings.state.serverUrl + teamSuffix)
+        val userName = applicationSettings.state.email
+        return CredentialAttributes(serviceName, userName)
     }
 
     // 💩: I HATE THIS

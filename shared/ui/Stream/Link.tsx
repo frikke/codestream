@@ -1,41 +1,54 @@
-import React from "react";
-import { connect } from "react-redux";
+import { CodeStreamState } from "@codestream/webview/store";
+import Tooltip from "@codestream/webview/Stream/Tooltip";
+import { useAppSelector } from "@codestream/webview/utilities/hooks";
+import React, { PropsWithChildren } from "react";
 import { OpenUrlRequestType } from "../ipc/host.protocol";
 import { HostApi } from "../webview-api";
 
 interface Props {
-	useHref?: boolean;
 	href?: string;
-	onClick?(event: React.SyntheticEvent): any;
-	children: React.ReactNode;
+	onClick?(event: React.SyntheticEvent): void;
 	className?: string;
 	useStopPropagation?: boolean;
+	disabled?: boolean;
+	disabledHover?: string;
 }
 
-function Link(props: Props) {
-	let href;
-	if (props.useHref) {
-		href = props.href;
-	}
+export const Link = React.memo((props: PropsWithChildren<Props>) => {
+	const derivedState = useAppSelector((state: CodeStreamState) => {
+		return { useHref: props.href && state.capabilities.openLink };
+	});
+
+	const href = derivedState.useHref ? props.href : undefined;
 
 	const onClick =
 		props.onClick ||
-		function (event: React.SyntheticEvent) {
-			if (!(event.target as any).href) {
+		function (event: React.MouseEvent) {
+			const target = event.target as HTMLAnchorElement;
+			if (!target.href) {
 				event.preventDefault();
 				if (props.useStopPropagation) {
 					event.stopPropagation();
 				}
-				HostApi.instance.send(OpenUrlRequestType, { url: props.href! });
+				if (props.href) {
+					HostApi.instance.send(OpenUrlRequestType, { url: props.href });
+				}
 			}
 		};
 
-	return <a {...{ href, onClickCapture: onClick, className: props.className }}>{props.children}</a>;
-}
-
-const mapStateToProps = (state, props: Props) => ({
-	useHref: props.href && state.capabilities.openLink,
+	return (
+		<React.Fragment key={String(props.disabled)}>
+			{props.disabled === true ? (
+				<Tooltip content={props.disabledHover} placement={"bottom"}>
+					<span className={props.className} style={{ textDecoration: "underline" }}>
+						{props.children}
+					</span>
+				</Tooltip>
+			) : (
+				<a href={href} onClickCapture={onClick} className={props.className}>
+					{props.children}
+				</a>
+			)}
+		</React.Fragment>
+	);
 });
-const Component = connect(mapStateToProps)(Link);
-
-export { Component as Link };

@@ -51,6 +51,8 @@ import {
 	ConfirmRegistrationResponse,
 	ConnectionCode,
 	ConnectionStatus,
+	DeclineInviteRequest,
+	DeclineInviteRequestType,
 	DidChangeApiVersionCompatibilityNotificationType,
 	DidChangeConnectionStatusNotification,
 	DidChangeConnectionStatusNotificationType,
@@ -440,6 +442,7 @@ export class CodeStreamSession {
 		this.agent.registerHandler(ConfirmRegistrationRequestType, e => this.confirmRegistration(e));
 		this.agent.registerHandler(GetInviteInfoRequestType, e => this.getInviteInfo(e));
 		this.agent.registerHandler(JoinCompanyRequestType, e => this.joinCompany(e));
+		this.agent.registerHandler(DeclineInviteRequestType, e => this.declineInvite(e));
 		this.agent.registerHandler(ApiRequestType, (e, cancellationToken: CancellationToken) =>
 			this.api.fetch(e.url, e.init, e.token)
 		);
@@ -521,6 +524,7 @@ export class CodeStreamSession {
 			token: {
 				email: this._email!,
 				url: this._options.serverUrl,
+				teamId: this._teamId!,
 				value: this._codestreamAccessToken!,
 			},
 		});
@@ -969,6 +973,20 @@ export class CodeStreamSession {
 	}
 
 	@log({ singleLine: true })
+	async declineInvite(request: DeclineInviteRequest) {
+		// coming from the webview after a successful signup, we explicitly handle
+		// an instruction to switch environments, since the message to switch environments that is
+		// sent to the IDE may still be in progress
+		// if (request.fromEnvironment) {
+		// 	// make an explicit request to the API server to copy this user from the other environment
+		// 	// before joining the company
+		// 	return this._api!.joinCompanyFromEnvironment(request);
+		// } else {
+		return this._api!.declineInvite(request);
+		// }
+	}
+
+	@log({ singleLine: true })
 	async otcLogin(request: OtcLoginRequest) {
 		const cc = Logger.getCorrelationContext();
 		Logger.log(cc, `Logging into CodeStream (@ ${this._options.serverUrl}) via otc code...`);
@@ -1214,6 +1232,7 @@ export class CodeStreamSession {
 				capabilities: this.api.capabilities,
 				email: this._email!,
 				environmentInfo: this._environmentInfo,
+				eligibleJoinCompanies: response.eligibleJoinCompanies,
 				serverUrl: this._options.serverUrl!,
 				teamId: this._teamId!,
 				userId: response.user.id,
@@ -1343,16 +1362,14 @@ export class CodeStreamSession {
 		try {
 			const response = await (this._api as CodeStreamApiProvider).confirmRegistration(request);
 
-			this.setSuperPropsAndCallTelemetry(response.user);
-
 			const result: ConfirmRegistrationResponse = {
 				user: {
 					id: response.user.id,
+					eligibleJoinCompanies: response.user.eligibleJoinCompanies,
 				},
 				status: LoginResult.Unknown,
 				token: response.accessToken,
 				companies: response.companies,
-				eligibleJoinCompanies: response.eligibleJoinCompanies,
 				accountIsConnected: response.accountIsConnected,
 				isWebmail: response.isWebmail,
 			};

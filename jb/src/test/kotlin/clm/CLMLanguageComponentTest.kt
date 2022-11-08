@@ -79,7 +79,8 @@ class CLMLanguageComponentTest : BasePlatformTestCase() {
                 ),
                 1,
                 1
-            )
+            ),
+            emptyList()
         )
     }
 

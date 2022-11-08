@@ -18,6 +18,7 @@ const initialState: ContextState = {
 	currentStreamId: "",
 	currentCodemarkId: undefined,
 	createPullRequestReviewId: undefined,
+	currentOrganizationInvite: undefined,
 	currentPullRequest: undefined,
 	pullRequestCheckoutBranch: false,
 	newPullRequestOptions: undefined,
@@ -166,6 +167,17 @@ export function reduceContext(
 						  }
 						: undefined,
 				pullRequestCheckoutBranch: false,
+			};
+
+		case ContextActionsType.SetCurrentOrganizationInvite:
+			return {
+				...state,
+				currentOrganizationInvite: {
+					name: action.payload.name,
+					id: action.payload.id,
+					host: action.payload?.host,
+					_type: action.payload?._type,
+				},
 			};
 		case ContextActionsType.SetCurrentPullRequestAndBranch:
 			return {

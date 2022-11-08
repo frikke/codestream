@@ -10,6 +10,7 @@ import com.codestream.protocols.agent.Post
 import com.codestream.protocols.agent.PullRequestNotification
 import com.codestream.protocols.agent.Stream
 import com.codestream.protocols.agent.UserLoggedIn
+import com.google.gson.JsonObject
 import com.intellij.openapi.project.Project
 import kotlin.properties.Delegates
 
@@ -23,6 +24,7 @@ typealias UnitObserver = () -> Unit
 class SessionService(val project: Project) {
 
     val userLoggedIn: UserLoggedIn? get() = _userLoggedIn
+    val eligibleJoinCompanies: List<JsonObject> get() = _eligibleJoinCompanies ?: emptyList()
     var environmentInfo: EnvironmentInfo
         get() = _environmentInfo
         set(value) { _environmentInfo = value }
@@ -51,6 +53,8 @@ class SessionService(val project: Project) {
     private var _userLoggedIn: UserLoggedIn? by Delegates.observable<UserLoggedIn?>(null) { _, _, new ->
         userLoggedInObservers.forEach { it(new) }
     }
+
+    private var _eligibleJoinCompanies: List<JsonObject>? = null
 
     private var _environmentInfo: EnvironmentInfo by Delegates.observable<EnvironmentInfo>(EnvironmentInfo(
         "unknown",
@@ -99,8 +103,9 @@ class SessionService(val project: Project) {
         codelensObservers += observer
     }
 
-    fun login(userLoggedIn: UserLoggedIn) {
+    fun login(userLoggedIn: UserLoggedIn, eligibleJoinCompanies: List<JsonObject>?) {
         _userLoggedIn = userLoggedIn
+        _eligibleJoinCompanies = eligibleJoinCompanies
         ErrorHandler.userLoggedIn = userLoggedIn
         ErrorHandler.agentService = project.agentService
     }

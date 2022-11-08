@@ -1,4 +1,5 @@
 import { EnvironmentHost, GetFileScmInfoResponse } from "@codestream/protocols/agent";
+import { CSEligibleJoinCompany } from "@codestream/protocols/api";
 import { Position, Range } from "vscode-languageserver-types";
 import { NewPullRequestBranch } from "./webview.protocol";
 
@@ -99,6 +100,7 @@ export const WebviewPanelNames = {
 };
 
 export enum WebviewModals {
+	AcceptCompanyInvite = "accept-company-invite",
 	ChangeAvatar = "change-avatar",
 	ChangeEmail = "change-email",
 	ChangeFullName = "change-full-name",
@@ -190,6 +192,7 @@ export interface WebviewContext {
 	hasFocus: boolean;
 	/** the first page seen after registration */
 	isFirstPageview?: boolean;
+	eligibleJoinCompanies?: CSEligibleJoinCompany[];
 	panelStack?: (WebviewPanels | string)[];
 	activePanel?: WebviewPanels;
 	startWorkCard?: any; // TODO figure out how to type CardView which include JSX.Element
@@ -206,6 +209,7 @@ export interface SessionState {
 	inMaintenanceMode?: boolean;
 	acceptedTOS?: boolean;
 	machineId?: string;
+	eligibleJoinCompanies?: CSEligibleJoinCompany[];
 }
 
 export interface EditorContext {

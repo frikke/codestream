@@ -1,5 +1,25 @@
 # Change Log
 
+## [14.5.0] - 2022-11-10
+
+### Added
+
+- Adds a CodeStream entry to the Visual Studio extensions menu
+
+### Changed
+
+- New users now explicitly accept invitations upon signup
+- Invitations to existing CodeStream users are now accepted via the organization switcher under the username menu
+- Draft pull requests are now included in the Pull Requests section, and are covered by toast notifiations
+- Updated minimum required version of GitHub Enterprise to v3.3
+
+### Fixed
+
+- Addresses [#1153](https://github.com/TeamCodeStream/CodeStream/issues/1153) &mdash; Darken the colors for review elements when using a light theme
+- Addresses [#1222](https://github.com/TeamCodeStream/CodeStream/issues/1222) &mdash; Wrong issues shown for YouTrack
+- Addresses [#1250](https://github.com/TeamCodeStream/CodeStream/issues/1250) &mdash; CodeStream no longer working in GitHub codespaces
+- Fixed an issue that allowed comments outside of the changeset in a pull request while there was a pending review
+
 ## [14.4.0] - 2022-10-20
 
 ### Added

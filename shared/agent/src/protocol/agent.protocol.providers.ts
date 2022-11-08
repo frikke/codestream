@@ -4,7 +4,7 @@ import { CrossPostIssueValues, GitLabMergeRequest } from "./agent.protocol";
 import { CodeErrorPlus } from "./agent.protocol.codeErrors";
 import { CodemarkPlus } from "./agent.protocol.codemarks";
 import { ReviewPlus } from "./agent.protocol.reviews";
-import { PullRequestQuery } from "./api.protocol.models";
+import { CSRepository, PullRequestQuery } from "./api.protocol.models";
 
 export interface ThirdPartyProviderConfig {
 	id: string;
@@ -529,6 +529,7 @@ export interface FetchThirdPartyPullRequestPullRequest {
 		name: string;
 		nameWithOwner: string;
 		url: string;
+		prRepoId?: string;
 	};
 	locked: any;
 	activeLockReason: "OFF_TOPIC" | "SPAM" | "TOO_HEATED" | "RESOLVED";
@@ -736,6 +737,7 @@ export interface BranchProtectionRules {
 }
 
 export interface FetchThirdPartyPullRequestRepository {
+	prRepoId?: string;
 	id: string;
 	url: string;
 	resourcePath: string;
@@ -749,6 +751,17 @@ export interface FetchThirdPartyPullRequestRepository {
 	viewerDefaultMergeMethod?: "MERGE" | "REBASE" | "SQUASH";
 	viewerPermission: "ADMIN" | "MAINTAIN" | "READ" | "TRIAGE" | "WRITE";
 	branchProtectionRules?: BranchProtectionRules | undefined;
+}
+
+export type RepoMatchReason = "remote" | "repoName" | "matchedOnProviderUrl" | "closestMatch";
+
+export interface CurrentRepoResponse {
+	error?: string;
+	currentRepo?: CSRepository;
+	repos?: CSRepository[];
+	repoName?: string;
+	repoUrl?: string;
+	reason?: RepoMatchReason;
 }
 
 interface RateLimit {
@@ -1058,6 +1071,9 @@ export interface NewRelicErrorGroup {
 			value: string | number | boolean;
 		};
 	};
+
+	commit?: string;
+	releaseTag?: string;
 }
 
 export interface GetNewRelicErrorGroupResponse {

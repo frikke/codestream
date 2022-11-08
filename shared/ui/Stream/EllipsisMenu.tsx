@@ -9,13 +9,13 @@ import {
 	switchToTeam,
 } from "@codestream/webview/store/session/thunks";
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
-import { sortBy as _sortBy } from "lodash-es";
+import { isEmpty as _isEmpty, sortBy as _sortBy } from "lodash-es";
 import React from "react";
 import styled from "styled-components";
 import { WebviewModals, WebviewPanelNames, WebviewPanels } from "../ipc/webview.protocol.common";
 import { CodeStreamState } from "../store";
 import { isFeatureEnabled } from "../store/apiVersioning/reducer";
-import { openModal, setProfileUser } from "../store/context/actions";
+import { openModal, setCurrentOrganizationInvite, setProfileUser } from "../store/context/actions";
 import { HostApi } from "../webview-api";
 import { openPanel, setUserPreference } from "./actions";
 import Icon from "./Icon";
@@ -24,10 +24,23 @@ import Menu from "./Menu";
 import { multiStageConfirmPopup } from "./MultiStageConfirm";
 import { AVAILABLE_PANES, DEFAULT_PANE_SETTINGS } from "./Sidebar";
 import { EMPTY_STATUS } from "./StartWork";
-
 const RegionSubtext = styled.div`
 	font-size: smaller;
 	margin: 0 0 0 21px;
+	color: var(--text-color-subtle);
+`;
+
+export const MailHighlightedIconWrapper = styled.div`
+	right: 4px;
+	border-radius: 50%;
+	width: 15px;
+	height: 15px;
+	top: 10px;
+	color: var(--text-color-highlight);
+	text-align: center;
+	font-size: 11px;
+	display: inline;
+	background: var(--text-color-info-muted);
 `;
 
 interface EllipsisMenuProps {
@@ -75,62 +88,95 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 			environment,
 			isProductionCloud,
 			supportsMultiRegion,
+			eligibleJoinCompanies: _sortBy(user?.eligibleJoinCompanies, "name"),
 		};
 	});
 
+	const hasInvites =
+		derivedState.eligibleJoinCompanies &&
+		derivedState.eligibleJoinCompanies.some(company => company.byInvite && !company.accessToken);
+
 	const trackSwitchOrg = (isCurrentCompany, company) => {
 		HostApi.instance.track("Switched Organizations", {});
-
 		// slight delay so tracking call completes
 		setTimeout(() => {
-			const { userTeams } = derivedState;
-
+			const { eligibleJoinCompanies } = derivedState;
+			const isInvited = company.byInvite && !company.accessToken;
 			if (isCurrentCompany) return;
-			if (company.host) {
+			if (company.host && !isInvited) {
 				dispatch(switchToForeignCompany(company.id));
+			} else if (isInvited) {
+				dispatch(setCurrentOrganizationInvite(company.name, company.id, company.host));
+				dispatch(openModal(WebviewModals.AcceptCompanyInvite));
 			} else {
-				const team = userTeams.find(_ => _.companyId === company.id);
+				const team = eligibleJoinCompanies.find(_ => _.id === company.id);
 				if (team) {
-					dispatch(switchToTeam({ teamId: team.id }));
+					dispatch(
+						switchToTeam({
+							teamId: team.id,
+							accessTokenFromEligibleCompany: team?.accessToken,
+						})
+					);
 				} else {
 					console.error(`Could not switch to a team in ${company.id}`);
 				}
 			}
-		}, 1000);
+		}, 500);
+
+		return;
 	};
 
 	const buildSwitchTeamMenuItem = () => {
 		const {
-			userCompanies,
+			eligibleJoinCompanies,
 			currentCompanyId,
-			userTeams,
 			currentHost,
 			hasMultipleEnvironments,
 			supportsMultiRegion,
 		} = derivedState;
 
 		const buildSubmenu = () => {
-			const items = userCompanies.map(company => {
-				const isCurrentCompany = company.id === currentCompanyId;
-				const companyHost = company.host || currentHost;
-				const companyRegion = supportsMultiRegion && hasMultipleEnvironments && companyHost?.name;
+			const items = eligibleJoinCompanies
+				.filter(company => {
+					// Skip companys eligible to join by domain
+					const domainJoining = company?.domainJoining;
+					const canJoinByDomain = !_isEmpty(domainJoining);
+					if (canJoinByDomain) return false;
+					return true;
+				})
+				.map(company => {
+					const isCurrentCompany = company.id === currentCompanyId;
+					const isInvited = company.byInvite && !company.accessToken;
+					const companyHost = company.host || currentHost;
+					const companyRegion =
+						supportsMultiRegion && hasMultipleEnvironments && companyHost?.shortName;
 
-				return {
-					key: company.id,
-					label: (
-						<>
-							{company.name}
-							{companyRegion && <RegionSubtext>{companyRegion}</RegionSubtext>}
-						</>
-					),
-					// icon: isCurrentTeam ? <Icon name="check" /> : undefined,
-					checked: isCurrentCompany,
-					noHover: isCurrentCompany,
-					action: () => {
-						trackSwitchOrg(isCurrentCompany, company);
-					},
-				};
-			}) as any;
+					// @TODO: add in for UI phase 2, with "Signed Out" messaging as well
+					// const signedStatusText = isInvited ? "Invited" : "Signed In";
+					let checked: any;
+					if (isCurrentCompany) {
+						checked = true;
+					} else if (isInvited) {
+						checked = "custom";
+					} else {
+						checked = false;
+					}
+
+					return {
+						key: company.id,
+						label: (
+							<>
+								{company.name}
+								<RegionSubtext>{companyRegion && <>{companyRegion}</>}</RegionSubtext>
+							</>
+						),
+						checked: checked,
+						noHover: isCurrentCompany,
+						action: () => {
+							trackSwitchOrg(isCurrentCompany, company);
+						},
+					};
+				}) as any;
 
 			items.push(
 				{ label: "-" },
@@ -148,7 +194,27 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		};
 
 		return {
-			label: "Switch Organization",
+			label: (
+				<>
+					{hasInvites ? (
+						<>
+							<span>Switch Organization</span>
+							<Icon
+								style={{
+									background: "var(--text-color-info-muted)",
+									color: "var(--text-color-highlight)",
+									borderRadius: "50%",
+									margin: "0px 0px 0px 5px",
+									padding: "3px 4px 3px 4px",
+								}}
+								name="mail"
+							/>
+						</>
+					) : (
+						<span>Switch Organization</span>
+					)}
+				</>
+			),
 			submenu: buildSubmenu(),
 		};
 	};
@@ -463,8 +529,27 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 	}
 	const text = <span style={{ fontSize: "smaller" }}>{versionStatement}</span>;
 	menuItems.push({ label: text, action: "", noHover: true, disabled: true });
-
+	// &#9993;
 	return (
-		<Menu items={menuItems} target={props.menuTarget} action={props.closeMenu} align="bottomLeft" />
+		<Menu
+			customIcon={
+				<Icon
+					style={{
+						background: "var(--text-color-info-muted)",
+						color: "var(--text-color-highlight)",
+						borderRadius: "50%",
+						margin: "0px 0px 0px -5px",
+						padding: "3px 4px 3px 4px",
+						top: "5px",
+						right: "2px",
+					}}
+					name="mail"
+				/>
+			}
+			items={menuItems}
+			target={props.menuTarget}
+			action={props.closeMenu}
+			align="bottomLeft"
+		/>
 	);
 }

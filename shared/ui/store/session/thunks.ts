@@ -37,14 +37,20 @@ export const logout = createAppAsyncThunk<void, void>(
 export interface SwitchToTeamRequest {
 	teamId: string;
 	options?: { codemarkId?: string; reviewId?: string };
+	accessTokenFromEligibleCompany?: string;
 }
 
 export const switchToTeam = createAppAsyncThunk<
 	LoginResponse | LoginSuccessResponse | { type: BootstrapActionType } | void,
 	SwitchToTeamRequest
 >("session/switchToTeam", async (request, { dispatch, getState }) => {
-	const { teamId, options } = request;
-	const { accessToken } = await HostApi.instance.send(GetAccessTokenRequestType, {});
+	const { teamId, options, accessTokenFromEligibleCompany } = request;
+	let accessToken;
+	if (!accessTokenFromEligibleCompany) {
+		accessToken = { accessToken } = await HostApi.instance.send(GetAccessTokenRequestType, {});
+	} else {
+		accessToken = accessTokenFromEligibleCompany;
+	}
 
 	const { configs, context, users, session } = getState(); // TODO restore codemarks
 	const user = users[session.userId!] as CSMe;
@@ -88,9 +94,11 @@ export const switchToForeignCompany = createAppAsyncThunk<any, string>(
 	"session/switchToForeignCompany",
 	async (companyId, { dispatch, getState }) => {
 		const { companies, session, users } = getState();
-		const company = companies[companyId];
+
 		const user = users[session.userId!] as CSMe;
-		const teamId = company.everyoneTeamId;
+		const company = user?.eligibleJoinCompanies?.find(_ => _.id === companyId);
+		const teamId = company?.teamId;
+
 		let error;
 		if (!company) {
 			error = "Failed to switch to foreign company, companyId not found";
@@ -98,8 +106,10 @@ export const switchToForeignCompany = createAppAsyncThunk<any, string>(
 		} else if (!company.host) {
 			error = "Failed to switch to organization, not a foreign company";
 			return;
-		} else if (!company.host.accessToken) {
+		} else if (!company.accessToken) {
 			error = "Failed to switch to organization, no access token";
+		} else if (!company.teamId) {
+			error = "Failed to switch to organization, no team ID";
 		}
 		if (error) {
 			console.error(error, companyId);
@@ -123,9 +133,9 @@ export const switchToForeignCompany = createAppAsyncThunk<any, string>(
 		const response = await HostApi.instance.send(TokenLoginRequestType, {
 			token: {
 				email: user.email,
-				value: company.host.accessToken!,
+				value: company.accessToken!,
 				url: company.host.publicApiUrl,
-				teamId,
+				teamId: teamId || "",
 			},
 			setEnvironment: {
 				environment: company.host.shortName,

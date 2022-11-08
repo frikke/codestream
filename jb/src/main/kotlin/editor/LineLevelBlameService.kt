@@ -91,6 +91,7 @@ private class BlameManager(private val editor: EditorImpl, private val iconsCach
             synchronized(this) {
                 try {
                     inlay?.dispose()
+                    if (editor.isDisposed) return@synchronized
                     inlay = editor.inlayModel.addAfterLineEndElement(editor.getOffset(Position(currentLine, 0)), false, renderer)
                 } catch (ex: Exception) {
                     logger.warn(ex)
