@@ -520,6 +520,9 @@ export function CodeErrorNav(props: Props) {
 						? codeError.stackTraces[0].text?.split("\n")
 						: []);
 
+				if (!refToUse && errorGroupResult?.errorGroup) {
+					refToUse = errorGroupResult.errorGroup.commit || errorGroupResult.errorGroup.releaseTag;
+				}
 				if (stack) {
 					stackInfo = (await resolveStackTrace(
 						errorGroupGuidToUse!,

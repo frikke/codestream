@@ -1179,6 +1179,23 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 					entityUrl: `${this.productUrl}/redirect/entity/${errorGroupResponse.entityGuid}`,
 				};
 
+				if (errorGroupResponse.eventsQuery) {
+					const timestampRange = this.generateTimestampRange(request.timestamp);
+					const nrql =
+						errorGroupResponse.eventsQuery +
+						`since ${timestampRange?.startTime}` +
+						`until ${timestampRange?.endTime}` +
+						"LIMIT 1";
+					const result = await this.runNrql<{
+						"tags.releaseTag": string;
+						"tags.commit": string;
+					}>(accountId, nrql);
+					if (result.length) {
+						errorGroup.releaseTag = result[0]["tags.releaseTag"];
+						errorGroup.commit = result[0]["tags.commit"];
+					}
+				}
+
 				if (
 					errorGroupFullResponse.actor?.entity?.exception?.stackTrace ||
 					errorGroupFullResponse.actor?.entity?.crash?.stackTrace
@@ -3137,6 +3154,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 					  }
 					}
 					state
+					eventsQuery
 				  }
 				}
 			  }

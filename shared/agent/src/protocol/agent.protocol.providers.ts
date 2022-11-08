@@ -1071,6 +1071,9 @@ export interface NewRelicErrorGroup {
 			value: string | number | boolean;
 		};
 	};
+
+	commit?: string;
+	releaseTag?: string;
 }
 
 export interface GetNewRelicErrorGroupResponse {
