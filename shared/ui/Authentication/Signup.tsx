@@ -17,7 +17,6 @@ import { supportsSSOSignIn } from "../store/configs/slice";
 import {
 	goToCompanyCreation,
 	goToEmailConfirmation,
-	goToLogin,
 	goToNewRelicSignup,
 	goToOktaConfig,
 	goToTeamCreation,
@@ -689,25 +688,6 @@ export const Signup = (props: Props) => {
 									)}
 								</FormattedMessage>
 							</small>
-
-							<div>
-								<p>
-									Already have an account?{" "}
-									<Link
-										onClick={e => {
-											e.preventDefault();
-											dispatch(goToLogin());
-										}}
-									>
-										Sign In
-									</Link>
-								</p>
-								<p style={{ opacity: 0.5, fontSize: ".9em", textAlign: "center" }}>
-									CodeStream Version {derivedState.pluginVersion}
-									<br />
-									Connected to {derivedState.whichServer}.
-								</p>
-							</div>
 						</div>
 					</div>
 				</fieldset>
