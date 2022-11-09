@@ -2051,9 +2051,13 @@ export class CodeStreamApiProvider implements ApiProvider {
 			this._token
 		);
 
-		await SessionContainer.instance().users.resolve({
+		const users = await SessionContainer.instance().users.resolve({
 			type: MessageType.Users,
 			data: [response.user],
+		});
+		Container.instance().agent.sendNotification(DidChangeDataNotificationType, {
+			type: ChangeDataType.Users,
+			data: users,
 		});
 
 		return response;
