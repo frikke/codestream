@@ -93,3 +93,42 @@ export interface FunctionInfo {
 }
 
 export type ResolutionMethod = "filePath" | "locator" | "hybrid";
+
+export interface ServiceLevelIndicatorQueryResult {
+	actor: {
+		entity: {
+			serviceLevel: {
+				indicators: {
+					guid: string;
+					name: string;
+					resultQueries: {
+						indicator: {
+							nrql: string;
+						};
+					};
+					objectives: {
+						target: number;
+						timeWindow: {
+							rolling: {
+								count: number;
+								unit: string;
+							};
+						};
+					}[];
+				}[];
+			};
+		};
+	};
+}
+
+export interface ServiceLevelObjectiveQueryResult {
+	actor: {
+		[entityGuid: string]: {
+			nrdbQuery: {
+				results: {
+					[name: string]: number;
+				}[];
+			};
+		};
+	};
+}

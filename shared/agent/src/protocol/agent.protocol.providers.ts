@@ -1340,6 +1340,11 @@ export interface GetServiceLevelTelemetryRequest {
 	fetchRecentAlertViolations?: boolean;
 }
 
+export interface GetServiceLevelObjectivesRequest {
+	/** entity id of the NewRelic entity */
+	entityGuid: string;
+}
+
 export interface GetAlertViolationsRequest {}
 
 export type MetricTimesliceNameMapping = {
@@ -1402,6 +1407,10 @@ export interface GetFileLevelTelemetryResponse {
 	};
 }
 
+export interface GetServiceLevelObjectivesResponse {
+	serviceLevelObjectives?: ServiceLevelObjectiveResult[];
+}
+
 export interface GetMethodLevelTelemetryResponse {
 	newRelicEntityGuid: string;
 	newRelicUrl?: string;
@@ -1448,6 +1457,13 @@ export const GetServiceLevelTelemetryRequestType = new RequestType<
 	void,
 	void
 >("codestream/newrelic/serviceLevelTelemetry");
+
+export const GetServiceLevelObjectivesRequestType = new RequestType<
+	GetServiceLevelObjectivesRequest,
+	GetServiceLevelObjectivesResponse,
+	void,
+	void
+>("codestream/newrelic/serviceLevelObjectives");
 
 export const GetAlertViolationsRequestType = new RequestType<
 	GetAlertViolationsRequest,
@@ -1768,6 +1784,16 @@ export interface GoldenMetricsResult {
 	}[];
 	timeWindow: number;
 	extrapolated?: boolean;
+}
+
+export interface ServiceLevelObjectiveResult {
+	guid: string;
+	name: string;
+	target: string;
+	actual: string;
+	timeWindow: string;
+	result: "UNDER" | "OVER";
+	summaryPageUrl: string;
 }
 
 export interface RelatedEntityByRepositoryGuidsResult {
