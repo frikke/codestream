@@ -1,7 +1,7 @@
 "use strict";
 import { Agent as HttpsAgent } from "https";
-
 import * as url from "url";
+
 import HttpsProxyAgent from "https-proxy-agent";
 import {
 	Event,
@@ -1178,14 +1178,16 @@ export class CodeStreamAgentConnection implements Disposable {
 						NEW_RELIC_LICENSE_KEY: telemetryOptions.licenseIngestKey
 					};
 
-					this._serverOptions.run.options = this._serverOptions.run.options || process.env;
+					this._serverOptions.run.options = this._serverOptions.run.options || {};
 					this._serverOptions.run.options.env = {
+						...process.env,
 						...this._serverOptions.run.options.env,
 						...newRelicEnvironmentVariables
 					};
 
-					this._serverOptions.debug.options = this._serverOptions.debug.options || process.env;
+					this._serverOptions.debug.options = this._serverOptions.debug.options || {};
 					this._serverOptions.debug.options.env = {
+						...process.env,
 						...this._serverOptions.debug.options.env,
 						...newRelicEnvironmentVariables
 					};
