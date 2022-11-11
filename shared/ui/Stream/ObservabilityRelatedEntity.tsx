@@ -1,22 +1,21 @@
-import { forEach as _forEach, isEmpty as _isEmpty } from "lodash-es";
-import React, { useEffect, useState } from "react";
-import Icon from "./Icon";
-import { ALERT_SEVERITY_COLORS } from "./CodeError/index";
-import { HostApi } from "@codestream/webview/webview-api";
-import { ObservabilityGoldenMetricDropdown } from "./ObservabilityGoldenMetricDropdown";
-import styled from "styled-components";
-import { PaneNodeName } from "../src/components/Pane";
-import { useDidMount, useInterval } from "../utilities/hooks";
-import { OpenUrlRequestType } from "@codestream/protocols/webview";
-import cx from "classnames";
 import {
+	GetAlertViolationsResponse,
+	GetNewRelicUrlRequestType,
+	GetServiceLevelTelemetryRequestType,
 	GoldenMetricsResult,
 	RelatedEntityByType,
-	GetServiceLevelTelemetryRequestType,
-	GetNewRelicUrlRequestType,
-	GetAlertViolationsResponse,
 } from "@codestream/protocols/agent";
+import { OpenUrlRequestType } from "@codestream/protocols/webview";
+import { HealthIcon } from "@codestream/webview/src/components/HealthIcon";
+import { HostApi } from "@codestream/webview/webview-api";
+import cx from "classnames";
+import React, { useEffect, useState } from "react";
+import { PaneNodeName } from "../src/components/Pane";
+import { useDidMount, useInterval } from "../utilities/hooks";
+import { ALERT_SEVERITY_COLORS } from "./CodeError/index";
+import Icon from "./Icon";
 import { ObservabilityAlertViolations } from "./ObservabilityAlertViolations";
+import { ObservabilityGoldenMetricDropdown } from "./ObservabilityGoldenMetricDropdown";
 
 interface Props {
 	relatedEntity: RelatedEntityByType;
@@ -34,14 +33,6 @@ export const ObservabilityRelatedEntity = React.memo((props: Props) => {
 
 	const { relatedEntity } = props;
 	const alertSeverityColor = ALERT_SEVERITY_COLORS[relatedEntity?.alertSeverity];
-
-	const EntityHealth = styled.div<{ backgroundColor: string }>`
-		background-color: ${props => (props.backgroundColor ? props.backgroundColor : "white")};
-		width: 10px;
-		height: 10px;
-		display: inline-block;
-		margin-right: 4px;
-	`;
 
 	useDidMount(() => {
 		fetchNewRelicUrl(relatedEntity.guid);
@@ -94,7 +85,7 @@ export const ObservabilityRelatedEntity = React.memo((props: Props) => {
 			<PaneNodeName
 				title={
 					<div style={{ display: "flex", alignItems: "center" }}>
-						<EntityHealth backgroundColor={alertSeverityColor} />
+						<HealthIcon color={alertSeverityColor} />
 						<div>
 							<span>{relatedEntity?.name}</span>
 							<span className="subtle" style={{ fontSize: "11px", verticalAlign: "bottom" }}>
