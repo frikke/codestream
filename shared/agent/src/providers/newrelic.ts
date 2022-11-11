@@ -5,6 +5,8 @@ import {
 	Dictionary,
 	flatten as _flatten,
 	groupBy as _groupBy,
+	isEmpty as _isEmpty,
+	isUndefined as _isUndefined,
 	memoize,
 	uniq as _uniq,
 	uniqBy as _uniqBy,
@@ -2489,12 +2491,23 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			recentAlertViolations = await this.getRecentAlertViolations(request.newRelicEntityGuid);
 		}
 
+		let primaryEntityTransactionType = "Web";
+		if (entity?.entityGuid && entity.accountId) {
+			primaryEntityTransactionType = await this.getPrimaryEntityTransactionType(
+				entity.accountId,
+				entity.entityGuid
+			);
+		}
+
 		try {
 			const serviceLevelGoldenMetrics = await this.getServiceGoldenMetrics(
-				entity?.entityGuid || request.newRelicEntityGuid
+				entity?.entityGuid || request.newRelicEntityGuid,
+				primaryEntityTransactionType
 			);
+
 			return {
 				goldenMetrics: serviceLevelGoldenMetrics,
+				goldenMetricTransactionType: primaryEntityTransactionType,
 				newRelicEntityAccounts: observabilityRepo?.entityAccounts || [],
 				newRelicAlertSeverity: entity?.alertSeverity,
 				newRelicEntityName: entity?.entityName!,
@@ -2811,40 +2824,44 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		return undefined;
 	}
 
-	async getServiceGoldenMetrics(entityGuid: string): Promise<GoldenMetricsResult[] | undefined> {
+	async getServiceGoldenMetrics(
+		entityGuid: string,
+		transactionType: string = "Web"
+	): Promise<GoldenMetricsResult[] | undefined> {
 		try {
 			const parsedId = NewRelicProvider.parseId(entityGuid)!;
-			const query = `{
-			actor {			  
-			  account(id: ${parsedId.accountId}) {       
-				throughput: nrql(query: "SELECT rate(count(apm.service.transaction.duration), 1 minute) as 'throughput' FROM Metric WHERE (entity.guid = '${entityGuid}') AND (transactionType = 'Web') LIMIT MAX SINCE 30 MINUTES AGO") {
-				  results
-				  metadata {
-					timeWindow {
-					  end
+			let query = `{
+					actor {			  
+					  account(id: ${parsedId.accountId}) {       
+						throughput: nrql(query: "SELECT rate(count(apm.service.transaction.duration), 1 minute) as 'throughput' FROM Metric WHERE (entity.guid = '${entityGuid}') AND (transactionType = '${transactionType}') LIMIT MAX SINCE 30 MINUTES AGO") {
+						  results
+						  metadata {
+							timeWindow {
+							  end
+							}
+						  }
+						}
+						errorRate: nrql(query: "SELECT count(apm.service.error.count) / count(apm.service.transaction.duration) as 'errors' FROM Metric WHERE (entity.guid = '${entityGuid}') AND (transactionType = '${transactionType}') LIMIT MAX SINCE 30 MINUTES AGO") {
+						  results
+						  metadata {
+							timeWindow {
+							  end
+							}
+						  }
+						}
+						responseTimeMs: nrql(query: "SELECT average(apm.service.overview.${transactionType?.toLowerCase()}) * 1000 as 'data' FROM Metric WHERE (entity.guid = '${entityGuid}') FACET \`segmentName\` LIMIT MAX SINCE 30 MINUTES AGO") {
+						  results
+						  metadata {
+							timeWindow {
+							  end
+							}
+						  }
+						}
+					  }
 					}
 				  }
-				}
-				errorRate: nrql(query: "SELECT count(apm.service.error.count) / count(apm.service.transaction.duration) as 'errors' FROM Metric WHERE (entity.guid = '${entityGuid}') AND (transactionType = 'Web') LIMIT MAX SINCE 30 MINUTES AGO") {
-				  results
-				  metadata {
-					timeWindow {
-					  end
-					}
-				  }
-				}
-				responseTimeMs: nrql(query: "SELECT average(apm.service.overview.web) * 1000 as 'data' FROM Metric WHERE (entity.guid = '${entityGuid}') FACET \`segmentName\` LIMIT MAX SINCE 30 MINUTES AGO") {
-				  results
-				  metadata {
-					timeWindow {
-					  end
-					}
-				  }
-				}
-			  }
-			}
-		  }
-		  `;
+				  `;
+
 			const results = await this.query<ServiceGoldenMetricsQueryResult>(query);
 			const account = results?.actor?.account;
 			const response = [
@@ -2906,6 +2923,63 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				error: ex,
 			});
 			return undefined;
+		}
+	}
+
+	@log()
+	private async getPrimaryEntityTransactionType(
+		accountId: number,
+		entityGuid: string
+	): Promise<string> {
+		try {
+			const query = `{
+				actor {
+					account(id: ${accountId}) {
+						transactionTypeList: nrql(query: "SELECT rate(count(apm.service.transaction.duration), 1 minute) as 'transactionCount' FROM Metric WHERE (entity.guid = '${entityGuid}') LIMIT MAX SINCE 10 MINUTES AGO TIMESERIES facet transactionType") {
+							results
+							metadata {
+								timeWindow {
+									end
+								}
+							}
+						}
+					}
+				}
+			}
+			`;
+
+			const results = await this.query(query);
+			let transactionTypeArray = results?.actor?.account?.transactionTypeList?.results;
+			let transactionTypeCountObject: any = {};
+			interface TransactionTypeElement {
+				beginTimeSeconds: number;
+				endTimeSeconds: number;
+				facet: string;
+				transactionCount: number;
+				transactionType: string;
+			}
+
+			transactionTypeArray.forEach((_: TransactionTypeElement) => {
+				let transactionType = _.transactionType;
+				if (_isUndefined(transactionTypeCountObject[transactionType])) {
+					transactionTypeCountObject[transactionType] = 0;
+				} else {
+					transactionTypeCountObject[transactionType]++;
+				}
+			});
+
+			const primaryTransactionType = Object.keys(transactionTypeCountObject).reduce((a, b) =>
+				transactionTypeCountObject[a] > transactionTypeCountObject[b] ? a : b
+			);
+
+			return _isEmpty(primaryTransactionType) ? "Web" : primaryTransactionType;
+		} catch (ex) {
+			Logger.warn("getServiceGoldenMetrics no response", {
+				entityGuid,
+				error: ex,
+			});
+			//default value if nothing is parsed from above query
+			return "Web";
 		}
 	}
 
