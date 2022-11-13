@@ -1,12 +1,12 @@
 "use strict";
 
-import glob from "glob-promise";
 import { Agent as HttpAgent } from "http";
 import { Agent as HttpsAgent } from "https";
-import HttpsProxyAgent from "https-proxy-agent";
-import { isEmpty, isEqual, omit, uniq } from "lodash";
 import * as path from "path";
 import * as url from "url";
+
+import { isEmpty, isEqual, omit, uniq } from "lodash";
+import glob from "glob-promise";
 import {
 	CancellationToken,
 	Connection,
@@ -15,6 +15,8 @@ import {
 	MessageActionItem,
 	WorkspaceFolder,
 } from "vscode-languageserver";
+
+import HttpsProxyAgent from "https-proxy-agent";
 import { CodeStreamAgent } from "./agent";
 import { AgentError, ServerError } from "./agentError";
 import {
@@ -1142,10 +1144,19 @@ export class CodeStreamSession {
 			}
 		}
 
+		const localProviders: ThirdPartyProviders = {
+			"newrelic-vulnerabilities": {
+				id: "newrelic-vulnerabilities*com",
+				name: "newrelic-vulnerabilities",
+				host: "https://nrsec-workflow-api.staging-service.newrelic.com",
+			},
+		};
+
 		this._providers = currentTeam.providerHosts || {};
+		const combinedProviders = { ...currentTeam.providerHosts, ...localProviders };
 		registerProviders(
-			currentTeam.providerHosts
-				? omit(currentTeam.providerHosts, Object.keys(PROVIDERS_TO_REGISTER_BEFORE_SIGNIN))
+			{ combinedProviders }
+				? omit(combinedProviders, Object.keys(PROVIDERS_TO_REGISTER_BEFORE_SIGNIN))
 				: {},
 			this,
 			false

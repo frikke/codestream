@@ -1,5 +1,5 @@
-import { AppDispatch, CodeStreamState } from "@codestream/webview/store";
 import {
+	DependencyList,
 	EffectCallback,
 	useCallback,
 	useEffect,
@@ -9,6 +9,8 @@ import {
 	useState,
 } from "react";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
+
+import { AppDispatch, CodeStreamState } from "@codestream/webview/store";
 import { RequestType } from "vscode-jsonrpc";
 import { noop } from "../utils";
 import { HostApi, RequestParamsOf, RequestResponseOf } from "../webview-api";
@@ -69,21 +71,27 @@ interface UseRequestTypeResult<T> {
 export function useRequestType<RT extends RequestType<any, any, any, any>>(
 	requestType: RT,
 	payload: RequestParamsOf<RT>,
-	dependencies = []
+	dependencies: DependencyList = [],
+	enabled = true
 ): UseRequestTypeResult<RequestResponseOf<RT>> {
 	const [loading, setLoading] = useState(true);
 	const [data, setData] = useState<RequestResponseOf<RT> | undefined>(undefined);
 	const [error, setError] = useState<undefined>(undefined);
 
 	const fetch = async () => {
-		try {
-			setLoading(true);
-			const response = (await HostApi.instance.send(requestType, payload)) as RequestResponseOf<RT>;
-			setData(response);
-			setLoading(false);
-		} catch (error) {
-			setLoading(false);
-			setError(error);
+		if (enabled) {
+			try {
+				setLoading(true);
+				const response = (await HostApi.instance.send(
+					requestType,
+					payload
+				)) as RequestResponseOf<RT>;
+				setData(response);
+				setLoading(false);
+			} catch (error) {
+				setLoading(false);
+				setError(error);
+			}
 		}
 	};
 
