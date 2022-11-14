@@ -7,7 +7,7 @@ plugins {
 }
 
 group "com.codestream"
-version "14.6.1"
+version "14.7.0"
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 

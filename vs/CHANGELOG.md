@@ -1,5 +1,21 @@
 # Change Log
 
+## [14.7.0] - 2022-11-15
+
+### Added
+
+- Adds service level objectives to the Observability section
+
+### Changed
+
+- Changed the entity health icon to a hex icon to match New Relic
+
+### Fixed
+
+- Fixes an issue viewing pull requests in private repos when connected to GitHub via OAuth
+- Fixes an issue with golden metrics not being displayed for APM services with non-web transactions
+- Fixes an unexpected error on sign-in after update to 14.6
+
 ## [14.6.0] - 2022-11-10
 
 ### Added
