@@ -1,19 +1,20 @@
-import { NewRelicOptions, RepoProjectType } from "@codestream/protocols/agent";
-import { EditorRevealRangeRequestType } from "@codestream/protocols/webview";
-import { clearProcessBuffer } from "@codestream/webview/store/editorContext/actions";
-import { useAppDispatch, useAppSelector, useDidMount } from "@codestream/webview/utilities/hooks";
+import { NewRelicOptions, RepoProjectType } from "codestream-common/agent-protocol";
 import * as path from "path-browserify";
 import React, { useEffect, useRef, useState } from "react";
 import { FormattedMessage } from "react-intl";
 import { Range } from "vscode-languageserver-types";
-import { TextInput } from "../../Authentication/TextInput";
-import { logError } from "../../logger";
 import {
 	CreateNewRelicConfigFileRequestType,
 	CreateNewRelicConfigFileResponse,
 	InstallNewRelicRequestType,
 	InstallNewRelicResponse,
-} from "../../protocols/agent/agent.protocol.nr";
+} from "codestream-common/agent-protocol";
+
+import { EditorRevealRangeRequestType } from "@codestream/protocols/webview";
+import { clearProcessBuffer } from "@codestream/webview/store/editorContext/actions";
+import { useAppDispatch, useAppSelector, useDidMount } from "@codestream/webview/utilities/hooks";
+import { TextInput } from "../../Authentication/TextInput";
+import { logError } from "../../logger";
 import { Button } from "../../src/components/Button";
 import { Dialog } from "../../src/components/Dialog";
 import { CodeStreamState } from "../../store";

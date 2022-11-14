@@ -1,8 +1,9 @@
-import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
-import React, { MouseEventHandler, useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { CodeStreamState } from "../store";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
+import { CSProviderInfo } from "codestream-common/api-protocol";
+
+import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
+import { CodeStreamState } from "../store";
 import Button from "./Button";
 import { PROVIDER_MAPPINGS } from "./CrossPostIssueControls/types";
 import { Link } from "./Link";
@@ -16,7 +17,6 @@ import {
 import { isConnected } from "../store/providers/reducer";
 import { getUserProviderInfoFromState } from "../store/providers/utils";
 import Icon from "./Icon";
-import { CSProviderInfo } from "@codestream/protocols/api";
 import { closePanel } from "./actions";
 
 const Root = styled.div``;

@@ -1,12 +1,14 @@
-import { useAppDispatch } from "@codestream/webview/utilities/hooks";
 import React, { useState } from "react";
+import { GitLabMergeRequest } from "codestream-common/agent-protocol";
+
+import { useAppDispatch } from "@codestream/webview/utilities/hooks";
 import Icon from "../../Icon";
 import { Button } from "@codestream/webview/src/components/Button";
 import { OutlineBox, FlexRow } from "./PullRequest";
 import { api } from "../../../store/providerPullRequests/thunks";
 import { PRHeadshotName } from "@codestream/webview/src/components/HeadshotName";
 import Tooltip from "../../Tooltip";
-import { GitLabMergeRequest } from "@codestream/protocols/agent";
+
 
 export const ApproveBox = (props: { pr: GitLabMergeRequest }) => {
 	const dispatch = useAppDispatch();

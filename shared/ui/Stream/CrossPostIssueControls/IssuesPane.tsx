@@ -3,8 +3,8 @@ import {
 	ThirdPartyProviderCard,
 	ThirdPartyProviderConfig,
 	TransitionsEntity,
-} from "@codestream/protocols/agent";
-import { CSMe, CSTeamSettings } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { CSMe, CSTeamSettings } from "codestream-common/api-protocol";
 import React, { useEffect, useMemo, useState } from "react";
 import styled from "styled-components";
 

@@ -1,7 +1,6 @@
 "use strict";
 import { GraphQLClient } from "graphql-request";
 import Cache from "timed-cache";
-import { Logger } from "../logger";
 import {
 	CreateThirdPartyCardRequest,
 	FetchThirdPartyBoardsRequest,
@@ -17,8 +16,10 @@ import {
 	ThirdPartyDisconnect,
 	ThirdPartyProviderBoard,
 	ThirdPartyProviderCard,
-} from "../protocol/agent.protocol";
-import { CSLinearProviderInfo } from "../protocol/api.protocol";
+} from "codestream-common/agent-protocol";
+import { CSLinearProviderInfo } from "codestream-common/api-protocol";
+
+import { Logger } from "../logger";
 import { log, lspProvider } from "../system";
 import { customFetch } from "../system/fetchCore";
 import { QueryLogger } from "./queryLogger";

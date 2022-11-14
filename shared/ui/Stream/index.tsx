@@ -4,8 +4,8 @@ import {
 	GetUserInfoRequestType,
 	PostPlus,
 	SetCodemarkPinnedRequestType,
-} from "@codestream/protocols/agent";
-import { CodemarkType, CSMe, CSUser } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { CodemarkType, CSMe, CSUser } from "codestream-common/api-protocol";
 import cx from "classnames";
 import PropTypes from "prop-types";
 import React, { PureComponent } from "react";

@@ -1,24 +1,18 @@
 "use strict";
 
-import AbortController from "abort-controller";
-import FormData from "form-data";
 import { promises as fs } from "fs";
 import { Agent as HttpAgent } from "http";
 import { Agent as HttpsAgent } from "https";
-import HttpsProxyAgent from "https-proxy-agent";
-import { isEmpty, isEqual } from "lodash";
-import { Headers, RequestInit, Response } from "node-fetch";
 import * as qs from "querystring";
 import { ParsedUrlQueryInput } from "querystring";
-import sanitize from "sanitize-filename";
 import { URLSearchParams } from "url";
+
+import AbortController from "abort-controller";
+import FormData from "form-data";
+import { isEmpty, isEqual } from "lodash";
+import { Headers, RequestInit, Response } from "node-fetch";
+import sanitize from "sanitize-filename";
 import { Emitter, Event } from "vscode-languageserver";
-import { ServerError } from "../../agentError";
-import { Team, User } from "../../api/extensions";
-import { HistoryFetchInfo } from "../../broadcaster/broadcaster";
-import { Container, SessionContainer } from "../../container";
-import { Logger } from "../../logger";
-import { isDirective, resolve, safeDecode, safeEncode } from "../../managers/operations";
 import {
 	AccessToken,
 	AddBlameMapRequest,
@@ -182,7 +176,7 @@ import {
 	UploadFileRequest,
 	UploadFileRequestType,
 	VerifyConnectivityResponse,
-} from "../../protocol/agent.protocol";
+} from "codestream-common/agent-protocol";
 import {
 	CSAddMarkersRequest,
 	CSAddMarkersResponse,
@@ -307,9 +301,25 @@ import {
 	StreamType,
 	TriggerMsTeamsProactiveMessageRequest,
 	TriggerMsTeamsProactiveMessageResponse,
-} from "../../protocol/api.protocol";
+} from "codestream-common/api-protocol";
+
+import { Strings } from "codestream-common/string";
+import HttpsProxyAgent from "https-proxy-agent";
+
+
+
+import { ServerError } from "../../agentError";
+import { Team, User } from "../../api/extensions";
+import { HistoryFetchInfo } from "../../broadcaster/broadcaster";
+import { Container, SessionContainer } from "../../container";
+import { Logger } from "../../logger";
+import { isDirective, resolve, safeDecode, safeEncode } from "../../managers/operations";
+
+
 import { NewRelicProvider } from "../../providers/newrelic";
-import { getProvider, log, lsp, lspHandler, Objects, Strings } from "../../system";
+import { getProvider, log, lsp, lspHandler, Objects } from "../../system";
+
+
 import { customFetch, fetchCore } from "../../system/fetchCore";
 import { VersionInfo } from "../../types";
 import {

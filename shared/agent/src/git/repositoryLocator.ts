@@ -1,13 +1,17 @@
 "use strict";
 import * as fs from "fs";
 import * as path from "path";
+
 import { WorkspaceFolder, WorkspaceFoldersChangeEvent } from "vscode-languageserver";
 import { URI } from "vscode-uri";
+import { Strings } from "codestream-common/string";
+
 import { Logger } from "../logger";
 import { CodeStreamSession } from "../session";
-import { Iterables, Objects, Strings, TernarySearchTree } from "../system";
+import { Iterables, Objects, TernarySearchTree } from "../system";
 import { GitRepository } from "./gitService";
 import { GitServiceLite } from "./gitServiceLite";
+import { isWindows } from "./shell";
 
 export class RepositoryLocator {
 	private readonly _repositoryTree: TernarySearchTree<GitRepository>;
@@ -207,7 +211,7 @@ export class RepositoryLocator {
 		for (let p of paths) {
 			p = path.dirname(p);
 			// If we are the same as the root, skip it
-			if (Strings.normalizePath(p) === rootPath) continue;
+			if (Strings.normalizePath(p, isWindows) === rootPath) continue;
 
 			let rp;
 			try {

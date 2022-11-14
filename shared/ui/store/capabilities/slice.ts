@@ -1,4 +1,4 @@
-import { Capabilities } from "@codestream/protocols/agent";
+import { Capabilities } from "codestream-common/agent-protocol";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface CapabilitiesState extends Capabilities {}

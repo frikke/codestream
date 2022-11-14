@@ -10,14 +10,15 @@ import {
 	XAxis,
 	YAxis,
 } from "recharts";
-import Tooltip from "../Tooltip";
-
 import {
 	DidChangeObservabilityDataNotificationType,
 	GetMethodLevelTelemetryRequestType,
 	GetMethodLevelTelemetryResponse,
 	WarningOrError,
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
+import styled from "styled-components";
+
+import Tooltip from "../Tooltip";
 import { DelayedRender } from "@codestream/webview/Container/DelayedRender";
 import {
 	OpenUrlRequestType,
@@ -30,7 +31,6 @@ import { closeAllPanels } from "@codestream/webview/store/context/actions";
 import { CurrentMethodLevelTelemetry } from "@codestream/webview/store/context/types";
 import { useDidMount, usePrevious } from "@codestream/webview/utilities/hooks";
 import { HostApi } from "@codestream/webview/webview-api";
-import styled from "styled-components";
 import { PanelHeader } from "../../src/components/PanelHeader";
 import { closePanel, setUserPreference } from "../actions";
 import CancelButton from "../CancelButton";

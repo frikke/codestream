@@ -1,13 +1,14 @@
-import { PostPlus } from "@codestream/protocols/agent";
+import { PostPlus } from "codestream-common/agent-protocol";
+import cx from "classnames";
+import { groupBy } from "lodash-es";
+import React from "react";
+import styled from "styled-components";
+
 import { CodeStreamState } from "@codestream/webview/store";
 import { getThreadPosts } from "@codestream/webview/store/posts/reducer";
 import { findMentionedUserIds, getTeamMates } from "@codestream/webview/store/users/reducer";
 import { useAppDispatch, useAppSelector, useDidMount } from "@codestream/webview/utilities/hooks";
 import { mapFilter, replaceHtml } from "@codestream/webview/utils";
-import cx from "classnames";
-import { groupBy } from "lodash-es";
-import React from "react";
-import styled from "styled-components";
 import { createPost, deletePost, fetchThread, markItemRead } from "../actions";
 import Button from "../Button";
 import { confirmPopup } from "../Confirm";

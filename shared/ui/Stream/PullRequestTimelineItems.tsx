@@ -1,22 +1,23 @@
 import {
 	FetchThirdPartyPullRequestPullRequest,
 	GetReposScmRequestType,
-} from "@codestream/protocols/agent";
-import { CSMe } from "@codestream/protocols/api";
-import {
-	CompareLocalFilesRequest,
-	CompareLocalFilesRequestType,
-	EditorRevealRangeRequestType,
-} from "@codestream/protocols/webview";
-import {
-	getCurrentProviderPullRequest,
-	getProviderPullRequestCollaborators,
-} from "@codestream/webview/store/providerPullRequests/slice";
+} from "codestream-common/agent-protocol";
+import { CSMe } from "codestream-common/api-protocol";
 import * as Path from "path-browserify";
 import * as path from "path-browserify";
 import React, { PropsWithChildren, useState } from "react";
 import { useSelector } from "react-redux";
 import { Range } from "vscode-languageserver-types";
+
+import {
+	getCurrentProviderPullRequest,
+	getProviderPullRequestCollaborators,
+} from "@codestream/webview/store/providerPullRequests/slice";
+import {
+	CompareLocalFilesRequest,
+	CompareLocalFilesRequestType,
+	EditorRevealRangeRequestType,
+} from "@codestream/protocols/webview";
 import { PRHeadshot } from "../src/components/Headshot";
 import { PRHeadshotName } from "../src/components/HeadshotName";
 import { CodeStreamState } from "../store";

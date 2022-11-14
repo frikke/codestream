@@ -7,8 +7,10 @@ import {
 	GetNewRelicErrorGroupResponse,
 	ResolveStackTracePositionRequestType,
 	UpdateCodeErrorRequestType,
-} from "@codestream/protocols/agent";
-import { CSCodeError, CSStackTraceLine } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { CSCodeError, CSStackTraceLine } from "codestream-common/api-protocol";
+import { Position, Range } from "vscode-languageserver-types";
+
 import { EditorRevealRangeRequestType } from "@codestream/protocols/webview";
 import { logError } from "@codestream/webview/logger";
 import { CodeStreamState } from "@codestream/webview/store";
@@ -35,7 +37,6 @@ import { createPostAndCodeError } from "@codestream/webview/Stream/actions";
 import { highlightRange } from "@codestream/webview/Stream/api-functions";
 import { confirmPopup } from "@codestream/webview/Stream/Confirm";
 import { HostApi } from "@codestream/webview/webview-api";
-import { Position, Range } from "vscode-languageserver-types";
 
 export const updateCodeErrors =
 	(codeErrors: CSCodeError[]) => async (dispatch, getState: () => CodeStreamState) => {

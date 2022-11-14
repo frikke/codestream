@@ -1,6 +1,7 @@
 import { Uri } from "vscode";
-import { CodeStreamDiffUriData } from "@codestream/protocols/agent";
-import { Strings } from "system";
+import { CodeStreamDiffUriData } from "codestream-common/agent-protocol";
+import { Strings } from "codestream-common/string";
+
 import { Logger } from "../logger";
 
 export namespace Uris {

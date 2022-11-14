@@ -1,5 +1,5 @@
-import { MetricTimesliceNameMapping, RepoProjectType } from "@codestream/protocols/agent";
-import { CodemarkType } from "@codestream/protocols/api";
+import { MetricTimesliceNameMapping, RepoProjectType } from "codestream-common/agent-protocol";
+import { CodemarkType } from "codestream-common/api-protocol";
 
 import { NewPullRequestBranch } from "@codestream/protocols/webview";
 import {

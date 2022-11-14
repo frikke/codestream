@@ -1,6 +1,7 @@
-import { ThirdPartyBuild } from "@codestream/protocols/agent";
-import { PaneNode, PaneNodeName } from "@codestream/webview/src/components/Pane";
+import { ThirdPartyBuild } from "codestream-common/agent-protocol";
 import React, { Reducer, useReducer } from "react";
+
+import { PaneNode, PaneNodeName } from "@codestream/webview/src/components/Pane";
 import { BuildStatus } from "./BuildStatus";
 
 interface Props {

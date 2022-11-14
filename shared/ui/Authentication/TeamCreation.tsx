@@ -1,7 +1,8 @@
-import { CreateTeamRequestType } from "@codestream/protocols/agent";
+import { CreateTeamRequestType } from "codestream-common/agent-protocol";
 import React, { useCallback, useState } from "react";
 import { FormattedMessage } from "react-intl";
 import { connect } from "react-redux";
+
 import { DispatchProp } from "../store/common";
 import { goToLogin, goToNewUserEntry } from "../store/context/actions";
 import Button from "../Stream/Button";

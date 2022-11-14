@@ -1,5 +1,6 @@
 "use strict";
-import { CSRepository } from "@codestream/protocols/api";
+import { CSRepository } from "codestream-common/api-protocol";
+
 import { CodeStreamSession } from "../session";
 import { CodeStreamItem } from "./item";
 

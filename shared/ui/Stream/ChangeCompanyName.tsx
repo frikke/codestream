@@ -1,7 +1,8 @@
-import { UpdateCompanyRequestType } from "@codestream/protocols/agent";
+import { UpdateCompanyRequestType } from "codestream-common/agent-protocol";
 import React, { useCallback, useState } from "react";
 import { FormattedMessage } from "react-intl";
 import { useDispatch, useSelector } from "react-redux";
+
 import { TextInput } from "../Authentication/TextInput";
 import { logError } from "../logger";
 import { Button } from "../src/components/Button";

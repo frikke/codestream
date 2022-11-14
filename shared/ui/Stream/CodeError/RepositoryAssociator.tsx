@@ -4,13 +4,14 @@ import {
 	DidChangeObservabilityDataNotificationType,
 	GetReposScmRequestType,
 	ReposScm,
-} from "@codestream/protocols/agent";
-import { CSCodeError } from "@codestream/protocols/api";
-import { useDidMount } from "@codestream/webview/utilities/hooks";
-import { HostApi } from "@codestream/webview/webview-api";
+} from "codestream-common/agent-protocol";
+import { CSCodeError } from "codestream-common/api-protocol";
 import React from "react";
 import { useSelector } from "react-redux";
 import styled from "styled-components";
+
+import { HostApi } from "@codestream/webview/webview-api";
+import { useDidMount } from "@codestream/webview/utilities/hooks";
 import { logWarning } from "../../logger";
 import { CodeStreamState } from "../../store";
 import { getCodeError } from "../../store/codeErrors/reducer";

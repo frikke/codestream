@@ -3,8 +3,12 @@ import {
 	GetNewRelicAssigneesRequestType,
 	NewRelicErrorGroup,
 	ResolveStackTraceResponse,
-} from "@codestream/protocols/agent";
-import { CSCodeError, CSPost, CSUser } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { CSCodeError, CSPost, CSUser } from "codestream-common/api-protocol";
+import React, { PropsWithChildren, useEffect } from "react";
+import { useSelector } from "react-redux";
+import styled from "styled-components";
+
 import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { DelayedRender } from "@codestream/webview/Container/DelayedRender";
 import { Loading } from "@codestream/webview/Container/Loading";
@@ -38,9 +42,6 @@ import { useAppDispatch, useAppSelector, useDidMount } from "@codestream/webview
 import { isSha } from "@codestream/webview/utilities/strings";
 import { emptyArray, replaceHtml } from "@codestream/webview/utils";
 import { HostApi } from "@codestream/webview/webview-api";
-import React, { PropsWithChildren, useEffect } from "react";
-import { useSelector } from "react-redux";
-import styled from "styled-components";
 import { getPost } from "../../store/posts/reducer";
 import { createPost, invite, markItemRead } from "../actions";
 import { Attachments } from "../Attachments";

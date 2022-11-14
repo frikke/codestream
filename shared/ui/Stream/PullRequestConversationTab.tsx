@@ -6,15 +6,16 @@ import {
 	FetchThirdPartyPullRequestPullRequest,
 	MergeMethod,
 	StatusContext,
-} from "@codestream/protocols/agent";
-import { CSMe, PullRequestQuery } from "@codestream/protocols/api";
-import { OpenUrlRequestType } from "@codestream/protocols/webview";
+} from "codestream-common/agent-protocol";
+import { CSMe, PullRequestQuery } from "codestream-common/api-protocol";
 import cx from "classnames";
 import copy from "copy-to-clipboard";
 import { groupBy as _groupBy, map as _map, pickBy as _pickBy, reduce as _reduce } from "lodash-es";
 import React, { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { shallowEqual, useSelector } from "react-redux";
 import styled from "styled-components";
+
+import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { Button } from "../src/components/Button";
 import { InlineMenu } from "../src/components/controls/InlineMenu";
 import { Dialog } from "../src/components/Dialog";

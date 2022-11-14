@@ -1,4 +1,4 @@
-import { TelemetryRequestType } from "@codestream/protocols/agent";
+import { TelemetryRequestType } from "codestream-common/agent-protocol";
 import { URI } from "vscode-uri";
 
 import { NotificationType, RequestType } from "vscode-jsonrpc";

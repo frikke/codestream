@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
-import { WarningOrError } from "../protocols/agent/agent.protocol.nr";
+import { WarningOrError } from "codestream-common/agent-protocol";
+
 import Icon from "./Icon";
 import { Link } from "./Link";
 

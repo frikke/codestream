@@ -1,18 +1,21 @@
 /**
  * @jest-environment jsdom
  */
-import { CSNotificationDeliveryPreference, CSUser } from "@codestream/protocols/api";
+import { CSNotificationDeliveryPreference, CSUser } from "codestream-common/api-protocol";
+
 import { CodeStreamState } from "@codestream/webview/store";
 import { isFeatureEnabled } from "@codestream/webview/store/apiVersioning/reducer";
 import * as storeActions from "@codestream/webview/Stream/actions";
 import { Notifications } from "@codestream/webview/Stream/Notifications";
 import { HostApi } from "@codestream/webview/webview-api";
+
 import "@testing-library/jest-dom";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { Provider } from "react-redux";
 import configureStore from "redux-mock-store";
 import thunk from "redux-thunk";
+
 import * as providerSelectors from "@codestream/webview/store/providers/reducer";
 
 jest.mock("@codestream/webview/store/apiVersioning/reducer");

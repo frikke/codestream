@@ -1,5 +1,5 @@
 import { Emitter, Event } from "vscode-languageserver";
-import { CSMePreferences } from "../protocol/api.protocol";
+import { CSMePreferences } from "codestream-common/api-protocol";
 
 export class CodeStreamPreferences {
 	private _onDidChange = new Emitter<CSMePreferences>();

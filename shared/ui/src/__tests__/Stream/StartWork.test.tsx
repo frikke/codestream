@@ -8,8 +8,16 @@ import {
 	GetReposScmRequestType,
 	GetReposScmResponse,
 	UpdateStatusRequestType,
-} from "@codestream/protocols/agent";
-import { CSRepository, CSTeam, CSUser } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { CSRepository, CSTeam, CSUser } from "codestream-common/api-protocol";
+import { fireEvent, render, RenderResult, screen, waitFor } from "@testing-library/react";
+import React from "react";
+import { act } from "react-dom/test-utils";
+import { Provider } from "react-redux";
+import configureStore from "redux-mock-store";
+import thunk from "redux-thunk";
+import { ThemeProvider } from "styled-components";
+
 import { lightTheme } from "@codestream/webview/src/themes";
 import { CodeStreamState } from "@codestream/webview/store";
 import { ContextState } from "@codestream/webview/store/context/types";
@@ -20,13 +28,6 @@ import { CardView } from "@codestream/webview/Stream/CrossPostIssueControls/Issu
 import { StartWork } from "@codestream/webview/Stream/StartWork";
 import { HostApi } from "@codestream/webview/webview-api";
 import "@testing-library/jest-dom";
-import { fireEvent, render, RenderResult, screen, waitFor } from "@testing-library/react";
-import React from "react";
-import { act } from "react-dom/test-utils";
-import { Provider } from "react-redux";
-import configureStore from "redux-mock-store";
-import thunk from "redux-thunk";
-import { ThemeProvider } from "styled-components";
 
 jest.mock("@codestream/webview/store/apiVersioning/reducer");
 jest.mock("@codestream/webview/webview-api");

@@ -3,11 +3,13 @@
 import * as childProcess from "child_process";
 import * as fs from "fs";
 import path from "path";
+
 import {
 	CreateNewRelicConfigFileJavaResponse,
 	DidChangeProcessBufferNotificationType,
 	InstallNewRelicResponse,
-} from "../../protocol/agent.protocol";
+} from "codestream-common/agent-protocol";
+
 import { CodeStreamSession } from "../../session";
 
 export class DotNetCoreInstrumentation {

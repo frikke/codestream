@@ -11,7 +11,7 @@ import {
 	GetShaDiffsRangesResponse,
 	ThirdPartyProviderBoard,
 	ThirdPartyProviderConfig,
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
 import {
 	CodemarkType,
 	CSChannelStream,
@@ -20,7 +20,7 @@ import {
 	CSStream,
 	CSUser,
 	StreamType,
-} from "@codestream/protocols/api";
+} from "codestream-common/api-protocol";
 import cx from "classnames";
 import { prettyPrintOne } from "code-prettify";
 import * as paths from "path-browserify";

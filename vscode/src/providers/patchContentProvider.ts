@@ -1,5 +1,5 @@
 "use strict";
-import { CSMarkerIdentifier } from "@codestream/protocols/api";
+import { CSMarkerIdentifier } from "codestream-common/api-protocol";
 import {
 	CancellationToken,
 	Disposable,
@@ -8,8 +8,9 @@ import {
 	Uri,
 	window,
 	workspace,
-	WorkspaceEdit
+	WorkspaceEdit,
 } from "vscode";
+
 import { Container } from "../container";
 import { Logger } from "../logger";
 
@@ -41,7 +42,7 @@ export class CodemarkPatchContentProvider implements TextDocumentContentProvider
 			const original = await workspace.openTextDocument(uri.with({ scheme: "file", query: "" }));
 			const patched = await workspace.openTextDocument({
 				language: original.languageId,
-				content: original.getText()
+				content: original.getText(),
 			});
 
 			const edit = new WorkspaceEdit();

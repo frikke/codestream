@@ -1,7 +1,8 @@
-import { CSChannelStream } from "@codestream/protocols/api";
-import { emptyArray } from "@codestream/webview/utils";
+import { CSChannelStream } from "codestream-common/api-protocol";
 import { createSelector } from "@reduxjs/toolkit";
 import { includes as _includes, sortBy, sortBy as _sortBy } from "lodash-es";
+
+import { emptyArray } from "@codestream/webview/utils";
 import { CodeStreamState } from "..";
 import { ActionType } from "../common";
 import * as actions from "./actions";

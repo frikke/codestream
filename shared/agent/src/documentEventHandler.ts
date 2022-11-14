@@ -1,7 +1,8 @@
 import { Disposable, TextDocumentChangeEvent } from "vscode-languageserver";
 import { URI } from "vscode-uri";
+import { ChangeDataType, DidChangeDataNotificationType } from "codestream-common/agent-protocol";
+
 import { DocumentManager } from "./documentManager";
-import { ChangeDataType, DidChangeDataNotificationType } from "./protocol/agent.protocol";
 import { CodeStreamSession } from "./session";
 import { Disposables } from "./system/disposable";
 import { xfs } from "./xfs";

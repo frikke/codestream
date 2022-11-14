@@ -1,6 +1,7 @@
-import { CSStream, CSTeam, CSUser, StreamType } from "@codestream/protocols/api";
+import { CSStream, CSTeam, CSUser, StreamType } from "codestream-common/api-protocol";
 import { difference, isString } from "lodash-es";
 import { createSelector } from "reselect";
+
 import { CodeStreamState } from "..";
 import { emptyArray, mapFilter, toMapBy } from "../../utils";
 import { isFeatureEnabled } from "../apiVersioning/reducer";

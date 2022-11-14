@@ -2,10 +2,11 @@ import {
 	ChangeDataType,
 	DidChangeDataNotificationType,
 	FetchThirdPartyPullRequestPullRequest,
-} from "@codestream/protocols/agent";
-import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
+} from "codestream-common/agent-protocol";
 import React, { useState } from "react";
 import styled from "styled-components";
+
+import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import { Button } from "../src/components/Button";
 import { PRHeadshot } from "../src/components/Headshot";
 import { CodeStreamState } from "../store";

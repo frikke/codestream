@@ -1,11 +1,12 @@
-import { ThirdPartyProviderConfig, ThirdPartyProviders } from "@codestream/protocols/agent";
-import { CSMe, CSTeamSettings } from "@codestream/protocols/api";
+import { ThirdPartyProviderConfig, ThirdPartyProviders } from "codestream-common/agent-protocol";
+import { CSMe, CSTeamSettings } from "codestream-common/api-protocol";
+import React from "react";
+import { connect } from "react-redux";
+
 import { CodeStreamState } from "@codestream/webview/store";
 import { updateForProvider } from "@codestream/webview/store/activeIntegrations/actions";
 import { getConnectedProviderNames } from "@codestream/webview/store/providers/reducer";
 import { getUserProviderInfo } from "@codestream/webview/store/providers/utils";
-import React from "react";
-import { connect } from "react-redux";
 import { openPanel, setIssueProvider } from "../../store/context/actions";
 import { configureAndConnectProvider } from "../../store/providers/actions";
 import Icon from "../Icon";

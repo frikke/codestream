@@ -1,13 +1,12 @@
 "use strict";
 
+import os from "os";
+import path from "path";
+
 import * as grpcLibrary from "@grpc/grpc-js";
 import * as grpcProtoLoader from "@grpc/proto-loader";
 import Long from "long";
-import os from "os";
-import path from "path";
 import * as protobuf from "protobufjs";
-import { SessionContainer } from "../container";
-import { Logger } from "../logger";
 import {
 	PixieCluster,
 	PixieDynamicLoggingCancelRequest,
@@ -25,11 +24,14 @@ import {
 	PixieGetPodsRequest,
 	PixieGetPodsRequestType,
 	PixieGetPodsResponse,
-} from "../protocol/agent.protocol";
+} from "codestream-common/agent-protocol";
+import { Strings } from "codestream-common/string";
+
+import { SessionContainer } from "../container";
+import { Logger } from "../logger";
 import { NewRelicProvider } from "../providers/newrelic";
 import { CodeStreamSession } from "../session";
-import { getProvider, Strings } from "../system";
-import { lsp, lspHandler } from "../system/decorators/lsp";
+import { getProvider, lsp, lspHandler } from "../system/decorators/lsp";
 const padLeft = Strings.padLeft;
 
 // see: https://www.npmjs.com/package/protobufjs

@@ -1,10 +1,11 @@
-import { CSProviderInfo } from "@codestream/protocols/api";
+import { CSProviderInfo } from "codestream-common/api-protocol";
+import React, { useEffect, useRef, useState } from "react";
+
 import { CodeStreamState } from "@codestream/webview/store";
 import Tooltip from "@codestream/webview/Stream/Tooltip";
 import UrlInputComponent from "@codestream/webview/Stream/UrlInputComponent";
 import { useAppDispatch, useAppSelector, useDidMount } from "@codestream/webview/utilities/hooks";
 import { normalizeUrl } from "@codestream/webview/utilities/urls";
-import React, { useEffect, useRef, useState } from "react";
 import { configureProvider, disconnectProvider, ViewLocation } from "../store/providers/actions";
 import { isConnected } from "../store/providers/reducer";
 import { getUserProviderInfoFromState } from "../store/providers/utils";

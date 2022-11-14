@@ -1,9 +1,10 @@
-import { FetchThirdPartyPullRequestPullRequest } from "@codestream/protocols/agent";
+import { FetchThirdPartyPullRequestPullRequest } from "codestream-common/agent-protocol";
 import { prettyPrintOne } from "code-prettify";
 import * as Path from "path-browserify";
 import React from "react";
 import { useSelector } from "react-redux";
 import styled from "styled-components";
+
 import { CodeStreamState } from "../store";
 import { escapeHtml } from "../utils";
 import Icon from "./Icon";

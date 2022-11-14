@@ -8,10 +8,10 @@ import {
 	GetFileScmInfoResponse,
 	GetReposScmRequestType,
 	MarkerNotLocated,
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { CSMarker } from "@codestream/protocols/api";
+import { CSMarker } from "codestream-common/api-protocol";
 
 import { WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
 import { NewCodemarkNotificationType } from "../ipc/webview.protocol";

@@ -1,4 +1,5 @@
-import { Document } from "@codestream/protocols/agent";
+import { Document } from "codestream-common/agent-protocol";
+
 import { action } from "../common";
 import { DocumentActionsType } from "./types";
 

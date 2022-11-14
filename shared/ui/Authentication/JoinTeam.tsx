@@ -1,9 +1,10 @@
-import { GetInviteInfoRequestType } from "@codestream/protocols/agent";
-import { LoginResult } from "@codestream/protocols/api";
-import { HostApi } from "@codestream/webview/webview-api";
+import { GetInviteInfoRequestType } from "codestream-common/agent-protocol";
+import { LoginResult } from "codestream-common/api-protocol";
 import React, { useCallback, useEffect, useState } from "react";
 import { FormattedMessage } from "react-intl";
 import { useDispatch, useSelector } from "react-redux";
+
+import { HostApi } from "@codestream/webview/webview-api";
 import { UpdateServerUrlRequestType } from "../ipc/host.protocol";
 import { CodeStreamState } from "../store";
 import { goToSignup } from "../store/context/actions";

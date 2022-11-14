@@ -1,19 +1,21 @@
 "use strict";
 
+import * as path from "path";
+
 import { createPatch, ParsedDiff, parsePatch } from "diff";
 import { decompressFromBase64 } from "lz-string";
-import * as path from "path";
 import { Range, TextDocumentIdentifier } from "vscode-languageserver";
 import { URI } from "vscode-uri";
+import { CreateMarkerRequest } from "codestream-common/agent-protocol";
+import { CodeBlockSource } from "codestream-common/agent-protocol";
+import { CSReviewCheckpoint } from "codestream-common/api-protocol";
+import { CSMarkerLocation, CSReferenceLocation } from "codestream-common/api-protocol";
+import { Strings } from "codestream-common/string";
+
 import { Marker, MarkerLocation, Ranges } from "../api/extensions";
 import { Container, SessionContainer } from "../container";
 import { Logger } from "../logger";
 import { calculateLocation } from "../markerLocation/calculator";
-import { CreateMarkerRequest } from "../protocol/agent.protocol.codemarks";
-import { CodeBlockSource } from "../protocol/agent.protocol.posts";
-import { CSReviewCheckpoint } from "../protocol/api.protocol";
-import { CSMarkerLocation, CSReferenceLocation } from "../protocol/api.protocol.models";
-import { Strings } from "../system";
 import { xfs } from "../xfs";
 import { ReviewsManager } from "./reviewsManager";
 

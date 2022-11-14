@@ -1,15 +1,16 @@
 import {
 	FetchThirdPartyPullRequestPullRequest,
 	GetReposScmRequestType,
-} from "@codestream/protocols/agent";
-import { EditorRevealRangeRequestType } from "@codestream/protocols/webview";
-import { CodeStreamState } from "@codestream/webview/store";
+} from "codestream-common/agent-protocol";
 import { orderBy } from "lodash-es";
 import * as Path from "path-browserify";
 import React, { useEffect } from "react";
 import semver from "semver";
 import styled from "styled-components";
 import { Range } from "vscode-languageserver-types";
+
+import { CodeStreamState } from "@codestream/webview/store";
+import { EditorRevealRangeRequestType } from "@codestream/protocols/webview";
 import { WebviewModals } from "../ipc/webview.protocol.common";
 import { openModal, setCurrentPullRequest } from "../store/context/actions";
 import { getCurrentProviderPullRequest } from "../store/providerPullRequests/slice";

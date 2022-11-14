@@ -2,12 +2,13 @@ import {
 	AddBlameMapRequestType,
 	DeleteBlameMapRequestType,
 	GetLatestCommittersRequestType,
-} from "@codestream/protocols/agent";
-import { CSUser } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { CSUser } from "codestream-common/api-protocol";
 import { sortBy as _sortBy } from "lodash-es";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
+
 import { InlineMenu } from "../src/components/controls/InlineMenu";
 import { Dialog } from "../src/components/Dialog";
 import { HeadshotName } from "../src/components/HeadshotName";

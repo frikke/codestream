@@ -1,9 +1,13 @@
-import { FetchThirdPartyChannelsRequestType, ThirdPartyChannel } from "@codestream/protocols/agent";
-import { CSTeamSettings } from "@codestream/protocols/api";
+import {
+	FetchThirdPartyChannelsRequestType,
+	ThirdPartyChannel,
+} from "codestream-common/agent-protocol";
+import { CSTeamSettings } from "codestream-common/api-protocol";
 import { last as getLast } from "lodash-es";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
+
 import { Button } from "../src/components/Button";
 import { InlineMenu } from "../src/components/controls/InlineMenu";
 import { Tab, Tabs } from "../src/components/Tabs";

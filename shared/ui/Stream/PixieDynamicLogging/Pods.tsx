@@ -1,9 +1,10 @@
-import { PixieGetPodsRequestType } from "@codestream/protocols/agent";
+import { PixieGetPodsRequestType } from "codestream-common/agent-protocol";
+import React, { useEffect } from "react";
+import { useSelector } from "react-redux";
+
 import { CodeStreamState } from "@codestream/webview/store";
 import { DropdownButton, DropdownButtonItems } from "@codestream/webview/Stream/DropdownButton";
 import { HostApi } from "@codestream/webview/webview-api";
-import React, { useEffect } from "react";
-import { useSelector } from "react-redux";
 
 export const Pods = props => {
 	const [isLoading, setIsLoading] = React.useState(false);

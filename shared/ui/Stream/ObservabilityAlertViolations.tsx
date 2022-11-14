@@ -1,11 +1,11 @@
-import { forEach as _forEach, isEmpty as _isEmpty } from "lodash-es";
-import React, { useEffect, useState } from "react";
-import { ALERT_SEVERITY_COLORS } from "./CodeError/index";
+import React from "react";
 import styled from "styled-components";
+import { RecentAlertViolation } from "codestream-common/agent-protocol";
+
+import { ALERT_SEVERITY_COLORS } from "./CodeError/index";
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import { HostApi } from "@codestream/webview/webview-api";
 import { OpenUrlRequestType } from "@codestream/protocols/webview";
-import { RecentAlertViolation } from "@codestream/protocols/agent";
 import Tooltip from "./Tooltip";
 
 interface Props {

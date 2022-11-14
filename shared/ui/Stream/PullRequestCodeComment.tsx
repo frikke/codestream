@@ -1,3 +1,6 @@
+import React, { PropsWithChildren, useState } from "react";
+import { FetchThirdPartyPullRequestPullRequest } from "codestream-common/agent-protocol";
+
 import { useAppDispatch } from "@codestream/webview/utilities/hooks";
 import {
 	PRActionIcons,
@@ -6,12 +9,10 @@ import {
 	PRCodeCommentWrapper,
 	PRThreadedCommentHeader,
 } from "./PullRequestComponents";
-import React, { PropsWithChildren, useState } from "react";
 import { PRHeadshot } from "../src/components/Headshot";
 import Timestamp from "./Timestamp";
 import Icon from "./Icon";
 import { MarkdownText } from "./MarkdownText";
-import { FetchThirdPartyPullRequestPullRequest } from "@codestream/protocols/agent";
 import { PRAuthorBadges } from "./PullRequestConversationTab";
 import { PullRequestReactButton, PullRequestReactions } from "./PullRequestReactions";
 import { PullRequestCommentMenu } from "./PullRequestCommentMenu";
@@ -20,7 +21,6 @@ import { PullRequestEditingComment } from "./PullRequestEditingComment";
 import { PullRequestReplyComment } from "./PullRequestReplyComment";
 import { Button } from "../src/components/Button";
 import { api } from "../store/providerPullRequests/thunks";
-import { useDispatch } from "react-redux";
 import { GHOST } from "./PullRequestTimelineItems";
 
 const ReviewIcons = {

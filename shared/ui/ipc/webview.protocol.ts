@@ -1,5 +1,5 @@
-import { PixieDynamicLoggingFunctionParameter } from "@codestream/protocols/agent";
-import { CodemarkType } from "@codestream/protocols/api";
+import { PixieDynamicLoggingFunctionParameter } from "codestream-common/agent-protocol";
+import { CodemarkType } from "codestream-common/api-protocol";
 import { Range } from "vscode-languageserver-types";
 
 import { NotificationType } from "vscode-jsonrpc";

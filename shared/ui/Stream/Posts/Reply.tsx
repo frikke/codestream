@@ -1,5 +1,10 @@
-import { PostPlus } from "@codestream/protocols/agent";
-import { CSPost, CSUser } from "@codestream/protocols/api";
+import { PostPlus } from "codestream-common/agent-protocol";
+import { CSPost, CSUser } from "codestream-common/api-protocol";
+import cx from "classnames";
+import React from "react";
+import { useSelector } from "react-redux";
+import styled from "styled-components";
+
 import { Headshot } from "@codestream/webview/src/components/Headshot";
 import { ProfileLink } from "@codestream/webview/src/components/ProfileLink";
 import { CodeStreamState } from "@codestream/webview/store";
@@ -14,10 +19,6 @@ import {
 } from "@codestream/webview/store/users/reducer";
 import { useAppDispatch } from "@codestream/webview/utilities/hooks";
 import { escapeHtml, replaceHtml } from "@codestream/webview/utils";
-import cx from "classnames";
-import React from "react";
-import { useSelector } from "react-redux";
-import styled from "styled-components";
 import { deletePost, editPost } from "../actions";
 import { Attachments } from "../Attachments";
 import Button from "../Button";

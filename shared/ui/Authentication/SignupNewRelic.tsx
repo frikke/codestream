@@ -1,10 +1,11 @@
-import { RegisterNrUserRequestType } from "@codestream/protocols/agent";
-import { LoginResult } from "@codestream/protocols/api";
-import { CodeStreamState } from "@codestream/webview/store";
-import { handleSelectedRegion, setSelectedRegion } from "@codestream/webview/store/session/thunks";
+import { RegisterNrUserRequestType } from "codestream-common/agent-protocol";
+import { LoginResult } from "codestream-common/api-protocol";
 import React, { useEffect } from "react";
 import { FormattedMessage } from "react-intl";
 import styled from "styled-components";
+
+import { handleSelectedRegion, setSelectedRegion } from "@codestream/webview/store/session/thunks";
+import { CodeStreamState } from "@codestream/webview/store";
 import { logError } from "../logger";
 import { goToCompanyCreation, goToLogin, goToNewUserEntry } from "../store/context/actions";
 import Button from "../Stream/Button";

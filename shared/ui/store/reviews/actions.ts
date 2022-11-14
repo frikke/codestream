@@ -1,5 +1,6 @@
-import { RepoScmStatus } from "@codestream/protocols/agent";
-import { Attachment, CSRepoChange, CSReview, ShareTarget } from "@codestream/protocols/api";
+import { RepoScmStatus } from "codestream-common/agent-protocol";
+import { Attachment, CSRepoChange, CSReview, ShareTarget } from "codestream-common/api-protocol";
+
 import { ReviewCheckpoint } from "@codestream/protocols/webview";
 import { action } from "../common";
 import { ReviewsActionsTypes } from "./types";

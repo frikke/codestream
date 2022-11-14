@@ -1,18 +1,14 @@
 "use strict";
+import * as qs from "querystring";
+import * as nodeUrl from "url";
+
 import { parsePatch } from "diff";
 import { print } from "graphql";
 import { GraphQLClient } from "graphql-request";
 import { groupBy, merge } from "lodash";
 import { Response } from "node-fetch";
-import * as qs from "querystring";
 import semver from "semver";
-import * as nodeUrl from "url";
 import { URI } from "vscode-uri";
-import { InternalError, ReportSuppressedMessages } from "../agentError";
-import { Container, SessionContainer } from "../container";
-import { GitRemoteLike } from "../git/models/remote";
-import { ParsedDiffWithMetadata, toRepoName, translatePositionToLineNumber } from "../git/utils";
-import { Logger } from "../logger";
 import {
 	CreateThirdPartyCardRequest,
 	DidChangePullRequestCommentsNotificationType,
@@ -41,10 +37,17 @@ import {
 	ProviderGetForkedReposResponse,
 	ThirdPartyDisconnect,
 	ThirdPartyProviderConfig,
-} from "../protocol/agent.protocol";
-import { CSGitLabProviderInfo } from "../protocol/api.protocol";
+} from "codestream-common/agent-protocol";
+import { CSGitLabProviderInfo } from "codestream-common/api-protocol";
+import { Strings } from "codestream-common/string";
+
+import { InternalError, ReportSuppressedMessages } from "../agentError";
+import { Container, SessionContainer } from "../container";
+import { GitRemoteLike } from "../git/models/remote";
+import { ParsedDiffWithMetadata, toRepoName, translatePositionToLineNumber } from "../git/utils";
+import { Logger } from "../logger";
 import { CodeStreamSession } from "../session";
-import { Dates, log, lspProvider, Strings } from "../system";
+import { Dates, log, lspProvider } from "../system";
 import { gate } from "../system/decorators/gate";
 import { customFetch } from "../system/fetchCore";
 import { Directive, Directives } from "./directives";

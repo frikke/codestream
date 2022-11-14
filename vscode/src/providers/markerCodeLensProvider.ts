@@ -10,19 +10,20 @@ import {
 	EventEmitter,
 	languages,
 	TextDocument,
-	Uri
+	Uri,
 } from "vscode";
+import { Strings } from "codestream-common/string";
+
 import {
 	DocMarker,
 	SessionStatus,
 	SessionStatusChangedEvent,
-	TextDocumentMarkersChangedEvent
+	TextDocumentMarkersChangedEvent,
 } from "../api/session";
 import { OpenCodemarkCommandArgs } from "../commands";
 import { configuration } from "../configuration";
 import { Container } from "../container";
 import { Logger } from "../logger";
-import { Strings } from "../system";
 
 export class CodemarkCodeLensProvider implements CodeLensProvider, Disposable {
 	static selector: DocumentSelector = { scheme: "file" };
@@ -120,19 +121,19 @@ export class CodemarkCodeLensProvider implements CodeLensProvider, Disposable {
 				// TODO: Add action for external content
 				return new CodeLens(m.range, {
 					title: `// ${m.creatorName}: ${Strings.truncate(m.summary, 60)}`,
-					command: undefined!
+					command: undefined!,
 				});
 			}
 
 			const args: OpenCodemarkCommandArgs = {
 				codemarkId: m.codemarkId,
-				sourceUri: uri
+				sourceUri: uri,
 			};
 
 			return new CodeLens(m.range, {
 				title: `// ${m.creatorName}: ${Strings.truncate(m.summary, 60)}`,
 				command: "codestream.openCodemark",
-				arguments: [args]
+				arguments: [args],
 			});
 		});
 		return lenses;

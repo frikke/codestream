@@ -6,11 +6,10 @@ import { render, unmountComponentAtNode } from "react-dom";
 import { act } from "react-dom/test-utils";
 import { Provider } from "react-redux";
 import configureStore from "redux-mock-store";
-
-import { GetMethodLevelTelemetryResponse } from "@codestream/protocols/agent";
-import { CurrentMethodLevelTelemetry } from "@codestream/webview/store/context/types";
+import { GetMethodLevelTelemetryResponse } from "codestream-common/agent-protocol";
 import { waitFor } from "@testing-library/react";
 
+import { CurrentMethodLevelTelemetry } from "@codestream/webview/store/context/types";
 import { setupCommunication } from "../../index";
 import { MethodLevelTelemetryPanel } from "../../Stream/MethodLevelTelemetry/MethodLevelTelemetryPanel";
 import { HostApi } from "../../webview-api";

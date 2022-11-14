@@ -4,8 +4,9 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import styled from "styled-components";
 import { Disposable } from "vscode-languageserver-protocol";
+import { isCSReview } from "codestream-common/api-protocol";
+
 import { OpenUrlRequestType } from "../ipc/host.protocol";
-import { isCSReview } from "../protocols/agent/api.protocol.models";
 import { Button } from "../src/components/Button";
 import { Dialog } from "../src/components/Dialog";
 import FiltersButton from "../src/components/FiltersButton";

@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
-import { FetchThirdPartyPullRequestPullRequest } from "../protocols/agent/agent.protocol.providers";
-import { CSMe } from "../protocols/agent/api.protocol.models";
+import { FetchThirdPartyPullRequestPullRequest } from "codestream-common/agent-protocol";
+import { CSMe } from "codestream-common/api-protocol";
+
 import { PRHeadshotName } from "../src/components/HeadshotName";
 import { CodeStreamState } from "../store";
 import Icon from "./Icon";

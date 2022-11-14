@@ -9,14 +9,11 @@
 		"type": "git",
 		"url": ""
 	},
+	"workspaces": [
+		"../shared/common",
+		"../shared/util"
+	],
 	"scripts": {
-		"build": "npm run agent:build && tsx esbuild.ts --prod",
-		"bundle": "npm install --no-save && npm run webview:verify && npm run agent:bundle && npm run agent:pkg && tsx esbuild.ts --prod",
-		"bundle:mac": "npm run agent:bundle && npm run agent:pkg:mac && tsx esbuild.ts --prod",
-		"bundle:ci": "npm run clean:ci && npm run bundle",
-		"clean:ci": "git clean -xdf -e licenses/**/* && npm run webview:clean:ci && npm run agent:clean:ci",
-		"rebuild": "npm install --no-save && npm run agent:rebuild && npm run build",
-		"watch": "tsx esbuild.ts --watch",
 		"agent:build": "pushd \"../shared/agent\" && npm run build -- --ide jb && popd",
 		"agent:bundle": "pushd \"../shared/agent\" && npm run bundle && popd",
 		"agent:clean:ci": "pushd \"../shared/agent\" && npm run clean:ci && popd",
@@ -25,9 +22,16 @@
 		"agent:rebuild": "pushd \"../shared/agent\" && npm run rebuild --ide jb && popd",
 		"agent:test": "pushd \"../shared/agent\" && npm run test && popd",
 		"agent:watch": "pushd \"../shared/agent\" && npm run watch -- --ide jb && popd",
+		"build": "npm run agent:build && tsx esbuild.ts --prod",
+		"bundle": "npm install --no-save && npm run webview:verify && npm run agent:bundle && npm run agent:pkg && tsx esbuild.ts --prod",
+		"bundle:ci": "npm run clean:ci && npm run bundle",
+		"bundle:mac": "npm run agent:bundle && npm run agent:pkg:mac && tsx esbuild.ts --prod",
+		"clean:ci": "git clean -xdf -e licenses/**/* && npm run webview:clean:ci && npm run agent:clean:ci",
+		"preinstall": "pushd \"../shared/ui\" && npm install --no-save && popd && pushd \"../shared/util\" && npm install --no-save && npm run build && popd",
+		"rebuild": "npm install --no-save && npm run agent:rebuild && npm run build",
+		"watch": "tsx esbuild.ts --watch",
 		"webview:clean:ci": "pushd \"../shared/ui\" && npm run clean:ci && popd",
-		"webview:verify": "tsx esbuild.ts --only-symlinks && pushd \"../shared/ui\" && npm run verify:compile && popd",
-		"preinstall": "pushd \"../shared/ui\" && npm install --no-save && popd && pushd \"../shared/agent\" && npm install --no-save && popd && pushd \"../shared/util\" && npm install --no-save && popd"
+		"webview:verify": "tsx esbuild.ts --only-symlinks && pushd \"../shared/ui\" && npm run verify:compile && popd"
 	},
 	"dependencies": {
 		"core-js": "2.6.9"
@@ -48,7 +52,7 @@
 		"less": "4.1.2",
 		"prettier": "2.7.1",
 		"tslint": "6.1.3",
-		"tsx": "^3.9.0",
-		"typescript": "4.8.3"
+		"tsx": "^3.12.1",
+		"typescript": "4.8.4"
 	}
 }

@@ -4,16 +4,17 @@ import {
 	JoinCompanyRequest,
 	JoinCompanyRequestType,
 	JoinCompanyResponse,
-} from "@codestream/protocols/agent";
-import { CSCompany, CSEligibleJoinCompany, CSUser } from "@codestream/protocols/api";
-import { CodeStreamState } from "@codestream/webview/store";
-import { updateConfigs } from "@codestream/webview/store/configs/slice";
-import { changeRegistrationEmail, setEnvironment } from "@codestream/webview/store/session/thunks";
-import { HostApi } from "@codestream/webview/webview-api";
+} from "codestream-common/agent-protocol";
+import { CSCompany, CSEligibleJoinCompany, CSUser } from "codestream-common/api-protocol";
 import { isUndefined as _isUndefined } from "lodash-es";
 import React, { useCallback, useState } from "react";
 import { FormattedMessage } from "react-intl";
 import styled from "styled-components";
+
+import { CodeStreamState } from "@codestream/webview/store";
+import { updateConfigs } from "@codestream/webview/store/configs/slice";
+import { changeRegistrationEmail, setEnvironment } from "@codestream/webview/store/session/thunks";
+import { HostApi } from "@codestream/webview/webview-api";
 import { logError } from "../logger";
 import { goToLogin } from "../store/context/actions";
 import Button from "../Stream/Button";

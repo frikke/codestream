@@ -1,12 +1,10 @@
 /**
  * @jest-environment jsdom
  */
-import { FetchThirdPartyPullRequestCommitsResponse } from "@codestream/protocols/agent";
+import { FetchThirdPartyPullRequestCommitsResponse } from "codestream-common/agent-protocol";
+
 import { CodeStreamState } from "@codestream/webview/store";
-import * as providerPullRequestActions from "@codestream/webview/store/providerPullRequests/thunks";
-import { GetPullRequestCommitsRequest } from "@codestream/webview/store/providerPullRequests/thunks";
-import { PullRequestCommitsTab } from "@codestream/webview/Stream/PullRequestCommitsTab";
-import { HostApi } from "@codestream/webview/webview-api";
+
 import { AsyncThunkAction } from "@reduxjs/toolkit";
 import "@testing-library/jest-dom";
 import { act, render, screen, waitFor } from "@testing-library/react";
@@ -15,6 +13,11 @@ import { Provider } from "react-redux";
 import configureStore from "redux-mock-store";
 import thunk from "redux-thunk";
 import { ThemeProvider } from "styled-components";
+
+import { HostApi } from "@codestream/webview/webview-api";
+import { PullRequestCommitsTab } from "@codestream/webview/Stream/PullRequestCommitsTab";
+import { GetPullRequestCommitsRequest } from "@codestream/webview/store/providerPullRequests/thunks";
+import * as providerPullRequestActions from "@codestream/webview/store/providerPullRequests/thunks";
 import { lightTheme } from "../../themes";
 
 jest.mock("@codestream/webview/webview-api");

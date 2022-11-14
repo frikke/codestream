@@ -1,20 +1,15 @@
 "use strict";
-import { CodeStreamApiProvider } from "api/codestream/codestreamApi";
-import { ParsedDiff } from "diff";
 import * as fs from "fs";
+import * as path from "path";
+
+import { ParsedDiff } from "diff";
 import { groupBy, last, orderBy } from "lodash";
 import { compressToBase64 } from "lz-string";
 import sizeof from "object-sizeof";
-import * as path from "path";
 import { ResponseError } from "vscode-jsonrpc/lib/messages";
 import { TextDocumentIdentifier } from "vscode-languageserver";
 import { URI } from "vscode-uri";
-import { Marker, MarkerLocation } from "../api/extensions";
-import { Container, SessionContainer } from "../container";
-import { EMPTY_TREE_SHA } from "../git/gitService";
-import { GitCommit } from "../git/models/commit";
-import * as gitUtils from "../git/utils";
-import { Logger } from "../logger";
+
 import {
 	CodeDelimiterStyles,
 	CodemarkPlus,
@@ -81,7 +76,17 @@ import {
 	UpdatePostSharingDataRequest,
 	UpdatePostSharingDataRequestType,
 	UpdatePostSharingDataResponse,
-} from "../protocol/agent.protocol";
+} from "codestream-common/agent-protocol";
+import { CodeStreamApiProvider } from "api/codestream/codestreamApi";
+
+
+import { Marker, MarkerLocation } from "../api/extensions";
+import { Container, SessionContainer } from "../container";
+import { EMPTY_TREE_SHA } from "../git/gitService";
+import { GitCommit } from "../git/models/commit";
+import * as gitUtils from "../git/utils";
+import { Logger } from "../logger";
+
 import {
 	CodemarkType,
 	CSChannelStream,
@@ -101,11 +106,14 @@ import {
 	ModifiedFile,
 	ProviderType,
 	StreamType,
-} from "../protocol/api.protocol";
+} from "codestream-common/api-protocol";
+
 import { Directives } from "../providers/directives";
 import { providerDisplayNamesByNameKey } from "../providers/provider";
 import { Arrays, debug, log, lsp, lspHandler } from "../system";
-import { Strings } from "../system/string";
+
+import { Strings } from "codestream-common/string";
+
 import * as csUri from "../system/uri";
 import { BaseIndex, IndexParams, IndexType } from "./cache";
 import { getValues, KeyValue } from "./cache/baseCache";

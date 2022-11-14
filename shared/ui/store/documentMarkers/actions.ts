@@ -2,7 +2,8 @@ import {
 	DocumentMarker,
 	FetchDocumentMarkersRequestType,
 	MarkerNotLocated,
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
+
 import { HostApi } from "@codestream/webview/webview-api";
 import { action } from "../common";
 import { DocumentMarkersActionsType } from "./types";

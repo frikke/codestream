@@ -1,9 +1,10 @@
-import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import styled from "styled-components";
 import React, { useState } from "react";
-import { emojify } from "../Stream/Markdowner";
 import { includes as _includes } from "lodash-es";
-import { PostPlus } from "@codestream/protocols/agent";
+import { PostPlus } from "codestream-common/agent-protocol";
+
+import { emojify } from "../Stream/Markdowner";
+import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import Tooltip from "../Stream/Tooltip";
 import Icon from "../Stream/Icon";
 import { CodeStreamState } from "../store";

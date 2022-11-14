@@ -1,10 +1,9 @@
 "use strict";
 import * as Http from "http";
 import * as Https from "https";
-import { OAuth } from "oauth";
 import * as qs from "querystring";
-import { Container } from "../container";
-import { Logger } from "../logger";
+
+import { OAuth } from "oauth";
 import {
 	CreateJiraCardRequest,
 	CreateThirdPartyCardRequest,
@@ -23,8 +22,11 @@ import {
 	ReportingMessageType,
 	ThirdPartyDisconnect,
 	ThirdPartyProviderConfig,
-} from "../protocol/agent.protocol";
-import { CSJiraServerProviderInfo } from "../protocol/api.protocol";
+} from "codestream-common/agent-protocol";
+import { CSJiraServerProviderInfo } from "codestream-common/api-protocol";
+
+import { Container } from "../container";
+import { Logger } from "../logger";
 import { CodeStreamSession } from "../session";
 import { Iterables, log, lspProvider } from "../system";
 import { makeCardFromJira } from "./jira";

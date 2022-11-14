@@ -2,11 +2,12 @@ import {
 	EntityAccount,
 	GetObservabilityEntitiesRequestType,
 	WarningOrError,
-} from "@codestream/protocols/agent";
-import { api } from "@codestream/webview/store/codeErrors/thunks";
-import { HostApi } from "@codestream/webview/webview-api";
+} from "codestream-common/agent-protocol";
 import React, { PropsWithChildren, useState } from "react";
 import { AsyncPaginate } from "react-select-async-paginate";
+
+import { api } from "@codestream/webview/store/codeErrors/thunks";
+import { HostApi } from "@codestream/webview/webview-api";
 import { logError } from "../logger";
 import { Button } from "../src/components/Button";
 import { NoContent } from "../src/components/Pane";

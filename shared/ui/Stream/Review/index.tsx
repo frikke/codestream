@@ -6,8 +6,14 @@ import {
 	DidChangeDataNotificationType,
 	ExecuteThirdPartyRequestUntypedType,
 	FollowReviewRequestType,
-} from "@codestream/protocols/agent";
-import { CodemarkStatus, CodemarkType, CSPost, CSReview, CSUser } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import {
+	CodemarkStatus,
+	CodemarkType,
+	CSPost,
+	CSReview,
+	CSUser,
+} from "codestream-common/api-protocol";
 import cx from "classnames";
 import React, { PropsWithChildren } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";

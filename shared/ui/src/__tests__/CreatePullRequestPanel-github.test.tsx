@@ -6,13 +6,11 @@ import { render, unmountComponentAtNode } from "react-dom";
 import { act } from "react-dom/test-utils";
 import { Provider } from "react-redux";
 import configureStore from "redux-mock-store";
-
 import { waitFor } from "@testing-library/react";
+import { CheckPullRequestPreconditionsResponse } from "codestream-common/agent-protocol";
 
 import { setupCommunication } from "../../index";
 import { CreatePullRequestPanel } from "../../Stream/CreatePullRequestPanel";
-
-import { CheckPullRequestPreconditionsResponse } from "@codestream/protocols/agent";
 import { HostApi } from "../../webview-api";
 // HostApi is now a mock constructor
 jest.mock("../../webview-api");

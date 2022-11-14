@@ -1,11 +1,8 @@
 "use strict";
-import { GitRemoteLike } from "git/gitService";
-import { flatten } from "lodash";
 import * as qs from "querystring";
+
+import { flatten } from "lodash";
 import { URI } from "vscode-uri";
-import { SessionContainer } from "../container";
-import { toRepoName } from "../git/utils";
-import { Logger } from "../logger";
 import {
 	BitbucketBoard,
 	BitbucketCard,
@@ -33,8 +30,13 @@ import {
 	ThirdPartyDisconnect,
 	ThirdPartyProviderCard,
 	ThirdPartyPullRequestComments,
-} from "../protocol/agent.protocol";
-import { CSBitbucketProviderInfo } from "../protocol/api.protocol";
+} from "codestream-common/agent-protocol";
+import { CSBitbucketProviderInfo } from "codestream-common/api-protocol";
+
+import { GitRemoteLike } from "git/gitService";
+import { SessionContainer } from "../container";
+import { toRepoName } from "../git/utils";
+import { Logger } from "../logger";
 import { log, lspProvider } from "../system";
 import { Directive, Directives } from "./directives";
 import {

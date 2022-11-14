@@ -1,11 +1,10 @@
 "use strict";
 import { Agent as HttpsAgent } from "https";
 import * as url from "url";
+
 import HttpsProxyAgent from "https-proxy-agent";
 // import * as vscode from "vscode";
 import fetch, { RequestInit } from "node-fetch";
-import { ProtocolHandler } from "protocolHandler";
-import { ScmTreeDataProvider } from "views/scmTreeDataProvider";
 import { AbortController } from "node-abort-controller";
 import {
 	Disposable,
@@ -16,19 +15,21 @@ import {
 	Uri,
 	version as vscodeVersion,
 	window,
-	workspace
+	workspace,
 } from "vscode";
+import { CodemarkType } from "codestream-common/api-protocol";
+import { Strings } from "codestream-common/string";
+
+import { ProtocolHandler } from "protocolHandler";
+import { ScmTreeDataProvider } from "views/scmTreeDataProvider";
 import { WebviewLike } from "webviews/webviewLike";
 import { CodeStreamWebviewSidebar } from "webviews/webviewSidebar";
-
-import { CodemarkType } from "@codestream/protocols/api";
-
 import { GitExtension } from "./@types/git";
 import {
 	CreatePullRequestActionContext,
 	GitLensApi,
 	HoverCommandsActionContext,
-	OpenPullRequestActionContext
+	OpenPullRequestActionContext,
 } from "./@types/gitlens";
 import { SessionStatus, SessionStatusChangedEvent } from "./api/session";
 import { ContextKeys, GlobalState, setContext } from "./common";
@@ -36,7 +37,8 @@ import { Config, configuration, Configuration } from "./configuration";
 import { extensionQualifiedId } from "./constants";
 import { Container, TelemetryOptions } from "./container";
 import { Logger, TraceLevel } from "./logger";
-import { FileSystem, Strings, Versions } from "./system";
+import { FileSystem, Versions } from "./system";
+
 
 const extension = extensions.getExtension(extensionQualifiedId)!;
 export const extensionVersion = extension.packageJSON.version;
@@ -93,8 +95,8 @@ export async function activate(context: ExtensionContext) {
 		const requestInit: RequestInit | undefined = {
 			agent: proxyAgent,
 			headers: {
-				"X-CS-Plugin-IDE": IDE_NAME
-			}
+				"X-CS-Plugin-IDE": IDE_NAME,
+			},
 		};
 
 		// 5s failsafe
@@ -119,8 +121,8 @@ export async function activate(context: ExtensionContext) {
 	context.subscriptions.push(
 		window.registerWebviewViewProvider(CodeStreamWebviewSidebar.viewType, webviewLikeSidebar, {
 			webviewOptions: {
-				retainContextWhenHidden: true
-			}
+				retainContextWhenHidden: true,
+			},
 		})
 	);
 	// const codelensProvider = new CodelensProvider();
@@ -135,21 +137,21 @@ export async function activate(context: ExtensionContext) {
 				build: info.buildNumber,
 				buildEnv: info.assetEnvironment,
 				version: extensionVersion,
-				versionFormatted: formattedVersion
+				versionFormatted: formattedVersion,
 			},
 			gitPath: git,
 			ide: {
 				name: IDE_NAME,
 				version: vscodeVersion,
 				// Visual Studio Code or Visual Studio Code - Insiders
-				detail: edition
+				detail: edition,
 			},
 			isDebugging: Logger.isDebugging,
 			serverUrl: cfg.serverUrl,
 			disableStrictSSL: cfg.disableStrictSSL,
 			extraCerts: cfg.extraCerts,
 			traceLevel: Logger.level,
-			machineId: env.machineId
+			machineId: env.machineId,
 		},
 		webviewLikeSidebar,
 		telemetryOptions
@@ -190,7 +192,7 @@ export async function activate(context: ExtensionContext) {
 				partnerId: "codestream",
 				name: "CodeStream",
 				label: "$(comment) Leave a Comment",
-				run: function(context: HoverCommandsActionContext) {
+				run: function (context: HoverCommandsActionContext) {
 					try {
 						if (!Container.session.signedIn) {
 							// store the last context with a timestamp
@@ -202,7 +204,7 @@ export async function activate(context: ExtensionContext) {
 					} catch (e) {
 						Logger.warn(`GitLens: hover.commands. Failed to handle actionRunner e=${e}`);
 					}
-				}
+				},
 			});
 		})
 		.catch(_ => {
@@ -256,13 +258,13 @@ function runGitLensHoverCommand(context: HoverCommandsActionContext) {
 		context.file
 			? ({
 					document: {
-						uri: Uri.parse(context.file.uri)
+						uri: Uri.parse(context.file.uri),
 					} as any,
 					selection: {
 						start: {
-							line: context.file.line
-						} as any
-					} as any
+							line: context.file.line,
+						} as any,
+					} as any,
 			  } as any)
 			: undefined,
 		"VSC GitLens",
@@ -342,7 +344,7 @@ async function registerGitLensIntegration() {
 				partnerId: "codestream",
 				name: "CodeStream",
 				label: "Open Pull Request in VS Code",
-				run: function(context: OpenPullRequestActionContext) {
+				run: function (context: OpenPullRequestActionContext) {
 					try {
 						let providerName;
 						if (typeof (context.pullRequest as any).provider === "string") {
@@ -365,13 +367,13 @@ async function registerGitLensIntegration() {
 							`GitLens: openPullRequest. Failed to handle actionRunner openPullRequest e=${e}`
 						);
 					}
-				}
+				},
 			}),
 			api.registerActionRunner<CreatePullRequestActionContext>("createPullRequest", {
 				partnerId: "codestream",
 				name: "CodeStream",
 				label: "Create Pull Request in VS Code",
-				run: function(context: CreatePullRequestActionContext) {
+				run: function (context: CreatePullRequestActionContext) {
 					try {
 						if (context.branch) {
 							const editor = window.activeTextEditor;
@@ -381,7 +383,7 @@ async function registerGitLensIntegration() {
 								{
 									name: context.branch.name,
 									repoPath: context.repoPath,
-									remote: (context.branch as any).remote || context.remote
+									remote: (context.branch as any).remote || context.remote,
 								}
 							);
 						} else {
@@ -392,7 +394,7 @@ async function registerGitLensIntegration() {
 							`GitLens: createPullRequest. Failed to handle actionRunner createPullRequest e=${e}`
 						);
 					}
-				}
+				},
 			})
 		);
 	} catch (e) {
@@ -415,9 +417,11 @@ export async function gitPath(): Promise<string> {
 		try {
 			const gitExtension = extensions.getExtension("vscode.git");
 			if (gitExtension !== undefined) {
-				const gitApi = ((gitExtension.isActive
-					? gitExtension.exports
-					: await gitExtension.activate()) as GitExtension).getAPI(1);
+				const gitApi = (
+					(gitExtension.isActive
+						? gitExtension.exports
+						: await gitExtension.activate()) as GitExtension
+				).getAPI(1);
 				_gitPath = gitApi.git.path;
 			}
 		} catch {}
@@ -505,7 +509,7 @@ export function getHttpsProxyAgent(options: {
 			);
 			_httpsAgent = new HttpsProxyAgent({
 				...url.parse(options.proxy.url),
-				rejectUnauthorized: options.proxy.strictSSL
+				rejectUnauthorized: options.proxy.strictSSL,
 			} as any);
 		} else {
 			Logger.log("Proxy support is in override, but no proxy settings were provided");
@@ -525,7 +529,7 @@ export function getHttpsProxyAgent(options: {
 			if (proxyUri) {
 				_httpsAgent = new HttpsProxyAgent({
 					...proxyUri,
-					rejectUnauthorized: options.proxy ? options.proxy.strictSSL : true
+					rejectUnauthorized: options.proxy ? options.proxy.strictSSL : true,
 				} as any);
 			}
 		} else {
@@ -546,7 +550,7 @@ export function getInitializationOptions(
 		if (proxy) {
 			options.proxy = {
 				url: proxy,
-				strictSSL: httpSettings.get<boolean>("proxyStrictSSL", true)
+				strictSSL: httpSettings.get<boolean>("proxyStrictSSL", true),
 			};
 			options.proxySupport = "override";
 		} else {

@@ -1,9 +1,6 @@
 "use strict";
+import { Strings } from "codestream-common/string";
 import { createPatch } from "diff";
-import { MessageType } from "../api/apiProvider";
-import { MarkerLocation } from "../api/extensions";
-import { Container, SessionContainer } from "../container";
-import { Logger } from "../logger";
 import {
 	CodemarkPlus,
 	CreateCodemarkPermalinkRequest,
@@ -46,9 +43,14 @@ import {
 	UpdateCodemarkRequest,
 	UpdateCodemarkRequestType,
 	UpdateCodemarkResponse,
-} from "../protocol/agent.protocol";
-import { CSCodemark, CSMarker } from "../protocol/api.protocol";
-import { log, lsp, lspHandler, Strings } from "../system";
+} from "codestream-common/agent-protocol";
+import { CSCodemark, CSMarker } from "codestream-common/api-protocol";
+
+import { MessageType } from "../api/apiProvider";
+import { MarkerLocation } from "../api/extensions";
+import { Container, SessionContainer } from "../container";
+import { Logger } from "../logger";
+import { log, lsp, lspHandler } from "../system";
 import { CachedEntityManagerBase, Id } from "./entityManager";
 
 @lsp

@@ -1,13 +1,12 @@
-import React, { useCallback, useState } from "react";
-import cx from "classnames";
-import { CodeStreamState } from "../store";
-import { useDispatch, useSelector } from "react-redux";
-import { useAppDispatch, useAppSelector, useDidMount } from "../utilities/hooks";
-import { Button } from "../src/components/Button";
+import React from "react";
 import styled from "styled-components";
+import { UpdateTeamSettingsRequestType } from "codestream-common/agent-protocol";
+
+import { CodeStreamState } from "../store";
+import { useAppDispatch, useAppSelector } from "../utilities/hooks";
+import { Button } from "../src/components/Button";
 import { Checkbox } from "../src/components/Checkbox";
 import { Link } from "../Stream/Link";
-import { UpdateTeamSettingsRequestType } from "@codestream/protocols/agent";
 import { HostApi } from "../webview-api";
 import { setUserPreference } from "../Stream/actions";
 

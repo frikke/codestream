@@ -1,13 +1,14 @@
 import React, { useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { UpdateUserRequestType } from "codestream-common/agent-protocol";
+import { FormattedMessage } from "react-intl";
+import { CSMe } from "codestream-common/api-protocol";
+
 import { CodeStreamState } from "../store";
 import { HostApi } from "../webview-api";
 import { Button } from "../src/components/Button";
 import { ButtonRow } from "./ChangeUsername";
-import { UpdateUserRequestType } from "../protocols/agent/agent.protocol.users";
 import { logError } from "../logger";
-import { FormattedMessage } from "react-intl";
-import { CSMe } from "@codestream/protocols/api";
 import { Link } from "./Link";
 import { TextInput } from "../Authentication/TextInput";
 import { Dialog } from "../src/components/Dialog";

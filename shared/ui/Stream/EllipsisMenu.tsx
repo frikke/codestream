@@ -1,7 +1,11 @@
 import {
 	DeleteCompanyRequestType,
 	UpdateTeamSettingsRequestType,
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
+import { isEmpty as _isEmpty, sortBy as _sortBy } from "lodash-es";
+import React from "react";
+import styled from "styled-components";
+
 import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import {
 	logout,
@@ -9,9 +13,6 @@ import {
 	switchToTeam,
 } from "@codestream/webview/store/session/thunks";
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
-import { isEmpty as _isEmpty, sortBy as _sortBy } from "lodash-es";
-import React from "react";
-import styled from "styled-components";
 import { WebviewModals, WebviewPanelNames, WebviewPanels } from "../ipc/webview.protocol.common";
 import { CodeStreamState } from "../store";
 import { isFeatureEnabled } from "../store/apiVersioning/reducer";

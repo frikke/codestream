@@ -15,7 +15,8 @@ import {
 	TrelloBoard,
 	TrelloList,
 	YouTrackBoard,
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
+
 import { Index } from "../common";
 
 export interface ActiveIntegrationData<T = ThirdPartyProviderBoard> {

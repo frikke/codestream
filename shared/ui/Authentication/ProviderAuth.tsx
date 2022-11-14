@@ -1,7 +1,8 @@
-import { LoginResult } from "@codestream/protocols/api";
+import { LoginResult } from "codestream-common/api-protocol";
 import React, { useCallback, useEffect, useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
 import { connect } from "react-redux";
+
 import { DispatchProp } from "../store/common";
 import { goToLogin, goToSignup, SupportedSSOProvider } from "../store/context/actions";
 import { PROVIDER_MAPPINGS } from "../Stream/CrossPostIssueControls/types";

@@ -1,13 +1,14 @@
 import {
 	GetDocumentFromMarkerRequestType,
 	PinReplyToCodemarkRequestType,
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
 import createClassString from "classnames";
 import { includes as _includes } from "lodash-es";
 import React from "react";
 import ContentEditable from "react-contenteditable";
 import { injectIntl } from "react-intl";
 import { connect } from "react-redux";
+
 import { EditorSelectRangeRequestType } from "../ipc/webview.protocol";
 import { ProfileLink } from "../src/components/ProfileLink";
 import { getCodemark } from "../store/codemarks/reducer";

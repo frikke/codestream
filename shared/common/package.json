@@ -1,0 +1,69 @@
+{
+  "name": "codestream-common",
+  "description": "The knowledge base behind your codebase",
+  "version": "0.0.2",
+  "exports": {
+    "./string": {
+      "node": {
+        "import": "./dist/system/string.js",
+        "types": "./dist/system/string.d.ts"
+      },
+      "import": {
+        "import": "./dist/system/string.js",
+        "types": "./dist/system/string.d.ts"
+      }
+    },
+    "./agent-protocol": {
+      "node": {
+        "import": "./dist/protocols/agent/agent.protocol.js",
+        "types": "./dist/protocols/agent/agent.protocol.d.ts"
+      },
+      "import": {
+        "import": "./dist/protocols/agent/agent.protocol.js",
+        "types": "./dist/protocols/agent/agent.protocol.d.ts"
+      }
+    },
+    "./api-protocol": {
+      "node": {
+        "import": "./dist/protocols/agent/api.protocol.js",
+        "types": "./dist/protocols/agent/api.protocol.d.ts"
+      },
+      "import": {
+        "import": "./dist/protocols/agent/api.protocol.js",
+        "types": "./dist/protocols/agent/api.protocol.d.ts"
+      }
+    }
+  },
+  "types": "dist/index.d.ts",
+  "author": "CodeStream",
+  "publisher": "CodeStream",
+  "private": true,
+  "license": "UNLICENSED",
+  "homepage": "https://codestream.com",
+  "bugs": {
+    "url": "https://github.com/TeamCodeStream/codestream/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TeamCodeStream/codestream"
+  },
+  "engines": {
+    "node": ">=10.2.0"
+  },
+  "devDependencies": {
+    "@types/diff": "5.0.2",
+    "@types/node": "16.11.35",
+    "@types/node-fetch": "2.6.1",
+    "@types/vscode": "1.49.0",
+    "typescript": "4.8.4"
+  },
+  "dependencies": {
+    "diff": "5.0.0",
+    "eol": "0.9.1",
+    "node-fetch": "2.6.7",
+    "vscode-languageclient": "5.2.1"
+  },
+  "scripts": {
+    "build": "tsc"
+  }
+}

@@ -1,10 +1,7 @@
-import { configureAndConnectProvider } from "@codestream/webview/store/providers/actions";
 import cx from "classnames";
 import React, { MouseEventHandler, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FormattedMessage } from "react-intl";
-import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
-
 import {
 	ChangeDataType,
 	CheckPullRequestPreconditionsRequest,
@@ -24,9 +21,10 @@ import {
 	ProviderGetForkedReposResponse,
 	ReadTextFileRequestType,
 	ReposScm,
-} from "@codestream/protocols/agent";
-import { CSMe } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { CSMe } from "codestream-common/api-protocol";
 
+import { configureAndConnectProvider } from "@codestream/webview/store/providers/actions";
 import { TextInput } from "../Authentication/TextInput";
 import { NewPullRequestBranch, OpenUrlRequestType } from "../ipc/webview.protocol";
 import { logError } from "../logger";
@@ -37,7 +35,6 @@ import { PanelHeader } from "../src/components/PanelHeader";
 import { CodeStreamState } from "../store";
 import {
 	closeAllPanels,
-	openPanel,
 	setCurrentPullRequest,
 	setCurrentRepo,
 	setCurrentReview,

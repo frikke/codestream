@@ -1,10 +1,14 @@
-import { build, BuildOptions } from "esbuild";
 import * as path from "path";
-import { commonEsbuildOptions, processArgs } from "../shared/util/src/esbuildCommon";
-import { CopyStuff, copyPlugin } from "../shared/util/src/copyPlugin";
-import { createSymlinks } from "../shared/util/src/symlinks";
-import { Args } from "../shared/util/src/esbuildCommon";
-import { statsPlugin } from "../shared/util/src/statsPlugin";
+
+import { build, BuildOptions } from "esbuild";
+import {
+	Args,
+	commonEsbuildOptions,
+	copyPlugin,
+	CopyStuff,
+	processArgs,
+	statsPlugin,
+} from "codestream-build-utils";
 
 async function webBuild(args: Args) {
 	const context = path.resolve(__dirname, "src/webviews/app");
@@ -22,17 +26,17 @@ async function webBuild(args: Args) {
 				from: path.resolve(target, "index.js.map"),
 				to: dist,
 			},
-		]
+		],
 	});
 
 	const buildOptions: BuildOptions = {
 		...commonEsbuildOptions(true, args, [webCopy]),
 		entryPoints: [
 			path.resolve(context, "./index.ts"),
-			path.resolve(context, "styles", "webview.less")
+			path.resolve(context, "styles", "webview.less"),
 		],
-		sourcemap: args.mode === "production" ?  "linked" : "both",
-		outdir: target
+		sourcemap: args.mode === "production" ? "linked" : "both",
+		outdir: target,
 	};
 
 	await build(buildOptions);
@@ -45,17 +49,17 @@ async function extensionBuild(args: Args) {
 	const postBuildCopy: CopyStuff[] = [
 		{
 			from: path.resolve(__dirname, "../shared/agent/dist/*"),
-			to: dist
+			to: dist,
 		},
 		{
 			from: path.resolve(__dirname, "codestream-*.info"),
 			// TODO: Use environment variable if exists
-			to: dist
+			to: dist,
 		},
 		{
 			from: path.resolve(__dirname, "../shared/ui/newrelic-browser.js"),
-			to: dist
-		}
+			to: dist,
+		},
 	];
 
 	const extensionCopy = copyPlugin({ onEnd: postBuildCopy });
@@ -68,18 +72,14 @@ async function extensionBuild(args: Args) {
 		plugins: [statsPlugin, extensionCopy],
 		format: "cjs",
 		platform: "node",
-		target: "node16"
+		target: "node16",
 	};
 
 	await build(buildOptions);
 }
 
-(async function() {
+(async function () {
 	const args = processArgs();
-	createSymlinks(__dirname, args);
-	if (args.onlySymlinks) {
-		return;
-	}
 	console.info("Starting webBuild");
 	await webBuild(args);
 	console.info("Starting extensionBuild");

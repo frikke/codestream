@@ -1,4 +1,5 @@
-import { PostPlus } from "@codestream/protocols/agent";
+import { PostPlus } from "codestream-common/agent-protocol";
+
 import { Index } from "../common";
 
 export interface PendingPost

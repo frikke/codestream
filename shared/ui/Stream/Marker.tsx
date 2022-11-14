@@ -1,16 +1,17 @@
-import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import React from "react";
 import * as Path from "path-browserify";
-import { connect, useDispatch, useSelector } from "react-redux";
+import { connect } from "react-redux";
 import { prettyPrintOne } from "code-prettify";
-import { CSMarker } from "@codestream/protocols/api";
+import { CSMarker } from "codestream-common/api-protocol";
+import styled from "styled-components";
+
+import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import { escapeHtml, safe } from "../utils";
 import Icon from "./Icon";
 import { CodeStreamState } from "../store";
 import { getById } from "../store/repos/reducer";
 import { setCurrentCodemark, setCurrentReview } from "../store/context/actions";
 import { SearchContext } from "./SearchContextProvider";
-import styled from "styled-components";
 import { InlineMenu } from "../src/components/controls/InlineMenu";
 import { setUserPreference } from "./actions";
 import { PRDiffHunk } from "./PullRequestFilesChangedList";

@@ -2,8 +2,13 @@ import {
 	ReadTextFileRequestType,
 	ReviewPlus,
 	WriteTextFileRequestType,
-} from "@codestream/protocols/agent";
-import { CSReviewChangeset } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { CSReviewChangeset } from "codestream-common/api-protocol";
+import * as path from "path-browserify";
+import React, { useEffect } from "react";
+import { useSelector } from "react-redux";
+import { Range } from "vscode-languageserver-types";
+
 import {
 	EditorRevealRangeRequestType,
 	ShowNextChangedFileNotificationType,
@@ -17,10 +22,6 @@ import { useAppDispatch, useDidMount } from "@codestream/webview/utilities/hooks
 import { TernarySearchTree } from "@codestream/webview/utilities/searchTree";
 import { safe } from "@codestream/webview/utils";
 import { HostApi } from "@codestream/webview/webview-api";
-import * as path from "path-browserify";
-import React, { useEffect } from "react";
-import { useSelector } from "react-redux";
-import { Range } from "vscode-languageserver-types";
 import { setUserPreference } from "../actions";
 import Icon from "../Icon";
 import { PRSelectorButtons } from "../PullRequestComponents";

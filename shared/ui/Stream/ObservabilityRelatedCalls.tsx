@@ -1,6 +1,7 @@
-import { GetNewRelicRelatedEntitiesRequestType } from "@codestream/protocols/agent";
+import { GetNewRelicRelatedEntitiesRequestType } from "codestream-common/agent-protocol";
 import { isEmpty as _isEmpty } from "lodash-es";
 import React, { useState } from "react";
+
 import { logError } from "../logger";
 import { useRequestType } from "../utilities/hooks";
 import { mapOrder } from "../utils";

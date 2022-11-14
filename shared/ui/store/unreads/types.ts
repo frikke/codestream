@@ -1,4 +1,4 @@
-import { Unreads } from "@codestream/protocols/agent";
+import { Unreads } from "codestream-common/agent-protocol";
 
 export interface UnreadsState extends Unreads {}
 

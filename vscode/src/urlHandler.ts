@@ -1,5 +1,6 @@
 import { env, Uri } from "vscode";
-import { AgentOpenUrlRequestType } from "@codestream/protocols/agent";
+import { AgentOpenUrlRequestType } from "codestream-common/agent-protocol";
+
 import { Container } from "./container";
 
 export async function openUrl(url: string) {

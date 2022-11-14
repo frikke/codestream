@@ -1,10 +1,11 @@
-import { GitLabMergeRequest, GitLabMergeRequestWrapper } from "@codestream/protocols/agent";
+import { GitLabMergeRequest, GitLabMergeRequestWrapper } from "codestream-common/agent-protocol";
+import React, { useEffect, useState } from "react";
+import styled from "styled-components";
+
 import { Button, ButtonVariant } from "@codestream/webview/src/components/Button";
 import { Checkbox } from "@codestream/webview/src/components/Checkbox";
 import { CodeStreamState } from "@codestream/webview/store";
 import { useAppDispatch, useAppSelector, useDidMount } from "@codestream/webview/utilities/hooks";
-import React, { useEffect, useState } from "react";
-import styled from "styled-components";
 import {
 	getCurrentProviderPullRequestObject,
 	getCurrentProviderPullRequestRootObject,

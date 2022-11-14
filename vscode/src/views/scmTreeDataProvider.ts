@@ -1,13 +1,14 @@
 import * as vscode from "vscode";
 import { Disposable } from "vscode";
-import { CSReview } from "@codestream/protocols/api";
+import { CSReview } from "codestream-common/api-protocol";
 import {
 	DidChangeConnectionStatusNotification,
-	ConnectionStatus
-} from "@codestream/protocols/agent";
+	ConnectionStatus,
+} from "codestream-common/agent-protocol";
+import { Strings } from "codestream-common/string";
+
 import { Container } from "../container";
 import { SessionStatus, SessionStatusChangedEvent } from "../api/session";
-import { Strings } from "../system";
 
 /**
  * There are 2 root node types -- reviews assigned to me, or created by me
@@ -43,11 +44,10 @@ interface ReviewTreeNode {
 }
 
 export class ScmTreeDataProvider implements vscode.TreeDataProvider<ReviewTreeNode> {
-	private _onDidChangeTreeData: vscode.EventEmitter<
-		ReviewTreeNode | undefined
-	> = new vscode.EventEmitter<ReviewTreeNode | undefined>();
-	readonly onDidChangeTreeData: vscode.Event<ReviewTreeNode | undefined> = this._onDidChangeTreeData
-		.event;
+	private _onDidChangeTreeData: vscode.EventEmitter<ReviewTreeNode | undefined> =
+		new vscode.EventEmitter<ReviewTreeNode | undefined>();
+	readonly onDidChangeTreeData: vscode.Event<ReviewTreeNode | undefined> =
+		this._onDidChangeTreeData.event;
 
 	_disposable: any;
 	status: SessionStatus | undefined = undefined;
@@ -115,7 +115,7 @@ export class ScmTreeDataProvider implements vscode.TreeDataProvider<ReviewTreeNo
 			treeItem.command = {
 				command: "codestream.openReview",
 				title: "Open Review",
-				arguments: [{ reviewId: this.fromId(element.id) }]
+				arguments: [{ reviewId: this.fromId(element.id) }],
 			};
 			treeItem.tooltip = element.tooltip;
 			treeItem.description = element.description;
@@ -151,14 +151,14 @@ export class ScmTreeDataProvider implements vscode.TreeDataProvider<ReviewTreeNo
 					id: "AssignedToMe",
 					type: "AssignedToMe",
 					label: "Open & Assigned to Me",
-					hasReviews: assignedToMe.length > 0
+					hasReviews: assignedToMe.length > 0,
 				},
 				{
 					id: "CreatedByMe",
 					type: "CreatedByMe",
 					label: "My Feedback Requests",
-					hasReviews: createdByMe.length > 0
-				}
+					hasReviews: createdByMe.length > 0,
+				},
 			]);
 		}
 
@@ -184,7 +184,7 @@ export class ScmTreeDataProvider implements vscode.TreeDataProvider<ReviewTreeNo
 				// find this user in order to get some additional metadata
 				const user = users.users.find(u => u.id === _.creatorId) || {
 					email: "",
-					avatar: { image: "" }
+					avatar: { image: "" },
 				};
 				let icon: string | undefined = undefined;
 				if (user.avatar && user.avatar.image) {
@@ -210,7 +210,7 @@ export class ScmTreeDataProvider implements vscode.TreeDataProvider<ReviewTreeNo
 					label: _.title,
 					tooltip: toolTip,
 					description: _.text,
-					iconUri: icon
+					iconUri: icon,
 				};
 			});
 			return results;

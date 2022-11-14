@@ -1,16 +1,16 @@
-import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import {
+	CSNotificationDeliveryPreference,
+	CSNotificationPreference,
+} from "codestream-common/api-protocol";
+
+import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import { CodeStreamState } from "../store";
 import { isFeatureEnabled } from "../store/apiVersioning/reducer";
 import { Checkbox } from "../src/components/Checkbox";
 import { RadioGroup, Radio } from "../src/components/RadioGroup";
 import { setUserPreference, closeModal } from "./actions";
 import { HostApi } from "../webview-api";
-import {
-	CSNotificationDeliveryPreference,
-	CSNotificationPreference,
-} from "@codestream/protocols/api";
 import Icon from "./Icon";
 import { Dialog } from "../src/components/Dialog";
 import * as providerSelectors from "../store/providers/reducer";

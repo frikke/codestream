@@ -1,6 +1,7 @@
-import { EnvironmentHost, GetFileScmInfoResponse } from "@codestream/protocols/agent";
-import { CSEligibleJoinCompany } from "@codestream/protocols/api";
+import { EnvironmentHost, GetFileScmInfoResponse } from "codestream-common/agent-protocol";
+import { CSEligibleJoinCompany } from "codestream-common/api-protocol";
 import { Position, Range } from "vscode-languageserver-types";
+
 import { NewPullRequestBranch } from "./webview.protocol";
 
 export const MaxRangeValue = 2147483647;

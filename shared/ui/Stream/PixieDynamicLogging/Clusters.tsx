@@ -1,14 +1,15 @@
 import {
 	ERROR_PIXIE_NOT_CONFIGURED,
 	PixieGetClustersRequestType,
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
+import React, { useEffect } from "react";
+import { useSelector } from "react-redux";
+
 import { Dialog } from "@codestream/webview/src/components/Dialog";
 import { CodeStreamState } from "@codestream/webview/store";
 import { DropdownButton, DropdownButtonItems } from "@codestream/webview/Stream/DropdownButton";
 import { Link } from "@codestream/webview/Stream/Link";
 import { HostApi } from "@codestream/webview/webview-api";
-import React, { useEffect } from "react";
-import { useSelector } from "react-redux";
 
 export const Clusters = props => {
 	const [isLoading, setIsLoading] = React.useState(false);

@@ -28,9 +28,10 @@ SOFTWARE.
 /**
  * Modifications Copyright CodeStream Inc. under the Apache 2.0 License (Apache-2.0)
  */
+import { Strings } from "codestream-common/string";
+
 import { LogCorrelationContext, Logger, TraceLevel } from "../../logger";
 import { Functions } from "./../function";
-import { Strings } from "./../string";
 
 const correlationContext = new Map<number, LogCorrelationContext>();
 let correlationCounter = 0;
@@ -158,7 +159,7 @@ export function log<T, F extends (this: T, ...args: any[]) => any>(
 
 		const parameters = Functions.getParameters(fn);
 
-		descriptor.value = function(this: any, ...args: any[]) {
+		descriptor.value = function (this: any, ...args: any[]) {
 			const correlationId = getNextCorrelationId();
 
 			if (
@@ -195,7 +196,7 @@ export function log<T, F extends (this: T, ...args: any[]) => any>(
 						instance: this,
 						instanceName: instanceName,
 						name: key,
-						prefix: prefix
+						prefix: prefix,
 					} as LogContext<T>,
 					...(args as Parameters<F>)
 				);

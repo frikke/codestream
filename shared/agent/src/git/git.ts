@@ -1,4 +1,5 @@
 "use strict";
+import { Strings } from "codestream-common/string";
 /**
 Portions adapted from https://github.com/eamodio/vscode-gitlens/blob/12a93fe5f609f0bb154dca1a8d09ac3e980b9b3b/src/git/git.ts which carries this notice:
 
@@ -29,7 +30,6 @@ SOFTWARE.
  * Modifications Copyright CodeStream Inc. under the Apache 2.0 License (Apache-2.0)
  */
 import { Logger } from "../logger";
-import { Strings } from "../system";
 import { findGitPath, GitLocation } from "./locator";
 import { CommandOptions, runCommand } from "./shell";
 

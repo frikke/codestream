@@ -1,15 +1,15 @@
-import { useAppDispatch } from "@codestream/webview/utilities/hooks";
 import React, { useState } from "react";
+import { FetchThirdPartyPullRequestPullRequest } from "codestream-common/agent-protocol";
+
+import { useAppDispatch } from "@codestream/webview/utilities/hooks";
 import { PRCommentCard, ButtonRow } from "./PullRequestComponents";
 import MessageInput from "./MessageInput";
 import { RadioGroup, Radio } from "../src/components/RadioGroup";
-import { useDispatch } from "react-redux";
 import { HostApi } from "@codestream/webview/webview-api";
 import { Button } from "../src/components/Button";
 import Tooltip from "./Tooltip";
 import { api } from "../store/providerPullRequests/thunks";
 import { replaceHtml } from "../utils";
-import { FetchThirdPartyPullRequestPullRequest } from "@codestream/protocols/agent";
 import { confirmPopup } from "./Confirm";
 
 export const PullRequestFinishReview = (props: {

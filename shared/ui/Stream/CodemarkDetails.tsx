@@ -3,11 +3,12 @@ import {
 	CodemarkPlus,
 	CreateThirdPartyPostRequestType,
 	PostPlus,
-} from "@codestream/protocols/agent";
-import { CodemarkType, CSMe, CSPost, CSUser } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { CodemarkType, CSMe, CSPost, CSUser } from "codestream-common/api-protocol";
 import cx from "classnames";
 import React from "react";
 import { connect } from "react-redux";
+
 import { DelayedRender } from "../Container/DelayedRender";
 import { Button } from "../src/components/Button";
 import { ButtonRow } from "../src/components/Dialog";

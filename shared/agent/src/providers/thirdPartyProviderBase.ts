@@ -1,14 +1,9 @@
+import { Agent as HttpsAgent } from "https";
+import url from "url";
+
 import { Mutex } from "async-mutex";
 import { GraphQLClient } from "graphql-request";
-import { Agent as HttpsAgent } from "https";
-import HttpsProxyAgent from "https-proxy-agent";
 import { RequestInit, Response } from "node-fetch";
-import url from "url";
-import { InternalError, ReportSuppressedMessages } from "../agentError";
-import { MessageType } from "../api/apiProvider";
-import { User } from "../api/extensions";
-import { Container, SessionContainer } from "../container";
-import { Logger } from "../logger";
 import {
 	AddEnterpriseProviderRequest,
 	AddEnterpriseProviderResponse,
@@ -16,13 +11,20 @@ import {
 	RemoveEnterpriseProviderRequest,
 	ThirdPartyDisconnect,
 	ThirdPartyProviderConfig,
-} from "../protocol/agent.protocol.providers";
-import { CSMe, CSProviderInfos } from "../protocol/api.protocol.models";
+} from "codestream-common/agent-protocol";
+import { CSMe, CSProviderInfos } from "codestream-common/api-protocol";
+import { Strings } from "codestream-common/string";
+
+import HttpsProxyAgent from "https-proxy-agent";
+import { InternalError, ReportSuppressedMessages } from "../agentError";
+import { MessageType } from "../api/apiProvider";
+import { User } from "../api/extensions";
+import { Container, SessionContainer } from "../container";
+import { Logger } from "../logger";
 import { CodeStreamSession } from "../session";
 import { log } from "../system/decorators/log";
 import { fetchCore } from "../system/fetchCore";
 import { isApiError, isErrnoException } from "../system/object";
-import { Strings } from "../system/string";
 import { ApiResponse, isRefreshable, ProviderVersion, ThirdPartyProvider } from "./provider";
 
 const transitoryErrors = new Set(["ECONNREFUSED", "ETIMEDOUT", "ECONNRESET", "ENOTFOUND"]);

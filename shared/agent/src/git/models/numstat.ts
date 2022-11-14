@@ -1,4 +1,4 @@
-import { FileStatus } from "../../protocol/api.protocol.models";
+import { FileStatus } from "codestream-common/api-protocol";
 
 export interface GitNumStat {
 	oldFile: string;

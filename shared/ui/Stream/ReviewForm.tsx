@@ -12,7 +12,7 @@ import {
 	ReposScm,
 	UpdateReviewResponse,
 	UpdateTeamSettingsRequestType,
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
 import {
 	CodemarkStatus,
 	CSMe,
@@ -24,7 +24,7 @@ import {
 	FileStatus,
 	ShareTarget,
 	StreamType,
-} from "@codestream/protocols/api";
+} from "codestream-common/api-protocol";
 import cx from "classnames";
 // https://github.com/kaelzhang/node-ignore
 import ignore from "ignore";
@@ -35,6 +35,7 @@ import { connect } from "react-redux";
 import styled from "styled-components";
 import { Range } from "vscode-languageserver-types";
 import { URI } from "vscode-uri";
+import { DocumentData } from "codestream-common/agent-protocol";
 
 import { editReview } from "@codestream/webview/store/reviews/thunks";
 import {
@@ -50,7 +51,6 @@ import { WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
 import { ReviewShowLocalDiffRequestType } from "@codestream/protocols/webview";
 import { EditorRevealRangeRequestType } from "../ipc/host.protocol.editor";
 import { logError } from "../logger";
-import { DocumentData } from "../protocols/agent/agent.protocol.notifications";
 import { Checkbox } from "../src/components/Checkbox";
 import { InlineMenu } from "../src/components/controls/InlineMenu";
 import { CSText } from "../src/components/CSText";

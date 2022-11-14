@@ -1,8 +1,6 @@
 "use strict";
 import { Emitter, Event } from "vscode-languageserver";
-import { SessionContainer } from "../../container";
-import { Logger } from "../../logger";
-import { Unreads } from "../../protocol/agent.protocol";
+import { Unreads } from "codestream-common/agent-protocol";
 import {
 	CSLastReadItems,
 	CSLastReads,
@@ -10,7 +8,10 @@ import {
 	CSStream,
 	RepoSetting,
 	StreamType,
-} from "../../protocol/api.protocol";
+} from "codestream-common/api-protocol";
+
+import { SessionContainer } from "../../container";
+import { Logger } from "../../logger";
 import { Arrays, Functions, log } from "../../system";
 import { ApiProvider } from "../apiProvider";
 

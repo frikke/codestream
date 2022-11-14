@@ -1,12 +1,13 @@
-import { ServiceLevelObjectiveResult } from "@codestream/protocols/agent";
+import { ServiceLevelObjectiveResult } from "codestream-common/agent-protocol";
+import cx from "classnames";
+import React, { useState } from "react";
+import { shallowEqual } from "react-redux";
+
 import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { CodeStreamState } from "@codestream/webview/store";
 import Tooltip from "@codestream/webview/Stream/Tooltip";
 import { useAppSelector } from "@codestream/webview/utilities/hooks";
 import { HostApi } from "@codestream/webview/webview-api";
-import cx from "classnames";
-import React, { useState } from "react";
-import { shallowEqual } from "react-redux";
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import Icon from "./Icon";
 

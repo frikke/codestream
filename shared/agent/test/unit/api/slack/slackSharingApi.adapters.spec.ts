@@ -1,5 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
-import { CSUser } from "protocol/api.protocol";
+import { CSUser } from "codestream-common/api-protocol";
+
 import {
 	toSlackPostBlocks,
 	toSlackTextSafe,

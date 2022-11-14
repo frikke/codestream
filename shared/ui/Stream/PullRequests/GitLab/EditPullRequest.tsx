@@ -1,11 +1,11 @@
-import { CodeStreamState } from "@codestream/webview/store";
-
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
+import { PullRequestQuery } from "codestream-common/api-protocol";
+import { FetchProviderDefaultPullRequestsType } from "codestream-common/agent-protocol";
+
+import { CodeStreamState } from "@codestream/webview/store";
 import Icon from "../../Icon";
 import { Button } from "../../../src/components/Button";
-import { PullRequestQuery } from "@codestream/protocols/api";
 import { Link } from "../../Link";
 import { replaceHtml } from "../../../utils";
 import { PRBranch, PRError } from "../../PullRequestComponents";
@@ -15,8 +15,6 @@ import { TextInput } from "@codestream/webview/Authentication/TextInput";
 import { Modal } from "../../Modal";
 import { Dialog } from "@codestream/webview/src/components/Dialog";
 import { PullRequestRoot } from "./PullRequest";
-import { confirmPopup } from "../../Confirm";
-import { closeAllModals } from "@codestream/webview/store/context/actions";
 import { DropdownButton } from "../../DropdownButton";
 import { Checkbox } from "@codestream/webview/src/components/Checkbox";
 import { SmartFormattedList } from "../../SmartFormattedList";
@@ -29,7 +27,7 @@ import { HostApi } from "@codestream/webview/webview-api";
 import { OpenUrlRequestType } from "../../../ipc/host.protocol";
 import { getCurrentProviderPullRequest } from "@codestream/webview/store/providerPullRequests/slice";
 import * as providerSelectors from "../../../store/providers/reducer";
-import { FetchProviderDefaultPullRequestsType } from "@codestream/protocols/agent";
+
 
 const Label = styled.div`
 	margin-top: 20px;

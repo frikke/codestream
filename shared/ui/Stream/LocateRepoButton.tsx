@@ -1,5 +1,10 @@
-import { MapReposRequestType, RepoMap, TelemetryRequestType } from "@codestream/protocols/agent";
+import {
+	MapReposRequestType,
+	RepoMap,
+	TelemetryRequestType,
+} from "codestream-common/agent-protocol";
 import React from "react";
+
 import { ShellPromptFolderRequestType } from "../ipc/host.protocol";
 import { HostApi } from "../webview-api";
 import Button from "./Button";

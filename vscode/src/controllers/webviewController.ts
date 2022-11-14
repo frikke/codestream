@@ -21,9 +21,9 @@ import {
 	DidEncounterMaintenanceModeNotificationType,
 	DidResolveStackTraceLineNotificationType,
 	ReportingMessageType,
-	VersionCompatibility
-} from "@codestream/protocols/agent";
-import { CodemarkType, CSApiCapabilities } from "@codestream/protocols/api";
+	VersionCompatibility,
+} from "codestream-common/agent-protocol";
+import { CodemarkType, CSApiCapabilities } from "codestream-common/api-protocol";
 import {
 	ActiveEditorInfo,
 	ApplyMarkerRequestType,
@@ -74,7 +74,7 @@ import {
 	HostDidChangeLayoutNotificationType,
 	NewPullRequestBranch,
 	ViewMethodLevelTelemetryNotificationType,
-	RefreshEditorsCodeLensRequestType
+	RefreshEditorsCodeLensRequestType,
 } from "@codestream/protocols/webview";
 import {
 	authentication,
@@ -89,7 +89,7 @@ import {
 	ViewColumn,
 	window,
 	workspace,
-	env
+	env,
 } from "vscode";
 import { NotificationType, RequestType } from "vscode-languageclient";
 import {
@@ -103,11 +103,10 @@ import {
 	WebviewIpcMessage,
 	WebviewIpcNotificationMessage,
 	WebviewIpcRequestMessage,
-	WebviewPanels
+	WebviewPanels,
 } from "protocols/webview/webview.protocol.common";
 
 import { gate } from "system/decorators/gate";
-import { Strings } from "system/string";
 import { openUrl } from "urlHandler";
 import { toLoggableIpcMessage, WebviewLike } from "webviews/webviewLike";
 import { toCSGitUri } from "providers/gitContentProvider";
@@ -116,7 +115,7 @@ import {
 	SessionSignedOutReason,
 	SessionStatus,
 	SessionStatusChangedEvent,
-	StreamThread
+	StreamThread,
 } from "../api/session";
 import { WorkspaceState } from "../common";
 import { configuration } from "../configuration";
@@ -126,6 +125,7 @@ import { Logger } from "../logger";
 import { Functions, log } from "../system";
 import { BuiltInCommands } from "../constants";
 import * as csUri from "../system/uri";
+import { parseCSReviewDiffUrl } from "../system/uriUtil";
 
 const emptyObj = {};
 
@@ -198,7 +198,7 @@ export class WebviewController implements Disposable {
 		const status = e.getStatus();
 		const state = Container.context.workspaceState.get<WebviewState>(WorkspaceState.webviewState, {
 			hidden: undefined,
-			teams: {}
+			teams: {},
 		});
 		let teamState;
 		switch (status) {
@@ -225,7 +225,7 @@ export class WebviewController implements Disposable {
 						currentTeamId: "_",
 						hasFocus: true,
 						onboardStep: 0,
-						__teamless__: state.teamless
+						__teamless__: state.teamless,
 					};
 				}
 
@@ -276,7 +276,7 @@ export class WebviewController implements Disposable {
 		}
 		return {
 			id: this._context.threadId,
-			streamId: this._context.currentStreamId
+			streamId: this._context.currentStreamId,
 		};
 	}
 
@@ -314,7 +314,7 @@ export class WebviewController implements Disposable {
 		// TODO: Change this to be a request vs a notification
 		this._webview!.notify(StartWorkNotificationType, {
 			uri: editor ? editor.document.uri.toString() : undefined,
-			source: source
+			source: source,
 		});
 	}
 
@@ -343,7 +343,7 @@ export class WebviewController implements Disposable {
 			uri: editor ? editor.document.uri.toString() : undefined,
 			range: editor ? Editor.toSerializableRange(editor.selection) : undefined,
 			type: type,
-			source: source
+			source: source,
 		});
 	}
 
@@ -369,7 +369,7 @@ export class WebviewController implements Disposable {
 			uri: editor ? editor.document.uri.toString() : undefined,
 			range: editor ? Editor.toSerializableRange(editor.selection) : undefined,
 			source: source,
-			includeLatestCommit: includeLatestCommit
+			includeLatestCommit: includeLatestCommit,
 		});
 	}
 
@@ -395,7 +395,7 @@ export class WebviewController implements Disposable {
 			uri: editor ? editor.document.uri.toString() : undefined,
 			range: editor ? Editor.toSerializableRange(editor.selection) : undefined,
 			source: source,
-			branch: branch
+			branch: branch,
 		});
 	}
 
@@ -428,7 +428,7 @@ export class WebviewController implements Disposable {
 		// TODO: Change this to be a request vs a notification
 		this._webview!.notify(ShowCodemarkNotificationType, {
 			codemarkId: codemarkId,
-			sourceUri: options.sourceUri && options.sourceUri.toString()
+			sourceUri: options.sourceUri && options.sourceUri.toString(),
 		});
 	}
 
@@ -452,7 +452,7 @@ export class WebviewController implements Disposable {
 		this._webview!.notify(ShowReviewNotificationType, {
 			reviewId: reviewId,
 			sourceUri: options.sourceUri && options.sourceUri.toString(),
-			openFirstDiff: options.openFirstDiff
+			openFirstDiff: options.openFirstDiff,
 		});
 	}
 
@@ -475,7 +475,7 @@ export class WebviewController implements Disposable {
 		this._webview!.notify(ShowPullRequestNotificationType, {
 			providerId,
 			id: pullRequestId,
-			commentId: commentId
+			commentId: commentId,
 		});
 	}
 
@@ -495,7 +495,7 @@ export class WebviewController implements Disposable {
 			providerId: "",
 			id: "",
 			url: url,
-			source: source
+			source: source,
 		});
 	}
 
@@ -524,8 +524,8 @@ export class WebviewController implements Disposable {
 		// TODO: Change this to be a request vs a notification
 		this._webview!.notify(HostDidChangeLayoutNotificationType, {
 			sidebar: {
-				location: this.tryGetSidebarLocation()
-			}
+				location: this.tryGetSidebarLocation(),
+			},
 		});
 	}
 
@@ -579,7 +579,7 @@ export class WebviewController implements Disposable {
 					(...args) => this.onEditorSelectionChanged(webview, ...args),
 					250,
 					{
-						maxWait: 250
+						maxWait: 250,
 					}
 				),
 				this
@@ -596,7 +596,7 @@ export class WebviewController implements Disposable {
 	}
 
 	@log({
-		args: false
+		args: false,
 	})
 	async show(streamThread?: StreamThread) {
 		await this.ensureWebView();
@@ -608,7 +608,7 @@ export class WebviewController implements Disposable {
 	}
 
 	@log({
-		args: false
+		args: false,
 	})
 	async onVersionChanged(e: DidChangeVersionCompatibilityNotification) {
 		if (e.compatibility === VersionCompatibility.UnsupportedUpgradeRequired) {
@@ -622,7 +622,7 @@ export class WebviewController implements Disposable {
 	}
 
 	@log({
-		args: false
+		args: false,
 	})
 	async handleProtocol(uri: Uri) {
 		if (!this.visible) {
@@ -630,7 +630,7 @@ export class WebviewController implements Disposable {
 		}
 
 		this._webview!.notify(HostDidReceiveRequestNotificationType, {
-			url: uri.toString()
+			url: uri.toString(),
 		});
 	}
 
@@ -656,7 +656,7 @@ export class WebviewController implements Disposable {
 	}
 
 	@log({
-		args: false
+		args: false,
 	})
 	async onProcessBufferChanged(e: DidChangeProcessBufferNotification) {
 		if (!this.visible) {
@@ -706,7 +706,7 @@ export class WebviewController implements Disposable {
 			webview.notify(HostDidChangeConfigNotificationType, {
 				debug: Logger.isDebugging,
 				showHeadshots: Container.config.showAvatars,
-				showGoldenSignalsInEditor: Container.config.goldenSignalsInEditor
+				showGoldenSignalsInEditor: Container.config.goldenSignalsInEditor,
 			});
 		}
 	}
@@ -728,7 +728,7 @@ export class WebviewController implements Disposable {
 			gitSha: sha,
 			selections: Editor.toEditorSelections(e.selections),
 			visibleRanges: Editor.toSerializableRange(e.textEditor.visibleRanges),
-			lineCount: e.textEditor.document.lineCount
+			lineCount: e.textEditor.document.lineCount,
 		});
 	}
 
@@ -744,7 +744,7 @@ export class WebviewController implements Disposable {
 			gitSha: sha,
 			selections: Editor.toEditorSelections(e.textEditor.selections),
 			visibleRanges: Editor.toSerializableRange(e.visibleRanges),
-			lineCount: e.textEditor.document.lineCount
+			lineCount: e.textEditor.document.lineCount,
 		});
 	}
 
@@ -758,7 +758,7 @@ export class WebviewController implements Disposable {
 			return false;
 		}
 
-		const csRangeDiffInfo = Strings.parseCSReviewDiffUrl(uri.toString());
+		const csRangeDiffInfo = parseCSReviewDiffUrl(uri.toString());
 		if (
 			csRangeDiffInfo &&
 			(csRangeDiffInfo.reviewId === "local" || csRangeDiffInfo.version !== "right")
@@ -895,7 +895,7 @@ export class WebviewController implements Disposable {
 			}
 			case GetActiveEditorContextRequestType.method: {
 				webview.onIpcRequest(GetActiveEditorContextRequestType, e, async (_type, _params) => ({
-					editorContext: this.getActiveEditorContext()
+					editorContext: this.getActiveEditorContext(),
 				}));
 				break;
 			}
@@ -928,7 +928,7 @@ export class WebviewController implements Disposable {
 						this._lastEditor,
 						{
 							preserveFocus: params.preserveFocus,
-							atTop: params.atTop
+							atTop: params.atTop,
 						}
 					);
 					return { success: success };
@@ -943,7 +943,7 @@ export class WebviewController implements Disposable {
 						Editor.fromSerializableRange(params.selection),
 						this._lastEditor,
 						{
-							preserveFocus: params.preserveFocus
+							preserveFocus: params.preserveFocus,
 						}
 					);
 					return { success: success };
@@ -1004,7 +1004,7 @@ export class WebviewController implements Disposable {
 					const fileUri = await window.showOpenDialog({
 						canSelectMany: false,
 						canSelectFiles: false,
-						canSelectFolders: true
+						canSelectFolders: true,
 					});
 
 					let path: string | undefined = undefined;
@@ -1012,7 +1012,7 @@ export class WebviewController implements Disposable {
 						path = fileUri[0].fsPath;
 					}
 					return {
-						path: path
+						path: path,
 					};
 				});
 
@@ -1062,7 +1062,7 @@ export class WebviewController implements Disposable {
 						return emptyObj;
 					} catch (err) {
 						return {
-							error: err.message
+							error: err.message,
 						};
 					}
 				});
@@ -1152,7 +1152,7 @@ export class WebviewController implements Disposable {
 				webview.onIpcRequest(RefreshEditorsCodeLensRequestType, e, async (_type, _params) => {
 					await Container.commands.updateEditorCodeLens();
 					return {
-						success: true
+						success: true,
 					};
 				});
 				break;
@@ -1189,7 +1189,7 @@ export class WebviewController implements Disposable {
 			session: {
 				userId: userId,
 				machineId: env.machineId,
-				eligibleJoinCompanies: this.session?.eligibleJoinCompanies || []
+				eligibleJoinCompanies: this.session?.eligibleJoinCompanies || [],
 			},
 			capabilities: this.session.capabilities,
 			configs: {
@@ -1197,22 +1197,22 @@ export class WebviewController implements Disposable {
 				email: Container.config.email,
 				serverUrl: this.session.serverUrl,
 				showHeadshots: Container.config.showAvatars,
-				showGoldenSignalsInEditor: Container.config.goldenSignalsInEditor
+				showGoldenSignalsInEditor: Container.config.goldenSignalsInEditor,
 			},
 			environmentInfo: this.session.environmentInfo,
 			ide: {
 				name: "VSC",
-				detail: env.appName
+				detail: env.appName,
 			},
 			context: this._context
 				? { ...this._context, currentTeamId: currentTeamId }
 				: {
-						currentTeamId: currentTeamId
+						currentTeamId: currentTeamId,
 				  },
 			version: Container.versionFormatted,
 			versionCompatibility: this._versionCompatibility,
 			apiVersionCompatibility: this._apiVersionCompatibility,
-			missingCapabilities: this._missingCapabilities
+			missingCapabilities: this._missingCapabilities,
 		};
 	}
 
@@ -1239,8 +1239,8 @@ export class WebviewController implements Disposable {
 				textEditorLineCount: this._lastEditor.document.lineCount,
 				visibleEditorCount: window.visibleTextEditors.length,
 				sidebar: {
-					location: this.tryGetSidebarLocation()
-				}
+					location: this.tryGetSidebarLocation(),
+				},
 			};
 		}
 		return editorContext;
@@ -1260,7 +1260,7 @@ export class WebviewController implements Disposable {
 					uri = originalUri;
 					break;
 				case "codestream-diff":
-					const csReviewDiffInfo = Strings.parseCSReviewDiffUrl(originalUri.toString());
+					const csReviewDiffInfo = parseCSReviewDiffUrl(originalUri.toString());
 					if (csReviewDiffInfo && csReviewDiffInfo.version === "right") {
 						uri = originalUri;
 						break;
@@ -1293,7 +1293,7 @@ export class WebviewController implements Disposable {
 					metrics: Editor.getMetrics(uri),
 					selections: Editor.toEditorSelections(e.selections),
 					visibleRanges: Editor.toSerializableRange(e.visibleRanges),
-					lineCount: e.document.lineCount
+					lineCount: e.document.lineCount,
 				};
 			}
 		}
@@ -1312,7 +1312,7 @@ export class WebviewController implements Disposable {
 				WorkspaceState.webviewState,
 				{
 					hidden: hidden,
-					teams: {}
+					teams: {},
 				}
 			);
 			if (!this.session.signedIn) {
@@ -1320,7 +1320,7 @@ export class WebviewController implements Disposable {
 					const newState: WebviewState = {
 						hidden: prevState.hidden,
 						teams: prevState.teams,
-						teamless: this._context.__teamless__
+						teamless: this._context.__teamless__,
 					};
 					Container.context.workspaceState.update(WorkspaceState.webviewState, newState);
 				}
@@ -1332,13 +1332,13 @@ export class WebviewController implements Disposable {
 			const teams = prevState.teams || {};
 			const teamless = prevState.teamless || undefined;
 			teams[teamId] = {
-				context: this._context
+				context: this._context,
 			};
 
 			Container.context.workspaceState.update(WorkspaceState.webviewState, {
 				hidden,
 				teams,
-				teamless
+				teamless,
 			});
 
 			if (
@@ -1356,7 +1356,7 @@ export class WebviewController implements Disposable {
 
 	private async connectToGitHub() {
 		const session = await authentication.getSession("github", ["read:user", "user:email", "repo"], {
-			createIfNone: true
+			createIfNone: true,
 		});
 		Logger.log(`Connected to GitHub session ${session.id}`);
 		this._providerSessionIds.github = session.id;

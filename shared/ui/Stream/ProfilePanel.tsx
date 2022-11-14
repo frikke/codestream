@@ -1,9 +1,9 @@
-import { logout } from "@codestream/webview/store/session/thunks";
 import React from "react";
-import { useDispatch, useSelector } from "react-redux";
-import ScrollBox from "./ScrollBox";
 import styled from "styled-components";
-import { includes as _includes, sortBy as _sortBy, last as _last } from "lodash-es";
+import { UpdateUserRequestType, DeleteUserRequestType } from "codestream-common/agent-protocol";
+
+import { logout } from "@codestream/webview/store/session/thunks";
+import ScrollBox from "./ScrollBox";
 import { CodeStreamState } from "../store";
 import { useAppDispatch, useAppSelector, useDidMount } from "../utilities/hooks";
 import { HostApi } from "../webview-api";
@@ -15,7 +15,6 @@ import { MetaLabel } from "./Codemark/BaseCodemark";
 import { WebviewModals } from "../ipc/webview.protocol.common";
 import Timestamp from "./Timestamp";
 import { UserStatus } from "../src/components/UserStatus";
-import { UpdateUserRequestType, DeleteUserRequestType } from "@codestream/protocols/agent";
 import Menu from "./Menu";
 import { confirmPopup } from "./Confirm";
 import { Button } from "../src/components/Button";

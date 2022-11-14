@@ -41,14 +41,15 @@ import {
 	UpdateStatusRequestType,
 	UpdateStreamMembershipRequestType,
 	UpdateTeamTagRequestType,
-} from "@codestream/protocols/agent";
-import { CSPost, CSReviewStatus, ShareTarget, StreamType } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { CSPost, CSReviewStatus, ShareTarget, StreamType } from "codestream-common/api-protocol";
+import { pick } from "lodash-es";
+import React from "react";
+
 import { createCodeError } from "@codestream/webview/store/codeErrors/thunks";
 import { createCodemark } from "@codestream/webview/store/codemarks/thunks";
 import { createAppAsyncThunk } from "@codestream/webview/store/helper";
 import { createReview } from "@codestream/webview/store/reviews/thunks";
-import { pick } from "lodash-es";
-import React from "react";
 import { logError } from "../logger";
 import { CodeStreamState } from "../store";
 import { NewCodeErrorAttributes } from "../store/codeErrors/actions";

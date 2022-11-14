@@ -5,8 +5,9 @@ import {
 	LoginResponse,
 	LoginSuccessResponse,
 	TokenLoginRequestType,
-} from "@codestream/protocols/agent";
-import { CSMe } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { CSMe } from "codestream-common/api-protocol";
+
 import { LogoutRequestType, UpdateServerUrlRequestType } from "@codestream/protocols/webview";
 import { onLogin } from "@codestream/webview/Authentication/actions";
 import { logError } from "@codestream/webview/logger";

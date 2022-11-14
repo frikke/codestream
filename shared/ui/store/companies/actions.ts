@@ -3,8 +3,9 @@ import {
 	CreateCompanyRequestType,
 	CreateForeignCompanyRequestType,
 	EnvironmentHost,
-} from "@codestream/protocols/agent";
-import { CSCompany } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { CSCompany } from "codestream-common/api-protocol";
+
 import { HostApi } from "@codestream/webview/webview-api";
 import { action } from "../common";
 import { addStreams } from "../streams/actions";

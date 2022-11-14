@@ -1,6 +1,7 @@
-import { FetchRequestQuery } from "@codestream/protocols/api";
+import { FetchRequestQuery } from "codestream-common/api-protocol";
 import { mergeWith } from "lodash-es";
 import { createSelector } from "reselect";
+
 import { CodeStreamState } from "..";
 import { ActionType } from "../common";
 import * as actions from "./actions";

@@ -1,10 +1,11 @@
-import { GetNewRelicAccountsRequestType } from "@codestream/protocols/agent";
+import { GetNewRelicAccountsRequestType } from "codestream-common/agent-protocol";
+import React from "react";
+import { useSelector } from "react-redux";
+
 import { CodeStreamState } from "@codestream/webview/store";
 import { DropdownButton, DropdownButtonItems } from "@codestream/webview/Stream/DropdownButton";
 import { useDidMount } from "@codestream/webview/utilities/hooks";
 import { HostApi } from "@codestream/webview/webview-api";
-import React from "react";
-import { useSelector } from "react-redux";
 
 export const Accounts = props => {
 	const [isLoading, setIsLoading] = React.useState(false);

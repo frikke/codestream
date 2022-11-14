@@ -1,7 +1,9 @@
-import { setEnvironment } from "@codestream/webview/store/session/thunks";
 import React from "react";
 import { FormattedMessage } from "react-intl";
 import { connect } from "react-redux";
+import { EnvironmentHost } from "codestream-common/agent-protocol";
+
+import { setEnvironment } from "@codestream/webview/store/session/thunks";
 import Icon from "../Stream/Icon";
 import Button from "../Stream/Button";
 import { authenticate, generateLoginCode, startSSOSignin, startIDESignin } from "./actions";
@@ -13,10 +15,8 @@ import {
 	clearForceRegion,
 } from "../store/context/actions";
 import { supportsSSOSignIn } from "../store/configs/slice";
-import { InlineMenu } from "../src/components/controls/InlineMenu";
 import Tooltip from "../Stream/Tooltip";
 import { ModalRoot } from "../Stream/Modal"; // HACK ALERT: including this component is NOT the right way
-import { EnvironmentHost } from "../protocols/agent/agent.protocol";
 import { TooltipIconWrapper } from "./Signup";
 import { Dropdown } from "../Stream/Dropdown";
 import { isFeatureEnabled } from "../store/apiVersioning/reducer";

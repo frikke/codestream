@@ -1,9 +1,10 @@
-import { CodemarkPlus, TelemetryRequestType } from "@codestream/protocols/agent";
-import { CSMarker, CSUser } from "@codestream/protocols/api";
-import { InsertTextRequestType } from "@codestream/protocols/webview";
+import { CodemarkPlus, TelemetryRequestType } from "codestream-common/agent-protocol";
+import { CSMarker, CSUser } from "codestream-common/api-protocol";
 import cx from "classnames";
 import React, { useState } from "react";
 import { connect } from "react-redux";
+
+import { InsertTextRequestType } from "@codestream/protocols/webview";
 import { getPostsForStream } from "../store/posts/reducer";
 import { HostApi } from "../webview-api";
 import { fetchThread } from "./actions";

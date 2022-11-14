@@ -1,4 +1,3 @@
-import { HistoryFetchInfo } from "broadcaster/broadcaster";
 import { RequestInit, Response } from "node-fetch";
 import { Disposable, Event } from "vscode-languageserver";
 import {
@@ -185,7 +184,7 @@ import {
 	UpdateUserRequest,
 	UpdateUserResponse,
 	VerifyConnectivityResponse,
-} from "../protocol/agent.protocol";
+} from "codestream-common/agent-protocol";
 import {
 	CSApiCapabilities,
 	CSApiFeatures,
@@ -210,7 +209,9 @@ import {
 	ProviderType,
 	TriggerMsTeamsProactiveMessageRequest,
 	TriggerMsTeamsProactiveMessageResponse,
-} from "../protocol/api.protocol";
+} from "codestream-common/api-protocol";
+
+import { HistoryFetchInfo } from "broadcaster/broadcaster";
 
 export type ApiProviderLoginResponse = CSLoginResponse & { token: AccessToken };
 

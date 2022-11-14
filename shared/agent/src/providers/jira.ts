@@ -1,9 +1,8 @@
 "use strict";
-import { sortBy } from "lodash";
 import * as qs from "querystring";
 import { URLSearchParams } from "url";
-import { Container, SessionContainer } from "../container";
-import { Logger } from "../logger";
+
+import { sortBy } from "lodash";
 import {
 	CreateJiraCardRequest,
 	CreateThirdPartyCardRequest,
@@ -20,8 +19,11 @@ import {
 	ThirdPartyDisconnect,
 	ThirdPartyProviderCard,
 	TransitionsEntity,
-} from "../protocol/agent.protocol";
-import { CSJiraProviderInfo } from "../protocol/api.protocol";
+} from "codestream-common/agent-protocol";
+import { CSJiraProviderInfo } from "codestream-common/api-protocol";
+
+import { Container, SessionContainer } from "../container";
+import { Logger } from "../logger";
 import { Iterables, log, lspProvider } from "../system";
 import { IssuesEntity, JiraCardResponse } from "./jiraserver.types";
 import { ThirdPartyIssueProviderBase } from "./thirdPartyIssueProviderBase";

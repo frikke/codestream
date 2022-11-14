@@ -4,13 +4,14 @@ import {
 	NewRelicErrorGroup,
 	ReviewPlus,
 	UpdatePostSharingDataRequestType,
-} from "@codestream/protocols/agent";
-import { CSCodeError, CSPost } from "@codestream/protocols/api";
-import { HostApi } from "@codestream/webview/webview-api";
+} from "codestream-common/agent-protocol";
+import { CSCodeError, CSPost } from "codestream-common/api-protocol";
 import { uniq } from "lodash-es";
 import React from "react";
 import { useSelector, useStore } from "react-redux";
 import styled from "styled-components";
+
+import { HostApi } from "@codestream/webview/webview-api";
 import { logError } from "../logger";
 import { BoxedContent } from "../src/components/BoxedContent";
 import { Button } from "../src/components/Button";

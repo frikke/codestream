@@ -3,8 +3,9 @@ import {
 	CSMe,
 	CSUser,
 	CSNotificationDeliveryPreference,
-	CSMePreferences
-} from "@codestream/protocols/api";
+	CSMePreferences,
+} from "codestream-common/api-protocol";
+
 import { CodeStreamSession } from "../session";
 import { CodeStreamItem } from "./item";
 

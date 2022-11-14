@@ -1,6 +1,6 @@
 "use strict";
 
-import { GetBlameLineInfo } from "protocols/agent/agent.protocol.scm";
+import { GetBlameLineInfo } from "codestream-common/agent-protocol";
 import {
 	ConfigurationChangeEvent,
 	Disposable,
@@ -13,7 +13,7 @@ import {
 	TextEditorSelectionChangeEvent,
 	ThemeColor,
 	window,
-	workspace
+	workspace,
 } from "vscode";
 
 import { Functions } from "system";
@@ -105,8 +105,8 @@ export class BlameDecorationProvider implements Disposable {
 		decorationTypes.blameSuffix = window.createTextEditorDecorationType({
 			after: {
 				color: new ThemeColor("editorCodeLens.foreground"),
-				margin: "30px"
-			}
+				margin: "30px",
+			},
 		});
 
 		this._decorationTypes = decorationTypes;
@@ -176,7 +176,7 @@ export class BlameDecorationProvider implements Disposable {
 		const length = editor.document.lineAt(cursor.line).text.length;
 		const range = editor.selection.with({
 			start: new Position(cursor.line, length),
-			end: new Position(cursor.line, length)
+			end: new Position(cursor.line, length),
 		});
 		try {
 			const blameCache = this.getDocBlameCache(editor.document);
@@ -200,8 +200,8 @@ export class BlameDecorationProvider implements Disposable {
 					{
 						hoverMessage,
 						range,
-						renderOptions: { after: { contentText: lineBlame.formattedBlame } }
-					}
+						renderOptions: { after: { contentText: lineBlame.formattedBlame } },
+					},
 				]);
 			}
 		} catch (ex) {
@@ -211,7 +211,7 @@ export class BlameDecorationProvider implements Disposable {
 
 	private formatHover(commitInfo: GetBlameLineInfo): MarkdownString {
 		const commandArgs: NewCodemarkCommandArgs = {
-			source: "Blame Hover"
+			source: "Blame Hover",
 		};
 		const mdString = new MarkdownString("", true);
 		mdString.isTrusted = true;
@@ -245,7 +245,7 @@ export class BlameDecorationProvider implements Disposable {
 					JSON.stringify({
 						providerId: pr.providerId,
 						pullRequestId: pr.id,
-						externalUrl: pr.url
+						externalUrl: pr.url,
 					})
 				)})`
 			);
@@ -256,7 +256,7 @@ export class BlameDecorationProvider implements Disposable {
 				`[$(file-code) ${review.title}](command:codestream.openReview?${encodeURIComponent(
 					JSON.stringify({
 						...commandArgs,
-						reviewId: review.id
+						reviewId: review.id,
 					})
 				)})`
 			);

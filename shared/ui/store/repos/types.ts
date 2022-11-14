@@ -1,4 +1,4 @@
-import { CSRepository } from "@codestream/protocols/api";
+import { CSRepository } from "codestream-common/api-protocol";
 
 export interface ReposState {
 	[id: string]: CSRepository;

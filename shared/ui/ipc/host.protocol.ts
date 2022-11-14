@@ -5,7 +5,7 @@ import {
 	ThirdPartyProviders,
 	Unreads,
 	VersionCompatibility,
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
 import {
 	CSApiCapabilities,
 	CSCompany,
@@ -15,7 +15,7 @@ import {
 	CSStream,
 	CSTeam,
 	CSUser,
-} from "@codestream/protocols/api";
+} from "codestream-common/api-protocol";
 
 import { RequestType } from "vscode-jsonrpc";
 import { EditorContext, IpcRoutes, SessionState, WebviewContext } from "./webview.protocol.common";

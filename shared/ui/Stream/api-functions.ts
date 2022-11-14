@@ -1,4 +1,5 @@
-import { GetDocumentFromMarkerRequestType } from "@codestream/protocols/agent";
+import { GetDocumentFromMarkerRequestType } from "codestream-common/agent-protocol";
+
 import { EditorSelectRangeRequestType } from "@codestream/protocols/webview";
 import {
 	EditorHighlightRangeRequest,

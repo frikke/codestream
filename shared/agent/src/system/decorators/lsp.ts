@@ -1,7 +1,8 @@
 "use strict";
 import { RequestHandler0, RequestType } from "vscode-languageserver-protocol";
+import { ThirdPartyProviders } from "codestream-common/agent-protocol";
+
 import { CodeStreamAgent } from "../../agent";
-import { ThirdPartyProviders } from "../../protocol/agent.protocol.providers";
 import { ThirdPartyProvider } from "../../providers/provider";
 import { CodeStreamSession } from "../../session";
 

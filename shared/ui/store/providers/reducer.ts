@@ -1,14 +1,15 @@
-import { ThirdPartyProviderConfig } from "@codestream/protocols/agent";
+import { ThirdPartyProviderConfig } from "codestream-common/agent-protocol";
 import {
 	CSMe,
 	CSMSTeamsProviderInfo,
 	CSProviderInfos,
 	CSSlackProviderInfo,
-} from "@codestream/protocols/api";
+} from "codestream-common/api-protocol";
+import { createSelector } from "reselect";
+
 import { getUserProviderInfo } from "@codestream/webview/store/providers/utils";
 import { PROVIDER_MAPPINGS } from "@codestream/webview/Stream/CrossPostIssueControls/types";
 import { mapFilter, safe } from "@codestream/webview/utils";
-import { createSelector } from "reselect";
 import { CodeStreamState } from "..";
 import { ActionType } from "../common";
 import { SessionState } from "../session/types";

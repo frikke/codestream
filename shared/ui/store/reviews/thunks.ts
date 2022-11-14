@@ -8,8 +8,9 @@ import {
 	UpdatePostSharingDataRequestType,
 	UpdateReviewRequestType,
 	UpdateReviewResponse,
-} from "@codestream/protocols/agent";
-import { ShareTarget } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { ShareTarget } from "codestream-common/api-protocol";
+
 import {
 	ReviewCheckpoint,
 	ReviewCloseDiffRequestType,

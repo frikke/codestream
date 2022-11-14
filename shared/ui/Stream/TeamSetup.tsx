@@ -1,11 +1,11 @@
-import { UpdateCompanyRequestType } from "@codestream/protocols/agent";
+import { UpdateCompanyRequestType } from "codestream-common/agent-protocol";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import styled from "styled-components";
+
 import { Button } from "../src/components/Button";
 import { ButtonRow, Dialog } from "../src/components/Dialog";
 import { HostApi } from "../webview-api";
-
-import styled from "styled-components";
 import { logError } from "../logger";
 import { CodeStreamState } from "../store";
 import { closeModal } from "./actions";

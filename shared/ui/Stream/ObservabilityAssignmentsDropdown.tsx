@@ -1,17 +1,19 @@
+import React, { useEffect, useState } from "react";
+import { shallowEqual } from "react-redux";
+import {
+	GetObservabilityErrorGroupMetadataRequestType,
+	GetObservabilityErrorGroupMetadataResponse,
+	ObservabilityErrorCore,
+} from "codestream-common/agent-protocol";
+
 import { openErrorGroup } from "@codestream/webview/store/codeErrors/thunks";
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
-import React, { useEffect, useState } from "react";
-import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { CodeStreamState } from "../store";
 import { ErrorRow } from "./Observability";
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import Icon from "./Icon";
 import { HostApi } from "../webview-api";
-import {
-	GetObservabilityErrorGroupMetadataRequestType,
-	GetObservabilityErrorGroupMetadataResponse,
-	ObservabilityErrorCore,
-} from "@codestream/protocols/agent";
+
 
 interface Props {
 	observabilityAssignments?: ObservabilityErrorCore[];

@@ -27,10 +27,11 @@ SOFTWARE.
 /**
  * Modifications Copyright CodeStream Inc. under the Apache 2.0 License (Apache-2.0)
  */
+import { Strings } from "codestream-common/string";
+
 import { Logger } from "../../logger";
 import { LogCorrelationContext, TraceLevel } from "../../types";
 import { Functions } from "./../function";
-import { Strings } from "./../string";
 
 const correlationContext = new Map<number, LogCorrelationContext>();
 let correlationCounter = 0;

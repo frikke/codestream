@@ -8,8 +8,12 @@ import {
 	NormalizeUrlResponse,
 	ResolveStackTraceResponse,
 	WarningOrError,
-} from "@codestream/protocols/agent";
-import { CSCodeError, CSStackTraceInfo } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { CSCodeError, CSStackTraceInfo } from "codestream-common/api-protocol";
+import React, { useEffect } from "react";
+import { useSelector } from "react-redux";
+import styled from "styled-components";
+
 import {
 	addCodeErrors,
 	bootstrapCodeErrors,
@@ -33,9 +37,6 @@ import {
 } from "@codestream/webview/utilities/hooks";
 import { isSha } from "@codestream/webview/utilities/strings";
 import { HostApi } from "@codestream/webview/webview-api";
-import React, { useEffect } from "react";
-import { useSelector } from "react-redux";
-import styled from "styled-components";
 import { DelayedRender } from "../Container/DelayedRender";
 import { logError, logWarning } from "../logger";
 import { Button } from "../src/components/Button";

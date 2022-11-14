@@ -8,14 +8,14 @@
 		"incremental": false,
 		"lib": ["ES2020"],
 		"module": "commonjs",
-		"moduleResolution": "node",
+		"moduleResolution": "node16",
 		"noFallthroughCasesInSwitch": true,
 		"noImplicitReturns": true,
 		"noUnusedLocals": false,
 		"outDir": "dist",
 		"paths": {
-			"@codestream/protocols/agent": ["protocols/agent/agent.protocol.ts"],
-			"@codestream/protocols/api": ["protocols/agent/api.protocol.ts"],
+			"@codestream/protocols/agent": ["codestream-common/agent-protocol"],
+			"@codestream/protocols/api": ["codestream-common/api-protocol"],
 			"@codestream/protocols/webview": ["protocols/webview/webview.protocol.ts"]
 		},
 		"preserveSymlinks": true,
@@ -28,5 +28,5 @@
 		"useUnknownInCatchVariables": false
 	},
 	"exclude": ["node_modules", "src/webviews/app", ".vscode-test"],
-	"include": ["src/**/*.ts", "../shared/util/**/*"]
+	"include": ["src/**/*.ts", "esbuild.ts"]
 }

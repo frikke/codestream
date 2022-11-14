@@ -1,5 +1,6 @@
 "use strict";
-import { CSTeam } from "@codestream/protocols/api";
+import { CSTeam } from "codestream-common/api-protocol";
+
 import { memoize } from "../../system";
 import { CodeStreamSession } from "../session";
 import { CodeStreamItem } from "./item";

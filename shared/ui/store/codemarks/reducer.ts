@@ -1,6 +1,7 @@
-import { CodemarkPlus } from "@codestream/protocols/agent";
-import { CodemarkStatus, CodemarkType, CSReview } from "@codestream/protocols/api";
+import { CodemarkPlus } from "codestream-common/agent-protocol";
+import { CodemarkStatus, CodemarkType, CSReview } from "codestream-common/api-protocol";
 import { createSelector } from "reselect";
+
 import { CodeStreamState } from "..";
 import { mapFilter, toMapBy } from "../../utils";
 import { ActionType } from "../common";

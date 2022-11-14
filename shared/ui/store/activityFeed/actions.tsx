@@ -1,6 +1,7 @@
-import { CodemarkPlus } from "@codestream/protocols/agent";
-import { CSEntity } from "@codestream/protocols/api";
+import { CodemarkPlus } from "codestream-common/agent-protocol";
+import { CSEntity } from "codestream-common/api-protocol";
 import { sortBy } from "lodash-es";
+
 import { action } from "../common";
 import { ActivityFeedActionType } from "./types";
 

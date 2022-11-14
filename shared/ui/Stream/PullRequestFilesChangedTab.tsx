@@ -4,13 +4,14 @@ import {
 	FetchThirdPartyPullRequestCommitsResponse,
 	FetchThirdPartyPullRequestPullRequest,
 	GetCommitsFilesResponse,
-} from "@codestream/protocols/agent";
-import { FileStatus } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { FileStatus } from "codestream-common/api-protocol";
+import React, { useEffect, useMemo, useState } from "react";
+import styled from "styled-components";
+
 import { getCurrentProviderPullRequest } from "@codestream/webview/store/providerPullRequests/slice";
 import { DropdownButton } from "@codestream/webview/Stream/DropdownButton";
 import { distanceOfTimeInWords } from "@codestream/webview/Stream/Timestamp";
-import React, { useEffect, useMemo, useState } from "react";
-import styled from "styled-components";
 import { LoadingMessage } from "../src/components/LoadingMessage";
 import { CodeStreamState } from "../store";
 import {

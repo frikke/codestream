@@ -1,5 +1,8 @@
 "use strict";
 import fs from "fs";
+import * as path from "path";
+import { join, relative, sep } from "path";
+
 import { GraphQLClient } from "graphql-request";
 import {
 	Dictionary,
@@ -11,19 +14,9 @@ import {
 	uniq as _uniq,
 	uniqBy as _uniqBy,
 } from "lodash";
-import * as path from "path";
-import { join, relative, sep } from "path";
 import Cache from "timed-cache";
 import { ResponseError } from "vscode-jsonrpc/lib/messages";
 import { URI } from "vscode-uri";
-import { customFetch } from "../system/fetchCore";
-import * as csUri from "../system/uri";
-
-import { InternalError, ReportSuppressedMessages } from "../agentError";
-import { SessionContainer, SessionServiceContainer } from "../container";
-import { GitRemoteParser } from "../git/parsers/remoteParser";
-import { Logger } from "../logger";
-import { ReviewsManager } from "../managers/reviewsManager";
 import {
 	BuiltFromResult,
 	CodeStreamDiffUriData,
@@ -101,11 +94,19 @@ import {
 	StackTraceResponse,
 	ThirdPartyDisconnect,
 	ThirdPartyProviderConfig,
-} from "../protocol/agent.protocol";
-import { CSMe, CSNewRelicProviderInfo } from "../protocol/api.protocol";
+} from "codestream-common/agent-protocol";
+import { CSMe, CSNewRelicProviderInfo } from "codestream-common/api-protocol";
+import { Strings } from "codestream-common/string";
+
+import { customFetch } from "../system/fetchCore";
+import * as csUri from "../system/uri";
+import { InternalError, ReportSuppressedMessages } from "../agentError";
+import { SessionContainer, SessionServiceContainer } from "../container";
+import { GitRemoteParser } from "../git/parsers/remoteParser";
+import { Logger } from "../logger";
+import { ReviewsManager } from "../managers/reviewsManager";
 import { CodeStreamSession } from "../session";
 import { Functions, log, lspHandler, lspProvider } from "../system";
-import { Strings } from "../system/string";
 import {
 	GraphqlNrqlError,
 	GraphqlNrqlTimeoutError,

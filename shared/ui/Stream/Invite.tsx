@@ -4,15 +4,16 @@ import {
 	RepoScmStatus,
 	UpdateTeamAdminRequestType,
 	UpdateTeamSettingsRequestType,
-} from "@codestream/protocols/agent";
-import { CSTeam, CSUser } from "@codestream/protocols/api";
-import { switchToTeam } from "@codestream/webview/store/session/thunks";
+} from "codestream-common/agent-protocol";
+import { CSTeam, CSUser } from "codestream-common/api-protocol";
 import copy from "copy-to-clipboard";
 import { sortBy as _sortBy } from "lodash-es";
 import React from "react";
 import { FormattedMessage } from "react-intl";
 import { connect } from "react-redux";
 import styled from "styled-components";
+
+import { switchToTeam } from "@codestream/webview/store/session/thunks";
 import { CSText } from "../src/components/CSText";
 import { Dialog } from "../src/components/Dialog";
 import { UserStatus } from "../src/components/UserStatus";

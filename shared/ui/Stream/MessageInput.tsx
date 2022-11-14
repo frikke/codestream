@@ -2,18 +2,20 @@ import cx from "classnames";
 import React from "react";
 import { connect } from "react-redux";
 import ContentEditable from "react-contenteditable";
-import * as codemarkSelectors from "../store/codemarks/reducer";
-import * as actions from "./actions";
-const emojiData = require("../node_modules/markdown-it-emoji-mart/lib/data/full.json");
 import {
-	CSChannelStream,
 	CSPost,
 	CSUser,
 	CSTeam,
 	CSTag,
 	CSMe,
 	Attachment,
-} from "@codestream/protocols/api";
+} from "codestream-common/api-protocol";
+import {
+	CodemarkPlus,
+	UploadFileRequest,
+	UploadFileRequestType,
+} from "codestream-common/agent-protocol";
+
 import KeystrokeDispatcher from "../utilities/keystroke-dispatcher";
 import {
 	createRange,
@@ -30,11 +32,8 @@ import Menu from "./Menu";
 import Button from "./Button";
 import Icon from "./Icon";
 import { confirmPopup } from "./Confirm";
-import {
-	CodemarkPlus,
-	UploadFileRequest,
-	UploadFileRequestType,
-} from "@codestream/protocols/agent";
+import * as actions from "./actions";
+import * as codemarkSelectors from "../store/codemarks/reducer";
 import { CodeStreamState } from "../store";
 import { getTeamTagsArray, getTeamMembers, getUsernames } from "../store/users/reducer";
 // import { getChannelStreamsForTeam } from "../store/streams/reducer";
@@ -44,6 +43,8 @@ import { isFeatureEnabled } from "../store/apiVersioning/reducer";
 import { getProviderPullRequestCollaborators } from "../store/providerPullRequests/slice";
 import Tooltip from "./Tooltip";
 import { HostApi } from "../webview-api";
+
+const emojiData = require("../node_modules/markdown-it-emoji-mart/lib/data/full.json");
 
 type PopupType = "at-mentions" | "slash-commands" | "channels" | "emojis";
 

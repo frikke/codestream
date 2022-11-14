@@ -1,6 +1,6 @@
 "use strict";
 import * as qs from "querystring";
-import { Logger } from "../logger";
+
 import {
 	AzureDevOpsCreateCardRequest,
 	AzureDevOpsCreateCardResponse,
@@ -16,8 +16,10 @@ import {
 	ThirdPartyProviderBoard,
 	ThirdPartyProviderCard,
 	ThirdPartyProviderUser,
-} from "../protocol/agent.protocol";
-import { CSAzureDevOpsProviderInfo } from "../protocol/api.protocol";
+} from "codestream-common/agent-protocol";
+import { CSAzureDevOpsProviderInfo } from "codestream-common/api-protocol";
+
+import { Logger } from "../logger";
 import { log, lspProvider } from "../system";
 import { ThirdPartyIssueProviderBase } from "./thirdPartyIssueProviderBase";
 

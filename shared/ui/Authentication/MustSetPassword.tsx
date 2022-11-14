@@ -1,7 +1,8 @@
-import { SetPasswordRequestType } from "@codestream/protocols/agent";
-import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
+import { SetPasswordRequestType } from "codestream-common/agent-protocol";
 import React, { useCallback, useState } from "react";
 import { FormattedMessage } from "react-intl";
+
+import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import { BoxedContent } from "../src/components/BoxedContent";
 import { CodeStreamState } from "../store";
 import { goToLogin } from "../store/context/actions";

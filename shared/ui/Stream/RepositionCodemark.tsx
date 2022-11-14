@@ -2,14 +2,15 @@ import {
 	CodemarkPlus,
 	GetRangeScmInfoRequestType,
 	MoveMarkerRequestType,
-} from "@codestream/protocols/agent";
-import { CSMarker } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { CSMarker } from "codestream-common/api-protocol";
 import cx from "classnames";
 import * as Path from "path-browserify";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Range } from "vscode-languageserver-types";
 import { URI } from "vscode-uri";
+
 import { CodeStreamState } from "../store";
 import { setCurrentCodemark } from "../store/context/actions";
 import { getCurrentSelection } from "../store/editorContext/reducer";

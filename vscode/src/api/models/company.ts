@@ -1,5 +1,6 @@
 "use strict";
-import { CSCompany } from "@codestream/protocols/api";
+import { CSCompany } from "codestream-common/api-protocol";
+
 import { CodeStreamSession } from "../session";
 import { CodeStreamItem } from "./item";
 

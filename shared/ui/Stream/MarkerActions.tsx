@@ -4,12 +4,13 @@ import {
 	DidChangeDocumentMarkersNotificationType,
 	GetCodemarkRangeRequestType,
 	TelemetryRequestType,
-} from "@codestream/protocols/agent";
-import { CSMarker } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { CSMarker } from "codestream-common/api-protocol";
 import { debounce } from "lodash-es";
 import React from "react";
 import { injectIntl, WrappedComponentProps } from "react-intl";
 import { connect } from "react-redux";
+
 import {
 	ApplyMarkerRequestType,
 	CompareMarkerRequestType,

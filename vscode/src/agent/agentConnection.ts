@@ -11,7 +11,7 @@ import {
 	Range as VSCodeRange,
 	Uri,
 	window,
-	workspace
+	workspace,
 } from "vscode";
 import {
 	CancellationToken,
@@ -28,7 +28,7 @@ import {
 	RequestType,
 	RevealOutputChannelOn,
 	ServerOptions,
-	TransportKind
+	TransportKind,
 } from "vscode-languageclient";
 import {
 	AgentFileSearchRequestType,
@@ -144,8 +144,7 @@ import {
 	UpdateUserRequest,
 	UpdateUserRequestType,
 	UserDidCommitNotification,
-	UserDidCommitNotificationType
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
 import {
 	ChannelServiceType,
 	CodemarkType,
@@ -153,8 +152,9 @@ import {
 	CSMePreferences,
 	CSPresenceStatus,
 	CSReviewCheckpoint,
-	StreamType
-} from "@codestream/protocols/api";
+	StreamType,
+} from "codestream-common/api-protocol";
+import { UserDidCommitNotificationType } from "codestream-common/agent-protocol";
 
 import { SessionSignedOutReason } from "../api/session";
 import { Container } from "../container";
@@ -290,7 +290,7 @@ export class CodeStreamAgentConnection implements Disposable {
 		const agentEnv = {
 			...process.env,
 			NODE_TLS_REJECT_UNAUTHORIZED: options.disableStrictSSL ? 0 : 1,
-			NODE_EXTRA_CA_CERTS: options.extraCerts
+			NODE_EXTRA_CA_CERTS: options.extraCerts,
 		};
 
 		this._serverOptions = {
@@ -298,17 +298,17 @@ export class CodeStreamAgentConnection implements Disposable {
 				module: context.asAbsolutePath("dist/agent.js"),
 				transport: TransportKind.ipc,
 				options: {
-					env: agentEnv
-				}
+					env: agentEnv,
+				},
 			},
 			debug: {
 				module: context.asAbsolutePath("../shared/agent/dist/agent.js"),
 				transport: TransportKind.ipc,
 				options: {
 					execArgv: ["--nolazy", breakOnStart ? "--inspect-brk=6009" : "--inspect=6009"],
-					env: agentEnv
-				}
-			}
+					env: agentEnv,
+				},
+			},
 		};
 
 		this._clientOptions = {
@@ -370,15 +370,15 @@ export class CodeStreamAgentConnection implements Disposable {
 					void Container.session.logout(SessionSignedOutReason.NetworkIssue);
 
 					return CloseAction.DoNotRestart;
-				}
+				},
 			},
 			initializationOptions: { ...options },
 			// Register the server for file-based text documents
 			documentSelector: [
 				{ scheme: "file", language: "*" },
 				{ scheme: "untitled", language: "*" },
-				{ scheme: "vsls", language: "*" }
-			]
+				{ scheme: "vsls", language: "*" },
+			],
 		};
 	}
 
@@ -409,7 +409,7 @@ export class CodeStreamAgentConnection implements Disposable {
 
 	private getInitializationOptions() {
 		const options: Required<BaseAgentOptions> = {
-			...this._clientOptions.initializationOptions
+			...this._clientOptions.initializationOptions,
 		};
 
 		if (Container.config.proxySupport !== "off") {
@@ -418,7 +418,7 @@ export class CodeStreamAgentConnection implements Disposable {
 			if (proxy) {
 				options.proxy = {
 					url: proxy,
-					strictSSL: httpSettings.get<boolean>("proxyStrictSSL", true)
+					strictSSL: httpSettings.get<boolean>("proxyStrictSSL", true),
 				};
 				options.proxySupport = "override";
 			} else {
@@ -468,7 +468,7 @@ export class CodeStreamAgentConnection implements Disposable {
 			return this._connection.sendRequest(CreateDocumentMarkerPermalinkRequestType, {
 				uri: uri.toString(),
 				range: range,
-				privacy: privacy
+				privacy: privacy,
 			});
 		}
 
@@ -476,13 +476,13 @@ export class CodeStreamAgentConnection implements Disposable {
 			return this._connection.sendRequest(FetchDocumentMarkersRequestType, {
 				textDocument: { uri: uri.toString() },
 				gitSha: sha,
-				applyFilters: true
+				applyFilters: true,
 			});
 		}
 
 		getDocumentFromKeyBinding(key: number): Promise<GetDocumentFromKeyBindingResponse | undefined> {
 			return this._connection.sendRequest(GetDocumentFromKeyBindingRequestType, {
-				key: key
+				key: key,
 			});
 		}
 
@@ -492,14 +492,14 @@ export class CodeStreamAgentConnection implements Disposable {
 			return this._connection.sendRequest(GetDocumentFromMarkerRequestType, {
 				repoId: marker.repoId,
 				file: marker.file,
-				markerId: marker.id
+				markerId: marker.id,
 			});
 		}
 
 		getRangesForUri(ranges: VSCodeRange[], uri: string) {
 			return this._connection.sendRequest(CalculateNonLocalRangesRequestType, {
 				ranges: Editor.toSerializableRange(ranges),
-				uri
+				uri,
 			});
 		}
 	})(this);
@@ -539,7 +539,7 @@ export class CodeStreamAgentConnection implements Disposable {
 				codemark = {
 					title: title,
 					type: type || CodemarkType.Comment,
-					assignees: assignees
+					assignees: assignees,
 				};
 			}
 
@@ -548,7 +548,7 @@ export class CodeStreamAgentConnection implements Disposable {
 				text: text,
 				mentionedUserIds: mentionedUserIds,
 				parentPostId: parentPostId,
-				codemark: codemark
+				codemark: codemark,
 			});
 		}
 
@@ -563,7 +563,7 @@ export class CodeStreamAgentConnection implements Disposable {
 		) {
 			return this._connection.sendRequest(FetchPostsRequestType, {
 				streamId: streamId,
-				...options
+				...options,
 			});
 		}
 
@@ -583,21 +583,21 @@ export class CodeStreamAgentConnection implements Disposable {
 		fetchReplies(streamId: string, parentPostId: string) {
 			return this._connection.sendRequest(FetchPostRepliesRequestType, {
 				streamId: streamId,
-				postId: parentPostId
+				postId: parentPostId,
 			});
 		}
 
 		get(streamId: string, postId: string) {
 			return this._connection.sendRequest(GetPostRequestType, {
 				streamId: streamId,
-				postId: postId
+				postId: postId,
 			});
 		}
 
 		delete(streamId: string, postId: string) {
 			return this._connection.sendRequest(DeletePostRequestType, {
 				postId: postId,
-				streamId: streamId
+				streamId: streamId,
 			});
 		}
 
@@ -606,14 +606,14 @@ export class CodeStreamAgentConnection implements Disposable {
 				postId: postId,
 				streamId: streamId,
 				text: text,
-				mentionedUserIds: mentionedUserIds
+				mentionedUserIds: mentionedUserIds,
 			});
 		}
 
 		markUnread(streamId: string, postId: string) {
 			return this._connection.sendRequest(MarkPostUnreadRequestType, {
 				postId: postId,
-				streamId: streamId
+				streamId: streamId,
 			});
 		}
 
@@ -621,7 +621,7 @@ export class CodeStreamAgentConnection implements Disposable {
 			return this._connection.sendRequest(ReactToPostRequestType, {
 				postId: postId,
 				streamId: streamId,
-				emojis: reactions
+				emojis: reactions,
 			});
 		}
 	})(this);
@@ -635,7 +635,7 @@ export class CodeStreamAgentConnection implements Disposable {
 		create(url: string, knownCommitHashes: string[]) {
 			return this._connection.sendRequest(CreateRepoRequestType, {
 				url: url,
-				knownCommitHashes: knownCommitHashes
+				knownCommitHashes: knownCommitHashes,
 			});
 		}
 
@@ -645,7 +645,7 @@ export class CodeStreamAgentConnection implements Disposable {
 
 		get(repoId: string) {
 			return this._connection.sendRequest(GetRepoRequestType, {
-				repoId: repoId
+				repoId: repoId,
 			});
 		}
 	})(this);
@@ -658,7 +658,7 @@ export class CodeStreamAgentConnection implements Disposable {
 
 		get(reviewId: string) {
 			return this._connection.sendRequest(GetReviewRequestType, {
-				reviewId
+				reviewId,
 			});
 		}
 
@@ -671,7 +671,7 @@ export class CodeStreamAgentConnection implements Disposable {
 				reviewId,
 				checkpoint,
 				repoId,
-				path
+				path,
 			});
 		}
 
@@ -687,7 +687,7 @@ export class CodeStreamAgentConnection implements Disposable {
 				path,
 				editingReviewId,
 				baseSha,
-				rightVersion
+				rightVersion,
 			});
 		}
 	})(this);
@@ -700,7 +700,7 @@ export class CodeStreamAgentConnection implements Disposable {
 
 		getFileInfo(uri: Uri) {
 			return this._connection.sendRequest(GetFileScmInfoRequestType, {
-				uri: uri.toString()
+				uri: uri.toString(),
 			});
 		}
 
@@ -712,7 +712,7 @@ export class CodeStreamAgentConnection implements Disposable {
 			return this._connection.sendRequest(GetFileContentsAtRevisionRequestType, {
 				repoId: repoId,
 				path: path,
-				sha: sha
+				sha: sha,
 			});
 		}
 
@@ -720,7 +720,7 @@ export class CodeStreamAgentConnection implements Disposable {
 			return this._connection.sendRequest(GetBlameRequestType, {
 				uri: uri,
 				startLine: startLine,
-				endLine: endLine
+				endLine: endLine,
 			});
 		}
 	})(this);
@@ -749,21 +749,21 @@ export class CodeStreamAgentConnection implements Disposable {
 				isTeamStream: membership === "auto",
 				privacy: membership === "auto" ? "public" : privacy,
 				purpose: purpose,
-				...service
+				...service,
 			});
 		}
 
 		createDirect(membership: string[]) {
 			return this._connection.sendRequest(CreateDirectStreamRequestType, {
 				type: StreamType.Direct,
-				memberIds: membership
+				memberIds: membership,
 			});
 		}
 
 		fetch(types?: (StreamType.Channel | StreamType.Direct)[], memberIds?: string[]) {
 			return this._connection.sendRequest(FetchStreamsRequestType, {
 				types: types,
-				memberIds: memberIds
+				memberIds: memberIds,
 			});
 		}
 
@@ -777,25 +777,25 @@ export class CodeStreamAgentConnection implements Disposable {
 
 		get(streamId: string) {
 			return this._connection.sendRequest(GetStreamRequestType, {
-				streamId: streamId
+				streamId: streamId,
 			});
 		}
 
 		getFileStream(uri: string): Promise<GetFileStreamResponse> {
 			return this._connection.sendRequest(GetFileStreamRequestType, {
-				textDocument: { uri }
+				textDocument: { uri },
 			});
 		}
 
 		archive(streamId: string) {
 			return this._connection.sendRequest(ArchiveStreamRequestType, {
-				streamId: streamId
+				streamId: streamId,
 			});
 		}
 
 		close(streamId: string) {
 			return this._connection.sendRequest(CloseStreamRequestType, {
-				streamId: streamId
+				streamId: streamId,
 			});
 		}
 
@@ -807,13 +807,13 @@ export class CodeStreamAgentConnection implements Disposable {
 			}
 			return this._connection.sendRequest(UpdateStreamMembershipRequestType, {
 				streamId: streamId,
-				add: userIds
+				add: userIds,
 			});
 		}
 
 		join(streamId: string) {
 			return this._connection.sendRequest(JoinStreamRequestType, {
-				streamId: streamId
+				streamId: streamId,
 			});
 		}
 
@@ -825,53 +825,53 @@ export class CodeStreamAgentConnection implements Disposable {
 			}
 			return this._connection.sendRequest(UpdateStreamMembershipRequestType, {
 				streamId: streamId,
-				remove: userIds
+				remove: userIds,
 			});
 		}
 
 		leave(streamId: string) {
 			return this._connection.sendRequest(LeaveStreamRequestType, {
-				streamId: streamId
+				streamId: streamId,
 			});
 		}
 
 		markRead(streamId: string, postId?: string) {
 			return this._connection.sendRequest(MarkStreamReadRequestType, {
 				streamId: streamId,
-				postId: postId
+				postId: postId,
 			});
 		}
 
 		mute(streamId: string, mute: boolean) {
 			return this._connection.sendRequest(MuteStreamRequestType, {
 				streamId: streamId,
-				mute: mute
+				mute: mute,
 			});
 		}
 
 		open(streamId: string) {
 			return this._connection.sendRequest(OpenStreamRequestType, {
-				streamId: streamId
+				streamId: streamId,
 			});
 		}
 
 		rename(streamId: string, name: string) {
 			return this._connection.sendRequest(RenameStreamRequestType, {
 				streamId: streamId,
-				name: name
+				name: name,
 			});
 		}
 
 		setPurpose(streamId: string, purpose: string) {
 			return this._connection.sendRequest(SetStreamPurposeRequestType, {
 				streamId: streamId,
-				purpose: purpose
+				purpose: purpose,
 			});
 		}
 
 		unarchive(streamId: string) {
 			return this._connection.sendRequest(UnarchiveStreamRequestType, {
-				streamId: streamId
+				streamId: streamId,
 			});
 		}
 	})(this);
@@ -885,13 +885,13 @@ export class CodeStreamAgentConnection implements Disposable {
 		fetch(teamIds?: string[]) {
 			return this._connection.sendRequest(FetchTeamsRequestType, {
 				mine: teamIds == null,
-				teamIds: teamIds
+				teamIds: teamIds,
 			});
 		}
 
 		get(teamId: string) {
 			return this._connection.sendRequest(GetTeamRequestType, {
-				teamId: teamId
+				teamId: teamId,
 			});
 		}
 	})(this);
@@ -909,7 +909,7 @@ export class CodeStreamAgentConnection implements Disposable {
 			try {
 				const resp = await this._connection.sendRequest(TelemetryRequestType, {
 					eventName: eventName,
-					properties: properties
+					properties: properties,
 				});
 
 				return resp;
@@ -927,7 +927,7 @@ export class CodeStreamAgentConnection implements Disposable {
 
 		async resolveLocalUri(uri: string) {
 			return this._connection.sendRequest(ResolveLocalUriRequestType, {
-				uri
+				uri,
 			});
 		}
 	})(this);
@@ -944,27 +944,27 @@ export class CodeStreamAgentConnection implements Disposable {
 
 		get(userId: string) {
 			return this._connection.sendRequest(GetUserRequestType, {
-				userId: userId
+				userId: userId,
 			});
 		}
 
 		invite(email: string, fullName?: string) {
 			return this._connection.sendRequest(InviteUserRequestType, {
 				email: email,
-				fullName: fullName
+				fullName: fullName,
 			});
 		}
 
 		updatePresence(status: CSPresenceStatus) {
 			return this._connection.sendRequest(UpdatePresenceRequestType, {
 				sessionId: Container.session.id!,
-				status: status
+				status: status,
 			});
 		}
 
 		updatePreferences(preferences: CSMePreferences) {
 			return this._connection.sendRequest(UpdatePreferencesRequestType, {
-				preferences: preferences
+				preferences: preferences,
 			});
 		}
 
@@ -999,13 +999,13 @@ export class CodeStreamAgentConnection implements Disposable {
 				languageId,
 				resetCache,
 				locator,
-				options
+				options,
 			});
 		}
 	})(this);
 
 	@log({
-		prefix: (context, e: DidChangeConnectionStatusNotification) => `${context.prefix}(${e.status})`
+		prefix: (context, e: DidChangeConnectionStatusNotification) => `${context.prefix}(${e.status})`,
 	})
 	private onConnectionStatusChanged(e: DidChangeConnectionStatusNotification) {
 		this._onDidChangeConnectionStatus.fire(e);
@@ -1013,14 +1013,14 @@ export class CodeStreamAgentConnection implements Disposable {
 
 	@log({
 		prefix: (context, e: DidChangeDocumentMarkersNotification) =>
-			`${context.prefix}(${e.textDocument.uri})`
+			`${context.prefix}(${e.textDocument.uri})`,
 	})
 	private onDocumentMarkersChanged(e: DidChangeDocumentMarkersNotification) {
 		this._onDidChangeDocumentMarkers.fire(e);
 	}
 
 	@log({
-		prefix: (context, _e: DidChangePullRequestCommentsNotification) => `${context.prefix}`
+		prefix: (context, _e: DidChangePullRequestCommentsNotification) => `${context.prefix}`,
 	})
 	private onPullRequestCommentsChanged(e: DidChangePullRequestCommentsNotification) {
 		this._onDidChangePullRequestComments.fire(e);
@@ -1028,7 +1028,7 @@ export class CodeStreamAgentConnection implements Disposable {
 
 	@log({
 		prefix: (context, ...messages: DidChangeDataNotification[]) =>
-			`${context.prefix}(${messages.map(m => m.type).join(", ")})`
+			`${context.prefix}(${messages.map(m => m.type).join(", ")})`,
 	})
 	private async onDataChanged(...messages: DidChangeDataNotification[]) {
 		for (const message of messages) {
@@ -1038,14 +1038,14 @@ export class CodeStreamAgentConnection implements Disposable {
 	}
 
 	@log({
-		prefix: (context, _e: UserDidCommitNotification) => `${context.prefix}`
+		prefix: (context, _e: UserDidCommitNotification) => `${context.prefix}`,
 	})
 	private onUserCommitted(e: UserDidCommitNotification) {
 		this._onUserDidCommit.fire(e);
 	}
 
 	@log({
-		prefix: (context, _e: DidDetectUnreviewedCommitsNotification) => `${context.prefix}`
+		prefix: (context, _e: DidDetectUnreviewedCommitsNotification) => `${context.prefix}`,
 	})
 	private onUnreviewedCommitsDetected(e: DidDetectUnreviewedCommitsNotification) {
 		this._onDidDetectUnreviewedCommits.fire(e);
@@ -1160,7 +1160,7 @@ export class CodeStreamAgentConnection implements Disposable {
 		this._clientOptions.revealOutputChannelOn = RevealOutputChannelOn.Never;
 
 		const initializationOptions = getInitializationOptions({
-			...this._clientOptions.initializationOptions
+			...this._clientOptions.initializationOptions,
 		});
 
 		try {
@@ -1175,21 +1175,21 @@ export class CodeStreamAgentConnection implements Disposable {
 						NEW_RELIC_LOG_ENABLED: false,
 						// NEW_RELIC_LOG_LEVEL: "info",
 						NEW_RELIC_APP_NAME: "lsp-agent",
-						NEW_RELIC_LICENSE_KEY: telemetryOptions.licenseIngestKey
+						NEW_RELIC_LICENSE_KEY: telemetryOptions.licenseIngestKey,
 					};
 
 					this._serverOptions.run.options = this._serverOptions.run.options || {};
 					this._serverOptions.run.options.env = {
 						...process.env,
 						...this._serverOptions.run.options.env,
-						...newRelicEnvironmentVariables
+						...newRelicEnvironmentVariables,
 					};
 
 					this._serverOptions.debug.options = this._serverOptions.debug.options || {};
 					this._serverOptions.debug.options.env = {
 						...process.env,
 						...this._serverOptions.debug.options.env,
-						...newRelicEnvironmentVariables
+						...newRelicEnvironmentVariables,
 					};
 
 					initializationOptions.newRelicTelemetryEnabled = true;
@@ -1225,7 +1225,7 @@ export class CodeStreamAgentConnection implements Disposable {
 		this._disposable = this._client.start();
 
 		void (await Functions.cancellable(this._client.onReady(), this._clientReadyCancellation.token, {
-			cancelMessage: "Agent failed to start"
+			cancelMessage: "Agent failed to start",
 		}));
 
 		this._clientReadyCancellation.dispose();
@@ -1306,15 +1306,15 @@ export class CodeStreamAgentConnection implements Disposable {
 					`AgentFileSearchRequestType: workspace search for **/${e.path} found ${files.length} matches`
 				);
 				return {
-					files: files.map(_ => _.fsPath)
+					files: files.map(_ => _.fsPath),
 				};
 			} catch (ex) {
 				Logger.warn("AgentFileSearchRequestType", {
 					path: e ? e.path : "",
-					error: ex
+					error: ex,
 				});
 				return {
-					files: []
+					files: [],
 				};
 			}
 		});
@@ -1361,7 +1361,7 @@ export class CodeStreamAgentConnection implements Disposable {
 				);
 				_httpsAgent = new HttpsProxyAgent({
 					...url.parse(options.proxy.url),
-					rejectUnauthorized: options.proxy.strictSSL
+					rejectUnauthorized: options.proxy.strictSSL,
 				} as any);
 			} else {
 				Logger.log("Proxy support is in override, but no proxy settings were provided");
@@ -1381,7 +1381,7 @@ export class CodeStreamAgentConnection implements Disposable {
 				if (proxyUri) {
 					_httpsAgent = new HttpsProxyAgent({
 						...proxyUri,
-						rejectUnauthorized: options.proxy ? options.proxy.strictSSL : true
+						rejectUnauthorized: options.proxy ? options.proxy.strictSSL : true,
 					} as any);
 				}
 			} else {

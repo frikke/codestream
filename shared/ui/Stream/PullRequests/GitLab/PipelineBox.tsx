@@ -1,8 +1,9 @@
-import { GitLabMergeRequest, GitLabMergeRequestWrapper } from "@codestream/protocols/agent";
-import { CodeStreamState } from "@codestream/webview/store";
-import { useAppSelector } from "@codestream/webview/utilities/hooks";
+import { GitLabMergeRequest, GitLabMergeRequestWrapper } from "codestream-common/agent-protocol";
 import React from "react";
 import styled from "styled-components";
+
+import { CodeStreamState } from "@codestream/webview/store";
+import { useAppSelector } from "@codestream/webview/utilities/hooks";
 import { getCurrentProviderPullRequestRootObject } from "../../../store/providerPullRequests/slice";
 import Icon from "../../Icon";
 import { Link } from "../../Link";

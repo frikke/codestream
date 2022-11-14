@@ -1,8 +1,6 @@
 "use strict";
 import { ActionsBlock, KnownBlock, MessageAttachment } from "@slack/web-api";
-import { CodeErrorPlus, CodemarkPlus, ReviewPlus } from "protocol/agent.protocol";
-import { SessionContainer } from "../../container";
-import { Logger } from "../../logger";
+import { CodeErrorPlus, CodemarkPlus, ReviewPlus } from "codestream-common/agent-protocol";
 import {
 	CodemarkType,
 	CSChannelStream,
@@ -14,7 +12,10 @@ import {
 	CSTeam,
 	CSUser,
 	StreamType,
-} from "../../protocol/api.protocol";
+} from "codestream-common/api-protocol";
+
+import { SessionContainer } from "../../container";
+import { Logger } from "../../logger";
 import { providerDisplayNamesByNameKey } from "../../providers/provider";
 import {
 	Marker,
@@ -23,6 +24,7 @@ import {
 	toExternalActionId,
 	toReviewActionId,
 } from "../extensions";
+
 import getProviderDisplayName = Marker.getProviderDisplayName;
 
 const defaultCreatedAt = 181886400000;

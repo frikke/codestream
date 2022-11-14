@@ -1,5 +1,6 @@
 "use strict";
-import { PostPlus } from "@codestream/protocols/agent";
+import { PostPlus } from "codestream-common/agent-protocol";
+
 import { Container } from "../../container";
 import { Dates, memoize } from "../../system";
 import { CodeStreamSession } from "../session";

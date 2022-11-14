@@ -1,12 +1,12 @@
-import { useAppDispatch } from "@codestream/webview/utilities/hooks";
 import React, { useState } from "react";
-import { useDispatch } from "react-redux";
 import styled from "styled-components";
-import { PRButtonRow } from "./PullRequestComponents";
 import {
 	FetchThirdPartyPullRequestPullRequest,
 	GitLabMergeRequest,
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
+
+import { PRButtonRow } from "./PullRequestComponents";
+import { useAppDispatch } from "@codestream/webview/utilities/hooks";
 import MessageInput from "./MessageInput";
 import { Button } from "../src/components/Button";
 import { confirmPopup } from "./Confirm";

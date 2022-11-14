@@ -1,6 +1,8 @@
+import React from "react";
+import { DeleteCompanyRequestType } from "codestream-common/agent-protocol";
+
 import { logout } from "@codestream/webview/store/session/thunks";
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
-import React from "react";
 import { WebviewPanels, WebviewModals } from "../ipc/webview.protocol.common";
 import Icon from "./Icon";
 import { openModal, openPanel } from "./actions";
@@ -14,7 +16,6 @@ import { CodeStreamState } from "../store";
 import { keyFilter } from "../utils";
 import { isFeatureEnabled } from "../store/apiVersioning/reducer";
 import { multiStageConfirmPopup } from "./MultiStageConfirm";
-import { DeleteCompanyRequestType } from "@codestream/protocols/agent";
 import { HostApi } from "../webview-api";
 
 interface TeamMenuProps {

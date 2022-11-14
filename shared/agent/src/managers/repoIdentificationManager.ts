@@ -2,7 +2,9 @@
 
 import { promises as fsPromises, readdirSync, readFileSync as fsReadFileSync, statSync } from "fs";
 import path from "path";
-import { IdentifyRepoResult, RepoProjectType, ReposScm } from "../protocol/agent.protocol";
+
+import { IdentifyRepoResult, RepoProjectType, ReposScm } from "codestream-common/agent-protocol";
+
 import { CodeStreamSession } from "../session";
 import { lsp } from "../system/decorators/lsp";
 

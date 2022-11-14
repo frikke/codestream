@@ -11,8 +11,8 @@ import {
 	ReposScm,
 	SwitchBranchRequestType,
 	UpdateTeamSettingsRequestType,
-} from "@codestream/protocols/agent";
-import { PullRequestQuery } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { PullRequestQuery } from "codestream-common/api-protocol";
 import copy from "copy-to-clipboard";
 import { isEmpty, isEqual } from "lodash-es";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";

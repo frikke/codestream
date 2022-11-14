@@ -2,21 +2,23 @@
 
 import { EventEmitter, extensions, TextDocument } from "vscode";
 import * as vscode from "vscode";
-import {
-	ViewMethodLevelTelemetryCommandArgs,
-	ViewMethodLevelTelemetryErrorCommandArgs
-} from "commands";
 import { Event, SymbolKind } from "vscode-languageclient";
 import {
 	FileLevelTelemetryRequestOptions,
 	FunctionLocator,
-	GetFileLevelTelemetryResponse
-} from "@codestream/protocols/agent";
-import { Strings } from "../system";
+	GetFileLevelTelemetryResponse,
+} from "codestream-common/agent-protocol";
+import { Strings } from "codestream-common/string";
+
+import {
+	ViewMethodLevelTelemetryCommandArgs,
+	ViewMethodLevelTelemetryErrorCommandArgs,
+} from "commands";
 import { Logger } from "../logger";
 import { InstrumentableSymbol, ISymbolLocator } from "./symbolLocator";
 import { Container } from "../container";
 import { configuration } from "../configuration";
+
 
 function allEmpty(arrays: (any[] | undefined)[]) {
 	for (const arr of arrays) {
@@ -65,7 +67,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 	documentOpened(document: TextDocument) {
 		this.documentManager[document.uri.toString()] = {
 			document: document,
-			tracked: false
+			tracked: false,
 		};
 		if (document.uri.scheme === "codestream-diff") {
 			this.promptToEnableCodeLens(document);
@@ -95,15 +97,12 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 				const actions: vscode.MessageItem[] = [
 					{ title: "Yes" },
 					{ title: "No", isCloseAffordance: true },
-					{ title: "Don't ask me again" }
+					{ title: "Don't ask me again" },
 				];
 
 				this._isShowingPromptToEnableCodeLens = true;
 				vscode.window
-					.showInformationMessage(
-						"Enable CodeLens in diffs to view code-level metrics",
-						...actions
-					)
+					.showInformationMessage("Enable CodeLens in diffs to view code-level metrics", ...actions)
 					.then(result => {
 						if (result?.title === "Yes") {
 							config.update("diffEditor.codeLens", true, true);
@@ -119,7 +118,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 			}
 		} catch (ex) {
 			Logger.error(ex, "promptToEnableCodeLens", {
-				uri: document.uri.toString(true)
+				uri: document.uri.toString(true),
 			});
 		}
 	}
@@ -198,7 +197,8 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 			}
 			case "go": {
 				return this.checkGoPlugin();
-			} case "php" : {
+			}
+			case "php": {
 				return this.checkPhpPlugin();
 			}
 		}
@@ -282,7 +282,6 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 			newRelicAccountId
 		);
 	}
-	
 
 	private errorCodelens(
 		errorCode: string,
@@ -294,15 +293,15 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 		const viewCommandArgs: ViewMethodLevelTelemetryErrorCommandArgs = {
 			error: { type: errorCode },
 			newRelicAccountId,
-			languageId
+			languageId,
 		};
 		const errorCodelens: ErrorCodeLens[] = [
 			new ErrorCodeLens(
 				new vscode.Range(new vscode.Position(0, 0), new vscode.Position(1, 1)),
 				new InstrumentableSymbolCommand(title, "codestream.viewMethodLevelTelemetry", tooltip, [
-					JSON.stringify(viewCommandArgs)
+					JSON.stringify(viewCommandArgs),
 				])
-			)
+			),
 		];
 		return errorCodelens;
 	}
@@ -358,7 +357,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 		} catch (ex) {
 			Logger.warn("provideCodeLenses", {
 				error: ex,
-				document: document
+				document: document,
 			});
 			return [];
 		}
@@ -369,19 +368,19 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 			if (!cache) {
 				this.documentManager[cacheKey] = {
 					document: document,
-					tracked: false
+					tracked: false,
 				};
 			}
 
 			if (!instrumentableSymbols.length) {
 				Logger.log("provideCodeLenses no symbols", {
-					document: document
+					document: document,
 				});
 				return [];
 			} else {
 				Logger.log("provideCodeLenses symbols", {
 					count: instrumentableSymbols.length,
-					symbols: instrumentableSymbols.map(_ => _.symbol.name)
+					symbols: instrumentableSymbols.map(_ => _.symbol.name),
 				});
 			}
 
@@ -393,7 +392,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 			const methodLevelTelemetryRequestOptions = {
 				includeAverageDuration: this.codeLensTemplate.indexOf("${averageDuration}") > -1,
 				includeThroughput: this.codeLensTemplate.indexOf("${throughput}") > -1,
-				includeErrorRate: this.codeLensTemplate.indexOf("${errorsPerMinute}") > -1
+				includeErrorRate: this.codeLensTemplate.indexOf("${errorsPerMinute}") > -1,
 			};
 
 			let functionLocator: FunctionLocator | undefined = undefined;
@@ -412,14 +411,16 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 
 			if (document.languageId === "go") {
 				functionLocator = {
-					namespace: this.parseGoPackage(document.getText())
+					namespace: this.parseGoPackage(document.getText()),
 				};
 			}
 
-			if (document.languageId === "php") {				
+			if (document.languageId === "php") {
 				const phpNamespace = allSymbols.find(_ => _.kind === vscode.SymbolKind.Namespace)?.name;
-				const classesAndFunctions = allSymbols.filter(_ => _.kind === vscode.SymbolKind.Class || _.kind === vscode.SymbolKind.Function);
-				const prefix = phpNamespace ? (phpNamespace + "\\") : "";
+				const classesAndFunctions = allSymbols.filter(
+					_ => _.kind === vscode.SymbolKind.Class || _.kind === vscode.SymbolKind.Function
+				);
+				const prefix = phpNamespace ? phpNamespace + "\\" : "";
 				const namespaces = classesAndFunctions.map(_ => prefix + _.name);
 				functionLocator = { namespaces };
 			}
@@ -437,7 +438,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 				Logger.log("provideCodeLenses no response", {
 					fileName: document.fileName,
 					languageId: document.languageId,
-					methodLevelTelemetryRequestOptions
+					methodLevelTelemetryRequestOptions,
 				});
 				return [];
 			}
@@ -449,7 +450,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 
 			if (fileLevelTelemetryResponse.error) {
 				Logger.warn("provideCodeLenses error", {
-					error: fileLevelTelemetryResponse.error
+					error: fileLevelTelemetryResponse.error,
 				});
 				if (fileLevelTelemetryResponse.error.type === "NOT_ASSOCIATED") {
 					const viewCommandArgs: ViewMethodLevelTelemetryErrorCommandArgs = {
@@ -457,7 +458,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 						newRelicEntityGuid: fileLevelTelemetryResponse.newRelicEntityGuid,
 						newRelicAccountId: fileLevelTelemetryResponse.newRelicAccountId,
 						repo: fileLevelTelemetryResponse.repo,
-						languageId: document.languageId
+						languageId: document.languageId,
 					};
 					const nonAssociatedCodeLens: vscode.CodeLens[] = [
 						new vscode.CodeLens(
@@ -468,7 +469,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 								"Associate this repository with an entity from New Relic so that you can see golden signals right in your editor",
 								[JSON.stringify(viewCommandArgs)]
 							)
-						)
+						),
 					];
 					return nonAssociatedCodeLens;
 				}
@@ -484,7 +485,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 				allEmpty([
 					fileLevelTelemetryResponse.throughput,
 					fileLevelTelemetryResponse.averageDuration,
-					fileLevelTelemetryResponse.errorRate
+					fileLevelTelemetryResponse.errorRate,
 				])
 			) {
 				return this.noSpanCodelens(document.languageId);
@@ -524,7 +525,9 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 						(simpleClassName === symbol.parent.name && data.functionName === simpleSymbolName);
 				} else {
 					// if no parent (aka class) ensure we find a function that doesn't have a parent
-					result = !symbol.parent && (data.functionName === simpleSymbolName || simpleFunctionName === simpleSymbolName);
+					result =
+						!symbol.parent &&
+						(data.functionName === simpleSymbolName || simpleFunctionName === simpleSymbolName);
 				}
 				if (!result) {
 					// Since nothing matched, relax criteria and base just on function name
@@ -557,7 +560,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 					metricTimesliceNameMapping: {
 						t: throughputForFunction ? throughputForFunction.metricTimesliceName : "",
 						d: averageDurationForFunction ? averageDurationForFunction.metricTimesliceName : "",
-						e: errorRateForFunction ? errorRateForFunction.metricTimesliceName : ""
+						e: errorRateForFunction ? errorRateForFunction.metricTimesliceName : "",
 					},
 					filePath: document.fileName,
 					relativeFilePath: fileLevelTelemetryResponse.relativeFilePath,
@@ -566,7 +569,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 					functionName: _.symbol.name,
 					newRelicAccountId: fileLevelTelemetryResponse.newRelicAccountId,
 					newRelicEntityGuid: fileLevelTelemetryResponse.newRelicEntityGuid,
-					methodLevelTelemetryRequestOptions: methodLevelTelemetryRequestOptions
+					methodLevelTelemetryRequestOptions: methodLevelTelemetryRequestOptions,
 				};
 
 				return new vscode.CodeLens(
@@ -586,7 +589,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 									? `${errorRateForFunction.errorsPerMinute.toFixed(3) || "0"}epm`
 									: "n/a",
 							since: fileLevelTelemetryResponse.sinceDateFormatted,
-							date: date
+							date: date,
 						}),
 						"codestream.viewMethodLevelTelemetry",
 						tooltip,
@@ -622,7 +625,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 			}
 		} catch (ex) {
 			Logger.error(ex, "provideCodeLens", {
-				fileName: document.fileName
+				fileName: document.fileName,
 			});
 		}
 
@@ -635,7 +638,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 			try {
 				this.telemetryService.track("MLT Codelenses Rendered", {
 					"NR Account ID": accountId,
-					Language: languageId
+					Language: languageId,
 				});
 				doc.tracked = true;
 			} catch {}

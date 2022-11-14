@@ -1,8 +1,12 @@
-import { GetMyPullRequestsResponse, ThirdPartyProviderConfig } from "@codestream/protocols/agent";
-import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
+import {
+	GetMyPullRequestsResponse,
+	ThirdPartyProviderConfig,
+} from "codestream-common/agent-protocol";
 import React from "react";
 import styled from "styled-components";
-import { PullRequestQuery } from "../protocols/agent/api.protocol.models";
+import { PullRequestQuery } from "codestream-common/api-protocol";
+
+import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import { Button } from "../src/components/Button";
 import { InlineMenu } from "../src/components/controls/InlineMenu";
 import { ButtonRow, Dialog } from "../src/components/Dialog";

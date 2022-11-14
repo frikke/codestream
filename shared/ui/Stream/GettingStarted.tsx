@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { shallowEqual } from "react-redux";
-import { CSMe } from "@codestream/protocols/api";
+import { CSMe } from "codestream-common/api-protocol";
 
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import { CodeStreamState } from "../store";

@@ -1,15 +1,16 @@
 "use strict";
-import { PullRequestsChangedEvent } from "api/sessionEvents";
 import { Disposable, MessageItem, window } from "vscode";
-import { Post, PostsChangedEvent } from "../api/session";
-import { Container } from "../container";
 import {
 	CodemarkPlus,
 	CreateReviewsForUnreviewedCommitsRequestType,
 	DidDetectUnreviewedCommitsNotification,
 	FollowReviewRequestType,
-	ReviewPlus
-} from "../protocols/agent/agent.protocol";
+	ReviewPlus,
+} from "codestream-common/agent-protocol";
+
+import { PullRequestsChangedEvent } from "api/sessionEvents";
+import { Post, PostsChangedEvent } from "../api/session";
+import { Container } from "../container";
 import { Functions } from "../system";
 
 type ToastType = "PR" | "Review" | "Codemark";
@@ -106,7 +107,7 @@ export class NotificationsController implements Disposable {
 	private async onUnreviewedCommitsDetected(notification: DidDetectUnreviewedCommitsNotification) {
 		const actions: MessageItem[] = [
 			{ title: "Review" },
-			{ title: "Ignore", isCloseAffordance: true }
+			{ title: "Ignore", isCloseAffordance: true },
 		];
 
 		Container.agent.telemetry.track("Toast Notification", { Content: "Unreviewed Commit" });
@@ -117,7 +118,7 @@ export class NotificationsController implements Disposable {
 			if (notification.openReviewId !== undefined) {
 				await Container.agent.sendRequest(FollowReviewRequestType, {
 					id: notification.openReviewId,
-					value: true
+					value: true,
 				});
 				Container.webview.openReview(notification.openReviewId, { openFirstDiff: true });
 			} else {

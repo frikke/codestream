@@ -1,7 +1,8 @@
 "use strict";
-import { DocumentMarker } from "@codestream/protocols/agent";
-import { CSMarkerIdentifier } from "@codestream/protocols/api";
+import { DocumentMarker } from "codestream-common/agent-protocol";
+import { CSMarkerIdentifier } from "codestream-common/api-protocol";
 import { Range } from "vscode";
+
 import { Dates, memoize } from "../../system";
 import { CodeStreamSession } from "../session";
 

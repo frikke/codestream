@@ -1,8 +1,10 @@
+import React, { useEffect, useRef, useState } from "react";
+import { useSelector } from "react-redux";
+import { CSProviderInfo } from "codestream-common/api-protocol";
+
 import { CodeStreamState } from "@codestream/webview/store";
 import { useAppDispatch, useDidMount } from "@codestream/webview/utilities/hooks";
 import { normalizeUrl } from "@codestream/webview/utilities/urls";
-import React, { useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { configureProvider, disconnectProvider, ViewLocation } from "../store/providers/actions";
 import { isConnected } from "../store/providers/reducer";
 import { closePanel } from "./actions";
@@ -10,7 +12,7 @@ import Button from "./Button";
 import CancelButton from "./CancelButton";
 import { PROVIDER_MAPPINGS } from "./CrossPostIssueControls/types";
 import { getUserProviderInfoFromState } from "../store/providers/utils";
-import { CSProviderInfo } from "@codestream/protocols/api";
+
 
 interface Props {
 	providerId: string;

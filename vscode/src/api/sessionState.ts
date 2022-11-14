@@ -1,5 +1,6 @@
 "use strict";
-import { CSLoginResponse, CSMe, CSMePreferences } from "@codestream/protocols/api";
+import { CSLoginResponse, CSMe, CSMePreferences } from "codestream-common/api-protocol";
+
 import { Container } from "../container";
 import { Company } from "./models/company";
 import { Team } from "./models/team";

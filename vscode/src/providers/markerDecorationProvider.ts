@@ -1,8 +1,8 @@
 "use strict";
 
 import * as fs from "fs";
-import { CodeStreamDiffUriData } from "@codestream/protocols/agent";
-import { PullRequestCommentsChangedEvent } from "api/sessionEvents";
+
+import { CodeStreamDiffUriData } from "codestream-common/agent-protocol";
 import {
 	CancellationToken,
 	ConfigurationChangeEvent,
@@ -21,27 +21,31 @@ import {
 	TextEditorDecorationType,
 	Uri,
 	window,
-	workspace
+	workspace,
 } from "vscode";
+import { Strings } from "codestream-common/string";
+
+import { PullRequestCommentsChangedEvent } from "api/sessionEvents";
 import {
 	DocMarker,
 	SessionStatus,
 	SessionStatusChangedEvent,
-	TextDocumentMarkersChangedEvent
+	TextDocumentMarkersChangedEvent,
 } from "../api/session";
 import { OpenCodemarkCommandArgs, OpenPullRequestCommandArgs } from "../commands";
 import { configuration } from "../configuration";
 import { Container } from "../container";
 import { Logger } from "../logger";
-import { Functions, Strings } from "../system";
+import { Functions } from "../system";
 import * as csUri from "../system/uri";
+import { parseCSReviewDiffUrl } from "../system/uriUtil";
 
-const emptyArray = (Object.freeze([]) as any) as any[];
+const emptyArray = Object.freeze([]) as any as any[];
 
 const positionStyleMap: { [key: string]: string } = {
 	inline: "display: inline-block; margin: 0 0.5em 0 0; vertical-align: middle;",
 	overlay:
-		"display: inline-block; left: 0; position: absolute; top: 50%; transform: translateY(-50%)"
+		"display: inline-block; left: 0; position: absolute; top: 50%; transform: translateY(-50%)",
 };
 
 const buildDecoration = (position: string, type: string, color: string, _status: string) => {
@@ -59,7 +63,7 @@ const buildDecoration = (position: string, type: string, color: string, _status:
 			height: "16px",
 			width: "16px",
 
-			textDecoration: `none; background-image: url(${pngInlineUrl}); background-position: center; background-repeat: no-repeat; background-size: contain; ${positionStyleMap[position]}`
+			textDecoration: `none; background-image: url(${pngInlineUrl}); background-position: center; background-repeat: no-repeat; background-size: contain; ${positionStyleMap[position]}`,
 		};
 	} catch (e) {
 		return;
@@ -86,7 +90,7 @@ const MarkerHighlights: { [key: string]: string } = {
 	red: "rgba(232, 78, 62, .25)",
 	purple: "rgba(187, 108, 220, .25)",
 	aqua: "rgba(0, 186, 220, .25)",
-	gray: "rgba(127, 127, 127, .25)"
+	gray: "rgba(127, 127, 127, .25)",
 };
 const MarkerOverviewRuler: { [key: string]: string } = {
 	blue: "rgb(0, 110, 183)",
@@ -96,7 +100,7 @@ const MarkerOverviewRuler: { [key: string]: string } = {
 	red: "rgb(232, 78, 62)",
 	purple: "rgb(187, 108, 220)",
 	aqua: "rgb(0, 186, 220)",
-	gray: "rgb(127, 127, 127)"
+	gray: "rgb(127, 127, 127)",
 };
 
 export class CodemarkDecorationProvider implements HoverProvider, Disposable {
@@ -156,7 +160,7 @@ export class CodemarkDecorationProvider implements HoverProvider, Disposable {
 						codemarksShowPRComments: !!preferences.codemarksShowPRComments,
 						codemarksHideReviews: !!preferences.codemarksHideReviews,
 						codemarksHideResolved: !!preferences.codemarksHideResolved,
-						codemarksShowArchived: !!preferences.codemarksShowArchived
+						codemarksShowArchived: !!preferences.codemarksShowArchived,
 					};
 				}
 				this.ensure();
@@ -209,7 +213,7 @@ export class CodemarkDecorationProvider implements HoverProvider, Disposable {
 							const before = buildDecoration(position, type, color, status);
 							if (before) {
 								decorationTypes[key] = window.createTextEditorDecorationType({
-									before
+									before,
 								});
 							}
 						}
@@ -221,13 +225,13 @@ export class CodemarkDecorationProvider implements HoverProvider, Disposable {
 		for (const color of MarkerColors) {
 			decorationTypes[`overviewRuler-${color}`] = window.createTextEditorDecorationType({
 				overviewRulerColor: MarkerOverviewRuler[color],
-				overviewRulerLane: OverviewRulerLane.Center
+				overviewRulerLane: OverviewRulerLane.Center,
 			});
 
 			decorationTypes[`trap-highlight-${color}`] = window.createTextEditorDecorationType({
 				rangeBehavior: DecorationRangeBehavior.OpenOpen,
 				isWholeLine: true,
-				backgroundColor: MarkerHighlights[color]
+				backgroundColor: MarkerHighlights[color],
 			});
 		}
 
@@ -246,14 +250,14 @@ export class CodemarkDecorationProvider implements HoverProvider, Disposable {
 					codemarksShowPRComments: !!preferences.codemarksShowPRComments,
 					codemarksHideReviews: !!preferences.codemarksHideReviews,
 					codemarksHideResolved: !!preferences.codemarksHideResolved,
-					codemarksShowArchived: !!preferences.codemarksShowArchived
+					codemarksShowArchived: !!preferences.codemarksShowArchived,
 				};
 				if (JSON.stringify(currentPreferences) !== JSON.stringify(this._lastPreferences)) {
 					// set the reset flag to true if we need to re-fetch
 					this.ensure(true);
 				}
 				this._lastPreferences = currentPreferences;
-			}, this)
+			}, this),
 		];
 
 		if (!this._suspended) {
@@ -414,7 +418,7 @@ export class CodemarkDecorationProvider implements HoverProvider, Disposable {
 
 				decorations[key].push({
 					range: marker.hoverRange, // editor.document.validateRange(marker.hoverRange)
-					renderOptions: {}
+					renderOptions: {},
 				});
 			}
 
@@ -473,7 +477,7 @@ export class CodemarkDecorationProvider implements HoverProvider, Disposable {
 					if (m.codemarkId) {
 						const viewCommandArgs: OpenCodemarkCommandArgs = {
 							codemarkId: m.codemarkId,
-							sourceUri: uri
+							sourceUri: uri,
 						};
 
 						let inReplyTo = "";
@@ -505,7 +509,7 @@ export class CodemarkDecorationProvider implements HoverProvider, Disposable {
 							providerId: externalContent.provider.id,
 							pullRequestId: externalContent.externalId!,
 							commentId: externalContent.externalChildId,
-							sourceUri: uri
+							sourceUri: uri,
 						};
 
 						const isGitHub = ["github*com", "github/enterprise"].includes(
@@ -610,7 +614,7 @@ export class CodemarkDecorationProvider implements HoverProvider, Disposable {
 		}
 
 		// check for review diff
-		const parsedUri = Strings.parseCSReviewDiffUrl(editor.document.uri.toString());
+		const parsedUri = parseCSReviewDiffUrl(editor.document.uri.toString());
 		if (parsedUri) {
 			return parsedUri.version === "right";
 		}

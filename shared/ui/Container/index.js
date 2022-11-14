@@ -1,10 +1,11 @@
-import { WebviewErrorRequestType } from "@codestream/protocols/agent";
-import { errorDismissed } from "@codestream/webview/store/connectivity/actions";
+import { WebviewErrorRequestType } from "codestream-common/agent-protocol";
 import PropTypes from "prop-types";
 import React from "react";
 import { IntlProvider } from "react-intl";
 import { connect, Provider } from "react-redux";
 import { ThemeProvider } from "styled-components";
+
+import { errorDismissed } from "@codestream/webview/store/connectivity/actions";
 import { UnauthenticatedRoutes } from "../Authentication";
 import { ReloadWebviewRequestType, RestartRequestType } from "../ipc/webview.protocol";
 import { logError } from "../logger";

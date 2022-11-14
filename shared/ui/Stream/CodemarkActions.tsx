@@ -1,7 +1,8 @@
-import { Capabilities, CodemarkPlus } from "@codestream/protocols/agent";
+import { Capabilities, CodemarkPlus } from "codestream-common/agent-protocol";
 import React from "react";
 import { injectIntl, WrappedComponentProps } from "react-intl";
 import { connect } from "react-redux";
+
 import { CodeStreamState } from "../store";
 import MarkerActions from "./MarkerActions";
 

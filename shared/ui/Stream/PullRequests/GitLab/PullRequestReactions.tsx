@@ -1,12 +1,12 @@
-import { useAppDispatch } from "@codestream/webview/utilities/hooks";
 import React from "react";
-import { useDispatch } from "react-redux";
+import styled from "styled-components";
+import { GitLabMergeRequest } from "codestream-common/agent-protocol";
+
+import { useAppDispatch } from "@codestream/webview/utilities/hooks";
 import Icon from "../../Icon";
 import { emojify } from "../../Markdowner";
-import styled from "styled-components";
 import Tooltip from "../../Tooltip";
 import { SmartFormattedList } from "../../SmartFormattedList";
-import { GitLabMergeRequest } from "@codestream/protocols/agent";
 import { api } from "../../../store/providerPullRequests/thunks";
 import EmojiPicker from "../../EmojiPicker";
 

@@ -1,4 +1,4 @@
-import { GetFileScmInfoResponse, GetRangeScmInfoResponse } from "@codestream/protocols/agent";
+import { GetFileScmInfoResponse, GetRangeScmInfoResponse } from "codestream-common/agent-protocol";
 import { createSelector } from "reselect";
 import { Range } from "vscode-languageserver-types";
 

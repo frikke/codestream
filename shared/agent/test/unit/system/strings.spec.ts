@@ -1,6 +1,8 @@
 import { describe, expect, it } from "@jest/globals";
 import { uniq } from "lodash";
-import { Strings } from "../../../src/system/string";
+import { Strings } from "codestream-common/string";
+
+import { isWindows } from "../../../src/git/shell";
 
 describe("strings.ts", () => {
 	describe("normalizePath", () => {
@@ -15,7 +17,7 @@ describe("strings.ts", () => {
 					"c:\\foo\\bar\\",
 					// this can only be run on windows
 					// "C:\\foo\\bar\\"
-				].map(_ => Strings.normalizePath(_))
+				].map(_ => Strings.normalizePath(_, isWindows))
 			);
 			expect(unique.length).toEqual(1);
 			expect(unique[0]).toEqual("c:/foo/bar");
@@ -24,7 +26,7 @@ describe("strings.ts", () => {
 		it("can normalize a variety of OS-specific paths (mac/linux)", async function () {
 			const unique = uniq(
 				["/users/foo/bar", "/users/foo/bar/", "\\users\\foo\\bar", "\\users\\foo\\bar\\"].map(_ =>
-					Strings.normalizePath(_)
+					Strings.normalizePath(_, isWindows)
 				)
 			);
 			expect(unique.length).toEqual(1);

@@ -3,7 +3,8 @@ import {
 	PixieDynamicLoggingCancelRequestType,
 	PixieDynamicLoggingRequest,
 	PixieDynamicLoggingRequestType,
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
+
 import { HostApi } from "@codestream/webview/webview-api";
 import { action } from "../common";
 import { DynamicLoggingActionsTypes } from "./types";

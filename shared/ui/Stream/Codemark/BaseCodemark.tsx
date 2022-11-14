@@ -1,12 +1,19 @@
-import { CodemarkPlus } from "@codestream/protocols/agent";
-import { CodemarkStatus, CodemarkType, CSMarker, CSPost, CSUser } from "@codestream/protocols/api";
+import { CodemarkPlus } from "codestream-common/agent-protocol";
+import {
+	CodemarkStatus,
+	CodemarkType,
+	CSMarker,
+	CSPost,
+	CSUser,
+} from "codestream-common/api-protocol";
+import cx from "classnames";
+import React from "react";
+import styled from "styled-components";
+
 import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { Headshot } from "@codestream/webview/src/components/Headshot";
 import { useAppDispatch } from "@codestream/webview/utilities/hooks";
 import { HostApi } from "@codestream/webview/webview-api";
-import cx from "classnames";
-import React from "react";
-import styled from "styled-components";
 import {
 	Card,
 	CardBanner,

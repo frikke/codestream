@@ -1,8 +1,9 @@
-import { AddBlameMapRequestType, GetUserInfoRequestType } from "@codestream/protocols/agent";
-import { CSMe } from "@codestream/protocols/api";
+import { AddBlameMapRequestType, GetUserInfoRequestType } from "codestream-common/agent-protocol";
+import { CSMe } from "codestream-common/api-protocol";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import styled from "styled-components";
+
 import { Button } from "../src/components/Button";
 import { Dialog } from "../src/components/Dialog";
 import { CodeStreamState } from "../store";

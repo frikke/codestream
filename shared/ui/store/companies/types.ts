@@ -1,4 +1,4 @@
-import { CSCompany } from "@codestream/protocols/api";
+import { CSCompany } from "codestream-common/api-protocol";
 
 export interface CompaniesState {
 	[id: string]: CSCompany;

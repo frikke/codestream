@@ -1,5 +1,6 @@
-import { CSCodeError } from "@codestream/protocols/api";
+import { CSCodeError } from "codestream-common/api-protocol";
 import { createSelector } from "reselect";
+
 import { CodeStreamState } from "..";
 import { toMapBy } from "../../utils";
 import * as activeIntegrationsActions from "../activeIntegrations/actions";

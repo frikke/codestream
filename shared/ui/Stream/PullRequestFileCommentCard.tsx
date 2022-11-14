@@ -1,16 +1,17 @@
 import {
 	FetchThirdPartyPullRequestPullRequest,
 	GetReposScmRequestType,
-} from "@codestream/protocols/agent";
-import { EditorRevealRangeRequestType } from "@codestream/protocols/webview";
-import { CodeStreamState } from "@codestream/webview/store";
-import { HostApi } from "@codestream/webview/webview-api";
+} from "codestream-common/agent-protocol";
 import { prettyPrintOne } from "code-prettify";
 import { isEmpty } from "lodash-es";
 import * as Path from "path-browserify";
 import React, { PropsWithChildren, useEffect, useState } from "react";
 import styled from "styled-components";
 import { Position, Range } from "vscode-languageserver-types";
+
+import { HostApi } from "@codestream/webview/webview-api";
+import { CodeStreamState } from "@codestream/webview/store";
+import { EditorRevealRangeRequestType } from "@codestream/protocols/webview";
 import { CompareLocalFilesRequestType } from "../ipc/host.protocol";
 import { EditorScrollToNotificationType } from "../ipc/webview.protocol";
 import { Button } from "../src/components/Button";

@@ -1,5 +1,6 @@
-import { GetPostsRequestType } from "@codestream/protocols/agent";
-import { CSPost } from "@codestream/protocols/api";
+import { GetPostsRequestType } from "codestream-common/agent-protocol";
+import { CSPost } from "codestream-common/api-protocol";
+
 import { logError } from "@codestream/webview/logger";
 import { HostApi } from "@codestream/webview/webview-api";
 import { action } from "../common";

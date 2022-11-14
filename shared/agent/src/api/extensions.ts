@@ -1,6 +1,5 @@
 "use strict";
 import { Range } from "vscode-languageserver";
-import { Logger } from "../logger";
 import {
 	CSCodeError,
 	CSCodemark,
@@ -15,7 +14,9 @@ import {
 	CSSlackProviderInfo,
 	CSTeam,
 	CSTeamProviderInfos,
-} from "../protocol/api.protocol";
+} from "codestream-common/api-protocol";
+
+import { Logger } from "../logger";
 
 export interface MarkerLocationArraysById {
 	[id: string]: CSLocationArray;

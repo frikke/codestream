@@ -2,7 +2,8 @@ import {
 	FetchThirdPartyBoardsRequestType,
 	FetchThirdPartyCardsRequestType,
 	ThirdPartyProviderConfig,
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
+
 import { logError } from "@codestream/webview/logger";
 import { AppThunk } from "@codestream/webview/store";
 import {

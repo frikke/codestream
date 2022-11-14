@@ -2,12 +2,13 @@ import {
 	GetServiceLevelTelemetryRequestType,
 	GoldenMetricsResult,
 	RelatedEntitiesByType,
-} from "@codestream/protocols/agent";
-import { HostApi } from "@codestream/webview/webview-api";
+} from "codestream-common/agent-protocol";
 import { isEmpty as _isEmpty } from "lodash-es";
 import React, { useEffect, useState } from "react";
 import Select from "react-select";
 import styled from "styled-components";
+
+import { HostApi } from "@codestream/webview/webview-api";
 import { useInterval } from "../utilities/hooks";
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import Icon from "./Icon";

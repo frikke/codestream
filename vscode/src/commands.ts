@@ -1,19 +1,26 @@
 import * as paths from "path";
-import { CodemarkType, CSMarkerIdentifier, CSReviewCheckpoint } from "@codestream/protocols/api";
-import { Editor } from "extensions/editor";
+
+import {
+	CodemarkType,
+	CSMarkerIdentifier,
+	CSReviewCheckpoint,
+} from "codestream-common/api-protocol";
 import { commands, Disposable, env, Range, Uri, ViewColumn, window, workspace } from "vscode";
-import { openUrl } from "urlHandler";
 import {
 	FileLevelTelemetryRequestOptions,
-	MetricTimesliceNameMapping
-} from "protocols/agent/agent.protocol.providers";
+	MetricTimesliceNameMapping,
+} from "codestream-common/agent-protocol";
+import { Strings } from "codestream-common/string";
+
+import { Editor } from "extensions/editor";
+import { openUrl } from "urlHandler";
 import { SessionSignedOutReason, StreamThread } from "./api/session";
 import { TokenManager } from "./api/tokenManager";
 import { WorkspaceState } from "./common";
 import { BuiltInCommands } from "./constants";
 import { Container } from "./container";
 import { Logger } from "./logger";
-import { Command, createCommandDecorator, Strings } from "./system";
+import { Command, createCommandDecorator } from "./system";
 import * as csUri from "./system/uri";
 
 const commandRegistry: Command[] = [];
@@ -159,7 +166,7 @@ export class Commands implements Disposable {
 		});
 		if (args.indentAfterInsert) {
 			await Editor.selectRange(editor.document.uri, new Range(line, 0, line + 10, 0), undefined, {
-				preserveFocus: false
+				preserveFocus: false,
 			});
 			await commands.executeCommand(BuiltInCommands.IndentSelection);
 			await commands.executeCommand(BuiltInCommands.FormatSelection);
@@ -198,11 +205,11 @@ export class Commands implements Disposable {
 		const markerId: CSMarkerIdentifier = {
 			id: args.marker.id,
 			file: args.marker.file,
-			repoId: args.marker.repoId
+			repoId: args.marker.repoId,
 		};
 		const patchedUri = originalUri.with({
 			scheme: "codestream-patch",
-			query: encodeURIComponent(JSON.stringify(markerId))
+			query: encodeURIComponent(JSON.stringify(markerId)),
 		});
 
 		const fileName = paths.basename(originalUri.fsPath);
@@ -225,7 +232,7 @@ export class Commands implements Disposable {
 			{
 				preserveFocus: false,
 				preview: true,
-				viewColumn: ViewColumn.Active
+				viewColumn: ViewColumn.Active,
 			}
 		);
 
@@ -308,7 +315,7 @@ export class Commands implements Disposable {
 			leftSha: args.baseSha,
 			rightSha: args.headSha,
 			side: "left",
-			context: args.context
+			context: args.context,
 		};
 
 		const rightData = {
@@ -320,7 +327,7 @@ export class Commands implements Disposable {
 			leftSha: args.baseSha,
 			rightSha: args.headSha,
 			side: "right",
-			context: args.context
+			context: args.context,
 		};
 
 		const viewColumn = await this.getViewColumn();
@@ -514,7 +521,7 @@ export class Commands implements Disposable {
 		if (args === undefined) return;
 
 		const trackParams: { [k: string]: any } = {
-			Host: args.providerId
+			Host: args.providerId,
 		};
 		const editor = window.activeTextEditor;
 		if (editor && editor.document.uri.scheme === "file") {
@@ -634,7 +641,7 @@ export class Commands implements Disposable {
 	}
 
 	@command("viewMethodLevelTelemetry", {
-		showErrorMessage: "Unable to view code-level metrics"
+		showErrorMessage: "Unable to view code-level metrics",
 	})
 	async viewMethodLevelTelemetry(args: string) {
 		let parsedArgs;
@@ -642,7 +649,7 @@ export class Commands implements Disposable {
 			parsedArgs = JSON.parse(args) as ViewMethodLevelTelemetryCommandArgs;
 			if (parsedArgs.error?.type === "NO_RUBY_VSCODE_EXTENSION") {
 				Container.agent.telemetry.track("MLT Language Extension Prompt", {
-					Language: parsedArgs.languageId
+					Language: parsedArgs.languageId,
 				});
 			}
 			if (parsedArgs.error?.type === "NO_SPANS") {
@@ -726,7 +733,7 @@ export class Commands implements Disposable {
 		return window.showTextDocument(document, {
 			preserveFocus: false,
 			preview: false,
-			viewColumn: ViewColumn.Active
+			viewColumn: ViewColumn.Active,
 		});
 	}
 

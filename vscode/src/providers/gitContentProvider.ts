@@ -1,4 +1,4 @@
-import { Strings } from "system";
+import { Strings } from "codestream-common/string";
 import { Disposable, TextDocumentContentProvider, Uri, workspace } from "vscode";
 
 import { Container } from "../container";
@@ -28,8 +28,8 @@ export function toCSGitUri(uri: Uri, ref: string): Uri {
 		scheme: "codestream-git",
 		query: JSON.stringify({
 			sha: ref,
-			shortSha: isSha(ref) ? ref.substr(0, 7) : ref
-		})
+			shortSha: isSha(ref) ? ref.substr(0, 7) : ref,
+		}),
 	});
 }
 

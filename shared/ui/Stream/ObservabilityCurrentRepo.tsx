@@ -1,7 +1,11 @@
-import { GetFileScmInfoRequestType, GetReposScmRequestType } from "@codestream/protocols/agent";
+import {
+	GetFileScmInfoRequestType,
+	GetReposScmRequestType,
+} from "codestream-common/agent-protocol";
 import React, { useEffect, useState } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
+
 import { CodeStreamState } from "../store";
 import { fetchDocumentMarkers } from "../store/documentMarkers/actions";
 import { setEditorContext } from "../store/editorContext/actions";

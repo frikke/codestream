@@ -14,8 +14,9 @@ import {
 	SharePostViaServerRequestType,
 	UpdateCodemarkRequestType,
 	UpdatePostSharingDataRequestType,
-} from "@codestream/protocols/agent";
-import { CSCodemark, ShareTarget } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { CSCodemark, ShareTarget } from "codestream-common/api-protocol";
+
 import { logError } from "@codestream/webview/logger";
 import { CodeStreamState } from "@codestream/webview/store";
 import {

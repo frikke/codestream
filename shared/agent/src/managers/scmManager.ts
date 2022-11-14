@@ -1,16 +1,9 @@
+import * as paths from "path";
+
 import { applyPatch, createPatch, ParsedDiff, parsePatch } from "diff";
 import { decompressFromBase64 } from "lz-string";
-import * as paths from "path";
 import { TextDocument } from "vscode-languageserver-types";
 import { URI } from "vscode-uri";
-import { Ranges } from "../api/extensions";
-import { Container, SessionContainer } from "../container";
-import { GitRepositoryExtensions } from "../extensions";
-import { isUncommitted } from "../git/common";
-import { EMPTY_TREE_SHA, GitRemote, GitRepository } from "../git/gitService";
-import { GitNumStat } from "../git/models/numstat";
-import { RevisionEntry } from "../git/parsers/blameRevisionParser";
-import { Logger } from "../logger";
 import {
 	BlameAuthor,
 	CoAuthors,
@@ -85,16 +78,29 @@ import {
 	SwitchBranchRequest,
 	SwitchBranchRequestType,
 	SwitchBranchResponse,
-} from "../protocol/agent.protocol";
-import { CSMe, FileStatus } from "../protocol/api.protocol.models";
+} from "codestream-common/agent-protocol";
+import { CSMe, FileStatus } from "codestream-common/api-protocol";
+import { Strings } from "codestream-common/string";
+
+import { Ranges } from "../api/extensions";
+import { Container, SessionContainer } from "../container";
+import { GitRepositoryExtensions } from "../extensions";
+import { isUncommitted } from "../git/common";
+import { EMPTY_TREE_SHA, GitRemote, GitRepository } from "../git/gitService";
+import { GitNumStat } from "../git/models/numstat";
+import { RevisionEntry } from "../git/parsers/blameRevisionParser";
+import { Logger } from "../logger";
 import { CodeStreamSession } from "../session";
-import { Dates, FileSystem, Iterables, log, lsp, lspHandler, Strings } from "../system";
+import { Dates, FileSystem, Iterables, log, lsp, lspHandler } from "../system";
 import * as csUri from "../system/uri";
 import { xfs } from "../xfs";
 import { IgnoreFilesHelper } from "./ignoreFilesManager";
 import { ReviewsManager } from "./reviewsManager";
+
 import toFormatter = Dates.toFormatter;
 import toGravatar = Strings.toGravatar;
+
+import { isWindows } from "../git/shell";
 
 @lsp
 export class ScmManager {
@@ -480,7 +486,7 @@ export class ScmManager {
 				if (repoPath && git.isRebasing(repoPath)) {
 					gitError = `Repository ${repoPath} is rebasing.`;
 				} else if (repoPath !== undefined) {
-					file = Strings.normalizePath(paths.relative(repoPath, uri.fsPath));
+					file = Strings.normalizePath(paths.relative(repoPath, uri.fsPath), isWindows);
 					if (file[0] === "/") {
 						file = file.substr(1);
 					}
@@ -994,7 +1000,7 @@ export class ScmManager {
 			try {
 				repoPath = await git.getRepoRoot(uri.fsPath);
 				if (repoPath !== undefined) {
-					file = Strings.normalizePath(paths.relative(repoPath, uri.fsPath));
+					file = Strings.normalizePath(paths.relative(repoPath, uri.fsPath), isWindows);
 					if (file[0] === "/") {
 						file = file.substr(1);
 					}
@@ -1229,7 +1235,7 @@ export class ScmManager {
 			try {
 				repoPath = await git.getRepoRoot(uri.fsPath);
 				if (repoPath !== undefined) {
-					file = Strings.normalizePath(paths.relative(repoPath, uri.fsPath));
+					file = Strings.normalizePath(paths.relative(repoPath, uri.fsPath), isWindows);
 					if (file[0] === "/") {
 						file = file.substr(1);
 					}

@@ -2,7 +2,8 @@ import {
 	CSReviewApprovalSetting,
 	CSReviewAssignmentSetting,
 	CSTeam,
-} from "@codestream/protocols/api";
+} from "codestream-common/api-protocol";
+
 import { CodeStreamState } from "..";
 import { toMapBy } from "../../utils";
 import { ActionType } from "../common";

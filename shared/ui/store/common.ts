@@ -1,7 +1,8 @@
 import {
 	ConnectionStatus,
 	DidChangeConnectionStatusNotificationType,
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
+
 import { errorDismissed, errorOccurred } from "@codestream/webview/store/connectivity/actions";
 import { Disposable } from "@codestream/webview/utils";
 import { HostApi } from "@codestream/webview/webview-api";

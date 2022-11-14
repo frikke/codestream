@@ -13,8 +13,8 @@ import {
 	GetMyPullRequestsRequest,
 	GetMyPullRequestsResponse,
 	QueryThirdPartyRequestType,
-} from "@codestream/protocols/agent";
-import { PullRequestQuery } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { PullRequestQuery } from "codestream-common/api-protocol";
 import { RequestType } from "vscode-languageserver-protocol";
 
 import { PullRequest } from "@codestream/webview/ipc/webview.protocol.common";

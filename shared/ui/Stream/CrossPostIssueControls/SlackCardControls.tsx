@@ -3,7 +3,12 @@ import {
 	FetchThirdPartyChannelsRequestType,
 	SlackChannel,
 	ThirdPartyProviderConfig,
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
+import React from "react";
+import ReactDOM from "react-dom";
+import { useDispatch, useSelector } from "react-redux";
+import AsyncSelect from "react-select/async";
+
 import { CodeStreamState } from "@codestream/webview/store";
 import { updateForProvider } from "@codestream/webview/store/activeIntegrations/actions";
 import { getIntegrationData } from "@codestream/webview/store/activeIntegrations/reducer";
@@ -12,10 +17,6 @@ import { setIssueProvider } from "@codestream/webview/store/context/actions";
 import { useDidMount } from "@codestream/webview/utilities/hooks";
 import { emptyArray, mapFilter } from "@codestream/webview/utils";
 import { HostApi } from "@codestream/webview/webview-api";
-import React from "react";
-import ReactDOM from "react-dom";
-import { useDispatch, useSelector } from "react-redux";
-import AsyncSelect from "react-select/async";
 import { CrossPostIssueContext } from "../CodemarkForm";
 import Icon from "../Icon";
 import Menu from "../Menu";

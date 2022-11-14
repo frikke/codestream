@@ -29,18 +29,21 @@ SOFTWARE.
  * Modifications Copyright CodeStream Inc. under the Apache 2.0 License (Apache-2.0)
  */
 
-import { createPatch, ParsedDiff, parsePatch } from "diff";
 import * as fs from "fs";
-import { memoize } from "lodash";
 import * as path from "path";
+
+import { createPatch, ParsedDiff, parsePatch } from "diff";
+import { memoize } from "lodash";
 import { Disposable, Event, Range } from "vscode-languageserver";
 import { URI } from "vscode-uri";
+import { CommitsChangedData, WorkspaceChangedData } from "codestream-common/agent-protocol";
+import { FileStatus } from "codestream-common/api-protocol";
+import { Strings } from "codestream-common/string";
+
 import { Container, SessionContainer } from "../container";
 import { Logger } from "../logger";
-import { CommitsChangedData, WorkspaceChangedData } from "../protocol/agent.protocol";
-import { FileStatus } from "../protocol/api.protocol.models";
 import { CodeStreamSession } from "../session";
-import { Iterables, log, Strings } from "../system";
+import { Iterables, log } from "../system";
 import { xfs } from "../xfs";
 import { git, GitErrors, GitWarnings } from "./git";
 import { GitServiceLite } from "./gitServiceLite";
@@ -53,6 +56,7 @@ import { GitPatchParser, ParsedDiffPatch } from "./parsers/patchParser";
 import { GitRemoteParser } from "./parsers/remoteParser";
 import { GitRepositories } from "./repositories";
 import { RepositoryLocator } from "./repositoryLocator";
+import { isWindows } from "./shell";
 
 export * from "./models/models";
 
@@ -333,7 +337,10 @@ export class GitService implements IGitService, Disposable {
 			repo.path
 		);
 
-		let fileRelativePath = Strings.normalizePath(path.relative(possiblySymlinkedRepoRoot, fsPath));
+		let fileRelativePath = Strings.normalizePath(
+			path.relative(possiblySymlinkedRepoRoot, fsPath),
+			isWindows
+		);
 		if (fileRelativePath[0] === "/") {
 			fileRelativePath = fileRelativePath.substr(1);
 		}
@@ -1472,7 +1479,7 @@ export class GitService implements IGitService, Disposable {
 	async getRepositoryByFilePath(fileOrFolderPath: string): Promise<GitRepository | undefined> {
 		let repo;
 		if (fs.existsSync(fileOrFolderPath) && fs.lstatSync(fileOrFolderPath).isDirectory()) {
-			const normalizedFsPath = Strings.normalizePath(fileOrFolderPath);
+			const normalizedFsPath = Strings.normalizePath(fileOrFolderPath, isWindows);
 			const allRepos = await this.getRepositories();
 			repo = Array.from(allRepos).find(
 				r => r.path === normalizedFsPath || r.path === fileOrFolderPath

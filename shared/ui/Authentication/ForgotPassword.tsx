@@ -1,7 +1,8 @@
-import { SendPasswordResetEmailRequestType } from "@codestream/protocols/agent";
+import { SendPasswordResetEmailRequestType } from "codestream-common/agent-protocol";
 import React, { useCallback, useState } from "react";
 import { FormattedMessage } from "react-intl";
 import { connect, useDispatch } from "react-redux";
+
 import { DispatchProp } from "../store/common";
 import { goToLogin } from "../store/context/actions";
 import Button from "../Stream/Button";

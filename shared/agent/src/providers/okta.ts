@@ -1,5 +1,6 @@
 "use strict";
-import { CSOktaProviderInfo } from "../protocol/api.protocol";
+import { CSOktaProviderInfo } from "codestream-common/api-protocol";
+
 import { lspProvider } from "../system";
 import { ThirdPartyPostProviderBase } from "./thirdPartyPostProviderBase";
 

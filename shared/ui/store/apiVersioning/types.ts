@@ -1,4 +1,4 @@
-import { CSApiCapabilities } from "@codestream/protocols/api";
+import { CSApiCapabilities } from "codestream-common/api-protocol";
 
 export interface ApiVersioningState {
 	type: ApiVersioningActionsType;

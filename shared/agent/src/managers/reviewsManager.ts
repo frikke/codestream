@@ -1,14 +1,11 @@
 "use strict";
-import { ParsedDiff } from "diff";
 import * as fs from "fs";
+import * as path from "path";
+
+import { ParsedDiff } from "diff";
 import { flatten } from "lodash";
 import { decompressFromBase64 } from "lz-string";
-import * as path from "path";
 import { URI } from "vscode-uri";
-import { MessageType } from "../api/apiProvider";
-import { Container, SessionContainer, SessionServiceContainer } from "../container";
-import { EMPTY_TREE_SHA, GitCommit, GitRepository } from "../git/gitService";
-import { Logger } from "../logger";
 import {
 	CheckPullRequestPreconditionsRequest,
 	CheckPullRequestPreconditionsRequestType,
@@ -58,7 +55,7 @@ import {
 	UpdateReviewRequest,
 	UpdateReviewRequestType,
 	UpdateReviewResponse,
-} from "../protocol/agent.protocol";
+} from "codestream-common/agent-protocol";
 import {
 	CSReview,
 	CSReviewChangeset,
@@ -66,12 +63,19 @@ import {
 	CSReviewDiffs,
 	CSTransformedReviewChangeset,
 	FileStatus,
-} from "../protocol/api.protocol";
-import { log, lsp, lspHandler, Strings } from "../system";
+} from "codestream-common/api-protocol";
+import { Strings } from "codestream-common/string";
+
+import { MessageType } from "../api/apiProvider";
+import { Container, SessionContainer, SessionServiceContainer } from "../container";
+import { EMPTY_TREE_SHA, GitCommit, GitRepository } from "../git/gitService";
+import { Logger } from "../logger";
+import { log, lsp, lspHandler } from "../system";
 import { gate } from "../system/decorators/gate";
 import { xfs } from "../xfs";
 import { CachedEntityManagerBase, Id } from "./entityManager";
 import { trackReviewPostCreation } from "./postsManager";
+import { applyPatchToNormalizedContents } from "../system/patchUtil";
 
 const uriRegexp = /codestream-diff:\/\/(\w+)\/(\w+)\/(\w+)\/(\w+)\/(.+)/;
 
@@ -460,14 +464,14 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 		const leftBaseContents = isNewFile
 			? ""
 			: (await git.getFileContentForRevision(leftBasePath, diff.leftBaseSha)) || "";
-		const leftContents = Strings.applyPatchToNormalizedContents(leftBaseContents, leftDiff);
+		const leftContents = applyPatchToNormalizedContents(leftBaseContents, leftDiff);
 
 		const rightBaseContents = isNewFile
 			? ""
 			: diff.leftBaseSha === diff.rightBaseSha
 			? leftBaseContents
 			: (await git.getFileContentForRevision(rightBasePath, diff.rightBaseSha)) || "";
-		const rightContents = Strings.applyPatchToNormalizedContents(rightBaseContents, rightDiff);
+		const rightContents = applyPatchToNormalizedContents(rightBaseContents, rightDiff);
 
 		return {
 			repoRoot: repo.path,

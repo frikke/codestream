@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useSelector, shallowEqual } from "react-redux";
 import cx from "classnames";
 import { Range } from "vscode-languageserver-types";
-import { CodemarkType } from "@codestream/protocols/api";
+import { CodemarkType } from "codestream-common/api-protocol";
 
 import {
 	EditorSelection,

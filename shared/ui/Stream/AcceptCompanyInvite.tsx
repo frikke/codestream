@@ -5,13 +5,14 @@ import {
 	JoinCompanyRequest,
 	JoinCompanyRequestType,
 	JoinCompanyResponse,
-} from "@codestream/protocols/agent";
-import { setEnvironment, switchToTeam } from "@codestream/webview/store/session/thunks";
-import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
-import { HostApi } from "@codestream/webview/webview-api";
+} from "codestream-common/agent-protocol";
 import { sortBy as _sortBy } from "lodash-es";
 import React from "react";
 import styled from "styled-components";
+
+import { setEnvironment, switchToTeam } from "@codestream/webview/store/session/thunks";
+import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
+import { HostApi } from "@codestream/webview/webview-api";
 import { logError } from "../logger";
 import { Button } from "../src/components/Button";
 import { Dialog } from "../src/components/Dialog";

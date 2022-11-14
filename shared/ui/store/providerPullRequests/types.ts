@@ -4,8 +4,8 @@ import {
 	GetCommitsFilesResponse,
 	GetMyPullRequestsResponse,
 	GitLabMergeRequest,
-} from "@codestream/protocols/agent";
-import { CSRepository } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { CSRepository } from "codestream-common/api-protocol";
 
 import { Collaborator } from "@codestream/protocols/webview";
 import { Index } from "../common";

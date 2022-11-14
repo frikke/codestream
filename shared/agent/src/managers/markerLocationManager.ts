@@ -1,7 +1,18 @@
 "use strict";
-import { applyPatch, createPatch, ParsedDiff, parsePatch, structuredPatch } from "diff";
 import * as path from "path";
+
+import { applyPatch, createPatch, ParsedDiff, parsePatch, structuredPatch } from "diff";
 import { URI } from "vscode-uri";
+import { MarkerNotLocatedReason } from "codestream-common/agent-protocol";
+import {
+	CSLocationArray,
+	CSMarker,
+	CSMarkerLocation,
+	CSMarkerLocations,
+	CSReferenceLocation,
+} from "codestream-common/api-protocol";
+import { Strings } from "codestream-common/string";
+
 import { MarkerLocation, MarkerLocationsById } from "../api/extensions";
 import { getCache } from "../cache";
 import { Container, SessionContainer } from "../container";
@@ -12,15 +23,6 @@ import {
 	calculateLocations,
 	MAX_RANGE_VALUE,
 } from "../markerLocation/calculator";
-import { MarkerNotLocatedReason } from "../protocol/agent.protocol";
-import {
-	CSLocationArray,
-	CSMarker,
-	CSMarkerLocation,
-	CSMarkerLocations,
-	CSReferenceLocation,
-} from "../protocol/api.protocol";
-import { Strings } from "../system/string";
 import { xfs } from "../xfs";
 import { ManagerBase } from "./baseManager";
 import { IndexParams, IndexType } from "./cache";

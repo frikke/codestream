@@ -7,10 +7,11 @@ import {
 	ReviewsChangedNotification,
 	PullRequestsChangedNotification,
 	PullRequestsChangedData,
-	PreferencesChangedNotification
-} from "@codestream/protocols/agent";
-import { CSMePreferences } from "@codestream/protocols/api";
+	PreferencesChangedNotification,
+} from "codestream-common/agent-protocol";
+import { CSMePreferences } from "codestream-common/api-protocol";
 import { Uri } from "vscode";
+
 import { memoize } from "../system";
 import { CodeStreamSession, Post, SessionSignedOutReason, SessionStatus } from "./session";
 
@@ -40,7 +41,7 @@ export enum SessionChangedEventType {
 	Teams = "teams",
 	Unreads = "unreads",
 	Users = "users",
-	Reviews = "reviews"
+	Reviews = "reviews",
 }
 
 export interface SessionChangedEvent {
@@ -56,14 +57,17 @@ export function isMergeableEvent<T>(e: SessionChangedEvent): e is MergeableEvent
 }
 
 abstract class SessionChangedEventBase<T extends DidChangeDataNotification>
-	implements SessionChangedEvent {
+	implements SessionChangedEvent
+{
 	abstract readonly type: SessionChangedEventType;
 
 	constructor(public readonly session: CodeStreamSession, protected readonly _event: T) {}
 }
 
-export class PostsChangedEvent extends SessionChangedEventBase<PostsChangedNotification>
-	implements MergeableEvent<PostsChangedEvent> {
+export class PostsChangedEvent
+	extends SessionChangedEventBase<PostsChangedNotification>
+	implements MergeableEvent<PostsChangedEvent>
+{
 	readonly type = SessionChangedEventType.Posts;
 
 	get count() {
@@ -84,8 +88,10 @@ export class PostsChangedEvent extends SessionChangedEventBase<PostsChangedNotif
 	}
 }
 
-export class ReviewsChangedEvent extends SessionChangedEventBase<ReviewsChangedNotification>
-	implements MergeableEvent<ReviewsChangedEvent> {
+export class ReviewsChangedEvent
+	extends SessionChangedEventBase<ReviewsChangedNotification>
+	implements MergeableEvent<ReviewsChangedEvent>
+{
 	readonly type = SessionChangedEventType.Reviews;
 
 	get count() {
@@ -106,9 +112,7 @@ export class UnreadsChangedEvent extends SessionChangedEventBase<UnreadsChangedN
 	}
 }
 
-export class PreferencesChangedEvent extends SessionChangedEventBase<
-	PreferencesChangedNotification
-> {
+export class PreferencesChangedEvent extends SessionChangedEventBase<PreferencesChangedNotification> {
 	readonly type = SessionChangedEventType.Preferences;
 
 	@memoize
@@ -119,7 +123,8 @@ export class PreferencesChangedEvent extends SessionChangedEventBase<
 
 export class PullRequestsChangedEvent
 	extends SessionChangedEventBase<PullRequestsChangedNotification>
-	implements MergeableEvent<PullRequestsChangedEvent> {
+	implements MergeableEvent<PullRequestsChangedEvent>
+{
 	readonly type = SessionChangedEventType.PullRequests;
 
 	merge(e: PullRequestsChangedEvent) {

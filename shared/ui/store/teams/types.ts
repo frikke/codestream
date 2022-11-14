@@ -1,4 +1,4 @@
-import { CSTeam } from "@codestream/protocols/api";
+import { CSTeam } from "codestream-common/api-protocol";
 
 export interface TeamsState {
 	[id: string]: CSTeam;

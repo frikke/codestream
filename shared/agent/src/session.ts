@@ -1,12 +1,12 @@
 "use strict";
 
-import glob from "glob-promise";
 import { Agent as HttpAgent } from "http";
 import { Agent as HttpsAgent } from "https";
-import HttpsProxyAgent from "https-proxy-agent";
-import { isEmpty, isEqual, omit, uniq } from "lodash";
 import * as path from "path";
 import * as url from "url";
+
+import glob from "glob-promise";
+import { isEmpty, isEqual, omit, uniq } from "lodash";
 import {
 	CancellationToken,
 	Connection,
@@ -15,26 +15,6 @@ import {
 	MessageActionItem,
 	WorkspaceFolder,
 } from "vscode-languageserver";
-import { CodeStreamAgent } from "./agent";
-import { AgentError, ServerError } from "./agentError";
-import {
-	ApiProvider,
-	ApiProviderLoginResponse,
-	CodeStreamApiMiddlewareContext,
-	LoginOptions,
-	MessageType,
-	RTMessage,
-} from "./api/apiProvider";
-import { CodeStreamApiProvider } from "./api/codestream/codestreamApi";
-import {
-	ApiVersionCompatibilityChangedEvent,
-	VersionCompatibilityChangedEvent,
-	VersionMiddlewareManager,
-} from "./api/middleware/versionMiddleware";
-import { Container, SessionContainer } from "./container";
-import { DocumentEventHandler } from "./documentEventHandler";
-import { GitRepository } from "./git/models/repository";
-import { Logger } from "./logger";
 import {
 	AgentFileSearchRequestType,
 	ApiRequestType,
@@ -97,7 +77,7 @@ import {
 	VerifyConnectivityRequestType,
 	VerifyConnectivityResponse,
 	VersionCompatibility,
-} from "./protocol/agent.protocol";
+} from "codestream-common/agent-protocol";
 import {
 	CSApiCapabilities,
 	CSCodemark,
@@ -115,8 +95,31 @@ import {
 	CSTeam,
 	CSUser,
 	LoginResult,
-} from "./protocol/api.protocol";
-import { log, memoize, registerDecoratedHandlers, registerProviders, Strings } from "./system";
+} from "codestream-common/api-protocol";
+import { Strings } from "codestream-common/string";
+
+import HttpsProxyAgent from "https-proxy-agent";
+import { CodeStreamAgent } from "./agent";
+import { AgentError, ServerError } from "./agentError";
+import {
+	ApiProvider,
+	ApiProviderLoginResponse,
+	CodeStreamApiMiddlewareContext,
+	LoginOptions,
+	MessageType,
+	RTMessage,
+} from "./api/apiProvider";
+import { CodeStreamApiProvider } from "./api/codestream/codestreamApi";
+import {
+	ApiVersionCompatibilityChangedEvent,
+	VersionCompatibilityChangedEvent,
+	VersionMiddlewareManager,
+} from "./api/middleware/versionMiddleware";
+import { Container, SessionContainer } from "./container";
+import { DocumentEventHandler } from "./documentEventHandler";
+import { GitRepository } from "./git/models/repository";
+import { Logger } from "./logger";
+import { log, memoize, registerDecoratedHandlers, registerProviders } from "./system";
 import { testGroups } from "./testGroups";
 
 const envRegex = /https?:\/\/((?:(\w+)-)?api|localhost|(\w+))\.codestream\.(?:us|com)(?::\d+$)?/i;

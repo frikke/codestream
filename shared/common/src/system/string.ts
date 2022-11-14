@@ -30,8 +30,8 @@ SOFTWARE.
  */
 import { BinaryToTextEncoding, createHash } from "crypto";
 import * as path from "path";
-
-import { CSReviewCheckpoint } from "@codestream/protocols/api";
+import * as eol from "eol";
+import { URL } from "url";
 import { Uri } from "vscode";
 
 export namespace Strings {
@@ -43,7 +43,37 @@ export namespace Strings {
 		/**
 		 * The `\` character.
 		 */
-		Backslash = 92
+		Backslash = 92,
+	}
+
+	export function escapeRegExp(s: string) {
+		return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+	}
+
+	export function escapeHtml(s: string) {
+		return s
+			.replace(/&/g, "&amp;")
+			.replace(/</g, "&lt;")
+			.replace(/>/g, "&gt;")
+			.replace(/"/g, "&quot;")
+			.replace(/'/g, "&#039;");
+	}
+
+	const escapeMarkdownRegex = /[\\`*_{}[\]()#+\-.!]/g;
+	// const sampleMarkdown = '## message `not code` *not important* _no underline_ \n> don\'t quote me \n- don\'t list me \n+ don\'t list me \n1. don\'t list me \nnot h1 \n=== \nnot h2 \n---\n***\n---\n___';
+	const markdownHeaderReplacement = "\u200b===";
+
+	export function escapeMarkdown(s: string, options: { quoted?: boolean } = {}) {
+		s = s
+			// Escape markdown
+			.replace(escapeMarkdownRegex, "\\$&")
+			// Escape markdown header (since the above regex won't match it)
+			.replace(/^===/gm, markdownHeaderReplacement);
+
+		if (!options.quoted) return s;
+
+		// Keep under the same block-quote but with line breaks
+		return `> ${s.replace(/\n/g, "\t\n>  ")}`;
 	}
 
 	export function getDurationMilliseconds(start: [number, number]) {
@@ -51,6 +81,7 @@ export namespace Strings {
 		return secs * 1000 + Math.floor(nanosecs / 1000000);
 	}
 
+	const driveLetterNormalizeRegex = /(?<=^\/?)([A-Z])(?=:\/)/;
 	const pathNormalizeRegex = /\\/g;
 	const pathStripTrailingSlashRegex = /\/$/g;
 	const TokenRegex = /\$\{(\W*)?([^|]*?)(?:\|(\d+)(\-|\?)?)?(\W*)?\}/g;
@@ -77,8 +108,8 @@ export namespace Strings {
 					padDirection: option === "-" ? "left" : "right",
 					prefix: prefix,
 					suffix: suffix,
-					truncateTo: truncateTo == null ? undefined : parseInt(truncateTo, 10)
-				}
+					truncateTo: truncateTo == null ? undefined : parseInt(truncateTo, 10),
+				},
 			});
 			match = TokenRegex.exec(template);
 		}
@@ -132,8 +163,9 @@ export namespace Strings {
 
 	export function normalizePath(
 		fileName: string,
+		isWindows: boolean,
 		options: { addLeadingSlash?: boolean; stripTrailingSlash?: boolean } = {
-			stripTrailingSlash: true
+			stripTrailingSlash: true,
 		}
 	) {
 		if (fileName == null || fileName.length === 0) return fileName;
@@ -150,8 +182,16 @@ export namespace Strings {
 			normalized = `/${normalized}`;
 		}
 
+		if (isWindows) {
+			// Ensure that drive casing is normalized (lower case)
+			normalized = normalized.replace(driveLetterNormalizeRegex, (drive: string) =>
+				drive.toLowerCase()
+			);
+		}
+
 		return normalized;
 	}
+
 	export function pad(
 		s: string,
 		before: number = 0,
@@ -369,29 +409,6 @@ export namespace Strings {
 		return false;
 	}
 
-	const csReviewDiffUrlRegex = /codestream-diff:\/\/(\w+)\/(\w+)\/(\w+)\/(\w+)\/(.+)/;
-	export function parseCSReviewDiffUrl(uri: string):
-		| {
-				reviewId: string;
-				checkpoint: CSReviewCheckpoint;
-				repoId: string;
-				version: string;
-				path: string;
-		  }
-		| undefined {
-		const match = csReviewDiffUrlRegex.exec(uri.toString());
-		if (match == null) return undefined;
-
-		const [, reviewId, checkpoint, repoId, version, path] = match;
-		return {
-			reviewId,
-			checkpoint: checkpoint === "undefined" ? undefined : parseInt(checkpoint, 10),
-			repoId,
-			version,
-			path
-		};
-	}
-
 	export function parseGitUrl(uri: Uri): { path: string; sha: string } {
 		const params = JSON.parse(uri.query);
 		const { sha } = params;
@@ -403,5 +420,143 @@ export namespace Strings {
 			path: uri.fsPath,
 			sha
 		};
+	}
+
+	export function normalizeFileContents(
+		contents: string,
+		options?: { preserveEof: boolean }
+	): string {
+		if (!contents) return contents;
+		// if there is a BOM at the beginning, strip it
+		if (contents.charCodeAt(0) === 65279) {
+			contents = contents.substring(1);
+		}
+
+		const normalizedEolContents = eol.auto(contents);
+		if (options?.preserveEof) {
+			return normalizedEolContents;
+		} else {
+			return stripEof(normalizedEolContents);
+		}
+	}
+
+	function stripEof(x: any) {
+		const lf = typeof x === "string" ? "\n" : "\n".charCodeAt(0);
+		const cr = typeof x === "string" ? "\r" : "\r".charCodeAt(0);
+
+		if (x[x.length - 1] === lf) {
+			x = x.slice(0, x.length - 1);
+		}
+
+		if (x[x.length - 1] === cr) {
+			x = x.slice(0, x.length - 1);
+		}
+		return x;
+	}
+
+	export function pathToFileURL(str: string) {
+		return encodeURI(new URL(`file:///${path.resolve(str)}`).href);
+	}
+
+	const clean = (piece: string) =>
+		piece
+			.replace(/((^|\n)(?:[^\/\\]|\/[^*\/]|\\.)*?)\s*\/\*(?:[^*]|\*[^\/])*(\*\/|)/g, "$1")
+			.replace(/((^|\n)(?:[^\/\\]|\/[^\/]|\\.)*?)\s*\/\/[^\n]*/g, "$1")
+			.replace(/\n\s*/g, "");
+
+	/**
+	 * Creates a raw RegExp object from a well-commented multiline regex string
+	 * NOTE: this uses some RegExp default flags (gmi)
+	 *
+	 * @export
+	 * @param {*} { raw }
+	 * @param {...string[]} interpolations
+	 * @return {*}
+	 */
+	export function regexBuilder({ raw }: any, ...interpolations: string[]) {
+		return new RegExp(
+			interpolations.reduce(
+				(regex, insert, index) => regex + insert + clean(raw[index + 1]),
+				clean(raw[0])
+			),
+			"gmi"
+		);
+	}
+
+	export function sanitizeGraphqlValue(value: string) {
+		return value?.replace(/'/g, "").replace(/"/g, "");
+	}
+
+	export function trimEnd(str: string, c: string) {
+		if (str == null) return str;
+
+		if (str[str.length - 1] === c) {
+			str = str.slice(0, str.length - 1);
+		}
+
+		return str;
+	}
+
+	export function trimStart(str: string, c: string) {
+		if (str == null) return str;
+
+		if (str[0] === c) {
+			str = str.slice(1);
+		}
+
+		return str;
+	}
+	/**
+	 * Returns an array of partial paths from a file system path
+	 *
+	 * @export
+	 * @param {string} path (/users/foo/bar/foo.js)
+	 * @param {string} [separator="/"]
+	 * @return {*} [users/foo/bar/foo.js, foo/bar/foo.js, bar/foo.js, foo.js]
+	 */
+	export function asPartialPaths(path: string, separator: string = "/"): string[] {
+		if (!path) return [];
+
+		if (path.indexOf(separator) === -1) return [path];
+		if (path[0] === separator) path = path.substr(1);
+
+		const split = path.split(separator);
+		const results = [];
+		let targetArray = split;
+		while (targetArray.length) {
+			results.push(targetArray.join(separator));
+			targetArray = targetArray.slice(1);
+		}
+
+		return results;
+	}
+
+	/** Returns a readable phrase of items. examples:
+	 *
+	 * 		['foo'] = "foo"
+	 * 		['foo','bar'] = "foo and bar"
+	 * 		['foo','bar','baz'] = "foo, bar, and baz"
+	 *
+	 * @param  {string[]} items
+	 * @returns string
+	 */
+	export function phraseList(items: string[]): string {
+		if (!items) return "";
+		const length = items.length;
+		if (!length) return "";
+		if (length === 1) return items[0];
+		if (length === 2) return `${items[0]} and ${items[1]}`;
+
+		let results = "";
+		for (let i = 0; i < length; i++) {
+			results += `${items[i]}`;
+			if (i < length - 1) {
+				results += ", ";
+			}
+			if (i === length - 2) {
+				results += "and ";
+			}
+		}
+		return results;
 	}
 }

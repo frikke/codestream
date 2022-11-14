@@ -1,7 +1,8 @@
-import { GetAlertViolationsResponse, GoldenMetricsResult } from "@codestream/protocols/agent";
+import { GetAlertViolationsResponse, GoldenMetricsResult } from "codestream-common/agent-protocol";
 import { isEmpty as _isEmpty, isNil as _isNil } from "lodash-es";
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
+
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import Icon from "./Icon";
 import { ObservabilityAlertViolations } from "./ObservabilityAlertViolations";

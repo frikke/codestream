@@ -3,20 +3,21 @@ import {
 	FetchThirdPartyPullRequestPullRequest,
 	GetReposScmRequestType,
 	ReposScm,
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
+import * as path from "path-browserify";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
+import styled from "styled-components";
+import { Range } from "vscode-languageserver-types";
+
+import { HostApi } from "@codestream/webview/webview-api";
+import { CodeStreamState } from "@codestream/webview/store";
 import {
 	CompareLocalFilesRequest,
 	EditorRevealRangeRequestType,
 	ShowNextChangedFileNotificationType,
 	ShowPreviousChangedFileNotificationType,
 } from "@codestream/protocols/webview";
-import { CodeStreamState } from "@codestream/webview/store";
-import { HostApi } from "@codestream/webview/webview-api";
-import * as path from "path-browserify";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useSelector } from "react-redux";
-import styled from "styled-components";
-import { Range } from "vscode-languageserver-types";
 import { CompareLocalFilesRequestType } from "../ipc/host.protocol";
 import { logError } from "../logger";
 import { parseCodeStreamDiffUri } from "../store/codemarks/actions";

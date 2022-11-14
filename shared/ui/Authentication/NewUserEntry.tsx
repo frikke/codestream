@@ -1,11 +1,12 @@
 import {
 	GetWorkspaceAutoJoinInfoRequestType,
 	GetWorkspaceAutoJoinInfoResponse,
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
 import React from "react";
 import { FormattedMessage } from "react-intl";
 import { connect } from "react-redux";
 import styled from "styled-components";
+
 import { Loading } from "../Container/Loading";
 import { Headshot } from "../src/components/Headshot";
 import { CodeStreamState } from "../store";

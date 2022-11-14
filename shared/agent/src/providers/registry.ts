@@ -2,8 +2,6 @@
 import { differenceWith } from "lodash";
 import semver from "semver";
 import { URI } from "vscode-uri";
-import { SessionContainer } from "../container";
-import { Logger } from "../logger";
 import {
 	AddEnterpriseProviderRequest,
 	AddEnterpriseProviderRequestType,
@@ -66,12 +64,15 @@ import {
 	UpdateThirdPartyStatusRequest,
 	UpdateThirdPartyStatusRequestType,
 	UpdateThirdPartyStatusResponse,
-} from "../protocol/agent.protocol";
+} from "codestream-common/agent-protocol";
 import {
 	CSMe,
 	CSMePreferences,
 	CSNotificationDeliveryPreference,
-} from "../protocol/api.protocol.models";
+} from "codestream-common/api-protocol";
+
+import { SessionContainer } from "../container";
+import { Logger } from "../logger";
 import { CodeStreamSession } from "../session";
 import { Functions, getProvider, getRegisteredProviders, log, lsp, lspHandler } from "../system";
 import { GitLabEnterpriseProvider } from "./gitlabEnterprise";

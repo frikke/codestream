@@ -1,18 +1,17 @@
-import { useAppDispatch } from "@codestream/webview/utilities/hooks";
 import React from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { CodeStreamState } from "../store";
-import Icon from "./Icon";
-import Menu from "./Menu";
-import { emojify } from "./Markdowner";
 import styled from "styled-components";
-import { PRReactions, PRReaction } from "./PullRequestComponents";
-import Tooltip from "./Tooltip";
-import { SmartFormattedList } from "./SmartFormattedList";
 import {
 	FetchThirdPartyPullRequestPullRequest,
 	GitLabMergeRequest,
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
+
+import { useAppDispatch } from "@codestream/webview/utilities/hooks";
+import Icon from "./Icon";
+import Menu from "./Menu";
+import { emojify } from "./Markdowner";
+import { PRReactions, PRReaction } from "./PullRequestComponents";
+import Tooltip from "./Tooltip";
+import { SmartFormattedList } from "./SmartFormattedList";
 import { api } from "../store/providerPullRequests/thunks";
 import {
 	PullRequestReactButton as GitLabPullRequestReactButton,

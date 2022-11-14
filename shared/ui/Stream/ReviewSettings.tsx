@@ -1,13 +1,13 @@
+import React, { useState } from "react";
+import { CSReviewApprovalSetting, CSReviewAssignmentSetting } from "codestream-common/api-protocol";
+import { UpdateTeamSettingsRequestType } from "codestream-common/agent-protocol";
+
 import { Checkbox } from "@codestream/webview/src/components/Checkbox";
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
-import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { CodeStreamState } from "../store";
 import { RadioGroup, Radio } from "../src/components/RadioGroup";
 import { closeModal, setUserPreference } from "./actions";
 import { HostApi } from "../webview-api";
-import { CSReviewApprovalSetting, CSReviewAssignmentSetting } from "@codestream/protocols/api";
-import { UpdateTeamSettingsRequestType } from "@codestream/protocols/agent";
 import { getTeamSetting } from "../store/teams/reducer";
 import ScrollBox from "./ScrollBox";
 import { Dialog } from "../src/components/Dialog";

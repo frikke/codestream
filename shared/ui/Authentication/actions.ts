@@ -12,8 +12,9 @@ import {
 	ProviderTokenRequestType,
 	TokenLoginRequest,
 	TokenLoginRequestType,
-} from "@codestream/protocols/agent";
-import { CodemarkType, LoginResult } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { CodemarkType, LoginResult } from "codestream-common/api-protocol";
+
 import { LogoutRequestType } from "@codestream/protocols/webview";
 import { setBootstrapped } from "@codestream/webview/store/bootstrapped/actions";
 import { withExponentialConnectionRetry } from "@codestream/webview/store/common";

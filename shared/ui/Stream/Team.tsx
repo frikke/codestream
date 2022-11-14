@@ -8,8 +8,8 @@ import {
 	UpdateTeamSettingsRequestType,
 	UpdateTeamAdminRequestType,
 	GetLatestCommittersRequestType,
-} from "@codestream/protocols/agent";
-import { CSTeam, CSUser } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { CSTeam, CSUser } from "codestream-common/api-protocol";
 import styled from "styled-components";
 import copy from "copy-to-clipboard";
 

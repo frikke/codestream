@@ -1,5 +1,6 @@
-import { EntityAccount } from "@codestream/protocols/agent";
+import { EntityAccount } from "codestream-common/agent-protocol";
 import React, { useState } from "react";
+
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import { EntityAssociator } from "./EntityAssociator";
 import Icon from "./Icon";

@@ -1,5 +1,6 @@
-import { ConfirmLoginCodeRequest, TokenLoginRequest } from "@codestream/protocols/agent";
-import { CSEligibleJoinCompany } from "@codestream/protocols/api";
+import { ConfirmLoginCodeRequest, TokenLoginRequest } from "codestream-common/agent-protocol";
+import { CSEligibleJoinCompany } from "codestream-common/api-protocol";
+
 import { PasswordLoginParams } from "@codestream/webview/Authentication/actions";
 import { reset } from "../actions";
 import { action } from "../common";

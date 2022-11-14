@@ -4,8 +4,8 @@ import {
 	GetFileScmInfoRequestType,
 	GetFileScmInfoResponse,
 	MarkerNotLocated,
-} from "@codestream/protocols/agent";
-import { CodemarkType, CSTeam } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { CodemarkType, CSTeam } from "codestream-common/api-protocol";
 import cx from "classnames";
 import PropTypes from "prop-types";
 import React, { Component, SyntheticEvent } from "react";

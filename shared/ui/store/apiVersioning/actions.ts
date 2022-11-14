@@ -1,4 +1,5 @@
-import { CSApiCapabilities } from "@codestream/protocols/api";
+import { CSApiCapabilities } from "codestream-common/api-protocol";
+
 import { action } from "../common";
 import { ApiVersioningActionsType } from "./types";
 

@@ -1,5 +1,6 @@
-import { CSReview } from "@codestream/protocols/api";
+import { CSReview } from "codestream-common/api-protocol";
 import { createSelector } from "reselect";
+
 import { CodeStreamState } from "..";
 import { toMapBy } from "../../utils";
 import { ActionType, Index } from "../common";

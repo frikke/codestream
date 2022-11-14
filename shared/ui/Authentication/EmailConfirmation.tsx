@@ -3,14 +3,15 @@ import {
 	GenerateLoginCodeRequestType,
 	RegisterUserRequest,
 	RegisterUserRequestType,
-} from "@codestream/protocols/agent";
-import { LoginResult } from "@codestream/protocols/api";
-import { CodeStreamState } from "@codestream/webview/store";
-import { setEnvironment } from "@codestream/webview/store/session/thunks";
-import { useAppSelector } from "@codestream/webview/utilities/hooks";
+} from "codestream-common/agent-protocol";
+import { LoginResult } from "codestream-common/api-protocol";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { FormattedMessage } from "react-intl";
 import { connect } from "react-redux";
+
+import { CodeStreamState } from "@codestream/webview/store";
+import { setEnvironment } from "@codestream/webview/store/session/thunks";
+import { useAppSelector } from "@codestream/webview/utilities/hooks";
 import { DispatchProp } from "../store/common";
 import {
 	goToCompanyCreation,

@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import React from "react";
-import { CSUser } from "@codestream/protocols/api";
+import { CSUser } from "codestream-common/api-protocol";
 
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import { MarkdownText } from "@codestream/webview/Stream/MarkdownText";

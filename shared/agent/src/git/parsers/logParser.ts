@@ -29,8 +29,11 @@ SOFTWARE.
 /**
  * Modifications Copyright CodeStream Inc. under the Apache 2.0 License (Apache-2.0)
  */
-import { debug, Strings } from "../../system";
+import { Strings } from "codestream-common/string";
+
+import { debug } from "../../system";
 import { GitCommit } from "../models/commit";
+import { isWindows } from "../shell";
 
 const emptyEntry: LogEntry = {};
 const emptyStr = "";
@@ -83,7 +86,7 @@ export class GitLogParser {
 		if (next.done) return undefined;
 
 		if (repoPath !== undefined) {
-			repoPath = Strings.normalizePath(repoPath);
+			repoPath = Strings.normalizePath(repoPath, isWindows);
 		}
 
 		const commits: Map<string, GitCommit> = new Map();

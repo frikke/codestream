@@ -1,10 +1,13 @@
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import Icon from "../../Icon";
-import { Button } from "@codestream/webview/src/components/Button";
-import { Link } from "../../Link";
 import styled from "styled-components";
 import copy from "copy-to-clipboard";
+import { CSMe, PullRequestQuery } from "codestream-common/api-protocol";
+import { GitLabMergeRequest } from "codestream-common/agent-protocol";
+import cx from "classnames";
+import { FetchProviderDefaultPullRequestsType } from "codestream-common/agent-protocol";
+
+import Icon from "../../Icon";
+import { Link } from "../../Link";
 import { HostApi } from "../../../webview-api";
 import { LocalFilesCloseDiffRequestType, OpenUrlRequestType } from "@codestream/protocols/webview";
 import { closeAllModals } from "@codestream/webview/store/context/actions";
@@ -13,7 +16,6 @@ import { api, getMyPullRequests } from "../../../store/providerPullRequests/thun
 import { PRHeadshotName } from "@codestream/webview/src/components/HeadshotName";
 import { LoadingMessage } from "@codestream/webview/src/components/LoadingMessage";
 import { PRError } from "../../PullRequestComponents";
-import { CSMe, PullRequestQuery } from "@codestream/protocols/api";
 import { CodeStreamState } from "@codestream/webview/store";
 import { isFeatureEnabled } from "@codestream/webview/store/apiVersioning/reducer";
 import { getCurrentProviderPullRequest } from "@codestream/webview/store/providerPullRequests/slice";
@@ -25,11 +27,8 @@ import { PRHeadshot } from "@codestream/webview/src/components/Headshot";
 import { PRProgress, PRProgressFill, PRProgressLine } from "../../PullRequestFilesChangedList";
 import { Circle } from "../../PullRequestConversationTab";
 import Tooltip from "../../Tooltip";
-import { GitLabMergeRequest } from "@codestream/protocols/agent";
-import cx from "classnames";
 import { pluralize } from "@codestream/webview/utilities/strings";
 import * as providerSelectors from "../../../store/providers/reducer";
-import { FetchProviderDefaultPullRequestsType } from "@codestream/protocols/agent";
 import { useAppDispatch, useAppSelector, useDidMount } from "@codestream/webview/utilities/hooks";
 
 const Right = styled.div`

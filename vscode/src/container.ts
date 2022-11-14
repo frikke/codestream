@@ -1,6 +1,8 @@
 "use strict";
-import { ReviewDiffContentProvider } from "providers/diffContentProvider";
 import { ExtensionContext, workspace } from "vscode";
+import { SetServerUrlRequestType } from "codestream-common/agent-protocol";
+
+import { ReviewDiffContentProvider } from "providers/diffContentProvider";
 import { WebviewLike } from "webviews/webviewLike";
 import { GitContentProvider } from "providers/gitContentProvider";
 import { InstrumentableCodeLensController } from "controllers/instrumentableCodeLensController";
@@ -11,7 +13,7 @@ import {
 	Config,
 	configuration,
 	ConfigurationWillChangeEvent,
-	ConfigSettingsNeedingReload
+	ConfigSettingsNeedingReload,
 } from "./configuration";
 import { NotificationsController } from "./controllers/notificationsController";
 import { StatusBarController } from "./controllers/statusBarController";
@@ -22,7 +24,6 @@ import { CodemarkCodeLensProvider } from "./providers/markerCodeLensProvider";
 import { CodemarkDecorationProvider } from "./providers/markerDecorationProvider";
 import { CodemarkPatchContentProvider } from "./providers/patchContentProvider";
 import { SelectionDecorationProvider } from "./providers/selectionDecorationProvider";
-import { SetServerUrlRequestType } from "./protocols/agent/agent.protocol";
 import { BlameDecorationProvider } from "./providers/blameDecorationProvider";
 // import { WebviewSidebarActivator } from "./views/webviewSidebarActivator";
 
@@ -78,8 +79,8 @@ export class Container {
 	static interestedConfigurationItems = [
 		{
 			getValue: () => workspace.getConfiguration("workbench.sideBar").get("location") || "left",
-			value: ""
-		}
+			value: "",
+		},
 	];
 
 	static setServerUrl(serverUrl: string, disableStrictSSL: boolean, environment?: string) {

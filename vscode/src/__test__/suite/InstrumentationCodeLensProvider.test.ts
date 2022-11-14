@@ -9,13 +9,13 @@ import { CancellationTokenSource } from "vscode-languageclient";
 import {
 	FileLevelTelemetryRequestOptions,
 	FunctionLocator,
-	GetFileLevelTelemetryResponse
-} from "@codestream/protocols/agent";
+	GetFileLevelTelemetryResponse,
+} from "codestream-common/agent-protocol";
 
 import {
 	InstrumentableSymbol,
 	ISymbolLocator,
-	SymboslLocated
+	SymboslLocated,
 } from "../../providers/symbolLocator";
 import { InstrumentationCodeLensProvider } from "../../providers/instrumentationCodeLensProvider";
 
@@ -33,9 +33,9 @@ class MockSymbolLocator implements ISymbolLocator {
 							new vscode.Range(new vscode.Position(0, 0), new vscode.Position(1, 1))
 						),
 						undefined
-					)
+					),
 				],
-				allSymbols: []
+				allSymbols: [],
 			});
 		});
 	}
@@ -50,7 +50,7 @@ const documentFactory = (
 		uri: vscode.Uri.parse(url, false),
 		fileName: fileName,
 		languageId: languageId,
-		version: 0
+		version: 0,
 	} as any;
 };
 
@@ -77,7 +77,7 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 						repo: {
 							id: "123",
 							name: "repo",
-							remote: "remote"
+							remote: "remote",
 						},
 						relativeFilePath: "/hello/foo.py",
 						newRelicAccountId: 1,
@@ -88,12 +88,12 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 							{
 								functionName: "hello_world",
 								averageDuration: 3.333,
-								metricTimesliceName: "d"
-							}
-						]
+								metricTimesliceName: "d",
+							},
+						],
 					} as GetFileLevelTelemetryResponse);
 				});
-			}
+			},
 		};
 
 		const provider = new InstrumentationCodeLensProvider(
@@ -107,7 +107,7 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 			Partial<vscode.Extension<any>>
 		>{
 			id: "ms-python.vscode-pylance",
-			isActive: true
+			isActive: true,
 		}) as vscode.Extension<any>);
 
 		const codeLenses = await provider.provideCodeLenses(
@@ -132,7 +132,7 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 						repo: {
 							id: "123",
 							name: "repo",
-							remote: "remote"
+							remote: "remote",
 						},
 						relativeFilePath: "/hello/foo.py",
 						newRelicAccountId: 1,
@@ -140,11 +140,11 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 						newRelicEntityAccounts: [] as any,
 						codeNamespace: "fooNamespace",
 						error: {
-							type: "NOT_ASSOCIATED"
-						}
+							type: "NOT_ASSOCIATED",
+						},
 					} as GetFileLevelTelemetryResponse);
 				});
-			}
+			},
 		};
 
 		const provider = new InstrumentationCodeLensProvider(
@@ -158,7 +158,7 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 			Partial<vscode.Extension<any>>
 		>{
 			id: "ms-python.vscode-pylance",
-			isActive: true
+			isActive: true,
 		}) as vscode.Extension<any>);
 
 		const codeLenses = await provider.provideCodeLenses(
@@ -185,7 +185,7 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 				return new Promise(resolve => {
 					return resolve({} as GetFileLevelTelemetryResponse);
 				});
-			}
+			},
 		};
 
 		const provider = new InstrumentationCodeLensProvider(
@@ -222,7 +222,7 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 				return new Promise(resolve => {
 					return resolve({} as GetFileLevelTelemetryResponse);
 				});
-			}
+			},
 		};
 
 		const provider = new InstrumentationCodeLensProvider(
@@ -259,7 +259,7 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 				return new Promise(resolve => {
 					return resolve({} as GetFileLevelTelemetryResponse);
 				});
-			}
+			},
 		};
 
 		const provider = new InstrumentationCodeLensProvider(
@@ -294,7 +294,7 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 				options?: FileLevelTelemetryRequestOptions | undefined
 			): Promise<GetFileLevelTelemetryResponse> {
 				return new Promise(resolve => {});
-			}
+			},
 		};
 
 		const provider = new InstrumentationCodeLensProvider(
@@ -307,14 +307,14 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 		const mockGetConfig: Partial<vscode.WorkspaceConfiguration> = {
 			get: (section: string) => {
 				return false;
-			}
+			},
 		};
 
 		stubbedExtension = sinon.stub(vscode.extensions, "getExtension").returns((<
 			Partial<vscode.Extension<any>>
 		>{
 			id: "rebornix.Ruby",
-			isActive: true
+			isActive: true,
 		}) as vscode.Extension<any>);
 
 		stubbedConfig = sinon
@@ -347,7 +347,7 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 				return new Promise(resolve => {
 					return resolve({} as GetFileLevelTelemetryResponse);
 				});
-			}
+			},
 		};
 
 		const provider = new InstrumentationCodeLensProvider(
@@ -384,7 +384,7 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 				return new Promise(resolve => {
 					return resolve({} as GetFileLevelTelemetryResponse);
 				});
-			}
+			},
 		};
 
 		const provider = new InstrumentationCodeLensProvider(
@@ -423,17 +423,17 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 						repo: {
 							id: "123",
 							name: "repo",
-							remote: "remote"
+							remote: "remote",
 						},
 						relativeFilePath: "/hello/agents_controller.rb",
 						newRelicAccountId: 1,
 						newRelicEntityGuid: "123",
 						newRelicEntityAccounts: [] as any,
 						codeNamespace: "fooNamespace",
-						averageDuration: []
+						averageDuration: [],
 					} as GetFileLevelTelemetryResponse);
 				});
-			}
+			},
 		};
 
 		const provider = new InstrumentationCodeLensProvider(
@@ -446,14 +446,14 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 		const mockGetConfig: Partial<vscode.WorkspaceConfiguration> = {
 			get: (section: string) => {
 				return true;
-			}
+			},
 		};
 
 		stubbedExtension = sinon.stub(vscode.extensions, "getExtension").returns((<
 			Partial<vscode.Extension<any>>
 		>{
 			id: "rebornix.Ruby",
-			isActive: true
+			isActive: true,
 		}) as vscode.Extension<any>);
 
 		stubbedConfig = sinon

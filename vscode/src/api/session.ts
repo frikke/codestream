@@ -13,22 +13,25 @@ import {
 	AgentOpenUrlRequest,
 	PasswordLoginRequestType,
 	TokenLoginRequestType,
-	Unreads
-} from "@codestream/protocols/agent";
+	Unreads,
+} from "codestream-common/agent-protocol";
 import {
 	ChannelServiceType,
 	CSChannelStream,
 	CSDirectStream,
 	LoginResult,
-	CSMe
-} from "@codestream/protocols/api";
+	CSMe,
+} from "codestream-common/api-protocol";
 import { ConfigurationTarget, Disposable, Event, EventEmitter, Uri } from "vscode";
+import { Strings } from "codestream-common/string";
+import { CSEligibleJoinCompany } from "codestream-common/api-protocol";
+
 import { openUrl } from "urlHandler";
 import { WorkspaceState } from "../common";
 import { configuration } from "../configuration";
 import { Container } from "../container";
 import { Logger } from "../logger";
-import { Functions, log, Strings } from "../system";
+import { Functions, log } from "../system";
 import { DocMarker } from "./models/marker";
 import { Post } from "./models/post";
 import { Repository } from "./models/repository";
@@ -38,7 +41,7 @@ import {
 	DirectStream,
 	ServiceChannelStreamCreationOptions,
 	Stream,
-	StreamType
+	StreamType,
 } from "./models/stream";
 import { Team } from "./models/team";
 import { User } from "./models/user";
@@ -53,11 +56,11 @@ import {
 	UnreadsChangedEvent,
 	ReviewsChangedEvent,
 	PullRequestsChangedEvent,
-	PreferencesChangedEvent
+	PreferencesChangedEvent,
 } from "./sessionEvents";
 import { SessionState } from "./sessionState";
 import { TokenManager } from "./tokenManager";
-import { CSEligibleJoinCompany } from "@codestream/protocols/api";
+
 
 export {
 	ChannelStream,
@@ -76,7 +79,7 @@ export {
 	Team,
 	TextDocumentMarkersChangedEvent,
 	UnreadsChangedEvent,
-	User
+	User,
 };
 
 const instanceId = Functions.shortUuid();
@@ -92,14 +95,14 @@ export enum SessionSignedOutReason {
 	UserSignedOutFromWebview = "userSignedOutFromWebview",
 	UserSignedOutFromExtension = "userSignedOutFromExtension",
 	UserWentOffline = "userWentOffline",
-	MaintenanceMode = "maintenanceMode"
+	MaintenanceMode = "maintenanceMode",
 }
 
 export enum SessionStatus {
 	SignedOut = "signedOut",
 	SigningIn = "signingIn",
 	SignedIn = "signedIn",
-	SigningOut = "signingOut"
+	SigningOut = "signingOut",
 }
 
 export class CodeStreamSession implements Disposable {
@@ -163,8 +166,8 @@ export class CodeStreamSession implements Disposable {
 			codemarkCompare: true,
 			editorTrackVisibleRange: true,
 			services: {
-				vsls: undefined
-			}
+				vsls: undefined,
+			},
 		};
 
 		// If we have no agent caps then just use the ide's
@@ -173,7 +176,7 @@ export class CodeStreamSession implements Disposable {
 		// Mix IDE caps in with the agent caps
 		return {
 			...ide,
-			...this._agentCapabilities
+			...this._agentCapabilities,
 		};
 	}
 
@@ -313,7 +316,7 @@ export class CodeStreamSession implements Disposable {
 			this._environmentInfo || {
 				environment: CodeStreamEnvironment.Unknown,
 				isOnPrem: false,
-				isProductionCloud: false
+				isProductionCloud: false,
 			}
 		);
 	}
@@ -362,7 +365,7 @@ export class CodeStreamSession implements Disposable {
 		const e: SessionStatusChangedEvent = {
 			getStatus: () => this._status,
 			session: this,
-			unreads: unreads
+			unreads: unreads,
 		};
 		e.reason = signedOutReason;
 
@@ -445,7 +448,7 @@ export class CodeStreamSession implements Disposable {
 				{
 					serviceType: type,
 					serviceKey: key,
-					serviceInfo: creationOptions.serviceInfo
+					serviceInfo: creationOptions.serviceInfo,
 				}
 			)
 		).stream;
@@ -628,11 +631,11 @@ export class CodeStreamSession implements Disposable {
 			if (typeof passwordOrToken === "string") {
 				response = await Container.agent.sendRequest(PasswordLoginRequestType, {
 					email: email,
-					password: passwordOrToken
+					password: passwordOrToken,
 				});
 			} else {
 				response = await Container.agent.sendRequest(TokenLoginRequestType, {
-					token: passwordOrToken
+					token: passwordOrToken,
 				});
 			}
 

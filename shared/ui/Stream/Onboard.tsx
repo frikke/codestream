@@ -6,9 +6,9 @@ import {
 	GetReposScmRequestType,
 	ReposScm,
 	UpdateCompanyRequestType,
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
 import { FormattedMessage } from "react-intl";
-import { TelemetryRequestType } from "@codestream/protocols/agent";
+import { TelemetryRequestType } from "codestream-common/agent-protocol";
 
 import { CodeStreamState } from "../store";
 import { getTeamMembers } from "../store/users/reducer";

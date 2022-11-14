@@ -1,4 +1,5 @@
-import { CSMe } from "@codestream/protocols/api";
+import { CSMe } from "codestream-common/api-protocol";
+
 import { CodeStreamState } from "../../store";
 
 export const getUserProviderInfo = (user: CSMe, provider: string, teamId: string) => {

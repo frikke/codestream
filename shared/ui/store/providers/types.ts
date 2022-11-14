@@ -1,4 +1,4 @@
-import { ThirdPartyProviders } from "@codestream/protocols/agent";
+import { ThirdPartyProviders } from "codestream-common/agent-protocol";
 
 export interface ProvidersState extends ThirdPartyProviders {}
 

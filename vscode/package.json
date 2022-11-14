@@ -7,6 +7,10 @@
 	"publisher": "CodeStream",
 	"license": "UNLICENSED",
 	"homepage": "https://codestream.com",
+	"workspaces": [
+		"../shared/common",
+		"../shared/util"
+	],
 	"bugs": {
 		"url": "https://github.com/TeamCodeStream/CodeStream/issues"
 	},
@@ -619,7 +623,7 @@
 		"lint": "eslint --fix --ext .ts \"src/{**!(webviews)/*,*}\"",
 		"pack": "vsce package",
 		"postinstall": "patch-package",
-		"preinstall": "pushd \"../shared/ui\" && npm install --no-save && popd && pushd \"../shared/util\" && npm install --no-save && popd",
+		"preinstall": "pushd \"../shared/ui\" && npm install --no-save && popd && pushd \"../shared/util\" && npm install --no-save && npm run build && popd",
 		"pretty": "prettier  --write \"./src/**/*.ts\" \"./src/**/*.js\" ./package.json ./.prettierrc.js",
 		"rebuild": "npm install --no-save && npm run agent:rebuild && npm run build",
 		"test": "npm run agent:test && npm run webview:test && npm run vscode:test",
@@ -678,7 +682,7 @@
 		"rimraf": "3.0.2",
 		"sinon": "14.0.0",
 		"tsc-alias": "1.7.0",
-		"tsx": "3.9.0",
+		"tsx": "3.12.1",
 		"typescript": "4.8.4",
 		"vsce": "2.6.7"
 	},

@@ -1,4 +1,5 @@
-import { ReportingMessageType, ReportMessageRequestType } from "@codestream/protocols/agent";
+import { ReportingMessageType, ReportMessageRequestType } from "codestream-common/agent-protocol";
+
 import { HostApi } from "./webview-api";
 
 function serializeError(error: Error) {

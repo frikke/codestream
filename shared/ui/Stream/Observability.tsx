@@ -17,19 +17,19 @@ import {
 	ObservabilityRepo,
 	ObservabilityRepoError,
 	ServiceLevelObjectiveResult,
-} from "@codestream/protocols/agent";
-import {
-	HostDidChangeWorkspaceFoldersNotificationType,
-	OpenUrlRequestType,
-} from "@codestream/protocols/webview";
-import { RefreshEditorsCodeLensRequestType } from "@codestream/webview/ipc/host.protocol";
-import { CurrentMethodLevelTelemetry } from "@codestream/webview/store/context/types";
+} from "codestream-common/agent-protocol";
 import cx from "classnames";
 import { head as _head, isEmpty, isEmpty as _isEmpty, isNil as _isNil } from "lodash-es";
 import React, { useEffect, useState } from "react";
 import { shallowEqual } from "react-redux";
 import styled from "styled-components";
 
+import { CurrentMethodLevelTelemetry } from "@codestream/webview/store/context/types";
+import { RefreshEditorsCodeLensRequestType } from "@codestream/webview/ipc/host.protocol";
+import {
+	HostDidChangeWorkspaceFoldersNotificationType,
+	OpenUrlRequestType,
+} from "@codestream/protocols/webview";
 import { ObservabilityServiceLevelObjectives } from "@codestream/webview/Stream/ObservabilityServiceLevelObjectives";
 import { HealthIcon } from "@codestream/webview/src/components/HealthIcon";
 import { WebviewPanels } from "../ipc/webview.protocol.common";

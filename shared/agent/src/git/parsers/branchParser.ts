@@ -1,5 +1,6 @@
 "use strict";
-import { Strings } from "../../system";
+
+import { Strings } from "codestream-common/string";
 
 export interface BranchEntry {
 	name: string;

@@ -1,11 +1,9 @@
-import { NewRelicOptions, RepoProjectType } from "@codestream/protocols/agent";
+import { NewRelicOptions, RepoProjectType } from "codestream-common/agent-protocol";
 import * as path from "path-browserify";
 import React, { useEffect, useState } from "react";
 import { FormattedMessage } from "react-intl";
 import { useDispatch, useSelector } from "react-redux";
 import { Position, Range } from "vscode-languageserver-types";
-import { TextInput } from "../../Authentication/TextInput";
-import { logError } from "../../logger";
 import {
 	AddNewRelicIncludeRequestType,
 	AddNewRelicIncludeResponse,
@@ -15,7 +13,10 @@ import {
 	FindCandidateMainFilesResponse,
 	InstallNewRelicRequestType,
 	InstallNewRelicResponse,
-} from "../../protocols/agent/agent.protocol.nr";
+} from "codestream-common/agent-protocol";
+
+import { TextInput } from "../../Authentication/TextInput";
+import { logError } from "../../logger";
 import { Button } from "../../src/components/Button";
 import { InlineMenu } from "../../src/components/controls/InlineMenu";
 import { Dialog } from "../../src/components/Dialog";

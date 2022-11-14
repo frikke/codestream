@@ -1,5 +1,6 @@
-import { FetchThirdPartyPullRequestPullRequest } from "@codestream/protocols/agent";
+import { FetchThirdPartyPullRequestPullRequest } from "codestream-common/agent-protocol";
 import React from "react";
+
 import Tooltip from "../../Tooltip";
 
 export const GHOST = {

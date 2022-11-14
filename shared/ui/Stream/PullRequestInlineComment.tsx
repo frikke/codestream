@@ -1,11 +1,11 @@
-import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
+import { FetchThirdPartyPullRequestPullRequest } from "codestream-common/agent-protocol";
+
+import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import { PRComment, PRCommentCard } from "./PullRequestComponents";
 import Tooltip from "./Tooltip";
 import { HostApi } from "../webview-api";
-import { FetchThirdPartyPullRequestPullRequest } from "@codestream/protocols/agent";
 import MessageInput from "./MessageInput";
 import { ButtonRow } from "../src/components/Dialog";
 import { Button } from "../src/components/Button";

@@ -4,7 +4,11 @@ import {
 	FetchThirdPartyBoardsRequestType,
 	JiraBoard,
 	ThirdPartyProviderConfig,
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
+import React from "react";
+import ReactDOM from "react-dom";
+import AsyncSelect from "react-select/async";
+
 import { CodeStreamState } from "@codestream/webview/store";
 import { updateForProvider } from "@codestream/webview/store/activeIntegrations/actions";
 import { getIntegrationData } from "@codestream/webview/store/activeIntegrations/reducer";
@@ -13,10 +17,6 @@ import { setIssueProvider } from "@codestream/webview/store/context/actions";
 import { disconnectProvider } from "@codestream/webview/store/providers/actions";
 import { useAppDispatch, useAppSelector, useDidMount } from "@codestream/webview/utilities/hooks";
 import { emptyArray } from "@codestream/webview/utils";
-import React from "react";
-import ReactDOM from "react-dom";
-import { useDispatch, useSelector } from "react-redux";
-import AsyncSelect from "react-select/async";
 import { HostApi } from "@codestream/webview/webview-api";
 import { CrossPostIssueContext } from "../CodemarkForm";
 import Icon from "../Icon";

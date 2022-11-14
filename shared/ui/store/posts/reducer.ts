@@ -1,6 +1,7 @@
-import { CSPost } from "@codestream/protocols/api";
+import { CSPost } from "codestream-common/api-protocol";
 import { sortBy as _sortBy } from "lodash-es";
 import { createSelector } from "reselect";
+
 import { CodeStreamState } from "..";
 import { ActionType } from "../common";
 import * as actions from "./actions";

@@ -3,14 +3,15 @@ import {
 	GetReposScmRequestType,
 	ReadTextFileRequestType,
 	WriteTextFileRequestType,
-} from "@codestream/protocols/agent";
-import { FileStatus } from "@codestream/protocols/api";
-import { EditorRevealRangeRequestType } from "@codestream/protocols/webview";
+} from "codestream-common/agent-protocol";
+import { FileStatus } from "codestream-common/api-protocol";
 import copy from "copy-to-clipboard";
 import * as path from "path-browserify";
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { Range } from "vscode-languageserver-types";
+
+import { EditorRevealRangeRequestType } from "@codestream/protocols/webview";
 import { Button } from "../src/components/Button";
 import { Checkbox } from "../src/components/Checkbox";
 import { LoadingMessage } from "../src/components/LoadingMessage";

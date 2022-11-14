@@ -5,15 +5,15 @@ import {
 	workspace,
 	TextDocument,
 	EventEmitter,
-	Event
+	Event,
 } from "vscode";
-import { GetReviewContentsResponse } from "@codestream/protocols/agent";
-import { CSReviewCheckpoint } from "@codestream/protocols/api";
-import { CodeStreamDiffUriData } from "@codestream/protocols/agent";
-import { Strings } from "../system";
+import { GetReviewContentsResponse, CodeStreamDiffUriData } from "codestream-common/agent-protocol";
+import { CSReviewCheckpoint } from "codestream-common/api-protocol";
+
 import { Container } from "../container";
 import { Logger } from "../logger";
 import * as csUri from "../system/uri";
+import { parseCSReviewDiffUrl } from "../system/uriUtil";
 
 interface CacheValue {
 	/**
@@ -58,9 +58,7 @@ export class ReviewDiffContentProvider implements TextDocumentContentProvider, D
 	 * (the cache uses this filePath as part of the cache key)
 	 * @param  {TextDocument} textDocument
 	 */
-	private getFileInfo(
-		textDocument: TextDocument
-	):
+	private getFileInfo(textDocument: TextDocument):
 		| {
 				relativeFilePath: string;
 				workspaceFolderUriString: string;
@@ -76,7 +74,7 @@ export class ReviewDiffContentProvider implements TextDocumentContentProvider, D
 		const relativeFilePath = workspace.asRelativePath(textDocument.uri, false);
 		return {
 			relativeFilePath,
-			workspaceFolderUriString: workspaceFolder.uri.toString()
+			workspaceFolderUriString: workspaceFolder.uri.toString(),
 		};
 	}
 
@@ -196,7 +194,7 @@ export class ReviewDiffContentProvider implements TextDocumentContentProvider, D
 			);
 			return contents.content! || "";
 		}
-		const csReviewDiffInfo = Strings.parseCSReviewDiffUrl(uri.toString(true));
+		const csReviewDiffInfo = parseCSReviewDiffUrl(uri.toString(true));
 		if (csReviewDiffInfo == null) return "";
 
 		const { reviewId, checkpoint, repoId, version, path } = csReviewDiffInfo;
@@ -239,9 +237,9 @@ export class ReviewDiffContentProvider implements TextDocumentContentProvider, D
 				reviewId,
 				checkpoint,
 				repoId,
-				path
+				path,
 			},
-			contents: contents
+			contents: contents,
 		});
 
 		return contents;
@@ -273,9 +271,9 @@ export class ReviewDiffContentProvider implements TextDocumentContentProvider, D
 				path,
 				editingReviewId,
 				baseSha,
-				rightVersion
+				rightVersion,
 			},
-			contents: contents
+			contents: contents,
 		});
 
 		return contents;

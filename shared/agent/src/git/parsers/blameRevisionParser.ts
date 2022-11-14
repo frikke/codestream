@@ -1,5 +1,6 @@
 "use strict";
-import { Strings } from "../../system";
+import { Strings } from "codestream-common/string";
+
 import { isUncommitted, removeAngleBracketsFromEmail } from "../common";
 
 export interface RevisionEntry {

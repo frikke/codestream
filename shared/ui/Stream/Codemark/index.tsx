@@ -2,7 +2,11 @@ import {
 	CodemarkPlus,
 	FollowCodemarkRequestType,
 	SetCodemarkPinnedRequestType,
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
+import React from "react";
+import { shallowEqual, useSelector } from "react-redux";
+import styled from "styled-components";
+
 import { logError } from "@codestream/webview/logger";
 import { CodeStreamState } from "@codestream/webview/store";
 import { NewCodemarkAttributes } from "@codestream/webview/store/codemarks/actions";
@@ -14,9 +18,6 @@ import { getTeamTagsHash } from "@codestream/webview/store/users/reducer";
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import { mapFilter } from "@codestream/webview/utils";
 import { HostApi } from "@codestream/webview/webview-api";
-import React from "react";
-import { shallowEqual, useSelector } from "react-redux";
-import styled from "styled-components";
 import { CodemarkForm } from "../CodemarkForm";
 import { confirmPopup } from "../Confirm";
 import { PROVIDER_MAPPINGS } from "../CrossPostIssueControls/types";

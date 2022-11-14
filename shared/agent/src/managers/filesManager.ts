@@ -1,9 +1,8 @@
 "use strict";
 import * as path from "path";
+
 import { TextDocumentIdentifier } from "vscode-languageserver-protocol";
 import { URI } from "vscode-uri";
-import { SessionContainer } from "../container";
-import { Logger } from "../logger";
 import {
 	FetchFileStreamsRequest,
 	FetchFileStreamsRequestType,
@@ -11,8 +10,11 @@ import {
 	GetFileStreamRequest,
 	GetFileStreamRequestType,
 	GetFileStreamResponse,
-} from "../protocol/agent.protocol";
-import { CSFileStream, StreamType } from "../protocol/api.protocol";
+} from "codestream-common/agent-protocol";
+import { CSFileStream, StreamType } from "codestream-common/api-protocol";
+
+import { SessionContainer } from "../container";
+import { Logger } from "../logger";
 import { lsp, lspHandler } from "../system";
 import { IndexParams, IndexType } from "./cache";
 import { getValues, KeyValue } from "./cache/baseCache";

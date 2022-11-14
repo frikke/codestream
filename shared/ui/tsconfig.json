@@ -10,7 +10,7 @@
 		"jsx": "react",
 		"lib": ["es2017", "dom", "dom.iterable"],
 		"module": "esnext",
-		"moduleResolution": "node",
+		"moduleResolution": "node16",
 		"noFallthroughCasesInSwitch": true,
 		"noImplicitAny": false,
 		"noImplicitReturns": true,

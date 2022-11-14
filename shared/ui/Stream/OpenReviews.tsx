@@ -1,8 +1,10 @@
+import React from "react";
+import { shallowEqual, useSelector } from "react-redux";
+import { ReposScm } from "codestream-common/agent-protocol";
+
 import { DEFAULT_FR_QUERIES } from "@codestream/webview/store/preferences/reducer";
 import { bootstrapReviews } from "@codestream/webview/store/reviews/thunks";
 import { setUserPreference } from "@codestream/webview/Stream/actions";
-import React from "react";
-import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import * as reviewSelectors from "../store/reviews/reducer";
 import * as userSelectors from "../store/users/reducer";
 import { CodeStreamState } from "../store";
@@ -20,7 +22,6 @@ import {
 import { useAppDispatch, useAppSelector, useDidMount } from "../utilities/hooks";
 import Tooltip from "./Tooltip";
 import Timestamp from "./Timestamp";
-import { ReposScm } from "@codestream/protocols/agent";
 import Tag from "./Tag";
 import {
 	PaneHeader,

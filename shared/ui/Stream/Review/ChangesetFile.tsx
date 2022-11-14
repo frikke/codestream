@@ -1,8 +1,9 @@
-import { FileStatus, ReviewChangesetFileInfo } from "@codestream/protocols/api";
-import { pathBasename } from "@codestream/webview/utilities/fs";
+import { FileStatus, ReviewChangesetFileInfo } from "codestream-common/api-protocol";
 import cx from "classnames";
 import React from "react";
 import styled from "styled-components";
+
+import { pathBasename } from "@codestream/webview/utilities/fs";
 import Tooltip from "../Tooltip";
 
 interface Props {

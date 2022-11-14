@@ -1,15 +1,16 @@
-import { NewRelicOptions, RepoProjectType } from "@codestream/protocols/agent";
+import { NewRelicOptions, RepoProjectType } from "codestream-common/agent-protocol";
 import React, { useEffect, useState } from "react";
 import { FormattedMessage } from "react-intl";
 import { useDispatch, useSelector } from "react-redux";
-import { TextInput } from "../../Authentication/TextInput";
-import { logError } from "../../logger";
 import {
 	CreateNewRelicConfigFileRequestType,
 	CreateNewRelicConfigFileResponse,
 	InstallNewRelicRequestType,
 	InstallNewRelicResponse,
-} from "../../protocols/agent/agent.protocol.nr";
+} from "codestream-common/agent-protocol";
+
+import { TextInput } from "../../Authentication/TextInput";
+import { logError } from "../../logger";
 import { Button } from "../../src/components/Button";
 import { Dialog } from "../../src/components/Dialog";
 import { CodeStreamState } from "../../store";

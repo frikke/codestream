@@ -1,17 +1,12 @@
 "use strict";
+import { performance } from "perf_hooks";
+import * as qs from "querystring";
+
 import { GraphQLClient } from "graphql-request";
 import { isEmpty as _isEmpty } from "lodash";
 import { Headers, Response } from "node-fetch";
-import { performance } from "perf_hooks";
-import * as qs from "querystring";
 import semver from "semver";
-import { CodeStreamSession } from "session";
 import { URI } from "vscode-uri";
-import { InternalError, ReportSuppressedMessages } from "../agentError";
-import { Container, SessionContainer } from "../container";
-import { GitRemoteLike } from "../git/models/remote";
-import { toRepoName } from "../git/utils";
-import { Logger } from "../logger";
 import {
 	CreateThirdPartyCardRequest,
 	DidChangePullRequestCommentsNotificationType,
@@ -42,8 +37,15 @@ import {
 	ThirdPartyDisconnect,
 	ThirdPartyProviderCard,
 	ThirdPartyProviderConfig,
-} from "../protocol/agent.protocol";
-import { CSGitHubProviderInfo } from "../protocol/api.protocol";
+} from "codestream-common/agent-protocol";
+import { CSGitHubProviderInfo } from "codestream-common/api-protocol";
+
+import { CodeStreamSession } from "session";
+import { InternalError, ReportSuppressedMessages } from "../agentError";
+import { Container, SessionContainer } from "../container";
+import { GitRemoteLike } from "../git/models/remote";
+import { toRepoName } from "../git/utils";
+import { Logger } from "../logger";
 import { Dates, Functions, log, lspProvider } from "../system";
 import { customFetch } from "../system/fetchCore";
 import { TraceLevel } from "../types";
@@ -63,6 +65,7 @@ import { QueryLogger, RateLimit } from "./queryLogger";
 import { WAITING_ON_REVIEW } from "./registry";
 import { ThirdPartyIssueProviderBase } from "./thirdPartyIssueProviderBase";
 import { ProviderVersion } from "./types";
+
 
 interface GitHubRepo {
 	id: string;

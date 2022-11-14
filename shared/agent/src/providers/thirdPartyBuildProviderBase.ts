@@ -1,6 +1,7 @@
 "use strict";
 
-import { CSProviderInfos } from "../protocol/api.protocol.models";
+import { CSProviderInfos } from "codestream-common/api-protocol";
+
 import { ThirdPartyBuildProvider, ThirdPartyProviderSupportsBuilds } from "./provider";
 import { ThirdPartyProviderBase } from "./thirdPartyProviderBase";
 

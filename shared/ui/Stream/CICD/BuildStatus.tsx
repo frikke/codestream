@@ -1,8 +1,9 @@
-import { ThirdPartyBuild, ThirdPartyBuildStatus } from "@codestream/protocols/agent";
-import { OpenUrlRequestType } from "@codestream/protocols/webview";
-import { HostApi } from "@codestream/webview/webview-api";
+import { ThirdPartyBuild, ThirdPartyBuildStatus } from "codestream-common/agent-protocol";
 import React, { useState } from "react";
 import styled from "styled-components";
+
+import { OpenUrlRequestType } from "@codestream/protocols/webview";
+import { HostApi } from "@codestream/webview/webview-api";
 import Icon from "../Icon";
 
 type Props = ThirdPartyBuild & {

@@ -1,7 +1,8 @@
-import { CrossPostIssueValues, GetRangeScmInfoResponse } from "@codestream/protocols/agent";
-import { Attachment, CodemarkType, CSCodemark } from "@codestream/protocols/api";
+import { CrossPostIssueValues, GetRangeScmInfoResponse } from "codestream-common/agent-protocol";
+import { Attachment, CodemarkType, CSCodemark } from "codestream-common/api-protocol";
 import { isObject } from "lodash-es";
 import { TextDocumentIdentifier } from "vscode-languageserver-types";
+
 import { action } from "../common";
 import { CodemarksActionsTypes } from "./types";
 

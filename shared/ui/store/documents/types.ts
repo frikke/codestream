@@ -1,4 +1,4 @@
-import { Document } from "@codestream/protocols/agent";
+import { Document } from "codestream-common/agent-protocol";
 
 export interface DocumentsState {
 	[uri: string]: Document;

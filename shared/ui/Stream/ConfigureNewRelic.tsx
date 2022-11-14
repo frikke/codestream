@@ -2,12 +2,13 @@ import {
 	GetNewRelicSignupJwtTokenRequestType,
 	GetReposScmRequestType,
 	RepoProjectType,
-} from "@codestream/protocols/agent";
-import { CSProviderInfo } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { CSProviderInfo } from "codestream-common/api-protocol";
+import React, { useEffect, useRef, useState } from "react";
+
 import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { CodeStreamState } from "@codestream/webview/store";
 import { useAppDispatch, useAppSelector, useDidMount } from "@codestream/webview/utilities/hooks";
-import React, { useEffect, useRef, useState } from "react";
 import { closeAllPanels, setWantNewRelicOptions } from "../store/context/actions";
 import { configureProvider, disconnectProvider, ViewLocation } from "../store/providers/actions";
 import { isConnected } from "../store/providers/reducer";

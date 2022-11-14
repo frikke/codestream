@@ -1,5 +1,6 @@
 "use strict";
-import { CSEntity } from "@codestream/protocols/api";
+import { CSEntity } from "codestream-common/api-protocol";
+
 import { CodeStreamSession } from "../session";
 
 export abstract class CodeStreamItem<TEntity extends CSEntity> {

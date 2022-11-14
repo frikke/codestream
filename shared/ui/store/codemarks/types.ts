@@ -1,4 +1,4 @@
-import { CodemarkPlus } from "@codestream/protocols/agent";
+import { CodemarkPlus } from "codestream-common/agent-protocol";
 
 export enum CodemarksActionsTypes {
 	AddCodemarks = "ADD_CODEMARKS",

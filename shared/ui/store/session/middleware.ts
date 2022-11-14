@@ -1,7 +1,8 @@
-import { VerifyConnectivityRequestType } from "@codestream/protocols/agent";
+import { VerifyConnectivityRequestType } from "codestream-common/agent-protocol";
+import { Middleware } from "redux";
+
 import { authenticate } from "@codestream/webview/Authentication/actions";
 import { errorDismissed } from "@codestream/webview/store/connectivity/actions";
-import { Middleware } from "redux";
 import { AppDispatch, CodeStreamState } from "..";
 import { RestartRequestType } from "../../ipc/webview.protocol";
 import { HostApi } from "../../webview-api";

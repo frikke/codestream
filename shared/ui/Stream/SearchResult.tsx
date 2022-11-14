@@ -1,10 +1,12 @@
-import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import React from "react";
 import styled from "styled-components";
-import { useDispatch, useSelector } from "react-redux";
+import { ReviewPlus } from "codestream-common/agent-protocol";
+import { CodemarkPlus } from "codestream-common/agent-protocol";
+import { isCSReview } from "codestream-common/api-protocol";
+
+import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import * as userSelectors from "../store/users/reducer";
 import Icon from "./Icon";
-import { ReviewPlus } from "../protocols/agent/agent.protocol.reviews";
 import Tag from "./Tag";
 import Timestamp from "./Timestamp";
 import Tooltip from "./Tooltip";
@@ -12,8 +14,6 @@ import { CodeStreamState } from "../store";
 import { markdownify } from "./Markdowner";
 import { setCurrentReview, setCurrentCodemark } from "../store/context/actions";
 import { HeadshotName } from "../src/components/HeadshotName";
-import { CodemarkPlus } from "@codestream/protocols/agent";
-import { isCSReview } from "../protocols/agent/api.protocol.models";
 import { Marker } from "./Marker";
 import { ChangesetFileList } from "./Review/ChangesetFileList";
 

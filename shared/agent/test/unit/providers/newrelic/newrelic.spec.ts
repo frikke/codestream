@@ -9,8 +9,9 @@ import {
 	ObservabilityRepo,
 	RelatedEntity,
 	RelatedEntityByRepositoryGuidsResult,
-} from "../../../../src/protocol/agent.protocol";
-import { CSMe } from "../../../../src/protocol/api.protocol.models";
+} from "codestream-common/agent-protocol";
+import { CSMe } from "codestream-common/api-protocol";
+
 import { NewRelicProvider } from "../../../../src/providers/newrelic";
 import {
 	GraphqlNrqlError,

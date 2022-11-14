@@ -1,15 +1,17 @@
-import { handleSelectedRegion, setSelectedRegion } from "@codestream/webview/store/session/thunks";
 import cx from "classnames";
 import React, { useCallback, useEffect, useState } from "react";
 import { FormattedMessage } from "react-intl";
+import { GetUserInfoRequestType, RegisterUserRequestType } from "codestream-common/agent-protocol";
+import { LoginResult } from "codestream-common/api-protocol";
+import styled from "styled-components";
+
 import { CodeStreamState } from "../store";
 import Button from "../Stream/Button";
 import Icon from "../Stream/Icon";
 import { Link } from "../Stream/Link";
 // TODO: BRIAN FIX (remove this dependency)...
-import { GetUserInfoRequestType, RegisterUserRequestType } from "@codestream/protocols/agent";
-import { LoginResult } from "@codestream/protocols/api";
-import styled from "styled-components";
+
+import { handleSelectedRegion, setSelectedRegion } from "@codestream/webview/store/session/thunks";
 import { Loading } from "../Container/Loading";
 import { logError } from "../logger";
 import { isFeatureEnabled } from "../store/apiVersioning/reducer";

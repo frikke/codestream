@@ -1,8 +1,9 @@
-import { CSCompany } from "@codestream/protocols/api";
-import { switchToForeignCompany, switchToTeam } from "@codestream/webview/store/session/thunks";
-import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
+import { CSCompany } from "codestream-common/api-protocol";
 import React from "react";
 import { FormattedMessage } from "react-intl";
+
+import { switchToForeignCompany, switchToTeam } from "@codestream/webview/store/session/thunks";
+import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import { TooltipIconWrapper } from "../Authentication/Signup";
 import { TextInput } from "../Authentication/TextInput";
 import { Button } from "../src/components/Button";

@@ -4,13 +4,14 @@ import {
 	GetReposScmRequestType,
 	ReposScm,
 	SwitchBranchRequestType,
-} from "@codestream/protocols/agent";
-import { CSMe } from "@codestream/protocols/api";
-import { setProviderError } from "@codestream/webview/store/codeErrors/thunks";
-import { bootstrapReviews } from "@codestream/webview/store/reviews/thunks";
+} from "codestream-common/agent-protocol";
+import { CSMe } from "codestream-common/api-protocol";
 import copy from "copy-to-clipboard";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import styled, { ThemeProvider } from "styled-components";
+
+import { bootstrapReviews } from "@codestream/webview/store/reviews/thunks";
+import { setProviderError } from "@codestream/webview/store/codeErrors/thunks";
 import { logError } from "../logger";
 import { Button } from "../src/components/Button";
 import { InlineMenu } from "../src/components/controls/InlineMenu";

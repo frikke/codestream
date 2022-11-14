@@ -1,10 +1,11 @@
-import { AccessToken } from "@codestream/protocols/agent";
+import { AccessToken } from "codestream-common/agent-protocol";
+import keychain from "keytar";
+
 import { Logger } from "logger";
 import { GlobalState } from "../common";
 import { extensionId } from "../constants";
 import { Container } from "../container";
 // Using esbuild.ts externals to make sure keytar is not bundled and uses vscode keytar
-import keychain from "keytar";
 
 const CredentialService = `${extensionId}:vscode`;
 

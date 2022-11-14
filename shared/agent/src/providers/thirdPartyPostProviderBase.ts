@@ -1,4 +1,5 @@
-import { CSProviderInfos } from "../protocol/api.protocol.models";
+import { CSProviderInfos } from "codestream-common/api-protocol";
+
 import {
 	ThirdPartyPostProvider,
 	ThirdPartyProviderSupportsPosts,

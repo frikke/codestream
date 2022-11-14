@@ -11,16 +11,16 @@ import {
 	SwitchBranchRequestType,
 	TransitionsEntity,
 	UpdateThirdPartyStatusRequestType,
-} from "@codestream/protocols/agent";
-import { CSMe } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { CSMe } from "codestream-common/api-protocol";
+import React, { useEffect, useMemo, useState } from "react";
+import { FormattedMessage } from "react-intl";
+import styled from "styled-components";
+
 import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { logError } from "@codestream/webview/logger";
 import { connectProvider } from "@codestream/webview/store/providers/actions";
 import { CardView } from "@codestream/webview/Stream/CrossPostIssueControls/IssuesPane";
-import React, { useEffect, useMemo, useState } from "react";
-import { FormattedMessage } from "react-intl";
-import { useDispatch, useSelector } from "react-redux";
-import styled from "styled-components";
 import { Button } from "../src/components/Button";
 import { Checkbox } from "../src/components/Checkbox";
 import { InlineMenu } from "../src/components/controls/InlineMenu";

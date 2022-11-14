@@ -1,22 +1,6 @@
-import React, { PropsWithChildren } from "react";
-import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
-import Icon from "./Icon";
-import ScrollBox from "./ScrollBox";
-import Timestamp from "./Timestamp";
-import * as codemarkSelectors from "../store/codemarks/reducer";
-import * as userSelectors from "../store/users/reducer";
+import React from "react";
 import styled from "styled-components";
-import { includes as _includes, sortBy as _sortBy, last as _last } from "lodash-es";
-import { CodeStreamState } from "../store";
-import {
-	setCurrentCodemark,
-	setCurrentReview,
-	setCurrentCodeError,
-	closeAllPanels,
-} from "../store/context/actions";
-import { getActivity } from "../store/activityFeed/reducer";
-import { useDidMount, useIntersectionObserver, usePrevious } from "../utilities/hooks";
-import { HostApi } from "../webview-api";
+import { last as _last } from "lodash-es";
 import {
 	FetchActivityRequestType,
 	PostPlus,
@@ -27,12 +11,7 @@ import {
 	DirectoryTree,
 	ChangeDataType,
 	DidChangeDataNotificationType,
-} from "@codestream/protocols/agent";
-import { savePosts } from "../store/posts/actions";
-import { addOlderActivity } from "../store/activityFeed/actions";
-import { saveCodemarks } from "../store/codemarks/actions";
-import { safe, emptyArray } from "../utils";
-import { markStreamRead, setUserPreference } from "./actions";
+} from "codestream-common/agent-protocol";
 import {
 	CSUser,
 	CSReview,
@@ -40,12 +19,34 @@ import {
 	RepoSetting,
 	CSCodeError,
 	CSPost,
-} from "@codestream/protocols/api";
+} from "codestream-common/api-protocol";
+import { FormattedPlural } from "react-intl";
+
+import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
+import Icon from "./Icon";
+import ScrollBox from "./ScrollBox";
+import Timestamp from "./Timestamp";
+import * as codemarkSelectors from "../store/codemarks/reducer";
+import * as userSelectors from "../store/users/reducer";
+import { CodeStreamState } from "../store";
+import {
+	setCurrentCodemark,
+	setCurrentReview,
+	setCurrentCodeError,
+	closeAllPanels,
+} from "../store/context/actions";
+import { getActivity } from "../store/activityFeed/reducer";
+import { useDidMount, useIntersectionObserver, usePrevious } from "../utilities/hooks";
+import { HostApi } from "../webview-api";
+import { savePosts } from "../store/posts/actions";
+import { addOlderActivity } from "../store/activityFeed/actions";
+import { saveCodemarks } from "../store/codemarks/actions";
+import { safe, emptyArray } from "../utils";
+import { markStreamRead, setUserPreference } from "./actions";
 import { resetLastReads } from "../store/unreads/actions";
 import { PanelHeader } from "../src/components/PanelHeader";
 import { getPost, getThreadPosts } from "../store/posts/reducer";
 import Menu from "./Menu";
-import { FormattedPlural } from "react-intl";
 import { Codemark } from "./Codemark/index";
 import { Review } from "./Review";
 import { CodeError } from "./CodeError";

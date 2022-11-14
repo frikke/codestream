@@ -2,7 +2,12 @@ import {
 	ChangeDataType,
 	DidChangeDataNotificationType,
 	FetchThirdPartyPullRequestCommitsResponse,
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
+import copy from "copy-to-clipboard";
+import { groupBy, orderBy } from "lodash-es";
+import React, { useState } from "react";
+import styled from "styled-components";
+
 import { LoadingMessage } from "@codestream/webview/src/components/LoadingMessage";
 import { CodeStreamState } from "@codestream/webview/store";
 import {
@@ -10,10 +15,6 @@ import {
 	getPullRequestCommitsFromProvider,
 } from "@codestream/webview/store/providerPullRequests/thunks";
 import { useAppDispatch, useAppSelector, useDidMount } from "@codestream/webview/utilities/hooks";
-import copy from "copy-to-clipboard";
-import { groupBy, orderBy } from "lodash-es";
-import React, { useState } from "react";
-import styled from "styled-components";
 import { PRHeadshotName } from "../src/components/HeadshotName";
 import { HostApi } from "../webview-api";
 import Icon from "./Icon";

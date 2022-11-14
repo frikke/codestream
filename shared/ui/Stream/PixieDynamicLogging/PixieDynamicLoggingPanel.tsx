@@ -5,7 +5,11 @@ import {
 	PixieDynamicLoggingRequestType,
 	PixiePod,
 	TelemetryRequestType,
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
+import React, { useEffect } from "react";
+import { shallowEqual } from "react-redux";
+import styled from "styled-components";
+
 import { Button } from "@codestream/webview/src/components/Button";
 import {
 	clearDynamicLogging,
@@ -19,9 +23,6 @@ import { Clusters } from "@codestream/webview/Stream/PixieDynamicLogging/Cluster
 import { Namespaces } from "@codestream/webview/Stream/PixieDynamicLogging/Namespaces";
 import { Pods } from "@codestream/webview/Stream/PixieDynamicLogging/Pods";
 import { HostApi } from "@codestream/webview/webview-api";
-import React, { useEffect } from "react";
-import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import styled from "styled-components";
 import { Dialog } from "../../src/components/Dialog";
 import { PanelHeader } from "../../src/components/PanelHeader";
 import { CodeStreamState } from "../../store";

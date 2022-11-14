@@ -1,14 +1,15 @@
-import { GitLabMergeRequest, SwitchBranchRequestType } from "@codestream/protocols/agent";
+import { GitLabMergeRequest, SwitchBranchRequestType } from "codestream-common/agent-protocol";
+import copy from "copy-to-clipboard";
+import React, { useMemo, useState } from "react";
+import { useSelector } from "react-redux";
+import styled from "styled-components";
+
 import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { logError } from "@codestream/webview/logger";
 import { Button } from "@codestream/webview/src/components/Button";
 import { CodeStreamState } from "@codestream/webview/store";
 import { getCurrentProviderPullRequest } from "@codestream/webview/store/providerPullRequests/slice";
 import { pluralize } from "@codestream/webview/utilities/strings";
-import copy from "copy-to-clipboard";
-import React, { useMemo, useState } from "react";
-import { useSelector } from "react-redux";
-import styled from "styled-components";
 import { HostApi } from "../../../webview-api";
 import { confirmPopup } from "../../Confirm";
 import { DropdownButton } from "../../DropdownButton";

@@ -2,8 +2,8 @@
 	"compilerOptions": {
 		"baseUrl": ".",
 		"paths": {
-			"@codestream/protocols/agent": ["protocols/agent/agent.protocol.ts"],
-			"@codestream/protocols/api": ["protocols/agent/api.protocol.ts"],
+			"codestream-common/agent-protocol": ["protocols/agent/agent.protocol.ts"],
+			"codestream-common/api-protocol": ["protocols/agent/api.protocol.ts"],
 			"@codestream/protocols/webview": ["ipc/webview.protocol.ts"],
 			"@codestream/webview/webview-api": ["./webview-api.ts"],
 			"@codestream/webview/*": ["./*"],

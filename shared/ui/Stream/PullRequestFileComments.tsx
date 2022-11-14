@@ -1,8 +1,9 @@
-import { FileStatus } from "@codestream/protocols/api";
+import { FileStatus } from "codestream-common/api-protocol";
 import copy from "copy-to-clipboard";
 import { orderBy } from "lodash-es";
 import React, { PropsWithChildren, useEffect, useState } from "react";
 import styled from "styled-components";
+
 import { CodeStreamState } from "../store";
 import { getPullRequestFiles } from "../store/providerPullRequests/thunks";
 import { useAppDispatch, useAppSelector, useDidMount } from "../utilities/hooks";

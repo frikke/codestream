@@ -1,6 +1,7 @@
-import { CSPost, CSUser } from "@codestream/protocols/api";
+import { CSPost, CSUser } from "codestream-common/api-protocol";
 import { debounce as _debounce } from "lodash-es";
 import React from "react";
+
 import { findLast, rAFThrottle, safe } from "../utils";
 import Icon from "./Icon";
 import infiniteLoadable from "./infiniteLoadable";

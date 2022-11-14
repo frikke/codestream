@@ -1,11 +1,12 @@
-import { CreateTeamRequest } from "@codestream/protocols/agent";
-import { CSTeam } from "@codestream/protocols/api";
-import { switchToTeam } from "@codestream/webview/store/session/thunks";
-import { useAppDispatch } from "@codestream/webview/utilities/hooks";
+import { CreateTeamRequest } from "codestream-common/agent-protocol";
+import { CSTeam } from "codestream-common/api-protocol";
 import React from "react";
 import { FormattedMessage } from "react-intl";
 import { useSelector } from "react-redux";
 import styled from "styled-components";
+
+import { useAppDispatch } from "@codestream/webview/utilities/hooks";
+import { switchToTeam } from "@codestream/webview/store/session/thunks";
 import { TextInput } from "../Authentication/TextInput";
 import { Button } from "../src/components/Button";
 import { InlineMenu } from "../src/components/controls/InlineMenu";

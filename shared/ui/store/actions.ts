@@ -2,7 +2,9 @@ import {
 	ApiVersionCompatibility,
 	BootstrapRequestType,
 	VersionCompatibility,
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
+import { CSApiCapabilities } from "codestream-common/api-protocol";
+
 import {
 	BootstrapInHostRequestType,
 	GetActiveEditorContextRequestType,
@@ -10,7 +12,6 @@ import {
 import { updateConfigs } from "@codestream/webview/store/configs/slice";
 import { setIde } from "@codestream/webview/store/ide/slice";
 import { BootstrapInHostResponse, SignedInBootstrapData } from "../ipc/host.protocol";
-import { CSApiCapabilities } from "../protocols/agent/api.protocol.models";
 import {
 	apiCapabilitiesUpdated,
 	apiUpgradeRecommended,

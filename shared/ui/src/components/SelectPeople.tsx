@@ -1,10 +1,11 @@
-import { CSUser } from "@codestream/protocols/api";
-import { Headshot } from "@codestream/webview/src/components/Headshot";
-import { CodeStreamState } from "@codestream/webview/store";
-import { getTeamMembers } from "@codestream/webview/store/users/reducer";
+import { CSUser } from "codestream-common/api-protocol";
 import React from "react";
 import { connect } from "react-redux";
 import styled from "styled-components";
+
+import { Headshot } from "@codestream/webview/src/components/Headshot";
+import { CodeStreamState } from "@codestream/webview/store";
+import { getTeamMembers } from "@codestream/webview/store/users/reducer";
 import Menu from "../../Stream/Menu";
 
 const ClickTarget = styled.span`

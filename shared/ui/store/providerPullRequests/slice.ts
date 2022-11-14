@@ -6,8 +6,8 @@ import {
 	GetCommitsFilesResponse,
 	GetMyPullRequestsResponse,
 	GitLabMergeRequest,
-} from "@codestream/protocols/agent";
-import { CSRepository } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { CSRepository } from "codestream-common/api-protocol";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { isEmpty } from "lodash-es";
 import { createSelector } from "reselect";

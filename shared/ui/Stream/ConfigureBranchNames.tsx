@@ -1,7 +1,8 @@
-import { UpdateTeamSettingsRequestType } from "@codestream/protocols/agent";
+import { UpdateTeamSettingsRequestType } from "codestream-common/agent-protocol";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
+
 import { Button } from "../src/components/Button";
 import { Checkbox } from "../src/components/Checkbox";
 import { ButtonRow, Dialog } from "../src/components/Dialog";

@@ -4,7 +4,7 @@ import {
 	DocumentMarker,
 	FollowCodemarkRequestType,
 	MarkerNotLocated,
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
 import {
 	CodemarkStatus,
 	CodemarkType,
@@ -13,7 +13,14 @@ import {
 	CSPost,
 	CSReview,
 	CSUser,
-} from "@codestream/protocols/api";
+} from "codestream-common/api-protocol";
+import cx from "classnames";
+import { isNil } from "lodash-es";
+import React from "react";
+import { connect } from "react-redux";
+import { Range } from "vscode-languageserver-protocol";
+
+import { deleteCodemark, editCodemark } from "@codestream/webview/store/codemarks/thunks";
 import {
 	EditorHighlightRangeRequest,
 	EditorHighlightRangeRequestType,
@@ -22,12 +29,6 @@ import {
 	EditorSelectRangeRequestType,
 	OpenUrlRequestType,
 } from "@codestream/protocols/webview";
-import { deleteCodemark, editCodemark } from "@codestream/webview/store/codemarks/thunks";
-import cx from "classnames";
-import { isNil } from "lodash-es";
-import React from "react";
-import { connect } from "react-redux";
-import { Range } from "vscode-languageserver-protocol";
 import { HeadshotName } from "../src/components/HeadshotName";
 import { CodeStreamState } from "../store";
 import { isFeatureEnabled } from "../store/apiVersioning/reducer";

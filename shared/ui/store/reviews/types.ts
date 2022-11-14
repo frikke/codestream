@@ -1,4 +1,5 @@
-import { CSReview } from "@codestream/protocols/api";
+import { CSReview } from "codestream-common/api-protocol";
+
 import { Index } from "../common";
 
 export enum ReviewsActionsTypes {

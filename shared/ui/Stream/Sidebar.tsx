@@ -1,12 +1,13 @@
-import { HostApi } from "@codestream/webview/webview-api";
 import cx from "classnames";
 import React, { useEffect, useMemo, useState } from "react";
 import Draggable from "react-draggable";
 import { shallowEqual } from "react-redux";
 import styled from "styled-components";
+import { GetReposScmRequestType, ReposScm } from "codestream-common/agent-protocol";
+
 import { HostDidChangeWorkspaceFoldersNotificationType } from "../ipc/host.protocol.notifications";
 import { WebviewPanels } from "../ipc/webview.protocol.common";
-import { GetReposScmRequestType, ReposScm } from "../protocols/agent/agent.protocol.scm";
+import { HostApi } from "@codestream/webview/webview-api";
 import { Pane, PaneState } from "../src/components/Pane";
 import { CodeStreamState } from "../store";
 import { getConnectedSupportedPullRequestHosts } from "../store/providers/reducer";

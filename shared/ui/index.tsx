@@ -20,8 +20,8 @@ import {
 	ThirdPartyProviders,
 	VerifyConnectivityRequestType,
 	VersionCompatibility,
-} from "@codestream/protocols/agent";
-import { CodemarkType, CSApiCapabilities, CSCodeError, CSMe } from "@codestream/protocols/api";
+} from "codestream-common/agent-protocol";
+import { CodemarkType, CSApiCapabilities, CSCodeError, CSMe } from "codestream-common/api-protocol";
 import React from "react";
 import * as path from "path-browserify";
 import { render } from "react-dom";

@@ -1,5 +1,6 @@
 "use strict";
 import * as qs from "querystring";
+
 import {
 	CreateThirdPartyCardRequest,
 	FetchThirdPartyBoardsRequest,
@@ -14,8 +15,9 @@ import {
 	TrelloCreateCardRequest,
 	TrelloCreateCardResponse,
 	TrelloMember,
-} from "../protocol/agent.protocol";
-import { CSTrelloProviderInfo } from "../protocol/api.protocol";
+} from "codestream-common/agent-protocol";
+import { CSTrelloProviderInfo } from "codestream-common/api-protocol";
+
 import { log, lspProvider } from "../system";
 import { ThirdPartyIssueProviderBase } from "./thirdPartyIssueProviderBase";
 

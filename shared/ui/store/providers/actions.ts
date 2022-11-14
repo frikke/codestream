@@ -6,7 +6,8 @@ import {
 	ProviderConfigurationData,
 	RemoveEnterpriseProviderRequestType,
 	TelemetryRequestType,
-} from "@codestream/protocols/agent";
+} from "codestream-common/agent-protocol";
+
 import { getUserProviderInfo } from "@codestream/webview/store/providers/utils";
 import {
 	ConnectToIDEProviderRequestType,
