@@ -848,12 +848,12 @@ export const OpenPullRequests = React.memo((props: Props) => {
 
 			// branch is in a fork
 			const isFork =
-				prToCheckout.headRepository.isFork ||
-				!prToCheckout.url.includes(prToCheckout.headRepository.nameWithOwner);
+				prToCheckout.headRepository?.isFork ||
+				!prToCheckout.url.includes(prToCheckout.headRepository?.nameWithOwner);
 
 			const headRepositoryLabel =
-				prToCheckout.headRepository.nameWithOwner ??
-				`${prToCheckout.headRepositoryOwner.login}/${prToCheckout.headRepository.name}`;
+				prToCheckout.headRepository?.nameWithOwner ??
+				`${prToCheckout.headRepositoryOwner.login}/${prToCheckout.headRepository?.name}`;
 
 			if (isFork) {
 				return `The source branch for this PR is located on the ${headRepositoryLabel} fork`;
