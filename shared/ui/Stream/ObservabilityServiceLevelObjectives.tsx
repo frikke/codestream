@@ -21,7 +21,7 @@ export const ObjectiveRow = (props: {
 	objectiveTimeWindow: string;
 	url?: string;
 }) => {
-	const sloColor = props.objectiveResult === "UNDER" ? "rgb(188,20,24)" : "green";
+	const sloColor = props.objectiveResult === "UNDER" ? "rgb(188,20,24)" : "#6a6";
 
 	return (
 		<Row className="pr-row" style={{ padding: "0 10px 0 40px" }}>
