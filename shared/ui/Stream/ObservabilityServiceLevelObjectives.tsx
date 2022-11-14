@@ -27,7 +27,9 @@ export const ObjectiveRow = (props: {
 		<Row className="pr-row" style={{ padding: "0 10px 0 40px" }}>
 			<div></div>
 			<div>
-				<span>{props.objectiveName}</span>
+				<Tooltip delay={1} placement="bottom" title={props.objectiveName}>
+					<span>{props.objectiveName}</span>
+				</Tooltip>
 			</div>
 			<div className="icons">
 				{props.url && (
@@ -90,7 +92,7 @@ export const ObservabilityServiceLevelObjectives = React.memo((props: Props) => 
 			>
 				{expanded && <Icon name="chevron-down-thin" />}
 				{!expanded && <Icon name="chevron-right-thin" />}
-				<span style={{ marginRight: "5px" }}>Service Level Objectives</span>
+				<span style={{ marginLeft: "2px", marginRight: "5px" }}>Service Level Objectives</span>
 				{showWarningIcon && (
 					<Icon
 						name="alert"
