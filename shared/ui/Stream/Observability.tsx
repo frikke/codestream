@@ -18,18 +18,18 @@ import {
 	ObservabilityRepoError,
 	ServiceLevelObjectiveResult,
 } from "@codestream/protocols/agent";
-import {
-	HostDidChangeWorkspaceFoldersNotificationType,
-	OpenUrlRequestType,
-} from "@codestream/protocols/webview";
-import { RefreshEditorsCodeLensRequestType } from "@codestream/webview/ipc/host.protocol";
-import { CurrentMethodLevelTelemetry } from "@codestream/webview/store/context/types";
 import cx from "classnames";
 import { head as _head, isEmpty, isEmpty as _isEmpty, isNil as _isNil } from "lodash-es";
 import React, { useEffect, useState } from "react";
 import { shallowEqual } from "react-redux";
 import styled from "styled-components";
 
+import { CurrentMethodLevelTelemetry } from "@codestream/webview/store/context/types";
+import { RefreshEditorsCodeLensRequestType } from "@codestream/webview/ipc/host.protocol";
+import {
+	HostDidChangeWorkspaceFoldersNotificationType,
+	OpenUrlRequestType,
+} from "@codestream/protocols/webview";
 import { ObservabilityServiceLevelObjectives } from "@codestream/webview/Stream/ObservabilityServiceLevelObjectives";
 import { HealthIcon } from "@codestream/webview/src/components/HealthIcon";
 import { WebviewPanels } from "../ipc/webview.protocol.common";
@@ -64,6 +64,7 @@ import { ObservabilityAddAdditionalService } from "./ObservabilityAddAdditionalS
 import { ObservabilityCurrentRepo } from "./ObservabilityCurrentRepo";
 import { ObservabilityErrorWrapper } from "./ObservabilityErrorWrapper";
 import { ObservabilityGoldenMetricDropdown } from "./ObservabilityGoldenMetricDropdown";
+import { ObservabilityRelatedWrapper } from "@codestream/webview/Stream/ObservabilityRelatedWrapper";
 import Timestamp from "./Timestamp";
 import Tooltip from "./Tooltip";
 import { WarningBox } from "./WarningBox";
@@ -1113,6 +1114,14 @@ export const Observability = React.memo((props: Props) => {
 																									/>
 																								</>
 																							)}
+																							{
+																								<>
+																									<ObservabilityRelatedWrapper
+																										currentRepoId={currentRepoId}
+																										entityGuid={ea.entityGuid}
+																									/>
+																								</>
+																							}
 																							{
 																								<>
 																									{observabilityErrors?.find(

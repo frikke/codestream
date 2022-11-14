@@ -1,18 +1,64 @@
 import { ServiceLevelObjectiveResult } from "@codestream/protocols/agent";
+import React, { useState } from "react";
+import { shallowEqual } from "react-redux";
+
 import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { CodeStreamState } from "@codestream/webview/store";
 import Tooltip from "@codestream/webview/Stream/Tooltip";
 import { useAppSelector } from "@codestream/webview/utilities/hooks";
 import { HostApi } from "@codestream/webview/webview-api";
-import cx from "classnames";
-import React, { useState } from "react";
-import { shallowEqual } from "react-redux";
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import Icon from "./Icon";
 
 interface Props {
 	serviceLevelObjectives: ServiceLevelObjectiveResult[];
 }
+
+export const ObjectiveRow = (props: {
+	objectiveName: string;
+	objectiveResult: string;
+	objectiveActual: string;
+	objectiveTimeWindow: string;
+	url?: string;
+}) => {
+	const sloColor = props.objectiveResult === "UNDER" ? "rgb(188,20,24)" : "#6a6";
+
+	return (
+		<Row className="pr-row" style={{ padding: "0 10px 0 40px" }}>
+			<div></div>
+			<div>
+				<span>{props.objectiveName}</span>
+			</div>
+			<div className="icons">
+				{props.url && (
+					<span
+						onClick={e => {
+							e.preventDefault();
+							e.stopPropagation();
+							HostApi.instance.send(OpenUrlRequestType, {
+								url: `${props.url}`,
+							});
+						}}
+					>
+						<Icon
+							name="globe"
+							className="clickable"
+							title="View on New Relic"
+							placement="bottomLeft"
+							delay={1}
+						/>
+					</span>
+				)}
+
+				<Tooltip delay={1} placement="bottom">
+					<span style={{ color: `${sloColor}`, paddingLeft: "5px" }} className={"status"}>
+						{props.objectiveActual}% last {props.objectiveTimeWindow}
+					</span>
+				</Tooltip>
+			</div>
+		</Row>
+	);
+};
 
 export const ObservabilityServiceLevelObjectives = React.memo((props: Props) => {
 	const [expanded, setExpanded] = useState<boolean>(false);
@@ -44,11 +90,11 @@ export const ObservabilityServiceLevelObjectives = React.memo((props: Props) => 
 			>
 				{expanded && <Icon name="chevron-down-thin" />}
 				{!expanded && <Icon name="chevron-right-thin" />}
-				<span style={{ marginLeft: "2px" }}>Service Level Objectives</span>
+				<span style={{ marginRight: "5px" }}>Service Level Objectives</span>
 				{showWarningIcon && (
 					<Icon
 						name="alert"
-						style={{ marginLeft: "2px", color: "red" }}
+						style={{ color: "rgb(188,20,24)" }}
 						className="alert"
 						title={warningTooltip}
 						delay={1}
@@ -59,53 +105,13 @@ export const ObservabilityServiceLevelObjectives = React.memo((props: Props) => 
 				<>
 					{serviceLevelObjectives.map((slo, index) => {
 						return (
-							<Row
-								style={{
-									padding: "0 10px 0 42px",
-								}}
-								className={"pr-row"}
-							>
-								<div>
-									<span style={{ marginRight: "5px" }}>{slo.name}</span>
-								</div>
-
-								<div className="icons" style={{ textAlign: "left" }}>
-									{slo.summaryPageUrl && (
-										<Icon
-											onClick={e => {
-												e.preventDefault();
-												e.stopPropagation();
-												HostApi.instance.send(OpenUrlRequestType, {
-													url: `${slo.summaryPageUrl}`,
-												});
-											}}
-											name="globe"
-											className={cx("clickable", {
-												"icon-override-actions-visible": true,
-											})}
-											style={{ marginLeft: 0 }}
-											title="View on New Relic"
-											placement="bottomLeft"
-											delay={1}
-										/>
-									)}
-								</div>
-
-								<div>
-									<Tooltip placement="topRight" delay={1}>
-										{slo.result === "UNDER" && (
-											<span style={{ color: "red" }}>
-												{slo.actual}% last {slo.timeWindow}
-											</span>
-										)}
-										{slo.result === "OVER" && (
-											<span style={{ color: "green" }}>
-												{slo.actual}% last {slo.timeWindow}
-											</span>
-										)}
-									</Tooltip>
-								</div>
-							</Row>
+							<ObjectiveRow
+								objectiveResult={slo.result}
+								objectiveName={slo.name}
+								objectiveActual={slo.actual}
+								objectiveTimeWindow={slo.timeWindow}
+								url={slo.summaryPageUrl}
+							/>
 						);
 					})}
 				</>
