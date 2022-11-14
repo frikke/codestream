@@ -24,39 +24,35 @@ export const ObjectiveRow = (props: {
 	const sloColor = props.objectiveResult === "UNDER" ? "rgb(188,20,24)" : "#6a6";
 
 	return (
-		<Row className="pr-row" style={{ padding: "0 10px 0 40px" }}>
-			<div></div>
+		<Row className={"pr-row"} style={{ padding: "0 10px 0 40px" }}>
 			<div>
 				<Tooltip delay={1} placement="bottom" title={props.objectiveName}>
 					<span>{props.objectiveName}</span>
 				</Tooltip>
 			</div>
-			<div className="icons">
-				{props.url && (
-					<span
-						onClick={e => {
-							e.preventDefault();
-							e.stopPropagation();
-							HostApi.instance.send(OpenUrlRequestType, {
-								url: `${props.url}`,
-							});
-						}}
-					>
-						<Icon
-							name="globe"
-							className="clickable"
-							title="View on New Relic"
-							placement="bottomLeft"
-							delay={1}
-						/>
-					</span>
-				)}
 
-				<Tooltip delay={1} placement="bottom">
-					<span style={{ color: `${sloColor}`, paddingLeft: "5px" }} className={"status"}>
-						{props.objectiveActual}% last {props.objectiveTimeWindow}
-					</span>
-				</Tooltip>
+			<div className={"icons"}>
+				<span
+					onClick={e => {
+						e.preventDefault();
+						e.stopPropagation();
+						HostApi.instance.send(OpenUrlRequestType, {
+							url: `${props.url}`,
+						});
+					}}
+				>
+					<Icon
+						name="globe"
+						className="clickable"
+						title="View on New Relic"
+						placement="bottomLeft"
+						delay={1}
+					/>
+				</span>
+
+				<span style={{ color: `${sloColor}`, paddingLeft: "5px" }}>
+					{props.objectiveActual}% last {props.objectiveTimeWindow}
+				</span>
 			</div>
 		</Row>
 	);
