@@ -16,8 +16,10 @@ namespace CodeStream.VisualStudio.Shared.Services {
 		/// Normally, ToUpperInvariant is better -- but we should be ok, as this is a 1-way transform
 		/// >https://docs.microsoft.com/en-us/visualstudio/code-quality/ca1308-normalize-strings-to-uppercase?view=vs-2017
 		/// </remarks>
-		protected virtual string FormatKey(string uri, string email, string teamId) 
-			=> $"{uri}|{email}|{teamId}".ToLowerInvariant();
+		protected virtual string FormatKey(string uri, string email, string teamId = null) 
+			=> (string.IsNullOrEmpty(teamId) 
+				? $"{uri}|{email}" 
+				: $"{uri}|{email}|{teamId}").ToLowerInvariant();
 
 		protected virtual string GetKey(string key) => $"{Application.Name}|" + key;
 
@@ -26,7 +28,6 @@ namespace CodeStream.VisualStudio.Shared.Services {
 
 			Guard.ArgumentNotNull(uri, nameof(uri));
 			Guard.ArgumentNotNull(email, nameof(email));
-			Guard.ArgumentNotNull(teamId, nameof(teamId));
 
 			Tuple<string, string, string> result = null;
 
@@ -45,12 +46,12 @@ namespace CodeStream.VisualStudio.Shared.Services {
 			return Task.FromResult(result);
 		}	 
 
-		protected Task<JToken> LoadJsonAsync(string uri, string email, string teamId){
+		protected Task<JToken> LoadJsonAsync(string uri, string email, string teamId)
+		{
 			Log.Debug(nameof(LoadJsonAsync));
 
 			Guard.ArgumentNotNull(uri, nameof(uri));
 			Guard.ArgumentNotNull(email, nameof(email));
-			Guard.ArgumentNotNull(teamId, nameof(teamId));
 
 			JToken result = null;
 
@@ -80,8 +81,7 @@ namespace CodeStream.VisualStudio.Shared.Services {
 
 			Guard.ArgumentNotNull(uri, nameof(uri));
 			Guard.ArgumentNotNull(email, nameof(email));
-			Guard.ArgumentNotNull(teamId, nameof(teamId));
-
+			
 			try {
 				Credential.Save(GetKey(FormatKey(uri, email, teamId)), userName, secret);
 				return Task.FromResult(true);
@@ -98,7 +98,6 @@ namespace CodeStream.VisualStudio.Shared.Services {
 
 			Guard.ArgumentNotNull(uri, nameof(uri));
 			Guard.ArgumentNotNull(email, nameof(email));
-			Guard.ArgumentNotNull(teamId, nameof(teamId));
 
 			try {
 				Credential.Save(GetKey(FormatKey(uri, email, teamId)), userName, secret);
@@ -116,7 +115,6 @@ namespace CodeStream.VisualStudio.Shared.Services {
 
 			Guard.ArgumentNotNull(uri, nameof(uri));
 			Guard.ArgumentNotNull(email, nameof(email));
-			Guard.ArgumentNotNull(teamId, nameof(teamId));
 
 			try {
 				Credential.Delete(GetKey(FormatKey(uri, email, teamId)));

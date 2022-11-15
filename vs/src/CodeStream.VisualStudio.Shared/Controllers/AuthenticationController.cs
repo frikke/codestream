@@ -57,9 +57,8 @@ namespace CodeStream.VisualStudio.Shared.Controllers {
 			try {
 				if (
 					!_codeStreamSettingsManager.AutoSignIn 
-					|| _codeStreamSettingsManager.Email.IsNullOrWhiteSpace()
-					|| _codeStreamSettingsManager.Team.IsNullOrWhiteSpace()) {
-					Log.Debug("AutoSignIn, Email, or Team is missing");
+					|| _codeStreamSettingsManager.Email.IsNullOrWhiteSpace()) {
+					Log.Debug("AutoSignIn or Email is missing");
 					return false;
 				}
 
@@ -182,7 +181,8 @@ namespace CodeStream.VisualStudio.Shared.Controllers {
 				response.ErrorMessage = error.Value<string>();
 			}
 			else if (loginResponse != null) {
-				response.Email = GetEmail(loginResponse).ToString();
+				response.Email = GetEmail(loginResponse);
+				response.TeamId = GetTeamId(loginResponse);
 
 				// don't want all the data in state -- some is sensitive
 				var state = GetState(loginResponse);
@@ -205,7 +205,7 @@ namespace CodeStream.VisualStudio.Shared.Controllers {
 
 			var availableTeams = (token?["loginResponse"]?["teams"]?.ToObject<List<CsTeam>>()
 			                      ?? Enumerable.Empty<CsTeam>()).ToList();
-			var currentTeam = availableTeams.FirstOrDefault(_ => _.Id == teamId);
+			var currentTeam = availableTeams.FirstOrDefault(_ => _.Id == teamId.ToString());
 
 			var availableCompanies = (token?["loginResponse"]?["companies"]?.ToObject<List<CsCompany>>()
 			                      ?? Enumerable.Empty<CsCompany>()).ToList();
@@ -215,13 +215,13 @@ namespace CodeStream.VisualStudio.Shared.Controllers {
 		}
 
 		private static string GetTeamId(JToken token) 
-			=> token?["state"]["teamId"].Value<string>();
+			=> token?["state"]?["token"]?["teamId"]?.ToString();
 
 		private static JToken GetState(JToken token) 
 			=> token?["state"];
 
-		private static JToken GetEmail(JToken token) 
-			=> token?["loginResponse"]?["user"]?["email"];
+		private static string GetEmail(JToken token) 
+			=> token?["loginResponse"]?["user"]?["email"]?.ToString();
 
 		private static JToken GetAccessToken(JToken token) 
 			=> token?["state"]?["token"];
