@@ -24,14 +24,15 @@ import React, { useEffect, useState } from "react";
 import { shallowEqual } from "react-redux";
 import styled from "styled-components";
 
-import { CurrentMethodLevelTelemetry } from "@codestream/webview/store/context/types";
-import { RefreshEditorsCodeLensRequestType } from "@codestream/webview/ipc/host.protocol";
 import {
 	HostDidChangeWorkspaceFoldersNotificationType,
 	OpenUrlRequestType,
 } from "@codestream/protocols/webview";
-import { ObservabilityServiceLevelObjectives } from "@codestream/webview/Stream/ObservabilityServiceLevelObjectives";
+import { RefreshEditorsCodeLensRequestType } from "@codestream/webview/ipc/host.protocol";
 import { HealthIcon } from "@codestream/webview/src/components/HealthIcon";
+import { CurrentMethodLevelTelemetry } from "@codestream/webview/store/context/types";
+import { ObservabilityRelatedWrapper } from "@codestream/webview/Stream/ObservabilityRelatedWrapper";
+import { ObservabilityServiceLevelObjectives } from "@codestream/webview/Stream/ObservabilityServiceLevelObjectives";
 import { WebviewPanels } from "../ipc/webview.protocol.common";
 import { Button } from "../src/components/Button";
 import {
@@ -64,7 +65,6 @@ import { ObservabilityAddAdditionalService } from "./ObservabilityAddAdditionalS
 import { ObservabilityCurrentRepo } from "./ObservabilityCurrentRepo";
 import { ObservabilityErrorWrapper } from "./ObservabilityErrorWrapper";
 import { ObservabilityGoldenMetricDropdown } from "./ObservabilityGoldenMetricDropdown";
-import { ObservabilityRelatedWrapper } from "@codestream/webview/Stream/ObservabilityRelatedWrapper";
 import Timestamp from "./Timestamp";
 import Tooltip from "./Tooltip";
 import { WarningBox } from "./WarningBox";
@@ -683,7 +683,7 @@ export const Observability = React.memo((props: Props) => {
 			Object.keys(loadingErrors).some(k => !loadingErrors[k]) &&
 			!loadingAssigments
 		) {
-			let currentRepoErrors = observabilityErrors.find(_ => _.repoId === currentRepoId)?.errors;
+			let currentRepoErrors = observabilityErrors?.find(_ => _.repoId === currentRepoId)?.errors;
 			let filteredCurrentRepoErrors = currentRepoErrors?.filter(_ => _.entityId === expandedEntity);
 			let filteredAssigments = observabilityAssignments?.filter(_ => _.entityId === expandedEntity);
 
