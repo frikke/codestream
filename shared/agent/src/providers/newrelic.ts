@@ -3040,13 +3040,11 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			return "Unknown Time Window";
 		}
 
-		let lowerUnit = unit?.toLocaleLowerCase();
-
-		if (count === 0 || count >= 2) {
-			lowerUnit += "s";
-		}
-
-		return `${count} ${lowerUnit}`;
+		return `${count}${unit
+			?.toLocaleLowerCase()
+			.replace("day", "d")
+			.replace("month", "m")
+			.replace("year", "y")}`;
 	}
 
 	@log()

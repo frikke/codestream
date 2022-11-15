@@ -1377,6 +1377,7 @@ export const Row = styled.div`
 	}
 	&:hover:not(.review) .status,
 	&:hover:not(.review) time,
+	&:hover:not(.review) .slo-time,
 	&:hover:not(.review) .badge {
 		display: none;
 	}
