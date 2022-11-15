@@ -4,19 +4,20 @@ import {
 	GetReposScmRequestType,
 	ReposScm,
 } from "@codestream/protocols/agent";
+import * as path from "path-browserify";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
+import styled from "styled-components";
+import { Range } from "vscode-languageserver-types";
+
+import { HostApi } from "@codestream/webview/webview-api";
+import { CodeStreamState } from "@codestream/webview/store";
 import {
 	CompareLocalFilesRequest,
 	EditorRevealRangeRequestType,
 	ShowNextChangedFileNotificationType,
 	ShowPreviousChangedFileNotificationType,
 } from "@codestream/protocols/webview";
-import { CodeStreamState } from "@codestream/webview/store";
-import { HostApi } from "@codestream/webview/webview-api";
-import * as path from "path-browserify";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useSelector } from "react-redux";
-import styled from "styled-components";
-import { Range } from "vscode-languageserver-types";
 import { CompareLocalFilesRequestType } from "../ipc/host.protocol";
 import { logError } from "../logger";
 import { parseCodeStreamDiffUri } from "../store/codemarks/actions";
@@ -108,6 +109,9 @@ export const PullRequestFilesChanged = (props: Props) => {
 			parsedDiffUri,
 			userId,
 			repos: state.repos,
+			// FIXME each provider has a different shape. We made the GL response
+			// conform to the GH object, since repository was under
+			// project.mergeRequest.repository.
 			prRepoId: currentPullRequest?.conversations?.repository?.prRepoId,
 			numFiles: props.filesChanged.length,
 			isInVscode: state.ide.name === "VSC",

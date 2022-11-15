@@ -1,13 +1,15 @@
 "use strict";
+import * as qs from "querystring";
+import * as nodeUrl from "url";
+
 import { parsePatch } from "diff";
 import { print } from "graphql";
 import { GraphQLClient } from "graphql-request";
 import { groupBy, merge } from "lodash";
 import { Response } from "node-fetch";
-import * as qs from "querystring";
 import semver from "semver";
-import * as nodeUrl from "url";
 import { URI } from "vscode-uri";
+
 import { InternalError, ReportSuppressedMessages } from "../agentError";
 import { Container, SessionContainer } from "../container";
 import { GitRemoteLike } from "../git/models/remote";
@@ -1427,7 +1429,10 @@ export class GitLabProvider
 			);
 
 			this._pullRequestCache.set(request.pullRequestId, response);
-			response.project.mergeRequest.repository;
+			// FIXME the webview is not accounting for different shapes
+			// of PR/MR objects for each provider, so we're conforming to what GH does
+			// See FIXME in PullRequestFilesChanged.tsx
+			response.repository = response.project.mergeRequest.repository;
 		} catch (ex) {
 			Logger.error(ex, "getMergeRequest", {
 				...request,

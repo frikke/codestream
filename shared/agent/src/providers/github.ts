@@ -1,12 +1,14 @@
 "use strict";
+import { performance } from "perf_hooks";
+import * as qs from "querystring";
+
 import { GraphQLClient } from "graphql-request";
 import { isEmpty as _isEmpty } from "lodash";
 import { Headers, Response } from "node-fetch";
-import { performance } from "perf_hooks";
-import * as qs from "querystring";
 import semver from "semver";
-import { CodeStreamSession } from "session";
 import { URI } from "vscode-uri";
+
+import { CodeStreamSession } from "session";
 import { InternalError, ReportSuppressedMessages } from "../agentError";
 import { Container, SessionContainer } from "../container";
 import { GitRemoteLike } from "../git/models/remote";
@@ -527,7 +529,6 @@ export class GitHubProvider
 				} while (url);
 			} catch (err) {
 				Logger.error(err);
-				debugger;
 			}
 			userRepos.sort((b1, b2) => b1.full_name.localeCompare(b2.full_name));
 			boards.push(

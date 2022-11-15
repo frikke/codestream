@@ -81,6 +81,12 @@ export interface GitLabMergeRequestWrapper {
 		mergeMethod?: "ff" | "rebase_merge" | "merge" | string | undefined;
 		mergeRequest: GitLabMergeRequest;
 	};
+	repository: {
+		name: string;
+		nameWithOwner: string;
+		url: string;
+		prRepoId?: string;
+	};
 }
 
 export interface Note {

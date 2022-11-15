@@ -1,8 +1,10 @@
 "use strict";
-import { GitRemoteLike } from "git/gitService";
-import { flatten } from "lodash";
 import * as qs from "querystring";
+
+import { flatten } from "lodash";
 import { URI } from "vscode-uri";
+
+import { GitRemoteLike } from "git/gitService";
 import { SessionContainer } from "../container";
 import { toRepoName } from "../git/utils";
 import { Logger } from "../logger";
@@ -862,6 +864,8 @@ export class BitbucketProvider
 				repository: {
 					id: pr.body.id + "",
 					url: pr.body.source?.repository?.links?.html?.href,
+					// FIXME - we made it conform to GH's PR shape - see PullRequestFilesChanged.tsx
+					prRepoId: currentRepo?.id,
 					// TODO start
 					resourcePath: "",
 					rebaseMergeAllowed: true,
