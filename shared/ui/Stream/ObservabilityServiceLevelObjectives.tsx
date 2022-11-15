@@ -49,10 +49,9 @@ export const ObjectiveRow = (props: {
 						delay={1}
 					/>
 				</span>
-
-				<span style={{ color: `${sloColor}`, paddingLeft: "5px" }}>
+				<time style={{ color: `${sloColor}`, paddingLeft: "5px" }}>
 					{props.objectiveActual}% last {props.objectiveTimeWindow}
-				</span>
+				</time>
 			</div>
 		</Row>
 	);
