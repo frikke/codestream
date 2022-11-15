@@ -66,7 +66,8 @@ class SettingsService(val project: Project) : PersistentStateComponent<SettingsS
     }
 
     fun credentialAttributes(includeTeam: Boolean = true): CredentialAttributes {
-        val teamSuffix = if (includeTeam && state.teamId != null) state.teamId.let { "|${it}" } else ""
+        val teamId = state.teamId ?: applicationSettings.state.teamId
+        val teamSuffix = if (includeTeam && teamId != null) teamId.let { "|${it}" } else ""
         val serviceName = generateServiceName("CodeStream", applicationSettings.state.serverUrl + teamSuffix)
         val userName = applicationSettings.state.email
         return CredentialAttributes(serviceName, userName)
@@ -85,6 +86,7 @@ class SettingsService(val project: Project) : PersistentStateComponent<SettingsS
             clearWebViewContext()
             project.sessionService?.logout() // clear out project.sessionService?.userLoggedIn?.team?.id
             state.teamId = null
+            applicationSettings.state.teamId = null
         }
         GlobalScope.launch {
             try {

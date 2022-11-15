@@ -83,6 +83,7 @@ class AuthenticationService(val project: Project) {
             return if (loginResult.error != null) {
                 logger.warn(loginResult.error)
                 settings.state.teamId = null
+                appSettings.state.teamId = null
                 saveAccessToken(null)
                 logger.info("Auto sign-in failed: ${loginResult.error}")
                 false
@@ -102,6 +103,7 @@ class AuthenticationService(val project: Project) {
             result.state?.let {
                 mergedCapabilities = extensionCapabilities.merge(it.capabilities)
                 project.settingsService?.state?.teamId = it.teamId
+                appSettings.state.teamId = it.teamId
                 saveAccessToken(it.token)
             }
             project.sessionService?.login(result.userLoggedIn, result.eligibleJoinCompanies)
@@ -117,6 +119,7 @@ class AuthenticationService(val project: Project) {
         agent.restart(newServerUrl)
         saveAccessToken(null)
         settings.state.teamId = null
+        appSettings.state.teamId = null
     }
 
     fun onApiVersionChanged(notification: DidChangeApiVersionCompatibilityNotification) {

@@ -57,6 +57,7 @@ data class ApplicationSettingsServiceState(
     var createReviewOnCommit: Boolean = true,
     var showGoldenSignalsInEditor: Boolean = true,
     var goldenSignalsInEditorFormat: String = DEFAULT_GOLDEN_SIGNALS_FORMAT,
+    var teamId: String? = null
 )
 
 @State(name = "CodeStream", storages = [Storage("codestream.xml")])
