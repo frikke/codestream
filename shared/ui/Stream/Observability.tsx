@@ -683,14 +683,24 @@ export const Observability = React.memo((props: Props) => {
 			Object.keys(loadingErrors).some(k => !loadingErrors[k]) &&
 			!loadingAssigments
 		) {
-			let currentRepoErrors = observabilityErrors?.find(_ => _.repoId === currentRepoId)?.errors;
-			let filteredCurrentRepoErrors = currentRepoErrors?.filter(_ => _.entityId === expandedEntity);
-			let filteredAssigments = observabilityAssignments?.filter(_ => _.entityId === expandedEntity);
+			try {
+				let currentRepoErrors = observabilityErrors?.find(
+					_ => _ && _.repoId === currentRepoId
+				)?.errors;
+				let filteredCurrentRepoErrors = currentRepoErrors?.filter(
+					_ => _.entityId === expandedEntity
+				);
+				let filteredAssigments = observabilityAssignments?.filter(
+					_ => _.entityId === expandedEntity
+				);
 
-			HostApi.instance.track("NR Service Clicked", {
-				"Errors Listed": !_isEmpty(filteredCurrentRepoErrors) || !_isEmpty(filteredAssigments),
-			});
-			setPendingTelemetryCall(false);
+				HostApi.instance.track("NR Service Clicked", {
+					"Errors Listed": !_isEmpty(filteredCurrentRepoErrors) || !_isEmpty(filteredAssigments),
+				});
+				setPendingTelemetryCall(false);
+			} catch (ex) {
+				console.error(ex);
+			}
 		}
 	}, [loadingErrors, loadingAssigments]);
 
