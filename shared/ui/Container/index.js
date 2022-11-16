@@ -1,10 +1,11 @@
 import { WebviewErrorRequestType } from "@codestream/protocols/agent";
-import { errorDismissed } from "@codestream/webview/store/connectivity/actions";
 import PropTypes from "prop-types";
 import React from "react";
 import { IntlProvider } from "react-intl";
 import { connect, Provider } from "react-redux";
 import { ThemeProvider } from "styled-components";
+
+import { errorDismissed } from "@codestream/webview/store/connectivity/actions";
 import { UnauthenticatedRoutes } from "../Authentication";
 import { ReloadWebviewRequestType, RestartRequestType } from "../ipc/webview.protocol";
 import { logError } from "../logger";
@@ -63,16 +64,8 @@ const getIdeInstallationInstructions = props => {
 		} else if (props.ide === "VS") {
 			specifics = (
 				<p>
-					Go to Extensions &gt; Manage Extensions in VS 2019 (or Tools &gt; Extensions and Updates
-					in 2017) and then select Updates in the left pane. Select CodeStream in the middle pane,
-					and then click Update.
-				</p>
-			);
-		} else if (props.ide === "ATOM") {
-			specifics = (
-				<p>
-					In the Settings/Preferences page, select Packages and then look for the Update button in
-					the CodeStream entry in the Installed Packages section.
+					Go to Extensions &gt; Manage Extensions and then select Updates in the left pane. Select
+					CodeStream in the middle pane, and then click Update.
 				</p>
 			);
 		}
