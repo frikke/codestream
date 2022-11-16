@@ -1896,9 +1896,11 @@ export const GetSecurityIssuesForEntityType = new RequestType<
 export type GetLibraryDetailsRequest = {
 	entityGuid: string;
 	accountId: number;
+	severityFilter?: Array<RiskSeverity>;
+	rows?: number | "all";
 };
 
-export type Vulns = {
+export type Vuln = {
 	remediation: Array<string>;
 	issueId: string; // cve
 	title: string;
@@ -1913,7 +1915,7 @@ export type LibraryDetails = {
 	version: string;
 	highestScore: number;
 	language?: string;
-	vulns: Array<Vulns>;
+	vulns: Array<Vuln>;
 };
 
 export type GetLibraryDetailsResponse = {
