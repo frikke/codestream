@@ -8,6 +8,7 @@ import {
 import { isEmpty, lowerCase } from "lodash-es";
 import React, { useState } from "react";
 
+import { ErrorRow } from "@codestream/webview/Stream/Observability";
 import { MarkdownText } from "@codestream/webview/Stream/MarkdownText";
 import { Modal } from "@codestream/webview/Stream/Modal";
 import { InlineMenu, MenuItem } from "@codestream/webview/src/components/controls/InlineMenu";
@@ -23,9 +24,9 @@ interface Props {
 }
 
 const severityColorMap: Record<RiskSeverity, string> = {
-	CRITICAL: "#aa0000",
-	HIGH: "#aa0000",
-	MEDIUM: "#ee8608",
+	CRITICAL: "#f52222",
+	HIGH: "#F5554B",
+	MEDIUM: "#F0B400",
 	INFO: "#0776e5",
 	LOW: "#0776e5",
 	UNKNOWN: "#ee8608",
@@ -189,8 +190,7 @@ export const SecurityIssuesWrapper = React.memo((props: Props) => {
 		}
 	}
 
-	// const additional = data ? data.totalRecords - data.recordCount : undefined;
-	const additional = 5;
+	const additional = data ? data.totalRecords - data.recordCount : undefined;
 
 	const menuItems: MenuItem[] = riskSeverityList.map(severity => {
 		return {
@@ -232,6 +232,9 @@ export const SecurityIssuesWrapper = React.memo((props: Props) => {
 					/>
 				</InlineMenu>
 			</Row>
+			{loading && expanded && (
+				<ErrorRow isLoading={loading} title="Loading..." customPadding={"0 10px 0 42px"}></ErrorRow>
+			)}
 			{expanded && !loading && data && (
 				<>
 					{data.libraries.map(library => {

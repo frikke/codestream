@@ -1920,6 +1920,8 @@ export type LibraryDetails = {
 
 export type GetLibraryDetailsResponse = {
 	libraries: Array<LibraryDetails>;
+	recordCount: number;
+	totalRecords: number;
 };
 
 export const GetLibraryDetailsType = new RequestType<
