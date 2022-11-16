@@ -2220,7 +2220,7 @@ class CodemarkForm extends React.Component<Props, State> {
 							title={
 								<>
 									Retrieved from git blame.
-									{isCurrentUserAdmin && <p>Configure Blame Map under MY TEAM.</p>}
+									{isCurrentUserAdmin && <p>Configure Blame Map under My Organization.</p>}
 								</>
 							}
 							placement="top"
