@@ -1,5 +1,8 @@
 "use strict";
 import fs from "fs";
+import * as path from "path";
+import { join, relative, sep } from "path";
+
 import { GraphQLClient } from "graphql-request";
 import {
 	Dictionary,
@@ -11,14 +14,12 @@ import {
 	uniq as _uniq,
 	uniqBy as _uniqBy,
 } from "lodash";
-import * as path from "path";
-import { join, relative, sep } from "path";
 import Cache from "timed-cache";
 import { ResponseError } from "vscode-jsonrpc/lib/messages";
 import { URI } from "vscode-uri";
+
 import { customFetch } from "../system/fetchCore";
 import * as csUri from "../system/uri";
-
 import { InternalError, ReportSuppressedMessages } from "../agentError";
 import { SessionContainer, SessionServiceContainer } from "../container";
 import { GitRemoteParser } from "../git/parsers/remoteParser";
@@ -734,6 +735,9 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 					const entitiesReponse = await this.findRelatedEntityByRepositoryGuids(
 						repositoryEntitiesResponse?.entities?.map(_ => _.guid)
 					);
+					Logger.log(
+						`--- getObservabilityRepos entitiesReponse ${JSON.stringify(entitiesReponse)}`
+					);
 					// find the APPLICATION entities themselves
 					applicationAssociations = entitiesReponse?.actor?.entities?.filter(
 						_ =>
@@ -750,6 +754,8 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 							})
 						)
 					).filter(Boolean);
+
+					Logger.log(`--- getObservabilityRepos remoteUrls ${JSON.stringify(remoteUrls)}`);
 
 					ContextLogger.log("found repositories matching remotes", {
 						remotes: remotes,
@@ -3526,15 +3532,23 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		if (!force) {
 			const cached = this._repositoryEntitiesByRepoRemotes.get(cacheKey);
 			if (cached) {
-				Logger.log("findRepositoryEntitiesByRepoRemotes: from cache", {
-					cacheKey,
-				});
+				Logger.log(
+					"--- findRepositoryEntitiesByRepoRemotes: from cache",
+					{
+						cacheKey,
+					},
+					JSON.stringify(cached)
+				);
 				return cached;
 			}
 		}
 		try {
 			const remoteVariants: string[] = await this._memoizedBuildRepoRemoteVariants(remotes);
 			if (!remoteVariants.length) return undefined;
+
+			Logger.log(
+				`--- findRepositoryEntitiesByRepoRemotes remoteVariants: ${JSON.stringify(remoteVariants)}`
+			);
 
 			const remoteFilters = remoteVariants.map((_: string) => `tags.url = '${_}'`).join(" OR ");
 			const query = `{
@@ -3560,7 +3574,11 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 	}
   }
   `;
+			Logger.log(`--- findRepositoryEntitiesByRepoRemotes query ${query}`);
 			const queryResponse = await this.query<EntitySearchResponse>(query);
+			Logger.log(
+				`--- findRepositoryEntitiesByRepoRemotes queryResponse ${JSON.stringify(queryResponse)}`
+			);
 			const response = {
 				entities: queryResponse.actor.entitySearch.results.entities,
 				remotes: remoteVariants,
@@ -3721,6 +3739,9 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 	protected async findRelatedEntityByRepositoryGuids(
 		repositoryGuids: string[]
 	): Promise<RelatedEntityByRepositoryGuidsResult> {
+		Logger.log(
+			`--- findRelatedEntityByRepositoryGuids repositoryGuids ${JSON.stringify(repositoryGuids)}`
+		);
 		return this.query(
 			`query fetchRelatedEntities($guids:[EntityGuid]!){
 			actor {
