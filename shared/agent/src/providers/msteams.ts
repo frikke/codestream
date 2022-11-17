@@ -1,5 +1,6 @@
 "use strict";
 import { sortBy } from "lodash";
+
 import { SessionContainer } from "../container";
 import {
 	AgentOpenUrlRequestType,
@@ -33,10 +34,18 @@ export class MSTeamsProvider extends ThirdPartyPostProviderBase<CSMSTeamsProvide
 	private _multiProviderInfo: CSMSTeamsProviderInfo | undefined;
 
 	onConnecting() {
+		const env = SessionContainer.instance().session.environmentName;
+		let appId;
+		if (env?.match(/eu/i)) {
+			appId = "dd1a9bf7-fd98-453c-af49-021f71e8aa55";
+		} else {
+			appId = "7cf49ab7-8b65-4407-b494-f02b525eef2b";
+		}
 		void SessionContainer.instance().session.agent.sendRequest(AgentOpenUrlRequestType, {
-			url: "https://teams.microsoft.com/l/app/7cf49ab7-8b65-4407-b494-f02b525eef2b",
+			url: `https://teams.microsoft.com/l/app/${appId}`,
 		});
 	}
+
 	protected async onConnected(providerInfo: CSMSTeamsProviderInfo) {
 		super.onConnected(providerInfo);
 		this._multiProviderInfo = providerInfo;
