@@ -851,11 +851,10 @@ export const OpenPullRequests = React.memo((props: Props) => {
 				prToCheckout.headRepository?.isFork ||
 				!prToCheckout.url.includes(prToCheckout.headRepository?.nameWithOwner);
 
-			const headRepositoryLabel =
-				prToCheckout.headRepository?.nameWithOwner ??
-				`${prToCheckout.headRepositoryOwner.login}/${prToCheckout.headRepository?.name}`;
-
 			if (isFork) {
+				const headRepositoryLabel =
+					prToCheckout.headRepository?.nameWithOwner ??
+					`${prToCheckout.headRepositoryOwner?.login}/${prToCheckout.headRepository?.name}`;
 				return `The source branch for this PR is located on the ${headRepositoryLabel} fork`;
 			}
 
