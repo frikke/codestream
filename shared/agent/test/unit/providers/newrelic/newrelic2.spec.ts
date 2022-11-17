@@ -1,6 +1,7 @@
 "use strict";
 
 import { describe, expect, it } from "@jest/globals";
+
 import { NewRelicProvider } from "../../../../src/providers/newrelic";
 
 describe("newRelicProvider", () => {

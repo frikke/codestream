@@ -29,6 +29,7 @@ SOFTWARE.
  * Modifications Copyright CodeStream Inc. under the Apache 2.0 License (Apache-2.0)
  */
 import * as childProcess from "child_process";
+
 import { Logger } from "../../logger";
 import { GitRemote, GitRemoteType } from "../models/remote";
 
@@ -38,6 +39,12 @@ const remoteRegex = /^(.*)\t(.*)\s\((.*)\)$/gm;
 const urlRegex =
 	/^(?:(git:\/\/)(.*?)(?::.*?)?\/|(https?:\/\/)(?:.*?@)?(.*?)(?::.*?)?\/|git@(.*):|(ssh:\/\/)(?:.*@)?(.*?)(?::.*?)?(?:\/|(?=~))|(?:.*?@)(.*?):)(.*)$/;
 const hostnameRegex = new RegExp("hostname (.*)");
+
+export type GitRemotes = {
+	type: "ssh" | "https" | "git";
+	value: string;
+};
+
 export class GitRemoteParser {
 	static async parse(data: string, repoPath: string): Promise<GitRemote[]> {
 		if (!data) return [];
@@ -104,26 +111,17 @@ export class GitRemoteParser {
 			match[9].replace(/^\/+/g, emptyStr).replace(/\.git\/?$/, emptyStr),
 		];
 	}
+
 	/**
 	 *  Returns the https and ssh variants for a git remote
 	 *
 	 * @static
 	 * @param {string} httpOrSshEndpoint
-	 * @return {*}  {(Promise<
-	 * 		{
-	 * 			type: "ssh" | "https" | string;
-	 * 			value: string;
-	 * 		}[]
-	 * 	>)}
+	 * @return {*}  {(Promise<GitRemotes[]>)}
 	 * @memberof GitRemoteParser
 	 */
-	static async getRepoRemoteVariants(httpOrSshEndpoint: string): Promise<
-		{
-			type: "ssh" | "https" | "git";
-			value: string;
-		}[]
-	> {
-		const results: any[] = [];
+	static async getRepoRemoteVariants(httpOrSshEndpoint: string): Promise<GitRemotes[]> {
+		const results: GitRemotes[] = [];
 		if (!httpOrSshEndpoint) return results;
 
 		httpOrSshEndpoint = httpOrSshEndpoint.replace("ssh://", "");
@@ -140,6 +138,7 @@ export class GitRemoteParser {
 				results.push({ type: "https", value: `https://${parsed[1]}/${parsed[2]}` });
 				// support for github.repositoryUrl context https://docs.github.com/en/actions/learn-github-actions/contexts#github-context
 				results.push({ type: "git", value: `git://${parsed[1]}/${parsed[2]}.git` });
+				results.push({ type: "git", value: `git@${parsed[1]}:${parsed[2]}.git` });
 			} else if (httpOrSshEndpoint.indexOf("http") === 0) {
 				results.push({ type: "https", value: httpOrSshEndpoint });
 				if (httpOrSshEndpoint.indexOf(".git") > -1) {

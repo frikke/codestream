@@ -1,6 +1,7 @@
 "use strict";
 
 import { describe, expect, it } from "@jest/globals";
+
 import { GitRemoteParser } from "../../../src/git/parsers/remoteParser";
 
 describe("git", () => {
@@ -30,6 +31,10 @@ describe("git", () => {
 					type: "git",
 					value: "git://gitlabratory.example.com/myorg/myrepo-sample-java.git",
 				},
+				{
+					type: "git",
+					value: "git@gitlabratory.example.com:myorg/myrepo-sample-java.git",
+				},
 			]);
 		});
 		it("ssh1", async () => {
@@ -56,6 +61,10 @@ describe("git", () => {
 				{
 					type: "git",
 					value: "git:///.git",
+				},
+				{
+					type: "git",
+					value: "git@:.git",
 				},
 			]);
 		});
@@ -84,6 +93,10 @@ describe("git", () => {
 					type: "git",
 					value: "git://gitlabratory.example.com/myorg/myrepo-sample-java.git",
 				},
+				{
+					type: "git",
+					value: "git@gitlabratory.example.com:myorg/myrepo-sample-java.git",
+				},
 			]);
 		});
 		it("ssh3", async () => {
@@ -110,6 +123,10 @@ describe("git", () => {
 				{
 					type: "git",
 					value: "git://github.com/theuser/therepo.git",
+				},
+				{
+					type: "git",
+					value: "git@github.com:theuser/therepo.git",
 				},
 			]);
 		});
