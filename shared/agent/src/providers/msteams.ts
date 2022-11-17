@@ -13,6 +13,7 @@ import {
 import { CSMSTeamsProviderInfo } from "../protocol/api.protocol";
 import { log, lspProvider } from "../system";
 import { ThirdPartyPostProviderBase } from "./thirdPartyPostProviderBase";
+import { Logger } from "../logger";
 
 @lspProvider("msteams")
 export class MSTeamsProvider extends ThirdPartyPostProviderBase<CSMSTeamsProviderInfo> {
@@ -37,8 +38,10 @@ export class MSTeamsProvider extends ThirdPartyPostProviderBase<CSMSTeamsProvide
 		const env = SessionContainer.instance().session.environmentName;
 		let appId;
 		if (env?.match(/eu/i)) {
+			Logger.log(`Environment ${env} matched EU, connecting to EU-based MSTeams app`);
 			appId = "dd1a9bf7-fd98-453c-af49-021f71e8aa55";
 		} else {
+			Logger.log(`Environment ${env} did not match EU, connecting to US-based MSTeams app`);
 			appId = "7cf49ab7-8b65-4407-b494-f02b525eef2b";
 		}
 		void SessionContainer.instance().session.agent.sendRequest(AgentOpenUrlRequestType, {
