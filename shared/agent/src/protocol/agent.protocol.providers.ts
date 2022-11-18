@@ -1905,6 +1905,8 @@ export type Vuln = {
 	issueId: string; // cve
 	title: string;
 	url: string;
+	source: string;
+	vector: string;
 	description: string;
 	score: number;
 	criticality: string; // TODO mebe enum

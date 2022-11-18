@@ -7,7 +7,10 @@ import {
 } from "@codestream/protocols/agent";
 import { isEmpty, lowerCase } from "lodash-es";
 import React, { useState } from "react";
+import styled from "styled-components";
 
+import { OpenUrlRequestType } from "@codestream/protocols/webview";
+import { HostApi } from "@codestream/webview/webview-api";
 import { ErrorRow } from "@codestream/webview/Stream/Observability";
 import { MarkdownText } from "@codestream/webview/Stream/MarkdownText";
 import { Modal } from "@codestream/webview/Stream/Modal";
@@ -22,6 +25,40 @@ interface Props {
 	entityGuid: string;
 	accountId: number;
 }
+
+const CardTitle = styled.span`
+	font-size: 16px;
+	position: relative;
+	padding-left: 28px;
+	padding-right: 28px;
+	line-height: 20px;
+	display: inline-block;
+	width: 100%;
+
+	.icon,
+	.ticket-icon {
+		margin-left: -28px;
+		display: inline-block;
+		transform: scale(1.25);
+		padding: 0 8px 0 3px;
+		vertical-align: -2px;
+	}
+
+	& + & {
+		margin-left: 20px;
+	}
+
+	.link-to-ticket {
+		position: absolute;
+		top: 0;
+		right: 0;
+
+		.icon {
+			padding-right: 0;
+			margin-left: 0;
+		}
+	}
+`;
 
 const severityColorMap: Record<RiskSeverity, string> = {
 	CRITICAL: "#f52222",
@@ -89,16 +126,47 @@ function VulnView(props: { vuln: Vuln; onClose: () => void }) {
 		<div className="codemark-view" onClick={handleClickField}>
 			<div className="codemark-container">
 				<div className="codemark inline selected">
-					<div className="contents">
-						<div className="body">
-							<div className="description vuln">
-								<h1>{vuln.title}</h1>
-								<div>
-									<span>{vuln.issueId}</span> <span>{vuln.criticality}</span>
-								</div>
-								<div style={{ marginBottom: "10px" }}>Fix version(s): {vuln.remediation}</div>
-								<MarkdownText text={vuln.description} inline={false} />
+					<div className="contents" style={{ padding: "15px 15px" }}>
+						<CardTitle>
+							<Icon name="lock" />
+							{vuln.title}
+							<div
+								className="link-to-ticket"
+								onClick={() => {
+									if (vuln.url) {
+										HostApi.instance.send(OpenUrlRequestType, {
+											url: vuln.url,
+										});
+									}
+								}}
+							>
+								<Icon title="Open on web" className="clickable" name="globe" />
 							</div>
+						</CardTitle>
+						<div style={{ margin: "10px 0" }}>
+							<div>
+								<b>Fix version(s): </b>
+								{vuln.remediation.join(", ")}
+							</div>
+							<div>
+								<b>Criticality: </b>
+								{vuln.criticality}
+							</div>
+							<div>
+								<b>Issue Id: </b> {vuln.issueId}
+							</div>
+							<div>
+								<b>Source: </b> {vuln.source}
+							</div>
+							<div>
+								<b>CVSS score: </b> {vuln.score}
+							</div>
+							<div>
+								<b>CVSS vector: </b> <span style={{ fontSize: "80%" }}>{vuln.vector}</span>
+							</div>
+						</div>
+						<div>
+							<MarkdownText className="less-space" text={vuln.description} inline={false} />
 						</div>
 					</div>
 				</div>
@@ -226,6 +294,7 @@ export const SecurityIssuesWrapper = React.memo((props: Props) => {
 					align="bottomRight"
 					isMultiSelect={true}
 					dontCloseOnSelect={true}
+					className="subtle"
 				>
 					<SmartFormattedList
 						value={isEmpty(selectedItems) ? ["All"] : selectedItems.map(lowerCase)}

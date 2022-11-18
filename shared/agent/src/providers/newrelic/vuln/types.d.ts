@@ -35,7 +35,7 @@ export type LibraryUsage = {
 			score: number;
 			vector: string;
 			coordinate: string;
-			source: unknown;
+			source?: string;
 			cveJson: string;
 			language: string;
 			criticality: string;
