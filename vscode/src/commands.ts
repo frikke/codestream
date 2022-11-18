@@ -1,14 +1,16 @@
 import * as paths from "path";
+
 import { CodemarkType, CSMarkerIdentifier, CSReviewCheckpoint } from "@codestream/protocols/api";
-import { Editor } from "extensions/editor";
 import { commands, Disposable, env, Range, Uri, ViewColumn, window, workspace } from "vscode";
-import { openUrl } from "urlHandler";
 import {
 	FileLevelTelemetryRequestOptions,
 	MetricTimesliceNameMapping
 } from "protocols/agent/agent.protocol.providers";
+
+import { Editor } from "extensions/editor";
+import { openUrl } from "urlHandler";
 import { SessionSignedOutReason, StreamThread } from "./api/session";
-import { TokenManager } from "./api/tokenManager";
+import * as TokenManager from "./api/tokenManager";
 import { WorkspaceState } from "./common";
 import { BuiltInCommands } from "./constants";
 import { Container } from "./container";

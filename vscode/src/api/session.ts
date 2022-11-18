@@ -23,6 +23,8 @@ import {
 	CSMe
 } from "@codestream/protocols/api";
 import { ConfigurationTarget, Disposable, Event, EventEmitter, Uri } from "vscode";
+import { CSEligibleJoinCompany } from "@codestream/protocols/api";
+
 import { openUrl } from "urlHandler";
 import { WorkspaceState } from "../common";
 import { configuration } from "../configuration";
@@ -56,8 +58,7 @@ import {
 	PreferencesChangedEvent
 } from "./sessionEvents";
 import { SessionState } from "./sessionState";
-import { TokenManager } from "./tokenManager";
-import { CSEligibleJoinCompany } from "@codestream/protocols/api";
+import * as TokenManager from "./tokenManager";
 
 export {
 	ChannelStream,

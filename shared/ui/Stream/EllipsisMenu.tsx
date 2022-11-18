@@ -2,6 +2,10 @@ import {
 	DeleteCompanyRequestType,
 	UpdateTeamSettingsRequestType,
 } from "@codestream/protocols/agent";
+import { isEmpty as _isEmpty, sortBy as _sortBy } from "lodash-es";
+import React from "react";
+import styled from "styled-components";
+
 import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import {
 	logout,
@@ -9,9 +13,6 @@ import {
 	switchToTeam,
 } from "@codestream/webview/store/session/thunks";
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
-import { isEmpty as _isEmpty, sortBy as _sortBy } from "lodash-es";
-import React from "react";
-import styled from "styled-components";
 import { WebviewModals, WebviewPanelNames, WebviewPanels } from "../ipc/webview.protocol.common";
 import { CodeStreamState } from "../store";
 import { isFeatureEnabled } from "../store/apiVersioning/reducer";
@@ -109,16 +110,16 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 				dispatch(setCurrentOrganizationInvite(company.name, company.id, company.host));
 				dispatch(openModal(WebviewModals.AcceptCompanyInvite));
 			} else {
-				const team = eligibleJoinCompanies.find(_ => _.id === company.id);
-				if (team) {
+				const eligibleCompany = eligibleJoinCompanies.find(_ => _.id === company.id);
+				if (eligibleCompany?.teamId) {
 					dispatch(
 						switchToTeam({
-							teamId: team.id,
-							accessTokenFromEligibleCompany: team?.accessToken,
+							teamId: eligibleCompany.teamId,
+							accessTokenFromEligibleCompany: eligibleCompany?.accessToken,
 						})
 					);
 				} else {
-					console.error(`Could not switch to a team in ${company.id}`);
+					console.error(`Could not switch to a team in company ${company.id}`);
 				}
 			}
 		}, 500);
