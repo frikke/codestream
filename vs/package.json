@@ -22,15 +22,16 @@
 		"agent:test": "pushd \"../shared/agent\" && npm run test && popd",
 		"agent:watch": "pushd \"../shared/agent\" && npm run watch -- --ide vs && popd",
 		"build": "tsx esbuild.ts",
-		"bundle:ci": "npm run clean:ci && npm run bundle",
 		"bundle": "npm install --no-save && npm run webview:verify && npm run agent:bundle && tsx esbuild.ts --prod",
+		"bundle:ci": "npm run clean:ci && npm run bundle",
 		"clean:ci": "git clean -xdf -e vs/licenses/**/* && npm run webview:clean:ci && npm run agent:clean:ci",
+		"preinstall": "pushd \"../shared/ui\" && npm install --no-save && popd && pushd \"../shared/util\" && npm install --no-save && npm run build && popd && pushd \"../shared/common\" && npm install --no-save && npm run build && popd",
 		"rebuild": "npm install --no-save && npm run agent:rebuild && npm run build",
 		"verify:lint": "npx eslint  src/CodeStream.VisualStudio.Shared/UI/WebViews/**/*.ts *.js *.ts",
 		"verify:prettier": "prettier --check src/CodeStream.VisualStudio.Shared/UI/WebViews/** docs/** *.ts *.js *.md package.json .prettierrc",
 		"watch": "tsx esbuild.ts --watch",
 		"webview:clean:ci": "pushd \"../shared/ui\" && npm run clean:ci && popd",
-		"webview:verify": "tsx esbuild.ts --only-symlinks && pushd \"../shared/ui\" && npm run verify:compile && popd"
+		"webview:verify": "pushd \"../shared/ui\" && npm run verify:compile && popd"
 	},
 	"dependencies": {
 		"core-js": "2.6.9"

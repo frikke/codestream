@@ -7,6 +7,9 @@
     "type": "git",
     "url": "git+https://github.com/TeamCodeStream/codestream.git"
   },
+  "scripts": {
+    "clean": "rimraf node_modules jb/node_modules vscode/node_modules vs/node_modules shared/agent/node_modules shared/ui/node_modules shared/common/dist shared/common/node_modules shared/util/dist shared/util/node_modules "
+  },
   "author": "",
   "license": "",
   "bugs": {
@@ -14,6 +17,7 @@
   },
   "homepage": "https://github.com/TeamCodeStream/codestream#readme",
   "devDependencies": {
-    "patch-package": "6.5.0"
+    "patch-package": "6.5.0",
+    "rimraf": "3.0.2"
   }
 }
