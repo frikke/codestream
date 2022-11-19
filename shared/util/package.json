@@ -5,22 +5,6 @@
   "author": "CodeStream",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "node": {
-        "import": "./dist/index.js",
-        "types": "./dist/index.d.ts"
-      },
-      "require": {
-        "import": "./dist/index.js",
-        "types": "./dist/index.d.ts"
-      },
-      "import": {
-        "import": "./dist/index.js",
-        "types": "./dist/index.d.ts"
-      }
-    }
-  },
   "publisher": "CodeStream",
   "private": true,
   "license": "UNLICENSED",

@@ -9,6 +9,10 @@
 		"type": "git",
 		"url": ""
 	},
+	"workspaces": [
+		"../shared/common",
+		"../shared/util"
+	],
 	"scripts": {
 		"agent:build": "pushd \"../shared/agent\" && npm run build -- --ide vs && popd",
 		"agent:bundle": "pushd \"../shared/agent\" && npm run bundle && popd",

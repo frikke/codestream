@@ -5,7 +5,8 @@
 	"main": "./dist/codestream-components.cjs.js",
 	"module": "./dist/codestream-components.es.js",
 	"workspaces": [
-		"../common"
+		"../common",
+		"../shared/util"
 	],
 	"scripts": {
 		"clean:ci": "git clean -xdf",

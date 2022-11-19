@@ -11,7 +11,8 @@
 		"url": "https://github.com/TeamCodeStream/codestream-lsp-agent/issues"
 	},
 	"workspaces": [
-		"../common"
+		"../common",
+		"../util"
 	],
 	"repository": {
 		"type": "git",
