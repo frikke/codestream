@@ -1,13 +1,12 @@
-import { WebviewErrorRequestType } from "codestream-common/agent-protocol";
 import PropTypes from "prop-types";
 import React from "react";
 import { IntlProvider } from "react-intl";
 import { connect, Provider } from "react-redux";
 import { ThemeProvider } from "styled-components";
+import { ReloadWebviewRequestType } from "codestream-common/host-protocol";
 
 import { errorDismissed } from "@codestream/webview/store/connectivity/actions";
 import { UnauthenticatedRoutes } from "../Authentication";
-import { ReloadWebviewRequestType, RestartRequestType } from "../ipc/webview.protocol";
 import { logError } from "../logger";
 import { Button } from "../src/components/Button";
 import { createTheme, darkTheme } from "../src/themes";

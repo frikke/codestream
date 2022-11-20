@@ -1,7 +1,5 @@
 import { TelemetryRequestType } from "codestream-common/agent-protocol";
 import { URI } from "vscode-uri";
-
-import { NotificationType, RequestType } from "vscode-jsonrpc";
 import {
 	HostDidChangeActiveEditorNotification,
 	HostDidChangeActiveEditorNotificationType,
@@ -13,15 +11,18 @@ import {
 	NewCodemarkNotificationType,
 	NewReviewNotification,
 	NewReviewNotificationType,
-} from "./ipc/webview.protocol";
-import { AnyObject, Disposable, shortUuid } from "./utils";
+} from "codestream-common/webview-protocol";
 import {
 	findHost,
 	IpcHost,
 	isIpcRequestMessage,
 	isIpcResponseMessage,
 	WebviewIpcMessage,
-} from "@codestream/webview/ipc/webview.protocol.common";
+} from "codestream-common/webview-protocol-common";
+
+import { NotificationType, RequestType } from "vscode-jsonrpc";
+import { AnyObject, Disposable, shortUuid } from "./utils";
+
 
 type NotificationParamsOf<NT> = NT extends NotificationType<infer N, any> ? N : never;
 export type RequestParamsOf<RT> = RT extends RequestType<infer R, any, any, any> ? R : never;

@@ -10,13 +10,13 @@ import { debounce } from "lodash-es";
 import React from "react";
 import { injectIntl, WrappedComponentProps } from "react-intl";
 import { connect } from "react-redux";
-
 import {
 	ApplyMarkerRequestType,
 	CompareMarkerRequestType,
 	EditorHighlightRangeRequestType,
 	EditorSelectRangeRequestType,
-} from "../ipc/webview.protocol";
+} from "codestream-common/webview-protocol";
+
 import { CodeStreamState } from "../store";
 import { getVisibleRanges } from "../store/editorContext/reducer";
 import { getById } from "../store/repos/reducer";

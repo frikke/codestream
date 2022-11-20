@@ -7,9 +7,9 @@ import {
 import { CSMe, CSTeamSettings } from "codestream-common/api-protocol";
 import React, { useEffect, useMemo, useState } from "react";
 import styled from "styled-components";
+import { OpenUrlRequestType } from "codestream-common/webview-protocol";
+import { WebviewPanels } from "codestream-common/webview-protocol-common";
 
-import { OpenUrlRequestType } from "@codestream/protocols/webview";
-import { WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
 import { Button } from "@codestream/webview/src/components/Button";
 import { ButtonRow, Dialog } from "@codestream/webview/src/components/Dialog";
 import { Headshot } from "@codestream/webview/src/components/Headshot";

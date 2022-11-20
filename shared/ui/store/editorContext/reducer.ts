@@ -1,12 +1,12 @@
 import { GetFileScmInfoResponse, GetRangeScmInfoResponse } from "codestream-common/agent-protocol";
 import { createSelector } from "reselect";
 import { Range } from "vscode-languageserver-types";
-
 import {
 	EditorContext,
 	EditorMetrics,
 	EditorScrollMode,
-} from "@codestream/webview/ipc/webview.protocol.common";
+} from "codestream-common/webview-protocol-common";
+
 import { range } from "@codestream/webview/utils";
 import { CodeStreamState } from "..";
 import { ActionType } from "../common";

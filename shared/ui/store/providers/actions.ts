@@ -7,12 +7,12 @@ import {
 	RemoveEnterpriseProviderRequestType,
 	TelemetryRequestType,
 } from "codestream-common/agent-protocol";
-
-import { getUserProviderInfo } from "@codestream/webview/store/providers/utils";
 import {
 	ConnectToIDEProviderRequestType,
 	DisconnectFromIDEProviderRequestType,
-} from "../../ipc/host.protocol";
+} from "codestream-common/host-protocol";
+
+import { getUserProviderInfo } from "@codestream/webview/store/providers/utils";
 import { logError } from "../../logger";
 import { HostApi } from "../../webview-api";
 import { deleteForProvider } from "../activeIntegrations/actions";

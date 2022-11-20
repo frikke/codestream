@@ -1,13 +1,15 @@
-import { updateConfigs } from "@codestream/webview/store/configs/slice";
 import React, { PropsWithChildren, useState } from "react";
+import styled from "styled-components";
+import { ReloadWebviewRequestType } from "codestream-common/webview-protocol";
+import { useDispatch } from "react-redux";
+import { UpdateServerUrlRequestType } from "codestream-common/webview-protocol";
+
+import { updateConfigs } from "@codestream/webview/store/configs/slice";
 import { Dialog } from "../src/components/Dialog";
 import { Modal } from "../Stream/Modal";
 import Button from "../Stream/Button";
-import styled from "styled-components";
 import { HostApi } from "../webview-api";
-import { ReloadWebviewRequestType } from "../ipc/webview.protocol";
-import { useDispatch } from "react-redux";
-import { UpdateServerUrlRequestType } from "../ipc/host.protocol";
+
 
 const ReloadButtonWrapper = styled.div`
 	margin: 20px 0 0 0;

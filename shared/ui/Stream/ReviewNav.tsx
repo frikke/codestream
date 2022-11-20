@@ -1,6 +1,8 @@
 import React from "react";
 import styled from "styled-components";
 import { useSelector, shallowEqual } from "react-redux";
+import { ReviewCloseDiffRequestType } from "codestream-common/webview-protocol";
+import { WebviewPanels } from "codestream-common/webview-protocol-common";
 
 import { fetchReview } from "@codestream/webview/store/reviews/thunks";
 import Tooltip from "./Tooltip";
@@ -12,7 +14,6 @@ import { CodeStreamState } from "../store";
 import { getReview } from "../store/reviews/reducer";
 import { MinimumWidthCard, Meta, BigTitle, Header } from "./Codemark/BaseCodemark";
 import { markItemRead, setReviewStatus } from "./actions";
-import { ReviewCloseDiffRequestType } from "../ipc/host.protocol.review";
 import Icon from "./Icon";
 import { confirmPopup } from "./Confirm";
 import { setUserPreference } from "./actions";
@@ -24,7 +25,6 @@ import KeystrokeDispatcher from "../utilities/keystroke-dispatcher";
 import { getReviewChangeRequests } from "../store/codemarks/reducer";
 import { ReviewForm } from "./ReviewForm";
 import { openPanel } from "../store/context/actions";
-import { WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
 import { isFeatureEnabled } from "../store/apiVersioning/reducer";
 import { getPRLabel } from "../store/providers/reducer";
 import { getSidebarLocation } from "../store/editorContext/reducer";

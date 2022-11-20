@@ -23,16 +23,16 @@ import { head as _head, isEmpty, isEmpty as _isEmpty, isNil as _isNil } from "lo
 import React, { useEffect, useState } from "react";
 import { shallowEqual } from "react-redux";
 import styled from "styled-components";
-
-import { CurrentMethodLevelTelemetry } from "@codestream/webview/store/context/types";
-import { RefreshEditorsCodeLensRequestType } from "@codestream/webview/ipc/host.protocol";
+import { RefreshEditorsCodeLensRequestType } from "codestream-common/webview-protocol";
 import {
 	HostDidChangeWorkspaceFoldersNotificationType,
 	OpenUrlRequestType,
-} from "@codestream/protocols/webview";
+} from "codestream-common/webview-protocol";
+import { WebviewPanels } from "codestream-common/webview-protocol-common";
+
+import { CurrentMethodLevelTelemetry } from "@codestream/webview/store/context/types";
 import { ObservabilityServiceLevelObjectives } from "@codestream/webview/Stream/ObservabilityServiceLevelObjectives";
 import { HealthIcon } from "@codestream/webview/src/components/HealthIcon";
-import { WebviewPanels } from "../ipc/webview.protocol.common";
 import { Button } from "../src/components/Button";
 import {
 	NoContent,

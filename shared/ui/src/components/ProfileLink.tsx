@@ -1,8 +1,8 @@
 import React from "react";
 import { connect } from "react-redux";
 import styled from "styled-components";
+import { WebviewModals } from "codestream-common/webview-protocol-common";
 
-import { WebviewModals } from "@codestream/webview/ipc/webview.protocol.common";
 import {
 	openModal,
 	setCurrentCodeError,

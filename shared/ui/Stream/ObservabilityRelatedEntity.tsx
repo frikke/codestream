@@ -7,8 +7,8 @@ import {
 } from "codestream-common/agent-protocol";
 import cx from "classnames";
 import React, { useEffect, useState } from "react";
+import { OpenUrlRequestType } from "codestream-common/webview-protocol";
 
-import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { HealthIcon } from "@codestream/webview/src/components/HealthIcon";
 import { HostApi } from "@codestream/webview/webview-api";
 import { PaneNodeName } from "../src/components/Pane";

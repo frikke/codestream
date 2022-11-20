@@ -23,10 +23,10 @@ import {
 	ReposScm,
 } from "codestream-common/agent-protocol";
 import { CSMe } from "codestream-common/api-protocol";
+import { NewPullRequestBranch, OpenUrlRequestType } from "codestream-common/webview-protocol";
 
 import { configureAndConnectProvider } from "@codestream/webview/store/providers/actions";
 import { TextInput } from "../Authentication/TextInput";
-import { NewPullRequestBranch, OpenUrlRequestType } from "../ipc/webview.protocol";
 import { logError } from "../logger";
 import { Button } from "../src/components/Button";
 import { Checkbox } from "../src/components/Checkbox";

@@ -8,6 +8,7 @@ import { CSMe } from "codestream-common/api-protocol";
 import React, { useState } from "react";
 import styled, { ThemeProvider } from "styled-components";
 import { GetReposScmResponse } from "codestream-common/agent-protocol";
+import { OpenUrlRequestType } from "codestream-common/webview-protocol";
 
 import { FloatingLoadingMessage } from "@codestream/webview/src/components/FloatingLoadingMessage";
 import { PRHeadshot } from "@codestream/webview/src/components/Headshot";
@@ -57,7 +58,6 @@ import Tooltip from "../../Tooltip";
 //import { Timeline } from "./Timeline";
 import { PRAuthorBadges } from "../../PullRequestConversationTab";
 //import { PipelineBox } from "./PipelineBox";
-import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { Timeline } from "./Timeline";
 
 export const PullRequestRoot = styled.div`

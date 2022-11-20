@@ -10,8 +10,8 @@ import {
 } from "codestream-common/agent-protocol";
 import { CSCodeError, CSStackTraceLine } from "codestream-common/api-protocol";
 import { Position, Range } from "vscode-languageserver-types";
+import { EditorRevealRangeRequestType } from "codestream-common/webview-protocol";
 
-import { EditorRevealRangeRequestType } from "@codestream/protocols/webview";
 import { logError } from "@codestream/webview/logger";
 import { CodeStreamState } from "@codestream/webview/store";
 import {

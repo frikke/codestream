@@ -16,8 +16,8 @@ import {
 } from "codestream-common/agent-protocol";
 import { PullRequestQuery } from "codestream-common/api-protocol";
 import { RequestType } from "vscode-languageserver-protocol";
+import { PullRequest } from "codestream-common/webview-protocol-common";
 
-import { PullRequest } from "@codestream/webview/ipc/webview.protocol.common";
 import { logError } from "@codestream/webview/logger";
 import { setProviderError } from "@codestream/webview/store/codeErrors/thunks";
 import { createAppAsyncThunk } from "@codestream/webview/store/helper";

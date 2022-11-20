@@ -2,10 +2,6 @@
 import { promises as fs } from "fs";
 
 import {
-	HostDidChangeFocusNotificationType,
-	ShowStreamNotificationType
-} from "@codestream/protocols/webview";
-import {
 	CancellationToken,
 	commands,
 	Disposable,
@@ -17,16 +13,20 @@ import {
 	WebviewViewProvider,
 	WebviewViewResolveContext,
 	window,
-	WindowState
+	WindowState,
 } from "vscode";
 import { NotificationType, RequestType, ResponseError } from "vscode-jsonrpc";
+import {
+	HostDidChangeFocusNotificationType,
+	ShowStreamNotificationType,
+} from "codestream-common/webview-protocol";
 import {
 	isIpcResponseMessage,
 	WebviewIpcMessage,
 	WebviewIpcNotificationMessage,
 	WebviewIpcRequestMessage,
-	WebviewIpcResponseMessage
-} from "protocols/webview/webview.protocol.common";
+	WebviewIpcResponseMessage,
+} from "codestream-common/webview-protocol-common";
 
 import { gate } from "system/decorators/gate";
 import { CodeStreamSession, StreamThread } from "../api/session";
@@ -38,7 +38,7 @@ import {
 	RequestParamsOf,
 	RequestResponseOf,
 	toLoggableIpcMessage,
-	WebviewLike
+	WebviewLike,
 } from "./webviewLike";
 import { CodeStreamWebviewPanel } from "./webviewPanel";
 
@@ -92,7 +92,7 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 			// Allow scripts in the webview
 			enableScripts: true,
 			enableCommandUris: true,
-			localResourceRoots: [this._extensionUri]
+			localResourceRoots: [this._extensionUri],
 		};
 
 		webviewView.webview.html = await this.getHtml();
@@ -120,7 +120,7 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 		const webviewPath = Container.context.asAbsolutePath("webview.html");
 
 		const data = await fs.readFile(webviewPath, {
-			encoding: "utf8"
+			encoding: "utf8",
 		});
 
 		if (!this._webviewView) {
@@ -271,7 +271,7 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 			const payload = {
 				id,
 				method: type.method,
-				params: params
+				params: params,
 			};
 			this.postMessage(payload);
 			Logger.log(`Request ${id}:${type.method} sent to webview`, payload);
@@ -279,7 +279,7 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 	}
 
 	@log({
-		args: false
+		args: false,
 	})
 	async show(streamThread?: StreamThread) {
 		const cc = Logger.getCorrelationContext();
@@ -298,13 +298,13 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 		if (streamThread) {
 			this.notify(ShowStreamNotificationType, {
 				streamId: streamThread.streamId,
-				threadId: streamThread.id
+				threadId: streamThread.id,
 			});
 		}
 	}
 
 	@log({
-		args: false
+		args: false,
 	})
 	async triggerIpc() {
 		const cc = Logger.getCorrelationContext();
@@ -462,17 +462,17 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 							code: response.code,
 							message: response.message,
 							data: response.data,
-							stack: response.stack
-						}
+							stack: response.stack,
+						},
 				  }
 				: response instanceof Error
 				? {
 						id: request.id,
-						error: response.message
+						error: response.message,
 				  }
 				: {
 						id: request.id,
-						params: response
+						params: response,
 				  }
 		);
 	}

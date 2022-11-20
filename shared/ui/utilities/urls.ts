@@ -1,6 +1,5 @@
 import { URI } from "vscode-uri";
-
-import { Route, RouteActionType, RouteControllerType } from "../ipc/webview.protocol";
+import { Route, RouteActionType, RouteControllerType } from "codestream-common/webview-protocol";
 
 export const parseQuery = function (queryString: string) {
 	var query = {};

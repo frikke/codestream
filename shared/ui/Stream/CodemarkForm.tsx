@@ -29,13 +29,13 @@ import { FormattedMessage } from "react-intl";
 import { connect } from "react-redux";
 import Select from "react-select";
 import { Range } from "vscode-languageserver-types";
-
-import { upgradePendingCodeError } from "@codestream/webview/store/codeErrors/thunks";
-import { EditorSelection, WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
+import { EditorSelection, WebviewPanels } from "codestream-common/webview-protocol-common";
 import {
 	EditorHighlightRangeRequestType,
 	EditorSelectRangeRequestType,
-} from "@codestream/protocols/webview";
+} from "codestream-common/webview-protocol";
+
+import { upgradePendingCodeError } from "@codestream/webview/store/codeErrors/thunks";
 import { Checkbox } from "../src/components/Checkbox";
 import { LabeledSwitch } from "../src/components/controls/LabeledSwitch";
 import { CSText } from "../src/components/CSText";

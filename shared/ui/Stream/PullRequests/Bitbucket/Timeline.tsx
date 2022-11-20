@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
+import styled from "styled-components";
+import { OpenUrlRequestType } from "codestream-common/webview-protocol";
+
 import { MarkdownText } from "../../MarkdownText";
 import Timestamp from "../../Timestamp";
-
-import styled from "styled-components";
 import { PRActionIcons } from "../../PullRequestComponents";
-
-import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { HostApi } from "@codestream/webview/webview-api";
 
 const BigRoundImg = styled.span`

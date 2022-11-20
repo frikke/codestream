@@ -9,8 +9,8 @@ import {
 	InstallNewRelicRequestType,
 	InstallNewRelicResponse,
 } from "codestream-common/agent-protocol";
+import { EditorRevealRangeRequestType } from "codestream-common/webview-protocol";
 
-import { EditorRevealRangeRequestType } from "@codestream/protocols/webview";
 import { clearProcessBuffer } from "@codestream/webview/store/editorContext/actions";
 import { useAppDispatch, useAppSelector, useDidMount } from "@codestream/webview/utilities/hooks";
 import { TextInput } from "../../Authentication/TextInput";

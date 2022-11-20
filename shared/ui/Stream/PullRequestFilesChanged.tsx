@@ -9,16 +9,16 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import styled from "styled-components";
 import { Range } from "vscode-languageserver-types";
-
-import { HostApi } from "@codestream/webview/webview-api";
-import { CodeStreamState } from "@codestream/webview/store";
 import {
 	CompareLocalFilesRequest,
 	EditorRevealRangeRequestType,
 	ShowNextChangedFileNotificationType,
 	ShowPreviousChangedFileNotificationType,
-} from "@codestream/protocols/webview";
-import { CompareLocalFilesRequestType } from "../ipc/host.protocol";
+} from "codestream-common/webview-protocol";
+import { CompareLocalFilesRequestType } from "codestream-common/webview-protocol";
+
+import { HostApi } from "@codestream/webview/webview-api";
+import { CodeStreamState } from "@codestream/webview/store";
 import { logError } from "../logger";
 import { parseCodeStreamDiffUri } from "../store/codemarks/actions";
 import {

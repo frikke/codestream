@@ -1,11 +1,11 @@
 import React from "react";
 import styled from "styled-components";
 import { RecentAlertViolation } from "codestream-common/agent-protocol";
+import { OpenUrlRequestType } from "codestream-common/webview-protocol";
 
 import { ALERT_SEVERITY_COLORS } from "./CodeError/index";
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import { HostApi } from "@codestream/webview/webview-api";
-import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import Tooltip from "./Tooltip";
 
 interface Props {

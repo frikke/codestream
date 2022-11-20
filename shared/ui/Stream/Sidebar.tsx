@@ -4,9 +4,9 @@ import Draggable from "react-draggable";
 import { shallowEqual } from "react-redux";
 import styled from "styled-components";
 import { GetReposScmRequestType, ReposScm } from "codestream-common/agent-protocol";
+import { HostDidChangeWorkspaceFoldersNotificationType } from "codestream-common/webview-protocol";
+import { WebviewPanels } from "codestream-common/webview-protocol-common";
 
-import { HostDidChangeWorkspaceFoldersNotificationType } from "../ipc/host.protocol.notifications";
-import { WebviewPanels } from "../ipc/webview.protocol.common";
 import { HostApi } from "@codestream/webview/webview-api";
 import { Pane, PaneState } from "../src/components/Pane";
 import { CodeStreamState } from "../store";

@@ -9,8 +9,8 @@ import {
 import cx from "classnames";
 import React from "react";
 import styled from "styled-components";
+import { OpenUrlRequestType } from "codestream-common/webview-protocol";
 
-import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { Headshot } from "@codestream/webview/src/components/Headshot";
 import { useAppDispatch } from "@codestream/webview/utilities/hooks";
 import { HostApi } from "@codestream/webview/webview-api";

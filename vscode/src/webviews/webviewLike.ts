@@ -4,8 +4,8 @@ import {
 	WebviewIpcMessage,
 	WebviewIpcNotificationMessage,
 	WebviewIpcRequestMessage,
-	WebviewIpcResponseMessage
-} from "protocols/webview/webview.protocol.common";
+	WebviewIpcResponseMessage,
+} from "codestream-common/webview-protocol-common";
 import { Event, ViewColumn } from "vscode";
 import { NotificationType, RequestType } from "vscode-languageclient";
 

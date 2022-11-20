@@ -1,15 +1,15 @@
 import React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { WebviewPanels } from "codestream-common/webview-protocol-common";
+import { StartWorkNotificationType } from "codestream-common/webview-protocol";
+
 import { useAppDispatch, useAppSelector, useDidMount } from "../utilities/hooks";
 import { CodeStreamState } from "../store";
-import { WebviewPanels } from "../ipc/webview.protocol.common";
 import Icon from "./Icon";
 import { openPanel } from "./actions";
 import Menu from "./Menu";
 import { isFeatureEnabled } from "../store/apiVersioning/reducer";
 import { canCreateCodemark } from "../store/codemarks/actions";
 import { HostApi } from "../webview-api";
-import { StartWorkNotificationType } from "@codestream/protocols/webview";
 import {
 	setCurrentReview,
 	clearCurrentPullRequest,

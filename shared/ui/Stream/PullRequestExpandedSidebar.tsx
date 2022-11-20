@@ -1,9 +1,9 @@
 import { FetchThirdPartyPullRequestPullRequest } from "codestream-common/agent-protocol";
 import React, { useMemo, useState } from "react";
 import styled from "styled-components";
+import { WebviewModals } from "codestream-common/webview-protocol-common";
 
 import { useAppDispatch } from "@codestream/webview/utilities/hooks";
-import { WebviewModals } from "../ipc/webview.protocol.common";
 import { openModal, setCurrentPullRequest } from "../store/context/actions";
 import { api } from "../store/providerPullRequests/thunks";
 import { HostApi } from "../webview-api";

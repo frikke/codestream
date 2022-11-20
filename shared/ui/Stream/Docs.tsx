@@ -1,9 +1,9 @@
-import { useAppDispatch } from "@codestream/webview/utilities/hooks";
 import React from "react";
-import { useDispatch } from "react-redux";
 import styled from "styled-components";
+import { WebviewPanels } from "codestream-common/webview-protocol-common";
+
 import { openPanel } from "./actions";
-import { WebviewPanels } from "../ipc/webview.protocol.common";
+import { useAppDispatch } from "@codestream/webview/utilities/hooks";
 import Icon from "./Icon";
 
 const Root = styled.div`

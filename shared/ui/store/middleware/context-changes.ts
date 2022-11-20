@@ -2,8 +2,8 @@
 import { shallowEqual } from "react-redux";
 import { Dispatch } from "redux";
 import { UIStateRequestType } from "codestream-common/agent-protocol";
+import { WebviewDidChangeContextNotificationType } from "codestream-common/webview-protocol";
 
-import { WebviewDidChangeContextNotificationType } from "../../ipc/webview.protocol";
 import { HostApi } from "../../webview-api";
 import { ContextActionsType } from "../context/types";
 

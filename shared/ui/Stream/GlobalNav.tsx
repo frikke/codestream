@@ -1,11 +1,12 @@
 import {
 	LocalFilesCloseDiffRequestType,
 	ReviewCloseDiffRequestType,
-} from "@codestream/protocols/webview";
-import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
+} from "codestream-common/webview-protocol";
 import cx from "classnames";
 import React from "react";
-import { WebviewPanels } from "../ipc/webview.protocol.common";
+import { WebviewPanels } from "codestream-common/webview-protocol-common";
+
+import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import { HeadshotName } from "../src/components/HeadshotName";
 import { CodeStreamState } from "../store";
 import {

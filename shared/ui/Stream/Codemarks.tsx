@@ -12,9 +12,9 @@ import {
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import { CSMarker } from "codestream-common/api-protocol";
+import { WebviewPanels } from "codestream-common/webview-protocol-common";
+import { NewCodemarkNotificationType } from "codestream-common/webview-protocol";
 
-import { WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
-import { NewCodemarkNotificationType } from "../ipc/webview.protocol";
 import { fetchDocumentMarkers } from "../store/documentMarkers/actions";
 import { ComponentUpdateEmitter, isNotOnDisk, uriToFilePath } from "../utils";
 import { HostApi } from "../webview-api";

@@ -4,14 +4,14 @@ import {
 	VersionCompatibility,
 } from "codestream-common/agent-protocol";
 import { CSApiCapabilities } from "codestream-common/api-protocol";
-
 import {
 	BootstrapInHostRequestType,
 	GetActiveEditorContextRequestType,
-} from "@codestream/protocols/webview";
+} from "codestream-common/webview-protocol";
+import { BootstrapInHostResponse, SignedInBootstrapData } from "codestream-common/webview-protocol";
+
 import { updateConfigs } from "@codestream/webview/store/configs/slice";
 import { setIde } from "@codestream/webview/store/ide/slice";
-import { BootstrapInHostResponse, SignedInBootstrapData } from "../ipc/host.protocol";
 import {
 	apiCapabilitiesUpdated,
 	apiUpgradeRecommended,

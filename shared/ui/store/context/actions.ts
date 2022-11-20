@@ -1,21 +1,21 @@
 import { RegisterUserRequest, RepoProjectType } from "codestream-common/agent-protocol";
 import { CodemarkType } from "codestream-common/api-protocol";
-
 import {
 	HostDidReceiveRequestNotificationType,
 	NewPullRequestBranch,
-} from "@codestream/protocols/webview";
-import { HostApi } from "@codestream/webview/webview-api";
-import { logError } from "../../logger";
-import { setUserPreference } from "../../Stream/actions";
-import { action } from "../common";
-import { ContextActionsType, ContextState, PostEntryPoint, Route } from "./types";
+} from "codestream-common/webview-protocol";
 import {
 	CodeErrorData,
 	TeamlessContext,
 	WebviewModals,
 	WebviewPanels,
-} from "@codestream/webview/ipc/webview.protocol.common";
+} from "codestream-common/webview-protocol-common";
+
+import { HostApi } from "@codestream/webview/webview-api";
+import { logError } from "../../logger";
+import { setUserPreference } from "../../Stream/actions";
+import { action } from "../common";
+import { ContextActionsType, ContextState, PostEntryPoint, Route } from "./types";
 
 export const reset = () => action("RESET");
 

@@ -3,9 +3,9 @@ import { LoginResult } from "codestream-common/api-protocol";
 import React, { useCallback, useEffect, useState } from "react";
 import { FormattedMessage } from "react-intl";
 import { useDispatch, useSelector } from "react-redux";
+import { UpdateServerUrlRequestType } from "codestream-common/webview-protocol";
 
 import { HostApi } from "@codestream/webview/webview-api";
-import { UpdateServerUrlRequestType } from "../ipc/host.protocol";
 import { CodeStreamState } from "../store";
 import { goToSignup } from "../store/context/actions";
 import Button from "../Stream/Button";

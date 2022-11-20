@@ -3,19 +3,19 @@ import { useSelector, shallowEqual } from "react-redux";
 import cx from "classnames";
 import { Range } from "vscode-languageserver-types";
 import { CodemarkType } from "codestream-common/api-protocol";
-
 import {
 	EditorSelection,
 	MaxRangeValue,
 	WebviewPanelNames,
-} from "@codestream/webview/ipc/webview.protocol.common";
-import Icon from "./Icon";
-import { HostApi } from "../webview-api";
-import { useAppDispatch, useDidMount } from "../utilities/hooks";
+} from "codestream-common/webview-protocol-common";
 import {
 	EditorHighlightRangeRequestType,
 	NewCodemarkNotificationType,
-} from "../ipc/webview.protocol";
+} from "codestream-common/webview-protocol";
+
+import Icon from "./Icon";
+import { HostApi } from "../webview-api";
+import { useAppDispatch, useDidMount } from "../utilities/hooks";
 import { range } from "../utils";
 import {
 	setCurrentCodemark,

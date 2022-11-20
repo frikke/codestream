@@ -10,6 +10,7 @@ import {
 } from "codestream-common/agent-protocol";
 import { FormattedMessage } from "react-intl";
 import { TelemetryRequestType } from "codestream-common/agent-protocol";
+import { OpenUrlRequestType } from "codestream-common/webview-protocol";
 
 import { CodeStreamState } from "../store";
 import { getTeamMembers } from "../store/users/reducer";
@@ -31,7 +32,6 @@ import { CreateCodemarkIcons } from "./CreateCodemarkIcons";
 import { getPRLabel, isConnected } from "../store/providers/reducer";
 import { TextInput } from "../Authentication/TextInput";
 import { isEmailValid } from "../Authentication/Signup";
-import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { setOnboardStep, setWantNewRelicOptions } from "../store/context/actions";
 import {
 	Step,

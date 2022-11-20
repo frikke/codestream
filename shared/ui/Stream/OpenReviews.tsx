@@ -1,6 +1,7 @@
 import React from "react";
 import { shallowEqual, useSelector } from "react-redux";
 import { ReposScm } from "codestream-common/agent-protocol";
+import { WebviewModals, WebviewPanels } from "codestream-common/webview-protocol-common";
 
 import { DEFAULT_FR_QUERIES } from "@codestream/webview/store/preferences/reducer";
 import { bootstrapReviews } from "@codestream/webview/store/reviews/thunks";
@@ -31,7 +32,6 @@ import {
 	PaneNode,
 	PaneNodeName,
 } from "../src/components/Pane";
-import { WebviewModals, WebviewPanels } from "../ipc/webview.protocol.common";
 import { Link } from "./Link";
 
 interface Props {

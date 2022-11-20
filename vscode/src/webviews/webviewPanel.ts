@@ -1,15 +1,15 @@
 "use strict";
 import {
 	HostDidChangeFocusNotificationType,
-	ShowStreamNotificationType
-} from "@codestream/protocols/webview";
+	ShowStreamNotificationType,
+} from "codestream-common/webview-protocol";
 import {
 	isIpcResponseMessage,
 	WebviewIpcMessage,
 	WebviewIpcNotificationMessage,
 	WebviewIpcRequestMessage,
-	WebviewIpcResponseMessage
-} from "protocols/webview/webview.protocol.common";
+	WebviewIpcResponseMessage,
+} from "codestream-common/webview-protocol-common";
 import {
 	Disposable,
 	Event,
@@ -19,7 +19,7 @@ import {
 	WebviewPanel,
 	WebviewPanelOnDidChangeViewStateEvent,
 	window,
-	WindowState
+	WindowState,
 } from "vscode";
 import { NotificationType, RequestType, ResponseError } from "vscode-jsonrpc";
 
@@ -33,7 +33,7 @@ import {
 	RequestParamsOf,
 	RequestResponseOf,
 	toLoggableIpcMessage,
-	WebviewLike
+	WebviewLike,
 } from "./webviewLike";
 
 let ipcSequence = 0;
@@ -83,7 +83,7 @@ export class CodeStreamWebviewPanel implements WebviewLike, Disposable {
 				retainContextWhenHidden: true,
 				enableFindWidget: true,
 				enableCommandUris: true,
-				enableScripts: true
+				enableScripts: true,
 			}
 		);
 		this._panel.iconPath = Uri.file(
@@ -114,7 +114,7 @@ export class CodeStreamWebviewPanel implements WebviewLike, Disposable {
 
 	private _panelState: { active: boolean; visible: boolean } = {
 		active: true,
-		visible: true
+		visible: true,
 	};
 
 	private onPanelViewStateChanged(e: WebviewPanelOnDidChangeViewStateEvent) {
@@ -213,7 +213,7 @@ export class CodeStreamWebviewPanel implements WebviewLike, Disposable {
 			const payload = {
 				id,
 				method: type.method,
-				params: params
+				params: params,
 			};
 			this.postMessage(payload);
 			Logger.log(`Request ${id}:${type.method} sent to webview`, payload);
@@ -221,7 +221,7 @@ export class CodeStreamWebviewPanel implements WebviewLike, Disposable {
 	}
 
 	@log({
-		args: false
+		args: false,
 	})
 	async show(streamThread?: StreamThread) {
 		const cc = Logger.getCorrelationContext();
@@ -240,13 +240,13 @@ export class CodeStreamWebviewPanel implements WebviewLike, Disposable {
 		if (streamThread) {
 			this.notify(ShowStreamNotificationType, {
 				streamId: streamThread.streamId,
-				threadId: streamThread.id
+				threadId: streamThread.id,
 			});
 		}
 	}
 
 	@log({
-		args: false
+		args: false,
 	})
 	async triggerIpc() {}
 
@@ -390,17 +390,17 @@ export class CodeStreamWebviewPanel implements WebviewLike, Disposable {
 							code: response.code,
 							message: response.message,
 							data: response.data,
-							stack: response.stack
-						}
+							stack: response.stack,
+						},
 				  }
 				: response instanceof Error
 				? {
 						id: request.id,
-						error: response.message
+						error: response.message,
 				  }
 				: {
 						id: request.id,
-						params: response
+						params: response,
 				  }
 		);
 	}

@@ -1,10 +1,10 @@
 import { GetDocumentFromMarkerRequestType } from "codestream-common/agent-protocol";
-
-import { EditorSelectRangeRequestType } from "@codestream/protocols/webview";
 import {
 	EditorHighlightRangeRequest,
 	EditorHighlightRangeRequestType,
-} from "../ipc/host.protocol.editor";
+	EditorSelectRangeRequestType,
+} from "codestream-common/webview-protocol";
+
 import { logError } from "../logger";
 import { HostApi } from "../webview-api";
 

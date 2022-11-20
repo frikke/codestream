@@ -10,12 +10,12 @@ import {
 	UpdateReviewResponse,
 } from "codestream-common/agent-protocol";
 import { ShareTarget } from "codestream-common/api-protocol";
-
 import {
 	ReviewCheckpoint,
 	ReviewCloseDiffRequestType,
 	ReviewShowDiffRequestType,
-} from "@codestream/protocols/webview";
+} from "codestream-common/webview-protocol";
+
 import { logError } from "@codestream/webview/logger";
 import { CodeStreamState } from "@codestream/webview/store";
 import { addPosts } from "@codestream/webview/store/posts/actions";

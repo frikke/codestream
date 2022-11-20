@@ -1,4 +1,4 @@
-import { SessionState as _SessionState } from "../../ipc/webview.protocol.common";
+import { SessionState as _SessionState } from "codestream-common/webview-protocol-common";
 export type SessionState = _SessionState;
 
 export enum SessionActionType {

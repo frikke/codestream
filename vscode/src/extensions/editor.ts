@@ -1,5 +1,4 @@
 "use strict";
-import { EditorMetrics, EditorSelection } from "protocols/webview/webview.protocol.common";
 import {
 	commands,
 	DecorationRangeBehavior,
@@ -12,9 +11,10 @@ import {
 	Uri,
 	ViewColumn,
 	window,
-	workspace
+	workspace,
 } from "vscode";
 import { Position as LspPosition, Range as LspRange } from "vscode-languageclient";
+import { EditorMetrics, EditorSelection } from "codestream-common/webview-protocol-common";
 
 import { configuration } from "../configuration";
 import { BuiltInCommands } from "../constants";
@@ -23,7 +23,7 @@ import { Logger } from "../logger";
 
 const highlightDecorationType = window.createTextEditorDecorationType({
 	rangeBehavior: DecorationRangeBehavior.OpenOpen,
-	backgroundColor: "rgba(127, 127, 127, 0.4)"
+	backgroundColor: "rgba(127, 127, 127, 0.4)",
 });
 
 export namespace Editor {
@@ -217,7 +217,7 @@ export namespace Editor {
 				preserveFocus: false,
 				preview: true,
 				viewColumn: ViewColumn.Active,
-				...opts
+				...opts,
 			});
 		} catch (ex) {
 			const msg = ex.toString();

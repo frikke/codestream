@@ -14,8 +14,8 @@ import { groupBy as _groupBy, map as _map, pickBy as _pickBy, reduce as _reduce 
 import React, { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { shallowEqual, useSelector } from "react-redux";
 import styled from "styled-components";
+import { OpenUrlRequestType } from "codestream-common/webview-protocol";
 
-import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { Button } from "../src/components/Button";
 import { InlineMenu } from "../src/components/controls/InlineMenu";
 import { Dialog } from "../src/components/Dialog";

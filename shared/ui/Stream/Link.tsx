@@ -1,8 +1,9 @@
+import React, { PropsWithChildren } from "react";
+import { OpenUrlRequestType } from "codestream-common/webview-protocol";
+
 import { CodeStreamState } from "@codestream/webview/store";
 import Tooltip from "@codestream/webview/Stream/Tooltip";
 import { useAppSelector } from "@codestream/webview/utilities/hooks";
-import React, { PropsWithChildren } from "react";
-import { OpenUrlRequestType } from "../ipc/host.protocol";
 import { HostApi } from "../webview-api";
 
 interface Props {

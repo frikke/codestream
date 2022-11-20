@@ -6,12 +6,12 @@ import {
 } from "codestream-common/agent-protocol";
 import React, { useEffect, useState } from "react";
 import { shallowEqual, useSelector } from "react-redux";
+import { OpenUrlRequestType } from "codestream-common/webview-protocol";
+import { WebviewPanels } from "codestream-common/webview-protocol-common";
 
-import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { CodeStreamState } from "@codestream/webview/store";
 import { getUserProviderInfoFromState } from "@codestream/webview/store/providers/utils";
 import { HostApi } from "@codestream/webview/webview-api";
-import { WebviewPanels } from "../../ipc/webview.protocol.common";
 import { PaneBody, PaneHeader, PaneState } from "../../src/components/Pane";
 import Icon from "../Icon";
 import { CircleCIBuilds } from "./CircleCIBuilds";

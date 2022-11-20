@@ -11,9 +11,9 @@ import { CSRepository } from "codestream-common/api-protocol";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { isEmpty } from "lodash-es";
 import { createSelector } from "reselect";
+import { Collaborator } from "codestream-common/webview-protocol";
 
 import { Directive } from "@codestream/webview/store/providerPullRequests/directives";
-import { Collaborator } from "@codestream/protocols/webview";
 import { CodeStreamState } from "..";
 import { ContextState } from "../context/types";
 import { ProviderPullRequestsState, RepoPullRequest } from "./types";

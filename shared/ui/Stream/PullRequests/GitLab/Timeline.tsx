@@ -7,8 +7,8 @@ import {
 import copy from "copy-to-clipboard";
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
+import { OpenUrlRequestType } from "codestream-common/webview-protocol";
 
-import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { Button } from "@codestream/webview/src/components/Button";
 import { PRHeadshot } from "@codestream/webview/src/components/Headshot";
 import { useAppDispatch } from "@codestream/webview/utilities/hooks";

@@ -8,8 +8,8 @@ import React from "react";
 import ContentEditable from "react-contenteditable";
 import { injectIntl } from "react-intl";
 import { connect } from "react-redux";
+import { EditorSelectRangeRequestType } from "codestream-common/webview-protocol";
 
-import { EditorSelectRangeRequestType } from "../ipc/webview.protocol";
 import { ProfileLink } from "../src/components/ProfileLink";
 import { getCodemark } from "../store/codemarks/reducer";
 import { getPost } from "../store/posts/reducer";

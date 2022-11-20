@@ -1,4 +1,4 @@
-import { EditorContext } from "@codestream/webview/ipc/webview.protocol.common";
+import { EditorContext } from "codestream-common/webview-protocol-common";
 
 export type EditorContextState = EditorContext;
 

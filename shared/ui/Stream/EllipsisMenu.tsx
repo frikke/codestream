@@ -5,15 +5,19 @@ import {
 import { isEmpty as _isEmpty, sortBy as _sortBy } from "lodash-es";
 import React from "react";
 import styled from "styled-components";
+import { OpenUrlRequestType } from "codestream-common/webview-protocol";
+import {
+	WebviewModals,
+	WebviewPanelNames,
+	WebviewPanels,
+} from "codestream-common/webview-protocol-common";
 
-import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import {
 	logout,
 	switchToForeignCompany,
 	switchToTeam,
 } from "@codestream/webview/store/session/thunks";
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
-import { WebviewModals, WebviewPanelNames, WebviewPanels } from "../ipc/webview.protocol.common";
 import { CodeStreamState } from "../store";
 import { isFeatureEnabled } from "../store/apiVersioning/reducer";
 import { openModal, setCurrentOrganizationInvite, setProfileUser } from "../store/context/actions";

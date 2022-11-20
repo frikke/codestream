@@ -17,11 +17,15 @@
 		"noUnusedLocals": false,
 		"outDir": "../../../dist",
 		"paths": {
-			"codestream-common/agent-protocol": [
-				"../../../../shared/ui/protocols/agent/agent.protocol.ts"
+			"@codestream/protocols/agent": [
+				"../../../../shared/common/src/protocols/agent/agent.protocol.ts"
 			],
-			"codestream-common/api-protocol": ["../../../../shared/ui/protocols/agent/api.protocol.ts"],
-			"@codestream/protocols/webview": ["../../../../shared/ui/ipc/webview.protocol.ts"],
+			"@codestream/protocols/api": [
+				"../../../../shared/common/src/protocols/agent/api.protocol.ts"
+			],
+			"@codestream/protocols/webview": [
+				"../../../../shared/common/src/protocols/webview/webview.protocol.ts"
+			],
 			"@codestream/webview/*": ["../../../../shared/ui/*"],
 			"vscode-jsonrpc": ["../../../../shared/ui/vscode-jsonrpc.shim.ts"]
 		},

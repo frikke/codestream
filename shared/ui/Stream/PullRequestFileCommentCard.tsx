@@ -8,12 +8,12 @@ import * as Path from "path-browserify";
 import React, { PropsWithChildren, useEffect, useState } from "react";
 import styled from "styled-components";
 import { Position, Range } from "vscode-languageserver-types";
+import { EditorRevealRangeRequestType } from "codestream-common/webview-protocol";
+import { CompareLocalFilesRequestType } from "codestream-common/webview-protocol";
+import { EditorScrollToNotificationType } from "codestream-common/webview-protocol";
 
-import { HostApi } from "@codestream/webview/webview-api";
 import { CodeStreamState } from "@codestream/webview/store";
-import { EditorRevealRangeRequestType } from "@codestream/protocols/webview";
-import { CompareLocalFilesRequestType } from "../ipc/host.protocol";
-import { EditorScrollToNotificationType } from "../ipc/webview.protocol";
+import { HostApi } from "@codestream/webview/webview-api";
 import { Button } from "../src/components/Button";
 import {
 	getCurrentProviderPullRequest,

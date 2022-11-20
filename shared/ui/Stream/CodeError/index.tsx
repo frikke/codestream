@@ -8,8 +8,8 @@ import { CSCodeError, CSPost, CSUser } from "codestream-common/api-protocol";
 import React, { PropsWithChildren, useEffect } from "react";
 import { useSelector } from "react-redux";
 import styled from "styled-components";
+import { OpenUrlRequestType } from "codestream-common/webview-protocol";
 
-import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { DelayedRender } from "@codestream/webview/Container/DelayedRender";
 import { Loading } from "@codestream/webview/Container/Loading";
 import { Button } from "@codestream/webview/src/components/Button";

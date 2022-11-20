@@ -1,11 +1,11 @@
 import React from "react";
+import { WebviewPanels } from "codestream-common/webview-protocol-common";
+import { HostDidReceiveRequestNotificationType } from "codestream-common/webview-protocol";
+
 import { noop } from "../utils";
-import { useDispatch } from "react-redux";
 import { openPanel, setCurrentCodemark } from "../store/context/actions";
-import { WebviewPanels } from "../ipc/webview.protocol.common";
 import { useAppDispatch, useDidMount } from "../utilities/hooks";
 import { HostApi } from "../webview-api";
-import { HostDidReceiveRequestNotificationType } from "../ipc/host.protocol.notifications";
 import { parseProtocol } from "../utilities/urls";
 
 export type SearchContextType = {

@@ -19,8 +19,6 @@ import { isNil } from "lodash-es";
 import React from "react";
 import { connect } from "react-redux";
 import { Range } from "vscode-languageserver-protocol";
-
-import { deleteCodemark, editCodemark } from "@codestream/webview/store/codemarks/thunks";
 import {
 	EditorHighlightRangeRequest,
 	EditorHighlightRangeRequestType,
@@ -28,7 +26,9 @@ import {
 	EditorSelectRangeRequest,
 	EditorSelectRangeRequestType,
 	OpenUrlRequestType,
-} from "@codestream/protocols/webview";
+} from "codestream-common/webview-protocol";
+
+import { deleteCodemark, editCodemark } from "@codestream/webview/store/codemarks/thunks";
 import { HeadshotName } from "../src/components/HeadshotName";
 import { CodeStreamState } from "../store";
 import { isFeatureEnabled } from "../store/apiVersioning/reducer";

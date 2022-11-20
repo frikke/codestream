@@ -10,8 +10,8 @@ import * as path from "path-browserify";
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { Range } from "vscode-languageserver-types";
+import { EditorRevealRangeRequestType } from "codestream-common/webview-protocol";
 
-import { EditorRevealRangeRequestType } from "@codestream/protocols/webview";
 import { Button } from "../src/components/Button";
 import { Checkbox } from "../src/components/Checkbox";
 import { LoadingMessage } from "../src/components/LoadingMessage";

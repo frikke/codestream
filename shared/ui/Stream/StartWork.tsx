@@ -16,8 +16,8 @@ import { CSMe } from "codestream-common/api-protocol";
 import React, { useEffect, useMemo, useState } from "react";
 import { FormattedMessage } from "react-intl";
 import styled from "styled-components";
+import { OpenUrlRequestType } from "codestream-common/webview-protocol";
 
-import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { logError } from "@codestream/webview/logger";
 import { connectProvider } from "@codestream/webview/store/providers/actions";
 import { CardView } from "@codestream/webview/Stream/CrossPostIssueControls/IssuesPane";

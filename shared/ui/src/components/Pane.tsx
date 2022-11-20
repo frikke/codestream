@@ -4,8 +4,8 @@ import React, { PropsWithChildren } from "react";
 import Draggable from "react-draggable";
 import { shallowEqual } from "react-redux";
 import styled from "styled-components";
+import { WebviewPanels } from "codestream-common/webview-protocol-common";
 
-import { WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
 import { CodeStreamState } from "@codestream/webview/store";
 import {
 	setPaneCollapsed,

@@ -1,9 +1,9 @@
 import React from "react";
 import { DeleteCompanyRequestType } from "codestream-common/agent-protocol";
+import { WebviewPanels, WebviewModals } from "codestream-common/webview-protocol-common";
 
 import { logout } from "@codestream/webview/store/session/thunks";
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
-import { WebviewPanels, WebviewModals } from "../ipc/webview.protocol.common";
 import Icon from "./Icon";
 import { openModal, openPanel } from "./actions";
 import Menu from "./Menu";

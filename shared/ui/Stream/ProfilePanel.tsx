@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { UpdateUserRequestType, DeleteUserRequestType } from "codestream-common/agent-protocol";
+import { WebviewModals } from "codestream-common/webview-protocol-common";
 
 import { logout } from "@codestream/webview/store/session/thunks";
 import ScrollBox from "./ScrollBox";
@@ -12,7 +13,6 @@ import { openModal, closeModal, setUserPreference } from "./actions";
 import Icon from "./Icon";
 import { Headshot } from "../src/components/Headshot";
 import { MetaLabel } from "./Codemark/BaseCodemark";
-import { WebviewModals } from "../ipc/webview.protocol.common";
 import Timestamp from "./Timestamp";
 import { UserStatus } from "../src/components/UserStatus";
 import Menu from "./Menu";

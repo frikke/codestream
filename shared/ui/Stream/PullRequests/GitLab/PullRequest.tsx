@@ -10,8 +10,8 @@ import { CSMe } from "codestream-common/api-protocol";
 import React, { useEffect, useState } from "react";
 import styled, { ThemeProvider } from "styled-components";
 import { GetReposScmResponse } from "codestream-common/agent-protocol";
+import { OpenUrlRequestType } from "codestream-common/webview-protocol";
 
-import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { FloatingLoadingMessage } from "@codestream/webview/src/components/FloatingLoadingMessage";
 import { PRHeadshot } from "@codestream/webview/src/components/Headshot";
 import { PRHeadshotName } from "@codestream/webview/src/components/HeadshotName";

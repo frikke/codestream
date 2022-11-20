@@ -14,17 +14,19 @@ import {
 	TokenLoginRequestType,
 } from "codestream-common/agent-protocol";
 import { CodemarkType, LoginResult } from "codestream-common/api-protocol";
-
-import { LogoutRequestType } from "@codestream/protocols/webview";
-import { setBootstrapped } from "@codestream/webview/store/bootstrapped/actions";
-import { withExponentialConnectionRetry } from "@codestream/webview/store/common";
-import { reset } from "@codestream/webview/store/session/actions";
+import {
+	GetActiveEditorContextRequestType,
+	LogoutRequestType,
+} from "codestream-common/webview-protocol";
 import {
 	BootstrapInHostRequestType,
 	ConnectToIDEProviderRequestType,
 	OpenUrlRequestType,
-} from "../ipc/host.protocol";
-import { GetActiveEditorContextRequestType } from "../ipc/host.protocol.editor";
+} from "codestream-common/host-protocol";
+
+import { setBootstrapped } from "@codestream/webview/store/bootstrapped/actions";
+import { withExponentialConnectionRetry } from "@codestream/webview/store/common";
+import { reset } from "@codestream/webview/store/session/actions";
 import { logError } from "../logger";
 import { CodeStreamState } from "../store";
 import { bootstrap } from "../store/actions";

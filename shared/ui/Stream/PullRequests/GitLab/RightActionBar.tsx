@@ -5,11 +5,14 @@ import { CSMe, PullRequestQuery } from "codestream-common/api-protocol";
 import { GitLabMergeRequest } from "codestream-common/agent-protocol";
 import cx from "classnames";
 import { FetchProviderDefaultPullRequestsType } from "codestream-common/agent-protocol";
+import {
+	LocalFilesCloseDiffRequestType,
+	OpenUrlRequestType,
+} from "codestream-common/webview-protocol";
 
 import Icon from "../../Icon";
 import { Link } from "../../Link";
 import { HostApi } from "../../../webview-api";
-import { LocalFilesCloseDiffRequestType, OpenUrlRequestType } from "@codestream/protocols/webview";
 import { closeAllModals } from "@codestream/webview/store/context/actions";
 import { Switch } from "@codestream/webview/src/components/controls/Switch";
 import { api, getMyPullRequests } from "../../../store/providerPullRequests/thunks";

@@ -36,6 +36,11 @@ import styled from "styled-components";
 import { Range } from "vscode-languageserver-types";
 import { URI } from "vscode-uri";
 import { DocumentData } from "codestream-common/agent-protocol";
+import { WebviewPanels } from "codestream-common/webview-protocol-common";
+import {
+	EditorRevealRangeRequestType,
+	ReviewShowLocalDiffRequestType,
+} from "codestream-common/webview-protocol";
 
 import { editReview } from "@codestream/webview/store/reviews/thunks";
 import {
@@ -47,9 +52,6 @@ import { SelectPeople } from "@codestream/webview/src/components/SelectPeople";
 import HeadshotMenu from "@codestream/webview/src/components/HeadshotMenu";
 import { Headshot } from "@codestream/webview/src/components/Headshot";
 import { LabeledSwitch } from "@codestream/webview/src/components/controls/LabeledSwitch";
-import { WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
-import { ReviewShowLocalDiffRequestType } from "@codestream/protocols/webview";
-import { EditorRevealRangeRequestType } from "../ipc/host.protocol.editor";
 import { logError } from "../logger";
 import { Checkbox } from "../src/components/Checkbox";
 import { InlineMenu } from "../src/components/controls/InlineMenu";

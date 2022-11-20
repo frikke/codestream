@@ -32,6 +32,36 @@
         "import": "./dist/protocols/agent/api.protocol.js",
         "types": "./dist/protocols/agent/api.protocol.d.ts"
       }
+    },
+    "./webview-protocol": {
+      "node": {
+        "import": "./dist/protocols/webview/webview.protocol.js",
+        "types": "./dist/protocols/webview/webview.protocol.d.ts"
+      },
+      "import": {
+        "import": "./dist/protocols/webview/webview.protocol.js",
+        "types": "./dist/protocols/webview/webview.protocol.d.ts"
+      }
+    },
+    "./webview-protocol-common": {
+      "node": {
+        "import": "./dist/protocols/webview/webview.protocol.common.js",
+        "types": "./dist/protocols/webview/webview.protocol.common.d.ts"
+      },
+      "import": {
+        "import": "./dist/protocols/webview/webview.protocol.common.js",
+        "types": "./dist/protocols/webview/webview.protocol.common.d.ts"
+      }
+    },
+    "./host-protocol": {
+      "node": {
+        "import": "./dist/protocols/webview/host.protocol.js",
+        "types": "./dist/protocols/webview/host.protocol.d.ts"
+      },
+      "import": {
+        "import": "./dist/protocols/webview/host.protocol.js",
+        "types": "./dist/protocols/webview/host.protocol.d.ts"
+      }
     }
   },
   "types": "dist/index.d.ts",
@@ -64,6 +94,6 @@
     "vscode-languageclient": "5.2.1"
   },
   "scripts": {
-    "build": "tsc"
+    "build": "rimraf dist && tsc"
   }
 }

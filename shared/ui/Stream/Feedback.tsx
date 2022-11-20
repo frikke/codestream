@@ -2,7 +2,8 @@ import cx from "classnames";
 import React from "react";
 import ReactDOM from "react-dom";
 import { connect } from "react-redux";
-import { OpenUrlRequestType } from "../ipc/host.protocol";
+import { OpenUrlRequestType } from "codestream-common/webview-protocol";
+
 import { CodeStreamState } from "../store";
 import { setShowFeedbackSmiley } from "../store/context/actions";
 import KeystrokeDispatcher from "../utilities/keystroke-dispatcher";

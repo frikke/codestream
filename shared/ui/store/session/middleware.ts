@@ -1,10 +1,10 @@
 import { VerifyConnectivityRequestType } from "codestream-common/agent-protocol";
 import { Middleware } from "redux";
+import { RestartRequestType } from "codestream-common/webview-protocol";
 
 import { authenticate } from "@codestream/webview/Authentication/actions";
 import { errorDismissed } from "@codestream/webview/store/connectivity/actions";
 import { AppDispatch, CodeStreamState } from "..";
-import { RestartRequestType } from "../../ipc/webview.protocol";
 import { HostApi } from "../../webview-api";
 import { setMaintenanceMode } from "./actions";
 import { SessionActionType } from "./types";

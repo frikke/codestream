@@ -17,14 +17,14 @@ import {
 	WarningOrError,
 } from "codestream-common/agent-protocol";
 import styled from "styled-components";
-
-import Tooltip from "../Tooltip";
-import { DelayedRender } from "@codestream/webview/Container/DelayedRender";
 import {
 	OpenUrlRequestType,
 	RefreshEditorsCodeLensRequestType,
 	UpdateConfigurationRequestType,
-} from "@codestream/webview/ipc/host.protocol";
+} from "codestream-common/webview-protocol";
+
+import Tooltip from "../Tooltip";
+import { DelayedRender } from "@codestream/webview/Container/DelayedRender";
 import { LoadingMessage } from "@codestream/webview/src/components/LoadingMessage";
 import { CodeStreamState } from "@codestream/webview/store";
 import { closeAllPanels } from "@codestream/webview/store/context/actions";

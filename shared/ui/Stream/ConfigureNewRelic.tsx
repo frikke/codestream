@@ -5,8 +5,8 @@ import {
 } from "codestream-common/agent-protocol";
 import { CSProviderInfo } from "codestream-common/api-protocol";
 import React, { useEffect, useRef, useState } from "react";
+import { OpenUrlRequestType } from "codestream-common/webview-protocol";
 
-import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { CodeStreamState } from "@codestream/webview/store";
 import { useAppDispatch, useAppSelector, useDidMount } from "@codestream/webview/utilities/hooks";
 import { closeAllPanels, setWantNewRelicOptions } from "../store/context/actions";

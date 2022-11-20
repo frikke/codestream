@@ -2,8 +2,7 @@ import { random } from "lodash-es";
 import uuidv4 from "uuid/v4";
 import { Range } from "vscode-languageserver-types";
 import { URI } from "vscode-uri";
-
-import { MaxRangeValue } from "@codestream/webview/ipc/webview.protocol.common";
+import { MaxRangeValue } from "codestream-common/webview-protocol-common";
 
 export interface Disposable {
 	dispose(): void;

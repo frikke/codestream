@@ -8,10 +8,10 @@ import React, { useEffect } from "react";
 import semver from "semver";
 import styled from "styled-components";
 import { Range } from "vscode-languageserver-types";
+import { EditorRevealRangeRequestType } from "codestream-common/webview-protocol";
+import { WebviewModals } from "codestream-common/webview-protocol-common";
 
 import { CodeStreamState } from "@codestream/webview/store";
-import { EditorRevealRangeRequestType } from "@codestream/protocols/webview";
-import { WebviewModals } from "../ipc/webview.protocol.common";
 import { openModal, setCurrentPullRequest } from "../store/context/actions";
 import { getCurrentProviderPullRequest } from "../store/providerPullRequests/slice";
 import { api } from "../store/providerPullRequests/thunks";

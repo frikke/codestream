@@ -2,8 +2,8 @@ import { ServiceLevelObjectiveResult } from "codestream-common/agent-protocol";
 import cx from "classnames";
 import React, { useState } from "react";
 import { shallowEqual } from "react-redux";
+import { OpenUrlRequestType } from "codestream-common/webview-protocol";
 
-import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { CodeStreamState } from "@codestream/webview/store";
 import Tooltip from "@codestream/webview/Stream/Tooltip";
 import { useAppSelector } from "@codestream/webview/utilities/hooks";

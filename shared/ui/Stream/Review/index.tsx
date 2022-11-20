@@ -18,13 +18,13 @@ import cx from "classnames";
 import React, { PropsWithChildren } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
-
 import {
 	OpenUrlRequestType,
 	ShowNextChangedFileRequestType,
 	ShowPreviousChangedFileRequestType,
-} from "@codestream/protocols/webview";
-import { WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
+} from "codestream-common/webview-protocol";
+import { WebviewPanels } from "codestream-common/webview-protocol-common";
+
 import { DelayedRender } from "@codestream/webview/Container/DelayedRender";
 import { Loading } from "@codestream/webview/Container/Loading";
 import {

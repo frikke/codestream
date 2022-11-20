@@ -26,16 +26,6 @@ import React from "react";
 import * as path from "path-browserify";
 import { render } from "react-dom";
 import { Range } from "vscode-languageserver-types";
-
-import { logError } from "@codestream/webview/logger";
-import { setBootstrapped } from "@codestream/webview/store/bootstrapped/actions";
-import { openErrorGroup, resolveStackTraceLine } from "@codestream/webview/store/codeErrors/thunks";
-import { updateConfigs } from "@codestream/webview/store/configs/slice";
-import { fetchReview } from "@codestream/webview/store/reviews/thunks";
-import { switchToTeam } from "@codestream/webview/store/session/thunks";
-import "@formatjs/intl-listformat/polyfill-locales";
-
-import Container from "./Container";
 import {
 	EditorRevealRangeRequestType,
 	HandlePullRequestDirectivesNotificationType,
@@ -58,8 +48,18 @@ import {
 	ShowStreamNotificationType,
 	ViewMethodLevelTelemetryNotificationType,
 	WebviewDidInitializeNotificationType,
-} from "./ipc/webview.protocol";
-import { WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
+} from "codestream-common/webview-protocol";
+import { WebviewPanels } from "codestream-common/webview-protocol-common";
+
+import { logError } from "@codestream/webview/logger";
+import { setBootstrapped } from "@codestream/webview/store/bootstrapped/actions";
+import { openErrorGroup, resolveStackTraceLine } from "@codestream/webview/store/codeErrors/thunks";
+import { updateConfigs } from "@codestream/webview/store/configs/slice";
+import { fetchReview } from "@codestream/webview/store/reviews/thunks";
+import { switchToTeam } from "@codestream/webview/store/session/thunks";
+import "@formatjs/intl-listformat/polyfill-locales";
+
+import Container from "./Container";
 import { logWarning } from "./logger";
 import { store } from "./store";
 import { bootstrap, reset } from "./store/actions";

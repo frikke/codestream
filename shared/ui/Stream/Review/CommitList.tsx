@@ -1,7 +1,7 @@
 import { ReviewPlus } from "codestream-common/agent-protocol";
 import React from "react";
+import { ReviewCheckpoint } from "codestream-common/webview-protocol";
 
-import { ReviewCheckpoint } from "@codestream/protocols/webview";
 import Icon from "../Icon";
 import { markdownify } from "../Markdowner";
 

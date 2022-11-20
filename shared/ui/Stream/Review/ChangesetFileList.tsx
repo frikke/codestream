@@ -8,12 +8,12 @@ import * as path from "path-browserify";
 import React, { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Range } from "vscode-languageserver-types";
-
 import {
 	EditorRevealRangeRequestType,
 	ShowNextChangedFileNotificationType,
 	ShowPreviousChangedFileNotificationType,
-} from "@codestream/protocols/webview";
+} from "codestream-common/webview-protocol";
+
 import { CodeStreamState } from "@codestream/webview/store";
 import { getById } from "@codestream/webview/store/repos/reducer";
 import { showDiff } from "@codestream/webview/store/reviews/thunks";

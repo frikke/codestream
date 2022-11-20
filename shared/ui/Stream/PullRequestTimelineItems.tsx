@@ -8,16 +8,16 @@ import * as path from "path-browserify";
 import React, { PropsWithChildren, useState } from "react";
 import { useSelector } from "react-redux";
 import { Range } from "vscode-languageserver-types";
+import {
+	CompareLocalFilesRequest,
+	CompareLocalFilesRequestType,
+	EditorRevealRangeRequestType,
+} from "codestream-common/webview-protocol";
 
 import {
 	getCurrentProviderPullRequest,
 	getProviderPullRequestCollaborators,
 } from "@codestream/webview/store/providerPullRequests/slice";
-import {
-	CompareLocalFilesRequest,
-	CompareLocalFilesRequestType,
-	EditorRevealRangeRequestType,
-} from "@codestream/protocols/webview";
 import { PRHeadshot } from "../src/components/Headshot";
 import { PRHeadshotName } from "../src/components/HeadshotName";
 import { CodeStreamState } from "../store";

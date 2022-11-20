@@ -1,7 +1,8 @@
+import { WebviewPanels } from "codestream-common/webview-protocol-common";
+
 import { ActionType } from "../common";
 import * as preferencesActions from "../preferences/actions";
 // import * as sessionActions from "../session/actions";
-import { WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
 import { CodeStreamState } from "..";
 import { PreferencesActionsType } from "../preferences/types";
 import * as actions from "./actions";

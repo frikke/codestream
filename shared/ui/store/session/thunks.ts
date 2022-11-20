@@ -7,8 +7,8 @@ import {
 	TokenLoginRequestType,
 } from "codestream-common/agent-protocol";
 import { CSMe } from "codestream-common/api-protocol";
+import { LogoutRequestType, UpdateServerUrlRequestType } from "codestream-common/webview-protocol";
 
-import { LogoutRequestType, UpdateServerUrlRequestType } from "@codestream/protocols/webview";
 import { onLogin } from "@codestream/webview/Authentication/actions";
 import { logError } from "@codestream/webview/logger";
 import { CodeStreamState } from "@codestream/webview/store";

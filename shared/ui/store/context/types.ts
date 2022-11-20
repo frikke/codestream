@@ -1,12 +1,12 @@
 import { MetricTimesliceNameMapping, RepoProjectType } from "codestream-common/agent-protocol";
 import { CodemarkType } from "codestream-common/api-protocol";
-
-import { NewPullRequestBranch } from "@codestream/protocols/webview";
+import { NewPullRequestBranch } from "codestream-common/webview-protocol";
 import {
 	WebviewContext,
 	WebviewModals,
 	WebviewPanels,
-} from "@codestream/webview/ipc/webview.protocol.common";
+} from "codestream-common/webview-protocol-common";
+
 import { AnyObject } from "@codestream/webview/utils";
 
 export enum ContextActionsType {

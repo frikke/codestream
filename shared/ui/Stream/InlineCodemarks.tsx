@@ -12,20 +12,20 @@ import React, { Component, SyntheticEvent } from "react";
 import { batch, connect } from "react-redux";
 import styled from "styled-components";
 import { Position, Range } from "vscode-languageserver-types";
-
 import {
 	EditorRevealRangeRequestType,
 	EditorScrollToNotificationType,
 	LocalFilesCloseDiffRequestType,
 	NewCodemarkNotificationType,
 	ReviewCloseDiffRequestType,
-} from "../ipc/webview.protocol";
+} from "codestream-common/webview-protocol";
 import {
 	EditorMetrics,
 	EditorScrollMode,
 	EditorSelection,
 	WebviewPanels,
-} from "@codestream/webview/ipc/webview.protocol.common";
+} from "codestream-common/webview-protocol-common";
+
 import { Switch } from "../src/components/controls/Switch";
 import { PanelHeader } from "../src/components/PanelHeader";
 import { CodeStreamState } from "../store";

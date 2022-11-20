@@ -10,6 +10,14 @@ import cx from "classnames";
 import PropTypes from "prop-types";
 import React, { PureComponent } from "react";
 import { connect } from "react-redux";
+import {
+	EditorSelectRangeRequestType,
+	NewCodemarkNotificationType,
+	NewPullRequestNotificationType,
+	NewReviewNotificationType,
+	PixieDynamicLoggingType,
+} from "codestream-common/webview-protocol";
+import { WebviewModals, WebviewPanels } from "codestream-common/webview-protocol-common";
 
 import { PresentPrereleaseTOS } from "@codestream/webview/Authentication/PresentPrereleaseTOS";
 import { CodeStreamState } from "@codestream/webview/store";
@@ -25,14 +33,6 @@ import {
 } from "@codestream/webview/Stream/actions";
 import { DelayedRender } from "../Container/DelayedRender";
 import { Loading } from "../Container/Loading";
-import {
-	EditorSelectRangeRequestType,
-	NewCodemarkNotificationType,
-	NewPullRequestNotificationType,
-	NewReviewNotificationType,
-	PixieDynamicLoggingType,
-} from "../ipc/webview.protocol";
-import { WebviewModals, WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
 import { isFeatureEnabled } from "../store/apiVersioning/reducer";
 import { canCreateCodemark } from "../store/codemarks/actions";
 import { getCodemark } from "../store/codemarks/reducer";

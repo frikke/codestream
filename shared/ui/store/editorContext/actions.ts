@@ -1,8 +1,9 @@
-import { EditorSelectRangeRequestType } from "@codestream/protocols/webview";
+import { EditorSelectRangeRequestType } from "codestream-common/webview-protocol";
+import { EditorLayout, EditorSelection } from "codestream-common/webview-protocol-common";
+
 import { HostApi } from "@codestream/webview/webview-api";
 import { action } from "../common";
 import { EditorContextActionsType, EditorContextState } from "./types";
-import { EditorLayout, EditorSelection } from "@codestream/webview/ipc/webview.protocol.common";
 
 export const reset = () => action("RESET");
 

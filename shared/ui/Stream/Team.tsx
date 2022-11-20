@@ -12,6 +12,7 @@ import {
 import { CSTeam, CSUser } from "codestream-common/api-protocol";
 import styled from "styled-components";
 import copy from "copy-to-clipboard";
+import { WebviewModals } from "codestream-common/webview-protocol-common";
 
 import { switchToTeam } from "@codestream/webview/store/session/thunks";
 import Icon from "./Icon";
@@ -32,7 +33,6 @@ import { isFeatureEnabled } from "../store/apiVersioning/reducer";
 import { ProfileLink } from "../src/components/ProfileLink";
 import { UserStatus } from "../src/components/UserStatus";
 import { Dialog } from "../src/components/Dialog";
-import { WebviewModals } from "@codestream/webview/ipc/webview.protocol.common";
 
 export const EMAIL_REGEX = new RegExp(
 	"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"

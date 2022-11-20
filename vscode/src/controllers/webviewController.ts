@@ -75,7 +75,7 @@ import {
 	NewPullRequestBranch,
 	ViewMethodLevelTelemetryNotificationType,
 	RefreshEditorsCodeLensRequestType,
-} from "@codestream/protocols/webview";
+} from "codestream-common/webview-protocol";
 import {
 	authentication,
 	commands,
@@ -104,7 +104,7 @@ import {
 	WebviewIpcNotificationMessage,
 	WebviewIpcRequestMessage,
 	WebviewPanels,
-} from "protocols/webview/webview.protocol.common";
+} from "codestream-common/webview-protocol-common";
 
 import { gate } from "system/decorators/gate";
 import { openUrl } from "urlHandler";

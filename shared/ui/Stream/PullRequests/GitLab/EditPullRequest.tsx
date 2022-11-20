@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import { PullRequestQuery } from "codestream-common/api-protocol";
 import { FetchProviderDefaultPullRequestsType } from "codestream-common/agent-protocol";
+import { OpenUrlRequestType } from "codestream-common/webview-protocol";
 
 import { CodeStreamState } from "@codestream/webview/store";
 import Icon from "../../Icon";
@@ -24,10 +25,8 @@ import { useAppDispatch, useAppSelector, useDidMount } from "@codestream/webview
 import Timestamp from "../../Timestamp";
 import { Circle } from "../../PullRequestConversationTab";
 import { HostApi } from "@codestream/webview/webview-api";
-import { OpenUrlRequestType } from "../../../ipc/host.protocol";
 import { getCurrentProviderPullRequest } from "@codestream/webview/store/providerPullRequests/slice";
 import * as providerSelectors from "../../../store/providers/reducer";
-
 
 const Label = styled.div`
 	margin-top: 20px;
