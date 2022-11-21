@@ -987,7 +987,7 @@ export class GitLabProvider
 				throw new InternalError(exType, { error: ex });
 			} else {
 				Logger.warn("GitLab query error:", {
-					error: ex,
+					error: JSON.stringify(ex, Object.getOwnPropertyNames(ex)),
 				});
 
 				if (ex.response?.data) {
