@@ -1,5 +1,12 @@
 # Change Log
 
+## [14.8.0] - 2022-11-21
+
+### Fixed
+
+- Fixes an issue where stack traces in errors weren't being fully populated
+- Fixes an issue where remote URLs with .git at the end weren't being properly normalized
+
 ## [14.7.0] - 2022-11-15
 
 ### Added
