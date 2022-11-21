@@ -1,5 +1,11 @@
 # Change Log
 
+## [14.8.1] - 2022-11-21
+
+### Fixed
+
+- Fixes an issue with SLO telemetry
+
 ## [14.8.0] - 2022-11-21
 
 ### Fixed
