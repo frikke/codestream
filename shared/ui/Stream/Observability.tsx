@@ -636,10 +636,6 @@ export const Observability = React.memo((props: Props) => {
 			setServiceLevelObjectives([]);
 			setHasServiceLevelObjectives(false);
 		}
-
-		HostApi.instance.track("SLOs Listed", {
-			State: hasServiceLevelObjectives,
-		});
 	};
 
 	const handleClickTopLevelService = (e, id, entityGuid) => {
@@ -696,6 +692,7 @@ export const Observability = React.memo((props: Props) => {
 
 				HostApi.instance.track("NR Service Clicked", {
 					"Errors Listed": !_isEmpty(filteredCurrentRepoErrors) || !_isEmpty(filteredAssigments),
+					"SLOs Listed": hasServiceLevelObjectives,
 				});
 				setPendingTelemetryCall(false);
 			} catch (ex) {
