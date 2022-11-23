@@ -374,14 +374,14 @@ export const MethodLevelTelemetryPanel = () => {
 											telemetryResponse.goldenMetrics &&
 											telemetryResponse.goldenMetrics.map((_, index) => {
 												// hide charts with no data.
-												if (_.result?.length === 0) return null;
+												if (!_?.result || _.result?.length === 0) return null;
 												const title = _.title + (_.extrapolated ? " (extrapolated)" : "");
-
 												return (
 													<div
 														key={"chart-" + index}
 														style={{ marginLeft: "-37px", marginBottom: "15px" }}
 													>
+														<h2 style={{ marginLeft: "37px" }}>{title}</h2>
 														<ResponsiveContainer width="100%" height={300} debounce={1}>
 															<LineChart
 																width={500}
@@ -406,7 +406,9 @@ export const MethodLevelTelemetryPanel = () => {
 																	}
 																/>
 																<YAxis dataKey={_.title} tick={{ fontSize: 12 }} />
-																<ReTooltip />
+																<ReTooltip
+																	contentStyle={{ color: "#8884d8", textAlign: "center" }}
+																/>
 																<Legend wrapperStyle={{ fontSize: "0.95em" }} />
 																<Line
 																	type="monotone"
