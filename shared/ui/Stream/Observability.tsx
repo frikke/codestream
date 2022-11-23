@@ -1224,7 +1224,7 @@ export const Observability = React.memo((props: Props) => {
 						<>
 							<div className="filters" style={{ padding: "0 20px 10px 20px" }}>
 								<span>
-									Connect to New Relic to see errors and debug issues.{" "}
+									Connect to New Relic to see how your code is performing and identify issues.{" "}
 									<Link href="https://docs.newrelic.com/docs/codestream/how-use-codestream/performance-monitoring/">
 										Learn more.
 									</Link>
