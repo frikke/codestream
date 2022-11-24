@@ -18,7 +18,6 @@ import {
 } from "@codestream/protocols/api";
 import { RequestType } from "vscode-jsonrpc";
 import {
-	Collaborator,
 	EditorContext,
 	IpcRoutes,
 	SessionState,

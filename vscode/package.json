@@ -626,7 +626,7 @@
 		"vscode:compile-tests": "rimraf out && tsc -p tsconfig.test.json --outDir out && tsc-alias -p tsconfig.test.json",
 		"verify:compile": "tsc --noEmit",
 		"vscode:clean-tests": "rimraf out",
- 		"vscode:test": "npm run vscode:compile-tests && node ./out/src/__test__/runTest.js",
+		"vscode:test": "npm run vscode:compile-tests && node ./out/__test__/runTest.js",
 		"verify:lint": "npx eslint  src/** *.js *.ts",
 		"verify:prettier": "prettier --check src/** docs/** *.ts *.js *.md package.json",
 		"watch": "tsx esbuild.ts --watch",
@@ -689,5 +689,11 @@
 			"eslint-filtered-fix --rule 'unused-imports/no-unused-imports' --rule 'unused-imports/no-unused-vars' --rule 'import/order'"
 		],
 		"src/*.{js,jsx,ts,tsx}": "eslint"
+	},
+	"__metadata": {
+		"id": "a59a33cb-9f43-4f1a-890f-5d400cb82389",
+		"publisherDisplayName": "New Relic",
+		"publisherId": "4239572b-f334-4e63-9024-819b4e343f42",
+		"isPreReleaseVersion": false
 	}
 }
