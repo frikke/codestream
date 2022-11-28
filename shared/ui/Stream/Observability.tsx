@@ -1,6 +1,7 @@
 import {
 	DidChangeObservabilityDataNotificationType,
 	EntityAccount,
+	EntityGoldenMetrics,
 	ERROR_GENERIC_USE_ERROR_MESSAGE,
 	ERROR_NR_INSUFFICIENT_API_KEY,
 	GetAlertViolationsResponse,
@@ -12,7 +13,6 @@ import {
 	GetObservabilityReposResponse,
 	GetServiceLevelObjectivesRequestType,
 	GetServiceLevelTelemetryRequestType,
-	GoldenMetricsResult,
 	ObservabilityErrorCore,
 	ObservabilityRepo,
 	ObservabilityRepoError,
@@ -242,8 +242,7 @@ export const Observability = React.memo((props: Props) => {
 	const [observabilityErrors, setObservabilityErrors] = useState<ObservabilityRepoError[]>([]);
 	const [observabilityRepos, setObservabilityRepos] = useState<ObservabilityRepo[]>([]);
 	const [loadingPane, setLoadingPane] = useState<string | null>("");
-	const [goldenMetrics, setGoldenMetrics] = useState<GoldenMetricsResult[]>([]);
-	const [goldenMetricTransactionType, setGoldenMetricTransactionType] = useState<string>("Web");
+	const [entityGoldenMetrics, setEntityGoldenMetrics] = useState<EntityGoldenMetrics>();
 	const [serviceLevelObjectives, setServiceLevelObjectives] = useState<
 		ServiceLevelObjectiveResult[]
 	>([]);
@@ -609,12 +608,11 @@ export const Observability = React.memo((props: Props) => {
 				repoId: currentRepoId,
 				fetchRecentAlertViolations: true,
 			});
-			if (response?.goldenMetrics) {
-				setGoldenMetrics(response.goldenMetrics);
-				setGoldenMetricTransactionType(response.goldenMetricTransactionType || "Web");
-				setRecentAlertViolations(response.recentAlertViolations);
-				setNewRelicUrl(response.newRelicUrl);
-			}
+
+			setEntityGoldenMetrics(response.entityGoldenMetrics);
+			setRecentAlertViolations(response.recentAlertViolations);
+			setNewRelicUrl(response.newRelicUrl);
+
 			setLoadingGoldenMetrics(false);
 		}
 	};
@@ -1105,10 +1103,7 @@ export const Observability = React.memo((props: Props) => {
 																					] && (
 																						<>
 																							<ObservabilityGoldenMetricDropdown
-																								goldenMetrics={goldenMetrics}
-																								goldenMetricTransactionType={
-																									goldenMetricTransactionType
-																								}
+																								entityGoldenMetrics={entityGoldenMetrics}
 																								loadingGoldenMetrics={loadingGoldenMetrics}
 																								recentAlertViolations={
 																									recentAlertViolations ? recentAlertViolations : {}
@@ -1129,7 +1124,7 @@ export const Observability = React.memo((props: Props) => {
 																									/>
 																								</>
 																							}
-																							{
+																							{ea.domain === "APM" && (
 																								<>
 																									{observabilityErrors?.find(
 																										oe => oe?.repoId === _observabilityRepo?.repoId
@@ -1147,7 +1142,7 @@ export const Observability = React.memo((props: Props) => {
 																										</>
 																									)}
 																								</>
-																							}
+																							)}
 																						</>
 																					)}
 																				</>

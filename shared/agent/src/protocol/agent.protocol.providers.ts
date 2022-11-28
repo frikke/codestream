@@ -1424,12 +1424,11 @@ export interface GetMethodLevelTelemetryResponse {
 export interface GetServiceLevelTelemetryResponse {
 	newRelicEntityGuid: string;
 	newRelicUrl?: string;
-	goldenMetrics?: GoldenMetricsResult[];
+	entityGoldenMetrics?: EntityGoldenMetrics;
 	newRelicAlertSeverity?: string;
 	newRelicEntityAccounts: EntityAccount[];
 	newRelicEntityName: string;
 	recentAlertViolations?: GetAlertViolationsResponse;
-	goldenMetricTransactionType?: string;
 }
 
 export interface GetAlertViolationsResponse {
@@ -1532,9 +1531,23 @@ export interface StackTraceResponse {
 }
 
 export type EntityType =
+	| "APM_APPLICATION_ENTITY"
+	| "APM_DATABASE_INSTANCE_ENTITY"
+	| "APM_EXTERNAL_SERVICE_ENTITY"
 	| "BROWSER_APPLICATION_ENTITY"
+	| "DASHBOARD_ENTITY"
+	| "EXTERNAL_ENTITY"
 	| "GENERIC_ENTITY"
-	| "MOBILE_APPLICATION_ENTITY";
+	| "GENERIC_INFRASTRUCTURE_ENTITY"
+	| "INFRASTRUCTURE_AWS_LAMBDA_FUNCTION_ENTITY"
+	| "INFRASTRUCTURE_HOST_ENTITY"
+	| "KEY_TRANSACTION_ENTITY"
+	| "MOBILE_APPLICATION_ENTITY"
+	| "SECURE_CREDENTIAL_ENTITY"
+	| "SYNTHETIC_MONITOR_ENTITY"
+	| "THIRD_PARTY_SERVICE_ENTITY"
+	| "UNAVAILABLE_ENTITY"
+	| "WORKLOAD_ENTITY";
 
 export interface Entity {
 	account?: {
@@ -1686,19 +1699,13 @@ export interface ProviderGetForkedReposResponse {
 	error?: { message?: string; type: string };
 }
 
-export interface GoldenMetricsQueryResult {
-	actor: {
-		entity: {
-			goldenMetrics: {
-				metrics: {
-					query: string;
-					extrapolationQuery?: string;
-					title: string;
-					name: string;
-				}[];
-			};
-		};
-	};
+export interface MethodLevelGoldenMetricQueryResult {
+	metricQueries: {
+		query: string;
+		extrapolationQuery?: string;
+		title: string;
+		name: string;
+	}[];
 }
 
 export interface GetAlertViolationsQueryResult {
@@ -1721,46 +1728,78 @@ export interface RecentAlertViolation {
 	violationUrl: string;
 }
 
-export interface ServiceGoldenMetricsQueryResult {
+export interface EntityGoldenMetricsQueries {
 	actor: {
-		account: {
-			throughput: {
-				results: {
-					throughput: number;
-				}[];
-				metadata: {
-					timeWindow: {
-						end: number;
+		entity: {
+			goldenMetrics: {
+				metrics: {
+					definition: {
+						from: string;
+						select: string;
+						where?: string;
 					};
-				};
-			};
-			errorRate: {
-				results: {
-					errors: number;
+					name: string;
+					title: string;
+					unit: string;
 				}[];
-				metadata: {
-					timeWindow: {
-						end: number;
-					};
-				};
-			};
-			responseTimeMs: {
-				results: {
-					facet: string;
-					data: number;
-					segmentName: string;
-				}[];
-				metadata: {
-					timeWindow: {
-						end: number;
-					};
-				};
 			};
 		};
 	};
 }
 
-export interface GoldenMetricsResult {
+export interface EntityGoldenMetricsResults {
+	actor: {
+		entity: {
+			[name: string]: {
+				results: {
+					result?:
+						| number
+						| {
+								[name: string]: number;
+						  };
+				}[];
+			};
+		};
+	};
+}
+
+interface UnitMappings {
+	[name: string]: string;
+}
+
+export const GoldenMetricUnitMappings: UnitMappings = {
+	APDEX: "apdex",
+	BITS: "bits",
+	BITS_PER_SECOND: "bits/s",
+	BYTES: "bytes",
+	BYTES_PER_SECOND: "bytes/s",
+	CELSIUS: "C",
+	COUNT: "",
+	HERTZ: "Hz",
+	MESSAGES_PER_SECOND: "messages/s",
+	MS: "ms",
+	OPERATIONS_PER_SECOND: "operations/s",
+	PAGES_PER_SECOND: "pages/s",
+	PERCENTAGE: "%",
+	REQUESTS_PER_MINUTE: "req/m",
+	REQUESTS_PER_SECOND: "req/s",
+	SECONDS: "s",
+	TIMESTAMP: "time",
+};
+
+export interface EntityGoldenMetrics {
+	lastUpdated: string;
+	metrics: {
+		name: string;
+		title: string;
+		unit: string;
+		displayUnit: string;
+		value: number;
+		displayValue: string;
+	}[];
+}
+
+export interface MethodGoldenMetrics {
 	/** the NR query we are running */
 	query?: string;
 	/** this name is more like a "key" */
