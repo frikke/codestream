@@ -5,6 +5,7 @@ using Moq;
 using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
 using CodeStream.VisualStudio.Shared;
+using CodeStream.VisualStudio.Shared.Extensions;
 using CodeStream.VisualStudio.Shared.Models;
 using CodeStream.VisualStudio.Shared.Services;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -15,7 +16,7 @@ namespace CodeStream.VisualStudio.UnitTests {
 
 	public class WebViewRouterTests {
 
-		[Fact(Skip = "Dependency issues to work out")]
+		[Fact]
 		public async Task HandleAsyncTest() {
 			var mockBrowserService = new Mock<IBrowserService>();		 
 			var mockCodeStreamAgentService = new Mock<ICodeStreamAgentService>();
@@ -39,7 +40,13 @@ namespace CodeStream.VisualStudio.UnitTests {
 			var mockIdeServiceObject = mockIdeService.Object;
 			var mockEditorServiceObject = mockEditorService.Object;
 			var mockAuthenticationServiceFactoryObject = mockAuthenticationServiceFactory.Object;
+			var ideServiceMock = new Mock<IIdeService>();
 
+			ideServiceMock.Setup(x => x.GetActiveDiffEditor())
+				.Returns(() => null);
+
+			var messageInterceptor = new MessageInterceptorService(ideServiceMock.Object);
+			
 			var mockCodeStreamAgentServiceObject = mockCodeStreamAgentService.Object;
 
 			var router = new WebViewRouter(
@@ -53,7 +60,8 @@ namespace CodeStream.VisualStudio.UnitTests {
 				mockBrowserServiceObject,
 				mockIdeServiceObject,
 				mockEditorServiceObject,
-				mockAuthenticationServiceFactoryObject
+				mockAuthenticationServiceFactoryObject,
+				messageInterceptor
 			);
 
 			await router.HandleAsync(new WindowEventArgs("BOGUS"));
@@ -62,7 +70,7 @@ namespace CodeStream.VisualStudio.UnitTests {
 				"123",
 				ReloadWebviewRequestType.MethodName,
 				JToken.Parse("{}"),
-				null).AsJson();
+				null).ToJson();
 
 			await router.HandleAsync(new WindowEventArgs(message));
 			mockBrowserService.Verify(_ => _.ReloadWebView(), Times.Once);
@@ -72,7 +80,7 @@ namespace CodeStream.VisualStudio.UnitTests {
 					"123",
 					$"{IpcRoutes.Agent}/anything",
 					JToken.Parse("{}"),
-					null).AsJson();
+					null).ToJson();
 
 			await router.HandleAsync(new WindowEventArgs(message));
 			mockCodeStreamAgentService.Verify(_ => _.SendAsync<JToken>(It.IsAny<string>(), It.IsAny<JToken>(), null), Times.Once);
