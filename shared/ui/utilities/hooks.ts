@@ -56,27 +56,28 @@ export function useInterval(callback: Fn, delay = 1000) {
 	}, [delay]);
 }
 
-interface UseRequestTypeResult<T> {
+interface UseRequestTypeResult<T, E = T> {
 	data: T | undefined;
 	loading: boolean;
-	error: T | undefined;
+	error: E | undefined;
 }
 
 /**
  * @param requestType<Req, Resp>
  * @param payload
  * @param dependencies
+ * @param enabled Controls whether to make the request
  * @returns { loading, data, error }
  */
-export function useRequestType<RT extends RequestType<any, any, any, any>>(
+export function useRequestType<RT extends RequestType<any, any, any, any>, E = RT>(
 	requestType: RT,
 	payload: RequestParamsOf<RT>,
 	dependencies: DependencyList = [],
 	enabled = true
-): UseRequestTypeResult<RequestResponseOf<RT>> {
+): UseRequestTypeResult<RequestResponseOf<RT>, E> {
 	const [loading, setLoading] = useState(true);
 	const [data, setData] = useState<RequestResponseOf<RT> | undefined>(undefined);
-	const [error, setError] = useState<undefined>(undefined);
+	const [error, setError] = useState<E | undefined>(undefined);
 
 	const fetch = async () => {
 		if (enabled) {
@@ -99,7 +100,7 @@ export function useRequestType<RT extends RequestType<any, any, any, any>>(
 		fetch();
 	}, dependencies);
 
-	return { loading, data, error } as UseRequestTypeResult<RequestResponseOf<RT>>;
+	return { loading, data, error } as UseRequestTypeResult<RequestResponseOf<RT>, E>;
 }
 
 export function useTimeout(callback: Fn, delay: number) {

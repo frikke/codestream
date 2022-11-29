@@ -1,4 +1,5 @@
 import {
+	ERROR_VM_NOT_SETUP,
 	GetLibraryDetailsType,
 	LibraryDetails,
 	RiskSeverity,
@@ -9,6 +10,7 @@ import { isEmpty, lowerCase } from "lodash-es";
 import React, { useState } from "react";
 import styled from "styled-components";
 
+import { Link } from "@codestream/webview/Stream/Link";
 import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { HostApi } from "@codestream/webview/webview-api";
 import { ErrorRow } from "@codestream/webview/Stream/Observability";
@@ -17,6 +19,7 @@ import { Modal } from "@codestream/webview/Stream/Modal";
 import { InlineMenu, MenuItem } from "@codestream/webview/src/components/controls/InlineMenu";
 import { SmartFormattedList } from "@codestream/webview/Stream/SmartFormattedList";
 import { useRequestType } from "@codestream/webview/utilities/hooks";
+import { ResponseError } from "vscode-jsonrpc";
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import Icon from "./Icon";
 
@@ -24,6 +27,16 @@ interface Props {
 	currentRepoId: string;
 	entityGuid: string;
 	accountId: number;
+}
+
+function isResponseError<T>(obj: unknown): obj is ResponseError<T> {
+	if (!obj) {
+		return false;
+	}
+	return (
+		Object.prototype.hasOwnProperty.call(obj, "code") &&
+		Object.prototype.hasOwnProperty.call(obj, "message")
+	);
 }
 
 const CardTitle = styled.span`
@@ -238,7 +251,10 @@ export const SecurityIssuesWrapper = React.memo((props: Props) => {
 	const [selectedItems, setSelectedItems] = useState<RiskSeverity[]>(["CRITICAL", "HIGH"]);
 	const [rows, setRows] = useState<number | undefined | "all">(undefined);
 
-	const { loading, data, error } = useRequestType(
+	const { loading, data, error } = useRequestType<
+		typeof GetLibraryDetailsType,
+		ResponseError<void>
+	>(
 		GetLibraryDetailsType,
 		{
 			entityGuid: props.entityGuid,
@@ -273,6 +289,33 @@ export const SecurityIssuesWrapper = React.memo((props: Props) => {
 		setRows("all");
 	}
 
+	const getErrorDetails = React.useCallback(
+		(error: Error): JSX.Element => {
+			const unexpectedError = <ErrorRow title="Unexpected error" customPadding={"0 10px 0 42px"} />;
+			if (isResponseError(error)) {
+				if (error.code === ERROR_VM_NOT_SETUP) {
+					// TODO per-env URL
+					return (
+						<div
+							style={{
+								padding: "0px 10px 0px 49px",
+							}}
+						>
+							<span>Get started with </span>
+							<Link href="https://staging-one.newrelic.com/vulnerability-management">
+								vulnerability management
+							</Link>
+						</div>
+					);
+				} else {
+					return unexpectedError;
+				}
+			}
+			return unexpectedError;
+		},
+		[error]
+	);
+
 	return (
 		<>
 			<Row
@@ -304,13 +347,17 @@ export const SecurityIssuesWrapper = React.memo((props: Props) => {
 			{loading && expanded && (
 				<ErrorRow isLoading={loading} title="Loading..." customPadding={"0 10px 0 42px"}></ErrorRow>
 			)}
-			{expanded && !loading && data && (
+			{error && expanded && getErrorDetails(error)}
+			{expanded && !loading && data && data.totalRecords > 0 && (
 				<>
 					{data.libraries.map(library => {
 						return <LibraryRow library={library} />;
 					})}
 					<Additional onClick={loadAll} additional={additional} />
 				</>
+			)}
+			{expanded && !loading && data && data.totalRecords === 0 && (
+				<Row style={{ padding: "0 10px 0 49px" }}>👍 No vulnerabilities found</Row>
 			)}
 		</>
 	);
