@@ -934,7 +934,11 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 
 							const urlValue = entity.tags?.find(_ => _.key === "url")?.values[0];
 							for (const application of builtFromApplications) {
-								if (!application.source.entity.guid || !application.source.entity.account?.id) {
+								if (
+									!application.source.entity.guid ||
+									!application.source.entity.account?.id ||
+									application.source.entity.domain !== "APM"
+								) {
 									continue;
 								}
 
