@@ -95,8 +95,7 @@ namespace CodeStream.VisualStudio.Shared.Managers {
 
 					new ThemeColorMetadata { Key = "text-color-info", Color = VSColorTheme.GetThemedColor(EnvironmentColors.StartPageTextControlLinkSelectedColorKey) },
 					new ThemeColorMetadata { Key = "text-color-info-muted", Color = VSColorTheme.GetThemedColor(EnvironmentColors.StartPageTextControlLinkSelectedColorKey), DarkModifier = c => c.Darken(0.1f) },
-					// @todo, set to text-color-filename-highlight found in vscode and JB
-					new ThemeColorMetadata { Key = "text-color-filename-highlight", Color = textColor, DarkModifier = c => c.Opacity(80), LightModifier = c => c.Opacity(80) },
+					new ThemeColorMetadata { Key = "text-color-filename-highlight", Color = backgroundIsDark ? Color.FromArgb(223, 189, 139) : Color.FromArgb(172, 138, 88)},
 
 					new ThemeColorMetadata { Key = "text-focus-border-color", Color = VSColorTheme.GetThemedColor(EnvironmentColors.StartPageTextControlLinkSelectedColorKey), DarkModifier = c => c.Darken(0.1f).Opacity(60), LightModifier = c => c.Opacity(60) },
 
