@@ -129,6 +129,7 @@ function Additional(props: { onClick: () => void; additional?: number }) {
 
 function VulnView(props: { vuln: Vuln; onClose: () => void }) {
 	const { vuln } = props;
+	HostApi.instance.track("Vulnerability Clicked");
 	return (
 		<div className="codemark-form-container">
 			<div className="codemark-form standard-form vscroll">
@@ -184,6 +185,7 @@ function VulnView(props: { vuln: Vuln; onClose: () => void }) {
 
 function VulnRow(props: { vuln: Vuln }) {
 	const [expanded, setExpanded] = useState<boolean>(false);
+
 	return (
 		<>
 			<Row
@@ -203,7 +205,6 @@ function VulnRow(props: { vuln: Vuln }) {
 				<Modal
 					translucent
 					onClose={() => {
-						console.log("*** modal onClose");
 						setExpanded(false);
 					}}
 				>
