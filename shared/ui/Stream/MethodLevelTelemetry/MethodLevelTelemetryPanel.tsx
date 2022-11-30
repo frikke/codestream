@@ -10,14 +10,15 @@ import {
 	XAxis,
 	YAxis,
 } from "recharts";
-import Tooltip from "../Tooltip";
-
 import {
 	DidChangeObservabilityDataNotificationType,
 	GetMethodLevelTelemetryRequestType,
 	GetMethodLevelTelemetryResponse,
 	WarningOrError,
 } from "@codestream/protocols/agent";
+import styled from "styled-components";
+
+import Tooltip from "../Tooltip";
 import { DelayedRender } from "@codestream/webview/Container/DelayedRender";
 import {
 	OpenUrlRequestType,
@@ -30,7 +31,6 @@ import { closeAllPanels } from "@codestream/webview/store/context/actions";
 import { CurrentMethodLevelTelemetry } from "@codestream/webview/store/context/types";
 import { useDidMount, usePrevious } from "@codestream/webview/utilities/hooks";
 import { HostApi } from "@codestream/webview/webview-api";
-import styled from "styled-components";
 import { PanelHeader } from "../../src/components/PanelHeader";
 import { closePanel, setUserPreference } from "../actions";
 import CancelButton from "../CancelButton";
@@ -48,6 +48,7 @@ import {
 	MissingRubyExtension,
 	RubyPluginLanguageServer,
 } from "./MissingExtension";
+import { MetaLabel } from "../Codemark/BaseCodemark";
 
 const Root = styled.div``;
 
@@ -379,9 +380,9 @@ export const MethodLevelTelemetryPanel = () => {
 												return (
 													<div
 														key={"chart-" + index}
-														style={{ marginLeft: "-37px", marginBottom: "15px" }}
+														style={{ marginLeft: "-28px", marginBottom: "15px" }}
 													>
-														<h2 style={{ marginLeft: "37px" }}>{title}</h2>
+														<MetaLabel style={{ marginLeft: "27px" }}>{title}</MetaLabel>
 														<ResponsiveContainer width="100%" height={300} debounce={1}>
 															<LineChart
 																width={500}
