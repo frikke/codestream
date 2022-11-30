@@ -50,7 +50,7 @@ const CardTitle = styled.span`
 
 	.icon,
 	.ticket-icon {
-		margin-left: -28px;
+		margin-left: -56px;
 		display: inline-block;
 		transform: scale(1.25);
 		padding: 0 8px 0 3px;
@@ -128,20 +128,14 @@ function Additional(props: { onClick: () => void; additional?: number }) {
 }
 
 function VulnView(props: { vuln: Vuln; onClose: () => void }) {
-	// Close on click outside of modal
-	const handleClickField = React.useCallback(event => {
-		if (!event.target.classList.contains("codemark-view")) return;
-		event.preventDefault();
-		props.onClose();
-	}, []);
 	const { vuln } = props;
 	return (
-		<div className="codemark-view" onClick={handleClickField}>
-			<div className="codemark-container">
-				<div className="codemark inline selected">
-					<div className="contents" style={{ padding: "15px 15px" }}>
+		<div className="codemark-form-container">
+			<div className="codemark-form standard-form vscroll">
+				<div className="form-body" style={{ padding: "20px 28px" }}>
+					<div className="contents">
 						<CardTitle>
-							<Icon name="lock" />
+							<Icon name="lock" className="ticket-icon" />
 							{vuln.title}
 							<div
 								className="link-to-ticket"
@@ -153,7 +147,7 @@ function VulnView(props: { vuln: Vuln; onClose: () => void }) {
 									}
 								}}
 							>
-								<Icon title="Open on web" className="clickable" name="globe" />
+								<Icon title="View on New Relic" className="clickable" name="globe" />
 							</div>
 						</CardTitle>
 						<div style={{ margin: "10px 0" }}>
