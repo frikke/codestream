@@ -335,6 +335,17 @@ abstract class CLMEditorManager(
         }
 
         ApplicationManager.getApplication().invokeLaterOnWriteThread {
+            if (!analyticsTracked) {
+                val params = TelemetryParams(
+                    "MLT Codelenses Rendered", mapOf(
+                        "NR Account ID" to (result.newRelicAccountId ?: 0),
+                        "Language" to languageId,
+                        "Codelense Count" to toRender.size
+                    )
+                )
+                project.agentService?.agent?.telemetry(params)
+                analyticsTracked = true
+            }
             _clearInlays()
             for ((range, referenceOnHoverPresentation) in toRender) {
                 val renderer = CLMCustomRenderer(referenceOnHoverPresentation)
@@ -343,16 +354,6 @@ abstract class CLMEditorManager(
 
                 inlay.let {
                     inlays.add(it)
-                    if (!analyticsTracked) {
-                        val params = TelemetryParams(
-                            "MLT Codelenses Rendered", mapOf(
-                                "NR Account ID" to (result.newRelicAccountId ?: 0),
-                                "Language" to languageId
-                            )
-                        )
-                        project.agentService?.agent?.telemetry(params)
-                        analyticsTracked = true
-                    }
                 }
             }
         }
