@@ -133,7 +133,7 @@ function VulnView(props: { vuln: Vuln; onClose: () => void }) {
 	return (
 		<div className="codemark-form-container">
 			<div className="codemark-form standard-form vscroll">
-				<div className="form-body" style={{ padding: "20px 28px" }}>
+				<div className="form-body" style={{ padding: "20px 5px 20px 28px" }}>
 					<div className="contents">
 						<CardTitle>
 							<Icon name="lock" className="ticket-icon" />
@@ -316,8 +316,9 @@ export const SecurityIssuesWrapper = React.memo((props: Props) => {
 			<Row
 				style={{
 					padding: "2px 10px 2px 30px",
+					alignItems: "baseline",
 				}}
-				className={"pr-row"}
+				className="vuln"
 				onClick={() => {
 					setExpanded(!expanded);
 				}}
@@ -332,7 +333,7 @@ export const SecurityIssuesWrapper = React.memo((props: Props) => {
 					align="bottomRight"
 					isMultiSelect={true}
 					dontCloseOnSelect={true}
-					className="subtle"
+					className="dropdown"
 				>
 					<SmartFormattedList
 						value={isEmpty(selectedItems) ? ["All"] : selectedItems.map(lowerCase)}
