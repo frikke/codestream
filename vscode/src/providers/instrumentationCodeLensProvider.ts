@@ -2,16 +2,17 @@
 
 import { EventEmitter, extensions, TextDocument } from "vscode";
 import * as vscode from "vscode";
-import {
-	ViewMethodLevelTelemetryCommandArgs,
-	ViewMethodLevelTelemetryErrorCommandArgs
-} from "commands";
 import { Event, SymbolKind } from "vscode-languageclient";
 import {
 	FileLevelTelemetryRequestOptions,
 	FunctionLocator,
 	GetFileLevelTelemetryResponse
 } from "@codestream/protocols/agent";
+
+import {
+	ViewMethodLevelTelemetryCommandArgs,
+	ViewMethodLevelTelemetryErrorCommandArgs
+} from "commands";
 import { Strings } from "../system";
 import { Logger } from "../logger";
 import { InstrumentableSymbol, ISymbolLocator } from "./symbolLocator";
@@ -100,10 +101,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 
 				this._isShowingPromptToEnableCodeLens = true;
 				vscode.window
-					.showInformationMessage(
-						"Enable CodeLens in diffs to view code-level metrics",
-						...actions
-					)
+					.showInformationMessage("Enable CodeLens in diffs to view code-level metrics", ...actions)
 					.then(result => {
 						if (result?.title === "Yes") {
 							config.update("diffEditor.codeLens", true, true);
@@ -198,7 +196,8 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 			}
 			case "go": {
 				return this.checkGoPlugin();
-			} case "php" : {
+			}
+			case "php": {
 				return this.checkPhpPlugin();
 			}
 		}
@@ -282,7 +281,6 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 			newRelicAccountId
 		);
 	}
-	
 
 	private errorCodelens(
 		errorCode: string,
@@ -416,10 +414,12 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 				};
 			}
 
-			if (document.languageId === "php") {				
+			if (document.languageId === "php") {
 				const phpNamespace = allSymbols.find(_ => _.kind === vscode.SymbolKind.Namespace)?.name;
-				const classesAndFunctions = allSymbols.filter(_ => _.kind === vscode.SymbolKind.Class || _.kind === vscode.SymbolKind.Function);
-				const prefix = phpNamespace ? (phpNamespace + "\\") : "";
+				const classesAndFunctions = allSymbols.filter(
+					_ => _.kind === vscode.SymbolKind.Class || _.kind === vscode.SymbolKind.Function
+				);
+				const prefix = phpNamespace ? phpNamespace + "\\" : "";
 				const namespaces = classesAndFunctions.map(_ => prefix + _.name);
 				functionLocator = { namespaces };
 			}
@@ -524,7 +524,9 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 						(simpleClassName === symbol.parent.name && data.functionName === simpleSymbolName);
 				} else {
 					// if no parent (aka class) ensure we find a function that doesn't have a parent
-					result = !symbol.parent && (data.functionName === simpleSymbolName || simpleFunctionName === simpleSymbolName);
+					result =
+						!symbol.parent &&
+						(data.functionName === simpleSymbolName || simpleFunctionName === simpleSymbolName);
 				}
 				if (!result) {
 					// Since nothing matched, relax criteria and base just on function name
@@ -617,7 +619,8 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 					fileLevelTelemetryResponse && fileLevelTelemetryResponse.newRelicAccountId
 						? fileLevelTelemetryResponse.newRelicAccountId.toString()
 						: "",
-					document.languageId
+					document.languageId,
+					codeLenses.length
 				);
 			}
 		} catch (ex) {
@@ -629,13 +632,14 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 		return codeLenses;
 	}
 
-	private tryTrack(cacheKey: string, accountId: string, languageId: string) {
+	private tryTrack(cacheKey: string, accountId: string, languageId: string, codeLensCount: number) {
 		const doc = this.documentManager[cacheKey];
 		if (doc && !doc.tracked) {
 			try {
 				this.telemetryService.track("MLT Codelenses Rendered", {
 					"NR Account ID": accountId,
-					Language: languageId
+					Language: languageId,
+					"Codelense Count": codeLensCount
 				});
 				doc.tracked = true;
 			} catch {}
