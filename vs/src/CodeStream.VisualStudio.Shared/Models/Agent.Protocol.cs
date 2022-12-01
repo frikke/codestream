@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using CodeStream.VisualStudio.Core;
 using CodeStream.VisualStudio.Core.Logging;
@@ -130,6 +130,12 @@ namespace CodeStream.VisualStudio.Shared.Models {
 		public string Source { get; set; }
 		[JsonProperty("metadata", NullValueHandling = NullValueHandling.Ignore)]
 		public object Metadata { get; set; }
+		[JsonProperty("view", NullValueHandling = NullValueHandling.Ignore)]
+		public string View { get; set; }
+		[JsonProperty("previousView", NullValueHandling = NullValueHandling.Ignore)]
+		public string PreviousView { get; set; }
+		[JsonProperty("groupIndex", NullValueHandling = NullValueHandling.Ignore)]
+		public string GroupIndex { get; set; }
 	}
 
 	[Serializable]
