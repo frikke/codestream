@@ -295,7 +295,7 @@ abstract class CLMEditorManager(
         val presentationFactory = PresentationFactory(editor)
         val since = result.sinceDateFormatted ?: "30 minutes ago"
         val toRender: List<RenderElements> = metricsBySymbol.mapNotNull { (symbolIdentifier, metrics) ->
-            val symbol = resolveSymbol(symbolIdentifier, psiFile) ?: return
+            val symbol = resolveSymbol(symbolIdentifier, psiFile) ?: return@mapNotNull null
 
             val text = metrics.format(appSettings.goldenSignalsInEditorFormat, since)
             val range = getTextRangeWithoutLeadingCommentsAndWhitespaces(symbol)
