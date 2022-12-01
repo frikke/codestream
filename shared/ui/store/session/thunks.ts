@@ -1,5 +1,6 @@
 import {
 	DeleteMeUserRequestType,
+	EnvironmentHost,
 	GetAccessTokenRequestType,
 	isLoginFailResponse,
 	LoginResponse,
@@ -7,6 +8,8 @@ import {
 	TokenLoginRequestType,
 } from "@codestream/protocols/agent";
 import { CSMe } from "@codestream/protocols/api";
+import { isEmpty } from "lodash-es";
+
 import { LogoutRequestType, UpdateServerUrlRequestType } from "@codestream/protocols/webview";
 import { onLogin } from "@codestream/webview/Authentication/actions";
 import { logError } from "@codestream/webview/logger";
@@ -180,10 +183,10 @@ export const handleSelectedRegion = createAppAsyncThunk<any, void>(
 	async (_, { dispatch, getState }) => {
 		const { environmentHosts, serverUrl } = getState().configs;
 		const { selectedRegion, forceRegion } = getState().context.__teamless__ || {};
-		let currentHost;
+		let currentHost: EnvironmentHost | undefined;
 
 		// if no environment hosts, we are in a single environment setup, nothing to do
-		if (!environmentHosts) {
+		if (!environmentHosts || isEmpty(environmentHosts)) {
 			return;
 		}
 
@@ -222,7 +225,7 @@ export const handleSelectedRegion = createAppAsyncThunk<any, void>(
 			}
 		}
 
-		// finally set our environment "short name" (apepars in status bar), and serverUrl
+		// finally set our environment "short name" (appears in status bar), and serverUrl
 		if (currentHost) {
 			dispatch(setEnvironment(currentHost.shortName, currentHost.publicApiUrl));
 		}

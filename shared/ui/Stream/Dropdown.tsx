@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+
 import Icon from "./Icon";
 import Menu from "./Menu";
 
@@ -35,17 +36,19 @@ const DropdownLabel = styled.label`
 	cursor: pointer;
 `;
 
+export type DropdownItem = {
+	label?: string;
+	action?: Function | string;
+	key?: string;
+	checked?: boolean;
+	type?: string;
+	placeholder?: string;
+	searchLabel?: string;
+};
+
 interface Props {
 	selectedValue: string;
-	items: {
-		label?: string;
-		action?: Function | string;
-		key?: string;
-		checked?: boolean;
-		type?: string;
-		placeholder?: string;
-		searchLabel?: string;
-	}[];
+	items: DropdownItem[];
 	noModal?: boolean;
 }
 

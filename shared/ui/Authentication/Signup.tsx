@@ -1,15 +1,17 @@
-import { handleSelectedRegion, setSelectedRegion } from "@codestream/webview/store/session/thunks";
 import cx from "classnames";
 import React, { useCallback, useEffect, useState } from "react";
 import { FormattedMessage } from "react-intl";
+import { GetUserInfoRequestType, RegisterUserRequestType } from "@codestream/protocols/agent";
+import { LoginResult } from "@codestream/protocols/api";
+import styled from "styled-components";
+
 import { CodeStreamState } from "../store";
 import Button from "../Stream/Button";
 import Icon from "../Stream/Icon";
 import { Link } from "../Stream/Link";
 // TODO: BRIAN FIX (remove this dependency)...
-import { GetUserInfoRequestType, RegisterUserRequestType } from "@codestream/protocols/agent";
-import { LoginResult } from "@codestream/protocols/api";
-import styled from "styled-components";
+
+import { handleSelectedRegion, setSelectedRegion } from "@codestream/webview/store/session/thunks";
 import { Loading } from "../Container/Loading";
 import { logError } from "../logger";
 import { isFeatureEnabled } from "../store/apiVersioning/reducer";
@@ -22,7 +24,7 @@ import {
 	goToTeamCreation,
 } from "../store/context/actions";
 import { confirmPopup } from "../Stream/Confirm";
-import { Dropdown } from "../Stream/Dropdown";
+import { Dropdown, DropdownItem } from "../Stream/Dropdown";
 import { ModalRoot } from "../Stream/Modal"; // HACK ALERT: including this component is NOT the right way
 import Tooltip from "../Stream/Tooltip";
 import { useAppDispatch, useAppSelector, useDidMount } from "../utilities/hooks";
@@ -155,8 +157,13 @@ export const Signup = (props: Props) => {
 		dispatch(handleSelectedRegion());
 	}, [environmentHosts, selectedRegion, forceRegion]);
 
-	let regionItems, forceRegionName, selectedRegionName;
-	if (supportsMultiRegion && environmentHosts && environmentHosts.length > 1) {
+	let regionItems: DropdownItem[] | undefined;
+	let forceRegionName: string | undefined;
+	let selectedRegionName: string | undefined;
+
+	// handleSelectedRegion handles setting a selected or default region in selectedRegion
+	// Requiring selectedRegion makes sure <Dropdown> is not rendered before default region selected
+	if (selectedRegion && supportsMultiRegion && environmentHosts && environmentHosts.length > 1) {
 		regionItems = environmentHosts.map(host => ({
 			key: host.shortName,
 			label: host.name,
@@ -170,14 +177,11 @@ export const Signup = (props: Props) => {
 			if (forceHost) {
 				forceRegionName = forceHost.name;
 			}
-		} else if (selectedRegion) {
+		} else {
 			const selectedHost = environmentHosts.find(host => host.shortName === selectedRegion);
 			if (selectedHost) {
 				selectedRegionName = selectedHost.name;
 			}
-			// Set to first value in array if non of the above for default
-		} else {
-			selectedRegionName = environmentHosts[0]?.name;
 		}
 	}
 
@@ -496,7 +500,7 @@ export const Signup = (props: Props) => {
 									<>
 										Region:{" "}
 										<Dropdown
-											selectedValue={selectedRegionName}
+											selectedValue={selectedRegionName ?? ""}
 											items={regionItems}
 											noModal={true}
 										/>
