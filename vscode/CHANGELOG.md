@@ -1,5 +1,12 @@
 # Change Log
 
+## [14.9.0] - 2022-12-1
+
+### Changed
+
+- Golden Metrics displayed in the Observability section now vary based on the type of service
+- Improved the display of charts in the code-level metrics detail view
+
 ## [14.8.1] - 2022-11-21
 
 ### Fixed
