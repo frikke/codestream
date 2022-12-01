@@ -148,7 +148,7 @@ function VulnView(props: { vuln: Vuln; onClose: () => void }) {
 									}
 								}}
 							>
-								<Icon title="View on New Relic" className="clickable" name="globe" />
+								<Icon title="Open on web" className="clickable" name="globe" />
 							</div>
 						</CardTitle>
 						<div style={{ margin: "10px 0" }}>
