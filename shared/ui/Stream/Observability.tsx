@@ -24,6 +24,7 @@ import React, { useEffect, useState } from "react";
 import { shallowEqual } from "react-redux";
 import styled from "styled-components";
 
+import { isFeatureEnabled } from "@codestream/webview/store/apiVersioning/reducer";
 import { ObservabilityRelatedWrapper } from "@codestream/webview/Stream/ObservabilityRelatedWrapper";
 import { CurrentMethodLevelTelemetry } from "@codestream/webview/store/context/types";
 import { HealthIcon } from "@codestream/webview/src/components/HealthIcon";
@@ -219,6 +220,7 @@ export const Observability = React.memo((props: Props) => {
 				{}) as CurrentMethodLevelTelemetry,
 			textEditorUri: state.editorContext.textEditorUri,
 			scmInfo: state.editorContext.scmInfo,
+			showVulnerabilityManagement: isFeatureEnabled(state, "showVulnerabilityManagement"),
 		};
 	}, shallowEqual);
 
@@ -1117,11 +1119,13 @@ export const Observability = React.memo((props: Props) => {
 																									/>
 																								</>
 																							)}
-																							<SecurityIssuesWrapper
-																								currentRepoId={currentRepoId}
-																								entityGuid={ea.entityGuid}
-																								accountId={ea.accountId}
-																							/>
+																							{derivedState.showVulnerabilityManagement && (
+																								<SecurityIssuesWrapper
+																									currentRepoId={currentRepoId}
+																									entityGuid={ea.entityGuid}
+																									accountId={ea.accountId}
+																								/>
+																							)}
 																							{
 																								<>
 																									<ObservabilityRelatedWrapper
