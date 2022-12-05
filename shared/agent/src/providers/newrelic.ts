@@ -29,6 +29,9 @@ import {
 	CrashOrException,
 	Entity,
 	EntityAccount,
+	EntityGoldenMetrics,
+	EntityGoldenMetricsQueries,
+	EntityGoldenMetricsResults,
 	EntitySearchResponse,
 	EntityType,
 	ErrorGroup,
@@ -87,8 +90,9 @@ import {
 	GetServiceLevelTelemetryRequest,
 	GetServiceLevelTelemetryRequestType,
 	GetServiceLevelTelemetryResponse,
-	MethodLevelGoldenMetricQueryResult,
+	GoldenMetricUnitMappings,
 	MethodGoldenMetrics,
+	MethodLevelGoldenMetricQueryResult,
 	MetricTimesliceNameMapping,
 	NewRelicErrorGroup,
 	ObservabilityError,
@@ -102,10 +106,6 @@ import {
 	StackTraceResponse,
 	ThirdPartyDisconnect,
 	ThirdPartyProviderConfig,
-	EntityGoldenMetricsQueries,
-	EntityGoldenMetricsResults,
-	EntityGoldenMetrics,
-	GoldenMetricUnitMappings,
 } from "../protocol/agent.protocol";
 import { CSMe, CSNewRelicProviderInfo } from "../protocol/api.protocol";
 import { CodeStreamSession } from "../session";
