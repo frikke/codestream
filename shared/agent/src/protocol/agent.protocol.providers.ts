@@ -1249,7 +1249,7 @@ export interface GetObservabilityEntitiesRequest {
 
 export interface GetObservabilityEntitiesResponse {
 	totalResults: number;
-	entities: { guid: string; name: string }[];
+	entities: { guid: string; name: string; account: string }[];
 	nextCursor?: string;
 }
 

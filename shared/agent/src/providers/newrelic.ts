@@ -14,8 +14,6 @@ import { join, relative, sep } from "path";
 import Cache from "timed-cache";
 import { ResponseError } from "vscode-jsonrpc/lib/messages";
 import { URI } from "vscode-uri";
-import { customFetch } from "../system/fetchCore";
-import * as csUri from "../system/uri";
 
 import { InternalError, ReportSuppressedMessages } from "../agentError";
 import { SessionContainer, SessionServiceContainer } from "../container";
@@ -102,7 +100,9 @@ import {
 import { CSMe, CSNewRelicProviderInfo } from "../protocol/api.protocol";
 import { CodeStreamSession } from "../session";
 import { Functions, log, lspHandler, lspProvider } from "../system";
+import { customFetch } from "../system/fetchCore";
 import { Strings } from "../system/string";
+import * as csUri from "../system/uri";
 import {
 	GraphqlNrqlError,
 	GraphqlNrqlTimeoutError,
@@ -552,7 +552,8 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				(_: { guid: string; name: string; account: { name: string } }) => {
 					return {
 						guid: _.guid,
-						name: `${_.name} (${_.account.name})`,
+						name: _.name,
+						account: _.account.name,
 					};
 				}
 			);
