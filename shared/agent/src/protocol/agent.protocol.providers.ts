@@ -1174,6 +1174,7 @@ export interface ObservabilityError extends ObservabilityErrorCore {
 	occurrenceId: string;
 	count: number;
 	lastOccurrence: number;
+	releaseTag?: number;
 }
 
 export interface ObservabilityRepoError {
@@ -1201,6 +1202,33 @@ export const GetObservabilityErrorsRequestType = new RequestType<
 	void,
 	void
 >("codestream/newrelic/errors");
+
+export interface GetObservabilityAnomaliesRequest {
+	entityGuid: string;
+}
+
+export interface ObservabilityAnomalyResponseTime {
+	text: string;
+}
+export interface ObservabilityAnomalyErrorRate {
+	text: string;
+}
+export interface ObservabilityAnomalyThroughput {
+	text: string;
+}
+
+export interface GetObservabilityAnomaliesResponse {
+	responseTime: ObservabilityAnomalyResponseTime[];
+	errorRate: ObservabilityAnomalyErrorRate[];
+	throughput: ObservabilityAnomalyThroughput[];
+}
+
+export const GetObservabilityAnomaliesRequestType = new RequestType<
+	GetObservabilityAnomaliesRequest,
+	GetObservabilityAnomaliesResponse,
+	void,
+	void
+>("codestream/newrelic/anomalies");
 
 export interface GetObservabilityReposRequest {
 	filters?: { repoId: string; entityGuid?: string }[];

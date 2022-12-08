@@ -2,6 +2,7 @@ package com.codestream.agent
 
 import com.codestream.agentService
 import com.codestream.authenticationService
+import com.codestream.clmService
 import com.codestream.codeStream
 import com.codestream.editorService
 import com.codestream.extensions.workspaceFolders
@@ -195,6 +196,18 @@ class CodeStreamLanguageClient(private val project: Project) : LanguageClient {
         return fileFuture
     }
 
+    @JsonRequest("codestream/namespaces/filter")
+    fun filterNamespaces(json: JsonElement): CompletableFuture<FilterNamespacesResponse> {
+        val request = gson.fromJson<FilterNamespacesRequest>(json[0])
+        val clmService = project.clmService ?: return CompletableFuture.completedFuture(FilterNamespacesResponse(emptyList()))
+        val future = CompletableFuture<FilterNamespacesResponse>()
+        GlobalScope.launch {
+            val filteredNamespaces = clmService.filterNamespaces(request.namespaces)
+            future.complete(FilterNamespacesResponse(filteredNamespaces))
+        }
+        return future
+    }
+
     @JsonNotification("codestream/didSetEnvironment")
     fun didSetEnvironment(environmentInfo: EnvironmentInfo) {
         project.sessionService?.environmentInfo = environmentInfo
@@ -317,6 +330,10 @@ class OpenUrlRequest(val url: String)
 class FileSearchRequest(val basePath: String, val path: String)
 
 class FileSearchResponse(val files: List<String>)
+
+class FilterNamespacesRequest(val namespaces: List<String>)
+
+class FilterNamespacesResponse(val filteredNamespaces: List<String>)
 
 enum class ApiVersionCompatibility {
     @SerializedName("apiCompatible")

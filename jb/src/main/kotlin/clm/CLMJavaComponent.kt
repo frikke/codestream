@@ -3,9 +3,12 @@ package com.codestream.clm
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.impl.LibraryScopeCache
+import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.NavigatablePsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.source.PsiJavaFileImpl
+import com.intellij.psi.search.GlobalSearchScope
 
 class CLMJavaComponent(project: Project) :
     CLMLanguageComponent<CLMJavaEditorManager>(project, PsiJavaFileImpl::class.java, ::CLMJavaEditorManager) {
@@ -14,6 +17,19 @@ class CLMJavaComponent(project: Project) :
 
     init {
         logger.info("Initializing code level metrics for Java")
+    }
+
+    override fun filterNamespaces(namespaces: List<String>): List<String> {
+        val filteredNamespaces = mutableListOf<String>()
+        namespaces.forEach {
+            val projectScope = GlobalSearchScope.projectScope(project)
+            val psiFacade = JavaPsiFacade.getInstance(project)
+            val clazz = psiFacade.findClass(it, projectScope)
+            if (clazz != null) {
+                filteredNamespaces.add(it)
+            }
+        }
+        return filteredNamespaces
     }
 }
 

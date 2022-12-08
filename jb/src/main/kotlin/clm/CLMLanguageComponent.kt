@@ -1,5 +1,6 @@
 package com.codestream.clm
 
+import com.codestream.clmService
 import com.codestream.extensions.file
 import com.codestream.extensions.uri
 import com.codestream.review.ReviewDiffVirtualFile
@@ -35,6 +36,7 @@ abstract class CLMLanguageComponent<T : CLMEditorManager>(
             project.sessionService?.onCodelensChanged {
                 managersByEditor.values.forEach { it.loadInlays(true) }
             }
+            project.clmService?.registerLanguageComponent(this)
         }
     }
 
@@ -68,4 +70,6 @@ abstract class CLMLanguageComponent<T : CLMEditorManager>(
         managersByEditor.values.forEach { it.dispose() }
         managersByEditor.clear()
     }
+
+    open fun filterNamespaces(namespaces: List<String>): List<String> = emptyList()
 }
