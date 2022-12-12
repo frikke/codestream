@@ -254,6 +254,10 @@ export const PROVIDER_MAPPINGS: { [provider: string]: ProviderDisplay } = {
 		getUrl: "https://circleci.com",
 		helpUrl: "https://circleci.com/docs/managing-api-tokens",
 	},
+	jenkins: {
+		icon: "jenkins",
+		displayName: "Jenkins",
+	},
 };
 
 const ucFirst = (string = "") => string.charAt(0).toUpperCase() + string.slice(1);

@@ -636,6 +636,9 @@ export interface CSLinearProviderInfo extends CSProviderInfo {}
 export interface CSNewRelicProviderInfo extends CSProviderInfo {}
 
 export interface CSCircleCIProviderInfo extends CSProviderInfo {}
+export interface CSJenkinsProviderInfo extends CSProviderInfo {
+	baseUrl?: string;
+}
 
 export type CSProviderInfos =
 	| CSAsanaProviderInfo
@@ -653,7 +656,8 @@ export type CSProviderInfos =
 	| CSShortcutProviderInfo
 	| CSLinearProviderInfo
 	| CSNewRelicProviderInfo
-	| CSCircleCIProviderInfo;
+	| CSCircleCIProviderInfo
+	| CSJenkinsProviderInfo;
 
 type Filter<T, U> = T extends U ? T : never;
 export type CSRefreshableProviderInfos = Filter<CSProviderInfos, { refreshToken: string }>;
@@ -840,6 +844,7 @@ type CSMeProviderInfo = {
 		okta?: CSOktaProviderInfo;
 		newrelic?: CSNewRelicProviderInfo;
 		circleci?: CSCircleCIProviderInfo;
+		jenkins?: CSJenkinsProviderInfo;
 		[key: string]: CSProviderInfos | undefined;
 	};
 };

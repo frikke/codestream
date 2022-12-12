@@ -4,12 +4,13 @@ import {
 	ThirdPartyBuild,
 	ThirdPartyBuildStatus,
 } from "@codestream/protocols/agent";
+import React, { useEffect, useState } from "react";
+import { shallowEqual, useSelector } from "react-redux";
+
 import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { CodeStreamState } from "@codestream/webview/store";
 import { getUserProviderInfoFromState } from "@codestream/webview/store/providers/utils";
 import { HostApi } from "@codestream/webview/webview-api";
-import React, { useEffect, useState } from "react";
-import { shallowEqual, useSelector } from "react-redux";
 import { WebviewPanels } from "../../ipc/webview.protocol.common";
 import { PaneBody, PaneHeader, PaneState } from "../../src/components/Pane";
 import Icon from "../Icon";
@@ -38,7 +39,7 @@ export const CICD = (props: Props) => {
 	const derivedState = useSelector((state: CodeStreamState) => {
 		const { editorContext, providers } = state;
 		const providerInfo: { [key: string]: object | undefined } = {};
-		for (const provider of ["circleci*com"]) {
+		for (const provider of ["circleci*com", "jenkins"]) {
 			const name = providers[provider]?.name;
 			if (name) {
 				const p = getUserProviderInfoFromState(name, state);

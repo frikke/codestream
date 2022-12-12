@@ -34,6 +34,7 @@ export * from "./providers/shortcut";
 export * from "./providers/slack";
 export * from "./providers/trello";
 export * from "./providers/youtrack";
+export * from "./providers/jenkins";
 
 process.title = "CodeStream";
 

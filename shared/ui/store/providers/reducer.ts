@@ -5,10 +5,11 @@ import {
 	CSProviderInfos,
 	CSSlackProviderInfo,
 } from "@codestream/protocols/api";
+import { createSelector } from "reselect";
+
 import { getUserProviderInfo } from "@codestream/webview/store/providers/utils";
 import { PROVIDER_MAPPINGS } from "@codestream/webview/Stream/CrossPostIssueControls/types";
 import { mapFilter, safe } from "@codestream/webview/utils";
-import { createSelector } from "reselect";
 import { CodeStreamState } from "..";
 import { ActionType } from "../common";
 import { SessionState } from "../session/types";
@@ -177,7 +178,8 @@ export const isConnectedSelectorFriendly = (
 			case "github_enterprise":
 			case "gitlab_enterprise":
 			case "bitbucket_server":
-			case "jiraserver": {
+			case "jiraserver":
+			case "jenkins": {
 				// these providers now only depend on having a personal access token
 				if (info != undefined) {
 					const isConnected = info.accessToken != undefined;

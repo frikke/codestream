@@ -1,10 +1,11 @@
+import React, { useState } from "react";
+import styled from "styled-components";
+
 import {
 	configureAndConnectProvider,
 	disconnectProvider,
 	removeEnterpriseProvider,
 } from "@codestream/webview/store/providers/actions";
-import React, { useState } from "react";
-import styled from "styled-components";
 import { Button } from "../src/components/Button";
 import { Dialog } from "../src/components/Dialog";
 import { CodeStreamState } from "../store";
@@ -111,7 +112,7 @@ export const IntegrationsPanel = () => {
 			.filter(id => !teamSettings.limitMessaging || teamMessagingProviders[id])
 			.sort((a, b) => providers[a].name.localeCompare(providers[b].name));
 		const cicdProviders = Object.keys(providers)
-			.filter(id => ["circleci"].includes(providers[id].name))
+			.filter(id => ["circleci", "jenkins"].includes(providers[id].name))
 			.filter(id => !connectedProviders.includes(id))
 			.sort((a, b) => providers[a].name.localeCompare(providers[b].name));
 		const sharingTargets = getConnectedSharingTargets(state);

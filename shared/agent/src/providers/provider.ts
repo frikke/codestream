@@ -62,6 +62,7 @@ export const providerDisplayNamesByNameKey = new Map<string, string>([
 	["linear", "Linear"],
 	["newrelic", "New Relic"],
 	["circleci", "Circle CI"],
+	["jenkins", "Jenkins"],
 ]);
 
 export interface ThirdPartyProviderSupportsIssues {
