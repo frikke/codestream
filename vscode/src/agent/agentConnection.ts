@@ -4,6 +4,8 @@ import * as url from "url";
 
 import HttpsProxyAgent from "https-proxy-agent";
 import {
+	commands,
+	DocumentSymbol,
 	Event,
 	EventEmitter,
 	ExtensionContext,
@@ -32,6 +34,7 @@ import {
 } from "vscode-languageclient";
 import {
 	AgentFileSearchRequestType,
+	AgentFilterNamespacesRequestType,
 	AgentInitializedNotificationType,
 	AgentInitializeResult,
 	AgentOpenUrlRequest,
@@ -156,12 +159,14 @@ import {
 	StreamType
 } from "@codestream/protocols/api";
 
+import { BuiltInCommands } from "../constants";
 import { SessionSignedOutReason } from "../api/session";
 import { Container } from "../container";
 import { Logger } from "../logger";
 import { Functions, log } from "../system";
 import { getInitializationOptions } from "../extension";
 import { Editor } from "extensions";
+
 
 export { BaseAgentOptions };
 
@@ -1317,6 +1322,23 @@ export class CodeStreamAgentConnection implements Disposable {
 					files: []
 				};
 			}
+		});
+		this._client.onRequest(AgentFilterNamespacesRequestType, async e => {
+			const filteredNamespaces = [];
+			for (const namespace of e.namespaces) {
+				const symbols = await commands.executeCommand<DocumentSymbol[]>(
+					BuiltInCommands.ExecuteWorkspaceSymbolprovider,
+					namespace
+				);
+				if (symbols?.some(s => (s as any)?.location?.uri?.scheme === "file")) {
+					filteredNamespaces.push(namespace);
+				}
+				console.log(namespace + " " + symbols);
+			}
+
+			return {
+				filteredNamespaces
+			};
 		});
 	}
 

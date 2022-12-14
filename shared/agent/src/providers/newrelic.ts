@@ -1028,14 +1028,20 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			const { accountId } = NewRelicProvider.parseId(entityGuid)!;
 			const anomalyDetector = new AnomalyDetector(entityGuid, accountId, this.runNrql.bind(this));
 			void (await anomalyDetector.init());
-			const responseTime = anomalyDetector.getResponseTimeAnomalies();
-			const errorRate = anomalyDetector.getErrorRateAnomalies();
-			const throughput = anomalyDetector.getObservabilityAnomaliesThroughput();
+			const responseTimePromise = anomalyDetector.getResponseTimeAnomalies();
+			const errorRatePromise = anomalyDetector.getErrorRateAnomalies();
+			const throughputPromise = anomalyDetector.getObservabilityAnomaliesThroughput();
+
+			const [responseTime, errorRate, throughput] = await Promise.all([
+				responseTimePromise,
+				errorRatePromise,
+				throughputPromise,
+			]);
 
 			return {
-				responseTime: (await responseTime).map(_ => ({ text: _ })),
-				errorRate: (await errorRate).map(_ => ({ text: _ })),
-				throughput: (await throughput).map(_ => ({ text: _ })),
+				responseTime: responseTime.map(_ => ({ text: _ })),
+				errorRate: errorRate.map(_ => ({ text: _ })),
+				throughput: throughput.map(_ => ({ text: _ })),
 			};
 		} catch (ex) {
 			Logger.warn(ex.message);

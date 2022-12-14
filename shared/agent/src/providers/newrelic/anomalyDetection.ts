@@ -1,4 +1,5 @@
 import { SessionContainer } from "../../container";
+import { Logger } from "../../logger";
 import { AgentFilterNamespacesRequestType } from "../../protocol/agent.protocol";
 
 interface NameValue {
@@ -36,33 +37,48 @@ export class AnomalyDetector {
 	private readonly _baselineTimeFrame = "SINCE 30 days AGO UNTIL 7 days AGO";
 
 	async getResponseTimeAnomalies() {
-		const [spanData, spanBaseline, metricData, metricBaseline] = await Promise.all([
-			this.getSpanResponseTime(this._dataTimeFrame),
-			this.getSpanResponseTime(this._baselineTimeFrame),
-			this.getMetricResponseTime(this._dataTimeFrame),
-			this.getMetricResponseTime(this._baselineTimeFrame),
-		]);
-		return this.formattedOutput(spanData, spanBaseline, metricData, metricBaseline);
+		try {
+			const [spanData, spanBaseline, metricData, metricBaseline] = await Promise.all([
+				this.getSpanResponseTime(this._dataTimeFrame),
+				this.getSpanResponseTime(this._baselineTimeFrame),
+				this.getMetricResponseTime(this._dataTimeFrame),
+				this.getMetricResponseTime(this._baselineTimeFrame),
+			]);
+			return this.formattedOutput(spanData, spanBaseline, metricData, metricBaseline);
+		} catch (ex) {
+			Logger.error(ex);
+			return [];
+		}
 	}
 
 	async getErrorRateAnomalies() {
-		const [spanData, spanBaseline, metricData, metricBaseline] = await Promise.all([
-			this.getSpanErrorRate(this._dataTimeFrame),
-			this.getSpanErrorRate(this._baselineTimeFrame),
-			this.getMetricErrorRate(this._dataTimeFrame),
-			this.getMetricErrorRate(this._baselineTimeFrame),
-		]);
-		return this.formattedOutput(spanData, spanBaseline, metricData, metricBaseline);
+		try {
+			const [spanData, spanBaseline, metricData, metricBaseline] = await Promise.all([
+				this.getSpanErrorRate(this._dataTimeFrame),
+				this.getSpanErrorRate(this._baselineTimeFrame),
+				this.getMetricErrorRate(this._dataTimeFrame),
+				this.getMetricErrorRate(this._baselineTimeFrame),
+			]);
+			return this.formattedOutput(spanData, spanBaseline, metricData, metricBaseline);
+		} catch (ex) {
+			Logger.error(ex);
+			return [];
+		}
 	}
 
 	async getObservabilityAnomaliesThroughput() {
-		const [spanData, spanBaseline, metricData, metricBaseline] = await Promise.all([
-			this.getSpanThroughput(this._dataTimeFrame),
-			this.getSpanThroughput(this._baselineTimeFrame),
-			this.getMetricThroughput(this._dataTimeFrame),
-			this.getMetricThroughput(this._baselineTimeFrame),
-		]);
-		return this.formattedOutput(spanData, spanBaseline, metricData, metricBaseline);
+		try {
+			const [spanData, spanBaseline, metricData, metricBaseline] = await Promise.all([
+				this.getSpanThroughput(this._dataTimeFrame),
+				this.getSpanThroughput(this._baselineTimeFrame),
+				this.getMetricThroughput(this._dataTimeFrame),
+				this.getMetricThroughput(this._baselineTimeFrame),
+			]);
+			return this.formattedOutput(spanData, spanBaseline, metricData, metricBaseline);
+		} catch (ex) {
+			Logger.error(ex);
+			return [];
+		}
 	}
 
 	getCommonRoots(namespaces: string[]): string[] {
@@ -125,10 +141,11 @@ export class AnomalyDetector {
 		metricData: NameValue[],
 		metricBaseline: NameValue[]
 	) {
-		const spanArray = this.compareData(spanData, spanBaseline);
-		const metricMap = this.comparisonMap(metricData, metricBaseline);
-		const top3 = spanArray.slice(0, 3);
-		const output = this.formatAnomaly(top3);
+		const spanComparison = this.compareData(spanData, spanBaseline);
+		const metricComparison = this.compareData(metricData, metricBaseline);
+		const top3Span = spanComparison.slice(0, 3);
+		const top3Metric = metricComparison.slice(0, 3);
+		const output = [...this.formatAnomaly(top3Span), ...this.formatAnomaly(top3Metric)];
 		return output;
 	}
 
@@ -224,7 +241,7 @@ export class AnomalyDetector {
 
 	private async getMetricThroughput(timeFrame: string): Promise<NameValue[]> {
 		const query =
-			`SELECT rate(count(apm.service.transaction.error.count), 1 minute) AS 'value' ` +
+			`SELECT rate(count(newrelic.timeslice.value), 1 minute) AS 'value' ` +
 			`FROM Metric WHERE \`entity.guid\` = '${this.entityGuid}' AND (${this.metricLookup}) FACET metricTimesliceName AS name ` +
 			`${timeFrame} LIMIT MAX`;
 		return this.runNrql(query);

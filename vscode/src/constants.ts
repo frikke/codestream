@@ -41,6 +41,7 @@ export enum BuiltInCommands {
 	ExecuteDocumentHighlights = "vscode.executeDocumentHighlights",
 	ExecuteDocumentSymbolProvider = "vscode.executeDocumentSymbolProvider",
 	ExecuteCodeLensProvider = "vscode.executeCodeLensProvider",
+	ExecuteWorkspaceSymbolprovider = "vscode.executeWorkspaceSymbolProvider",
 	GoToNextDiff = "workbench.action.compareEditor.nextChange",
 	GoToPreviousDiff = "workbench.action.compareEditor.previousChange",
 	GoToNextChangedFile = "codestream.showNextChangedFile",

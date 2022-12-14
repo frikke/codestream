@@ -201,9 +201,11 @@ class CodeStreamLanguageClient(private val project: Project) : LanguageClient {
         val request = gson.fromJson<FilterNamespacesRequest>(json[0])
         val clmService = project.clmService ?: return CompletableFuture.completedFuture(FilterNamespacesResponse(emptyList()))
         val future = CompletableFuture<FilterNamespacesResponse>()
-        GlobalScope.launch {
-            val filteredNamespaces = clmService.filterNamespaces(request.namespaces)
-            future.complete(FilterNamespacesResponse(filteredNamespaces))
+        ApplicationManager.getApplication().invokeLater {
+            ReadAction.nonBlocking {
+                val filteredNamespaces = clmService.filterNamespaces(request.namespaces)
+                future.complete(FilterNamespacesResponse(filteredNamespaces))
+            }.submit(NonUrgentExecutor.getInstance())
         }
         return future
     }
