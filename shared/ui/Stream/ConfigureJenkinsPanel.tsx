@@ -2,13 +2,13 @@ import React, { useRef, useState } from "react";
 
 import { CodeStreamState } from "@codestream/webview/store";
 import { useAppDispatch, useAppSelector, useDidMount } from "@codestream/webview/utilities/hooks";
-import { configureProvider, ViewLocation } from "../store/providers/actions";
-import { Link } from "../Stream/Link";
+import { configureProvider, connectProvider, ViewLocation } from "../store/providers/actions";
 import { closePanel } from "./actions";
 import Button from "./Button";
 import CancelButton from "./CancelButton";
 import { PROVIDER_MAPPINGS } from "./CrossPostIssueControls/types";
 import { normalizeUrl } from "@codestream/webview/utilities/urls";
+import UrlInputComponent from "@codestream/webview/Stream/UrlInputComponent";
 
 interface Props {
 	providerId: string;
@@ -16,7 +16,7 @@ interface Props {
 }
 
 export default function ConfigureJenkinsPanel(props: Props) {
-	const initialInput = useRef<HTMLInputElement>(null);
+	const urlInput = useRef<HTMLInputElement>(null);
 
 	const derivedState = useAppSelector((state: CodeStreamState) => {
 		const { providers, ide } = state;
@@ -29,7 +29,7 @@ export default function ConfigureJenkinsPanel(props: Props) {
 	const dispatch = useAppDispatch();
 
 	const [baseUrl, setBaseUrl] = useState("");
-	const [baseUrlTouched, setBaseUrlTouched] = useState(false);
+	const [baseUrlValid, setBaseUrlValid] = useState(false);
 	const [apiKey, setApiKey] = useState("");
 	const [apiKeyTouched, setApiKeyTouched] = useState(false);
 	const [username, setUsername] = useState("");
@@ -39,7 +39,7 @@ export default function ConfigureJenkinsPanel(props: Props) {
 	const [loading, setLoading] = useState(false);
 
 	useDidMount(() => {
-		initialInput.current?.focus();
+		urlInput.current?.focus();
 	});
 
 	const onSubmit = async e => {
@@ -54,10 +54,16 @@ export default function ConfigureJenkinsPanel(props: Props) {
 		await dispatch(
 			configureProvider(
 				providerId,
-				{ data: { baseUrl: normalizeUrl(baseUrl) || "" }, accessToken: accessToken },
-				{ setConnectedWhenConfigured: true, connectionLocation: props.originLocation, verify: true }
+				{
+					accessToken: accessToken,
+					userId: username,
+					data: { baseUrl: normalizeUrl(baseUrl) || "" },
+				},
+				{ setConnectedWhenConfigured: false, verify: true }
 			)
 		);
+		await dispatch(connectProvider(providerId, props.originLocation));
+
 		setLoading(false);
 		await dispatch(closePanel());
 	};
@@ -69,9 +75,6 @@ export default function ConfigureJenkinsPanel(props: Props) {
 	};
 	const onBlurUsername = () => {
 		setUsernameTouched(true);
-	};
-	const onBlurBaseUrl = () => {
-		setBaseUrlTouched(true);
 	};
 
 	const renderApiKeyHelp = () => {
@@ -88,25 +91,15 @@ export default function ConfigureJenkinsPanel(props: Props) {
 		return;
 	};
 
-	const renderBaseUrlHelp = () => {
-		if (baseUrlTouched || submitAttempted) {
-			if (baseUrl.trim().length === 0) return <small className="error-message">Required</small>;
-		}
-		return;
-	};
-	const tabIndex = (): any => {};
-
 	const isFormInvalid = () => {
-		return (
-			apiKey.trim().length === 0 && username.trim().length === 0 && baseUrl.trim().length === 0
-		);
+		return apiKey.trim().length === 0 || username.trim().length === 0 || !baseUrlValid;
 	};
 
 	const inactive = false;
-	const { providerDisplay, provider } = derivedState;
-	const { scopes } = provider;
-	const { displayName, urlPlaceholder, invalidHosts, helpUrl } = providerDisplay;
+	const { providerDisplay } = derivedState;
+	const { displayName, urlPlaceholder, invalidHosts } = providerDisplay;
 	const providerShortName = providerDisplay.shortDisplayName || displayName;
+
 	return (
 		<div className="panel configure-provider-panel">
 			<form className="standard-form vscroll" onSubmit={onSubmit}>
@@ -118,40 +111,25 @@ export default function ConfigureJenkinsPanel(props: Props) {
 					{renderError()}
 					<div id="controls">
 						<div key="baseurl" id="configure-jenkins-controls-baseurl" className="control-group">
-							<label>
-								<strong>{providerShortName} Server Url</strong>
-							</label>
-							<label>
-								Please provide the base url for {providerShortName} we can use to access your jobs
-								and build statuses.
-							</label>
-							<input
-								ref={initialInput}
-								className="input-text control"
-								type="text"
-								name="baseUrl"
-								tabIndex={tabIndex()}
-								value={baseUrl}
-								onChange={e => setBaseUrl(e.target.value)}
-								onBlur={onBlurBaseUrl}
-								id="configure-provider-baseurl"
+							<UrlInputComponent
+								inputRef={urlInput}
+								providerShortName={providerShortName}
+								invalidHosts={invalidHosts}
+								submitAttempted={submitAttempted}
+								onChange={value => setBaseUrl(value)}
+								onValidChange={valid => setBaseUrlValid(valid)}
+								placeholder={urlPlaceholder}
+								showInstructions={false}
 							/>
-							{renderBaseUrlHelp()}
 						</div>
 						<div key="username" id="configure-jenkins-controls-username" className="control-group">
 							<label>
 								<strong>{providerShortName} Username</strong>
 							</label>
-							<label>
-								Please provide your username we can use to access your {providerShortName} jobs and
-								build statuses.
-							</label>
 							<input
-								ref={initialInput}
 								className="input-text control"
 								type="text"
 								name="username"
-								tabIndex={tabIndex()}
 								value={username}
 								onChange={e => setUsername(e.target.value)}
 								onBlur={onBlurUsername}
@@ -164,20 +142,13 @@ export default function ConfigureJenkinsPanel(props: Props) {
 								<strong>{providerShortName} API Key</strong>
 							</label>
 							<label>
-								Please provide an <Link href={helpUrl}>API Key</Link> we can use to access your{" "}
-								{providerShortName} jobs and build statuses.
-								{scopes && scopes.length && (
-									<span>
-										&nbsp;Your API Key should have the following scopes: <b>{scopes.join(", ")}</b>.
-									</span>
-								)}
+								Please provide an API Key we can use to access your {providerShortName} jobs and
+								build statuses.
 							</label>
 							<input
-								ref={initialInput}
 								className="input-text control"
 								type="password"
 								name="apiKey"
-								tabIndex={tabIndex()}
 								value={apiKey}
 								onChange={e => setApiKey(e.target.value)}
 								onBlur={onBlurApiKey}
@@ -186,19 +157,12 @@ export default function ConfigureJenkinsPanel(props: Props) {
 							{renderApiKeyHelp()}
 						</div>
 						<div className="button-group">
-							<Button
-								id="save-button"
-								className="control-button"
-								tabIndex={tabIndex()}
-								type="submit"
-								loading={loading}
-							>
+							<Button id="save-button" className="control-button" type="submit" loading={loading}>
 								Submit
 							</Button>
 							<Button
 								id="discard-button"
 								className="control-button cancel"
-								tabIndex={tabIndex()}
 								type="button"
 								onClick={() => dispatch(closePanel())}
 							>

@@ -1,6 +1,7 @@
-import { parseHost } from "@codestream/webview/utilities/urls";
 import * as React from "react";
-import { LegacyRef, MutableRefObject, Ref, useEffect, useState } from "react";
+import { LegacyRef, useEffect, useState } from "react";
+
+import { parseHost } from "@codestream/webview/utilities/urls";
 
 interface Props {
 	providerShortName: string;
@@ -11,12 +12,17 @@ interface Props {
 	submitAttempted: boolean;
 	placeholder?: string;
 	invalidHosts?: string[];
+	showInstructions?: boolean | undefined;
 }
 
 export default function UrlInputComponent(props: Props) {
 	const [baseUrl, setBaseUrl] = useState<string>("");
 	const [baseUrlTouched, setBaseUrlTouched] = useState<boolean>(false);
 	const [validHost, setValidHost] = useState<boolean>(false);
+
+	const derivedState = {
+		showInstructions: props.showInstructions ?? true,
+	};
 
 	useEffect(() => {
 		const hostname = parseHost(baseUrl);
@@ -67,9 +73,13 @@ export default function UrlInputComponent(props: Props) {
 			<label>
 				<strong>{props.providerShortName} Base URL</strong>
 			</label>
-			<label>
-				Please provide the Base URL used by your team to access {props.providerShortName}.
-			</label>
+
+			{derivedState.showInstructions && (
+				<label>
+					Please provide the Base URL used by your team to access {props.providerShortName}.
+				</label>
+			)}
+
 			<input
 				ref={props.inputRef}
 				className="native-key-bindings input-text control"

@@ -257,6 +257,7 @@ export const PROVIDER_MAPPINGS: { [provider: string]: ProviderDisplay } = {
 	jenkins: {
 		icon: "jenkins",
 		displayName: "Jenkins",
+		urlPlaceholder: "https://jenkins.myorg.com",
 	},
 };
 

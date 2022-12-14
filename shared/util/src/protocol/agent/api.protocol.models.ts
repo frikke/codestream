@@ -636,9 +636,7 @@ export interface CSLinearProviderInfo extends CSProviderInfo {}
 export interface CSNewRelicProviderInfo extends CSProviderInfo {}
 
 export interface CSCircleCIProviderInfo extends CSProviderInfo {}
-export interface CSJenkinsProviderInfo extends CSProviderInfo {
-	baseUrl?: string;
-}
+export interface CSJenkinsProviderInfo extends CSProviderInfo {}
 
 export type CSProviderInfos =
 	| CSAsanaProviderInfo
