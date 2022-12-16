@@ -1,7 +1,11 @@
 import { log, lspProvider } from "../system";
 import { ThirdPartyBuildProviderBase } from "./thirdPartyBuildProviderBase";
 import { CSJenkinsProviderInfo } from "../protocol/api.protocol.models";
-import { ProviderConfigurationData } from "../protocol/agent.protocol.providers";
+import {
+	FetchThirdPartyBuildsRequest,
+	FetchThirdPartyBuildsResponse,
+	ProviderConfigurationData,
+} from "../protocol/agent.protocol.providers";
 
 @lspProvider("jenkins")
 export class JenkinsCIProvider extends ThirdPartyBuildProviderBase<CSJenkinsProviderInfo> {
@@ -52,5 +56,17 @@ export class JenkinsCIProvider extends ThirdPartyBuildProviderBase<CSJenkinsProv
 		} catch (ex) {
 			throw ex;
 		}
+	}
+
+	@log()
+	async fetchBuilds(request: FetchThirdPartyBuildsRequest): Promise<FetchThirdPartyBuildsResponse> {
+		// not ready to fulfill this yet, since its going to depend on job preferences configured in the UI
+
+		return {
+			projects: {
+				"": [],
+			},
+			dashboardUrl: "",
+		};
 	}
 }
