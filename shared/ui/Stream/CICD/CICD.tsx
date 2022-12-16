@@ -16,6 +16,7 @@ import { PaneBody, PaneHeader, PaneState } from "../../src/components/Pane";
 import Icon from "../Icon";
 import { CircleCIBuilds } from "./CircleCIBuilds";
 import { ConnectCICD } from "./ConnectCICD";
+import { JenkinsBuilds } from "@codestream/webview/Stream/CICD/Jenkins/JenkinsBuilds";
 
 interface Props {
 	openRepos: ReposScm[];
@@ -43,7 +44,9 @@ export const CICD = (props: Props) => {
 			const name = providers[provider]?.name;
 			if (name) {
 				const p = getUserProviderInfoFromState(name, state);
-				if (p) providerInfo[name] = p;
+				if (p) {
+					providerInfo[name] = p;
+				}
 			}
 		}
 
@@ -204,11 +207,22 @@ export const CICD = (props: Props) => {
 			{props.paneState != PaneState.Collapsed && (
 				<PaneBody key="ci-cd">
 					{!derivedState.bootstrapped && <ConnectCICD />}
+
+					{derivedState.bootstrapped && !loading && Object.keys(projects).length === 0 && (
+						<div style={{ padding: "0 20px 0 40px" }}>
+							{`There were no builds found for ${derivedState.currentBranch}.`}
+						</div>
+					)}
+
 					{derivedState.bootstrapped && projects.circleci && (
 						<CircleCIBuilds projects={projects.circleci} />
 					)}
-					{derivedState.bootstrapped && !loading && Object.keys(projects).length === 0 && (
-						<div style={{ padding: "0 20px 0 40px" }}>No builds found for branch on repo.</div>
+
+					{derivedState.bootstrapped && (
+						<JenkinsBuilds
+							projects={projects.jenkins}
+							jenkinsBaseUrl={derivedState.providerInfo!.jenkins!["data"]["baseUrl"]}
+						/>
 					)}
 				</PaneBody>
 			)}
