@@ -369,7 +369,7 @@ namespace CodeStream.VisualStudio.Shared.LanguageServer {
 				$"{nameof(OnResolveStackTracePathsAsync)} Method={ResolveStackTracePathsRequestType.MethodName}",
 				Serilog.Events.LogEventLevel.Information)) {
 				
-				return Task.FromResult<ResolveStackTracePathsResponse>(new ResolveStackTracePathsResponse() { NotImplemented = true });				
+				return  System.Threading.Tasks.Task.FromResult<ResolveStackTracePathsResponse>(new ResolveStackTracePathsResponse() { NotImplemented = true });				
 			}
 		}
 
