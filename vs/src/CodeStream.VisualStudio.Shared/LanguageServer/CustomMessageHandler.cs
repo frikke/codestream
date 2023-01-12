@@ -364,12 +364,12 @@ namespace CodeStream.VisualStudio.Shared.LanguageServer {
 		}
 
 		[JsonRpcMethod(ResolveStackTracePathsRequestType.MethodName)]
-		public async System.Threading.Tasks.Task<ResolveStackTracePathsResponse> OnResolveStackTracePathsAsync(JToken e, JToken someOtherPropThatNeedsToBeHereForRequests) {
+		public System.Threading.Tasks.Task<ResolveStackTracePathsResponse> OnResolveStackTracePathsAsync(JToken e, JToken someOtherPropThatNeedsToBeHereForRequests) {
 			using (Log.CriticalOperation(
 				$"{nameof(OnResolveStackTracePathsAsync)} Method={ResolveStackTracePathsRequestType.MethodName}",
 				Serilog.Events.LogEventLevel.Information)) {
 				
-				return  System.Threading.Tasks.Task.FromResult<ResolveStackTracePathsResponse>(new ResolveStackTracePathsResponse() { NotImplemented = true });				
+				return System.Threading.Tasks.Task.FromResult(new ResolveStackTracePathsResponse() { NotImplemented = true });				
 			}
 		}
 
