@@ -160,7 +160,7 @@ const supportedLanguages = [
 	"kotlin",
 	"go",
 	"php",
-	"node",
+	"javascript",
 ] as const;
 export type LanguageId = typeof supportedLanguages[number];
 
@@ -2147,7 +2147,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				case "kotlin":
 				case "go":
 				case "php":
-				case "node":
+				case "javascript":
 					functionInfo = {
 						functionName: additionalMetadata["code.function"],
 						className: additionalMetadata["code.namespace"],

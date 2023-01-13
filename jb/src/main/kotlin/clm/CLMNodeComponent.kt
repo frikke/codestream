@@ -22,7 +22,7 @@ class CLMNodeComponent(project: Project) :
     }
 }
 
-class CLMNodeEditorManager(editor: Editor) : CLMEditorManager(editor, "node", false, true) {
+class CLMNodeEditorManager(editor: Editor) : CLMEditorManager(editor, "javascript", false, true) {
 
     private val logger = Logger.getInstance(CLMNodeEditorManager::class.java)
     override fun getLookupClassNames(psiFile: PsiFile): List<String>? {
@@ -30,25 +30,26 @@ class CLMNodeEditorManager(editor: Editor) : CLMEditorManager(editor, "node", fa
     }
 
     override fun getLookupSpanSuffixes(psiFile: PsiFile): List<String>? {
-        if (psiFile !is JSFile) return null
-        val callExpressions = psiFile.collectDescendantsOfType<JSCallExpression>()
-
-        return callExpressions.mapNotNull { exp ->
-            val ref = exp.findDescendantOfType<JSReferenceExpression>()
-            val httpMethod = getHttpMethod(ref?.text)
-            if (httpMethod != null) {
-                val args = exp.findDescendantOfType<JSArgumentList>()
-                val firstArg = args?.findDescendantOfType<JSLiteralExpression>()
-                if (firstArg != null) {
-                    "$httpMethod ${firstArg.text}"
-                } else {
-                    null
-                }
-            } else {
-                null
-            }
-
-        }
+        return null
+//        if (psiFile !is JSFile) return null
+//        val callExpressions = psiFile.collectDescendantsOfType<JSCallExpression>()
+//
+//        return callExpressions.mapNotNull { exp ->
+//            val ref = exp.findDescendantOfType<JSReferenceExpression>()
+//            val httpMethod = getHttpMethod(ref?.text)
+//            if (httpMethod != null) {
+//                val args = exp.findDescendantOfType<JSArgumentList>()
+//                val firstArg = args?.findDescendantOfType<JSLiteralExpression>()
+//                if (firstArg != null) {
+//                    "$httpMethod ${firstArg.text}"
+//                } else {
+//                    null
+//                }
+//            } else {
+//                null
+//            }
+//
+//        }
     }
 
     override fun findClassFunctionFromFile(
