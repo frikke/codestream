@@ -2630,7 +2630,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				entity?.entityGuid || request.newRelicEntityGuid
 			);
 
-			return {
+			const result = {
 				entityGoldenMetrics: entityGoldenMetrics,
 				newRelicEntityAccounts: observabilityRepo?.entityAccounts || [],
 				newRelicAlertSeverity: entity?.alertSeverity,
@@ -2641,12 +2641,14 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				}`,
 				recentAlertViolations: recentAlertViolations || {},
 			};
+			Logger.log(`--- getServiceLevelTelemetry returning ${JSON.stringify(result, null, 2)}`);
+			return result;
 		} catch (ex) {
 			Logger.error(ex, "getServiceLevelTelemetry", {
 				request,
 			});
 		}
-
+		Logger.log(`--- getServiceLevelTelemetry returning undefined`);
 		return undefined;
 	}
 
@@ -2983,6 +2985,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				entityGoldenMetricsQueryResults?.actor?.entity?.goldenMetrics?.metrics;
 
 			if (metricDefinitions?.length == 0) {
+				Logger.log(`--- metricDefinitions empty`);
 				return undefined;
 			}
 
@@ -3006,7 +3009,14 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				}
 			}`;
 
+			Logger.log(`--- gmQuery ${gmQuery}`);
+
 			const entityGoldenMetricsResults = await this.query<EntityGoldenMetricsResults>(gmQuery);
+
+			Logger.log(
+				`--- entityGoldenMetricsResults ${JSON.stringify(entityGoldenMetricsResults, null, 2)}`
+			);
+
 			const metricResults = entityGoldenMetricsResults?.actor?.entity;
 
 			const metrics = metricDefinitions.map(md => {
@@ -3045,6 +3055,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				metrics: metrics,
 			};
 		} catch (ex) {
+			Logger.log("--- oh no", ex);
 			Logger.warn("getEntityGoldenMetrics no response", {
 				entityGuid,
 				error: ex,
