@@ -144,8 +144,8 @@ export const PullRequestFilesChanged = (props: Props) => {
 					</span>
 				) : pr && forkPointResponse.error.type === "REFS_NOT_FOUND" ? (
 					<div>
-						Unable to fetch for <span className="monospace highlight">{pr.repository?.name}</span>{" "}
-						because a password is required. Please run{" "}
+						Unable to fetch for <span className="monospace highlight">{pr.repository?.name}</span>.
+						Please run{" "}
 						<span style={{ marginLeft: "3px" }} className="monospace highlight">
 							git fetch -all
 						</span>
