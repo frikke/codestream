@@ -571,7 +571,7 @@ export interface FetchForkPointResponse {
 	sha: string;
 	error?: {
 		message?: string;
-		type: "COMMIT_NOT_FOUND" | "REPO_NOT_FOUND";
+		type: "COMMIT_NOT_FOUND" | "REPO_NOT_FOUND" | "REFS_NOT_FOUND";
 	};
 }
 
