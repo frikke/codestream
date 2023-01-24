@@ -19,6 +19,7 @@ import {
 	GetObservabilityAnomaliesResponse,
 	ObservabilityRepoError,
 	ServiceLevelObjectiveResult,
+	isNRErrorResponse,
 } from "@codestream/protocols/agent";
 import cx from "classnames";
 import { head as _head, isEmpty, isEmpty as _isEmpty, isNil as _isNil } from "lodash-es";
@@ -272,12 +273,15 @@ export const Observability = React.memo((props: Props) => {
 		ObservabilityErrorCore[]
 	>([]);
 	const [observabilityErrors, setObservabilityErrors] = useState<ObservabilityRepoError[]>([]);
+	const [observabilityErrorsError, setObservabilityErrorsError] = useState<string>();
 	const [observabilityRepos, setObservabilityRepos] = useState<ObservabilityRepo[]>([]);
 	const [loadingPane, setLoadingPane] = useState<string | undefined>();
 	const [entityGoldenMetrics, setEntityGoldenMetrics] = useState<EntityGoldenMetrics>();
+	const [entityGoldenMetricsErrors, setEntityGoldenMetricsErrors] = useState<string[]>([]);
 	const [serviceLevelObjectives, setServiceLevelObjectives] = useState<
 		ServiceLevelObjectiveResult[]
 	>([]);
+	const [serviceLevelObjectiveError, setServiceLevelObjectiveError] = useState<string>();
 	const [hasServiceLevelObjectives, setHasServiceLevelObjectives] = useState<boolean>(false);
 	const [expandedEntity, setExpandedEntity] = useState<string | undefined>();
 	const [pendingTelemetryCall, setPendingTelemetryCall] = useState<boolean>(false);
@@ -292,6 +296,7 @@ export const Observability = React.memo((props: Props) => {
 	const [recentAlertViolations, setRecentAlertViolations] = useState<
 		GetAlertViolationsResponse | undefined
 	>();
+	const [recentAlertViolationsError, setRecentAlertViolationsError] = useState<string>();
 	const previousNewRelicIsConnected = usePrevious(derivedState.newRelicIsConnected);
 
 	const buildFilters = (repoIds: string[]) => {
@@ -379,6 +384,12 @@ export const Observability = React.memo((props: Props) => {
 				const response = await HostApi.instance.send(GetObservabilityErrorsRequestType, {
 					filters: buildFilters([currentRepoId]),
 				});
+
+				if (isNRErrorResponse(response.error)) {
+					setObservabilityErrorsError(response.error.error.message ?? response.error.error.type);
+				} else {
+					setObservabilityErrorsError(undefined);
+				}
 
 				if (response?.repos) {
 					setObservabilityErrors(response.repos);
@@ -593,6 +604,11 @@ export const Observability = React.memo((props: Props) => {
 				filters: [{ repoId: repoId, entityGuid: entityGuid }],
 			})
 			.then(response => {
+				if (isNRErrorResponse(response.error)) {
+					setObservabilityErrorsError(response.error.error.message ?? response.error.error.type);
+				} else {
+					setObservabilityErrorsError(undefined);
+				}
 				if (response.repos) {
 					setObservabilityErrors(response.repos);
 				}
@@ -648,8 +664,26 @@ export const Observability = React.memo((props: Props) => {
 			});
 
 			if (response) {
-				setEntityGoldenMetrics(response.entityGoldenMetrics);
-				setRecentAlertViolations(response.recentAlertViolations);
+				const errors: string[] = [];
+				// Don't erase previous results on an error
+				if (isNRErrorResponse(response.entityGoldenMetrics)) {
+					errors.push(
+						response.entityGoldenMetrics.error.message ?? response.entityGoldenMetrics.error.type
+					);
+				} else {
+					setEntityGoldenMetrics(response.entityGoldenMetrics);
+				}
+
+				if (isNRErrorResponse(response.recentAlertViolations)) {
+					errors.push(
+						response.recentAlertViolations.error.message ??
+							response.recentAlertViolations.error.type
+					);
+				} else {
+					setRecentAlertViolations(response.recentAlertViolations);
+					setRecentAlertViolationsError(undefined);
+				}
+				setEntityGoldenMetricsErrors(errors);
 			} else {
 				console.warn(`fetchGoldenMetrics no response`);
 				// TODO this is usually Missing entities error - do something
@@ -664,6 +698,12 @@ export const Observability = React.memo((props: Props) => {
 			const response = await HostApi.instance.send(GetServiceLevelObjectivesRequestType, {
 				entityGuid: entityGuid,
 			});
+
+			if (isNRErrorResponse(response.error)) {
+				setServiceLevelObjectiveError(response.error.error.message ?? response.error.error.type);
+			} else {
+				setServiceLevelObjectiveError(undefined);
+			}
 
 			if (response?.serviceLevelObjectives) {
 				setServiceLevelObjectives(response.serviceLevelObjectives);
@@ -818,15 +858,18 @@ export const Observability = React.memo((props: Props) => {
 			}
 
 			// Show CLM broadcast icon if needed
-			if (
-				currentRepo &&
-				currentRepo.hasCodeLevelMetricSpanData &&
-				currentRepo.entityAccounts &&
-				currentRepo.entityAccounts.length > 1
-			) {
-				setShowCodeLevelMetricsBroadcastIcon(true);
-			} else {
-				setShowCodeLevelMetricsBroadcastIcon(false);
+			if (!isNRErrorResponse(currentRepo?.hasCodeLevelMetricSpanData)) {
+				// Only change status of broadcast icon if response wasn't an error
+				if (
+					currentRepo &&
+					currentRepo.hasCodeLevelMetricSpanData &&
+					currentRepo.entityAccounts &&
+					currentRepo.entityAccounts.length > 1
+				) {
+					setShowCodeLevelMetricsBroadcastIcon(true);
+				} else {
+					setShowCodeLevelMetricsBroadcastIcon(false);
+				}
 			}
 		}
 	}, [currentRepoId, observabilityRepos, loadingEntities, derivedState.textEditorUri]);
@@ -923,7 +966,11 @@ export const Observability = React.memo((props: Props) => {
 										{!derivedState.hideCodeLevelMetricsInstructions &&
 											!derivedState.showGoldenSignalsInEditor &&
 											derivedState.isVS &&
-											observabilityRepos?.find(_ => _.hasCodeLevelMetricSpanData) && (
+											observabilityRepos?.find(
+												_ =>
+													!isNRErrorResponse(_.hasCodeLevelMetricSpanData) &&
+													_.hasCodeLevelMetricSpanData
+											) && (
 												<WarningBox
 													style={{ margin: "20px" }}
 													items={[
@@ -1099,6 +1146,7 @@ export const Observability = React.memo((props: Props) => {
 																							<ObservabilityGoldenMetricDropdown
 																								entityGoldenMetrics={entityGoldenMetrics}
 																								loadingGoldenMetrics={loadingGoldenMetrics}
+																								errors={entityGoldenMetricsErrors}
 																								recentAlertViolations={
 																									recentAlertViolations ? recentAlertViolations : {}
 																								}
@@ -1107,6 +1155,7 @@ export const Observability = React.memo((props: Props) => {
 																								<>
 																									<ObservabilityServiceLevelObjectives
 																										serviceLevelObjectives={serviceLevelObjectives}
+																										errorMsg={serviceLevelObjectiveError}
 																									/>
 																								</>
 																							)}
@@ -1139,6 +1188,7 @@ export const Observability = React.memo((props: Props) => {
 																												}
 																												entityGuid={ea.entityGuid}
 																												noAccess={noErrorsAccess}
+																												errorMsg={observabilityErrorsError}
 																											/>
 																										</>
 																									)}

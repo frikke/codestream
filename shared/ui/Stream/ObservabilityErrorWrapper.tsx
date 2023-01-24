@@ -11,10 +11,12 @@ interface Props {
 	observabilityAssignments: any;
 	entityGuid: string;
 	noAccess?: string;
+	errorMsg?: string;
 }
 
 export const ObservabilityErrorWrapper = React.memo((props: Props) => {
 	const [expanded, setExpanded] = useState<boolean>(true);
+	const { errorMsg } = props;
 
 	return (
 		<>
@@ -27,7 +29,17 @@ export const ObservabilityErrorWrapper = React.memo((props: Props) => {
 			>
 				{expanded && <Icon name="chevron-down-thin" />}
 				{!expanded && <Icon name="chevron-right-thin" />}
-				<span style={{ marginLeft: "2px" }}>Errors</span>
+				<span style={{ margin: "0 5px 0 2px" }}>Errors</span>
+				{errorMsg && (
+					<Icon
+						style={{ transform: "scale(0.8)" }}
+						name="alert"
+						className="clickable"
+						placement="bottom"
+						title={`Last request failed: ${errorMsg}`}
+						delay={1}
+					/>
+				)}
 			</Row>
 			{expanded &&
 				(props.noAccess ? (

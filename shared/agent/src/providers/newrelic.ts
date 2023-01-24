@@ -89,6 +89,14 @@ import {
 	GetObservabilityResponseTimesRequest,
 	GetObservabilityResponseTimesResponse,
 	GetObservabilityResponseTimesRequestType,
+	ERROR_SLT_MISSING_OBSERVABILITY_REPOS,
+	ERROR_SLT_MISSING_ENTITY,
+	NRErrorResponse,
+	NRErrorType,
+	isNRErrorResponse,
+	ERROR_NRQL_GENERIC,
+	ERROR_NRQL_TIMEOUT,
+	ERROR_GENERIC_USE_ERROR_MESSAGE,
 } from "@codestream/protocols/agent";
 import { CSMe, CSNewRelicProviderInfo } from "@codestream/protocols/api";
 import { Index } from "@codestream/utils/types";
@@ -116,11 +124,12 @@ import { Functions, log, lspHandler, lspProvider, Strings } from "../system";
 import { customFetch } from "../system/fetchCore";
 import * as csUri from "../system/uri";
 import {
+	ClmSpanData,
+	CodedError,
 	GraphqlNrqlError,
 	GraphqlNrqlTimeoutError,
+	isClmSpanData,
 	isGraphqlNrqlError,
-	NRErrorResponse,
-	NRErrorType,
 	RepoEntitiesByRemotesResponse,
 } from "./newrelic.types";
 import { AnomalyDetector } from "./newrelic/anomalyDetection";
@@ -193,6 +202,9 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 	private _memoizedBuildRepoRemoteVariants: any;
 	// 2 minute cache
 	private _mltTimedCache = new Cache<GetFileLevelTelemetryResponse | null>({
+		defaultTtl: 120 * 1000,
+	});
+	private _clmSpanDataExistsCache = new Cache<ClmSpanData>({
 		defaultTtl: 120 * 1000,
 	});
 	// 30 second cache
@@ -754,7 +766,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				}
 				const folderName = this.getRepoName({ path: repo.path });
 
-				if (response.repos.some(_ => _?.repoName === folderName)) {
+				if (response.repos?.some(_ => _?.repoName === folderName)) {
 					ContextLogger.warn("getObservabilityRepos skipping duplicate repo name", {
 						repo: repo,
 					});
@@ -768,6 +780,11 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 					remotes,
 					force
 				);
+
+				if (isNRErrorResponse(repositoryEntitiesResponse)) {
+					return { error: repositoryEntitiesResponse };
+				}
+
 				let remoteUrls: (string | undefined)[] = [];
 				let hasRepoAssociation;
 				let applicationAssociations;
@@ -818,7 +835,6 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				}
 
 				const uniqueEntities: Entity[] = [];
-				let hasCodeLevelMetricSpanData = undefined;
 				if (applicationAssociations && applicationAssociations.length) {
 					for (const entity of applicationAssociations) {
 						if (!entity.relatedEntities?.results) continue;
@@ -851,21 +867,16 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 						}
 					}
 				}
-				if (hasRepoAssociation && uniqueEntities.length) {
-					// is there any NR CLM span data for any entity tied to this repo?
-					const respositoryEntitySpanDataExistsResponse = await this.findClmSpanDataExists(
-						uniqueEntities?.map(_ => _.guid)
-					);
-					hasCodeLevelMetricSpanData =
-						respositoryEntitySpanDataExistsResponse?.find(_ => _ && _["entity.guid"] != null) !=
-						null;
-				}
-				response.repos.push({
+				const hasCodeLevelMetricSpanData = await this.checkHasCodeLevelMetricSpanData(
+					hasRepoAssociation === true,
+					uniqueEntities
+				);
+				response.repos?.push({
 					repoId: repo.id!,
 					repoName: folderName,
 					repoRemote: remote,
-					hasRepoAssociation: hasRepoAssociation,
-					hasCodeLevelMetricSpanData: hasCodeLevelMetricSpanData,
+					hasRepoAssociation,
+					hasCodeLevelMetricSpanData,
 					entityAccounts: uniqueEntities
 						.map(entity => {
 							return {
@@ -897,6 +908,22 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		this._observabilityReposCache.put(cacheKey, response);
 
 		return response;
+	}
+
+	private async checkHasCodeLevelMetricSpanData(
+		hasRepoAssociation: boolean,
+		uniqueEntities: Entity[]
+	): Promise<boolean | NRErrorResponse> {
+		if (!hasRepoAssociation || _isEmpty(uniqueEntities)) {
+			return false;
+		}
+		const repoEntitySpanDataExistsResponse = await this.findClmSpanDataExists(
+			uniqueEntities?.map(_ => _.guid)
+		);
+		if (isNRErrorResponse(repoEntitySpanDataExistsResponse)) {
+			return repoEntitySpanDataExistsResponse;
+		}
+		return repoEntitySpanDataExistsResponse?.find(_ => _ && _["entity.guid"] != null) != null;
 	}
 
 	/**
@@ -946,6 +973,9 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 					const repositoryEntitiesResponse = await this.findRepositoryEntitiesByRepoRemotes(
 						remotes
 					);
+					if (isNRErrorResponse(repositoryEntitiesResponse)) {
+						return { error: repositoryEntitiesResponse };
+					}
 					let gotoEnd = false;
 					if (repositoryEntitiesResponse?.entities?.length) {
 						const entityFilter = request.filters?.find(_ => _.repoId === repo.id!);
@@ -1026,7 +1056,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 						}
 					}
 				}
-				response.repos.push({
+				response.repos?.push({
 					repoId: repo.id!,
 					repoName: this.getRepoName(repo),
 					errors: observabilityErrors!,
@@ -1034,7 +1064,10 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			}
 		} catch (ex) {
 			ContextLogger.error(ex, "getObservabilityErrors");
-			throw ex;
+			if (ex instanceof ResponseError) {
+				throw ex;
+			}
+			return { error: this.mapNRErrorResponse(ex) };
 		}
 		return response;
 	}
@@ -1746,6 +1779,9 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				const fn = async () => {
 					try {
 						const result = await this.findRepositoryEntitiesByRepoRemotes([request.url], true);
+						if (isNRErrorResponse(result)) {
+							return false;
+						}
 						return !!result?.entities?.length;
 					} catch (error) {
 						ContextLogger.warn("findRepositoryEntitiesByRepoRemotesResult error", {
@@ -2538,13 +2574,11 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		};
 	}
 
-	private errorTypeMapper(ex: Error): NRErrorType | undefined {
-		if (ex instanceof GraphqlNrqlTimeoutError) {
-			return "NR_TIMEOUT";
-		} else if (ex instanceof GraphqlNrqlError) {
-			return "NR_UNKNOWN";
+	private errorTypeMapper(ex: Error): NRErrorType {
+		if (ex instanceof CodedError) {
+			return ex.code;
 		}
-		return undefined;
+		return "NR_UNKNOWN";
 	}
 
 	private applyLanguageFilter(spans: Span[], languageId: LanguageId): Span[] {
@@ -2613,9 +2647,13 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		request: GetServiceLevelTelemetryRequest
 	): Promise<GetServiceLevelTelemetryResponse | undefined> {
 		const { force } = request;
-		const observabilityRepo = await this.getObservabilityEntityRepos(request.repoId, force);
+		const observabilityRepo = await this.getObservabilityEntityRepos(
+			request.repoId,
+			request.skipRepoFetch === true,
+			force
+		);
 		if (!request.skipRepoFetch && (!observabilityRepo || !observabilityRepo.entityAccounts)) {
-			return undefined;
+			throw new ResponseError(ERROR_SLT_MISSING_OBSERVABILITY_REPOS, "No observabilityRepos");
 		}
 
 		const entity = observabilityRepo?.entityAccounts.find(
@@ -2625,30 +2663,29 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			ContextLogger.warn("Missing entity", {
 				entityId: request.newRelicEntityGuid,
 			});
-			return undefined;
+			throw new ResponseError(ERROR_SLT_MISSING_ENTITY, "Missing entity");
 		}
 
-		let recentAlertViolations: GetAlertViolationsResponse | undefined = {};
+		let recentAlertViolations: GetAlertViolationsResponse | undefined | NRErrorResponse;
 		if (request.fetchRecentAlertViolations) {
 			recentAlertViolations = await this.getRecentAlertViolations(request.newRelicEntityGuid);
 		}
 
-		try {
-			const entityGoldenMetrics = await this.getEntityLevelGoldenMetrics(
-				entity?.entityGuid || request.newRelicEntityGuid
-			);
+		const validEntityGuid: string = entity?.entityGuid ?? request.newRelicEntityGuid;
 
-			return {
+		try {
+			const entityGoldenMetrics = await this.getEntityLevelGoldenMetrics(validEntityGuid);
+
+			const response = {
 				entityGoldenMetrics: entityGoldenMetrics,
-				newRelicEntityAccounts: observabilityRepo?.entityAccounts || [],
+				newRelicEntityAccounts: observabilityRepo?.entityAccounts ?? [],
 				newRelicAlertSeverity: entity?.alertSeverity,
-				newRelicEntityName: entity?.entityName!,
-				newRelicEntityGuid: entity?.entityGuid! || request.newRelicEntityGuid,
-				newRelicUrl: `${this.productUrl}/redirect/entity/${
-					entity?.entityGuid || request.newRelicEntityGuid
-				}`,
-				recentAlertViolations: recentAlertViolations || {},
+				newRelicEntityName: entity?.entityName,
+				newRelicEntityGuid: validEntityGuid,
+				newRelicUrl: `${this.productUrl}/redirect/entity/${validEntityGuid}`,
+				recentAlertViolations: recentAlertViolations,
 			};
+			return response;
 		} catch (ex) {
 			Logger.error(ex, "getServiceLevelTelemetry", {
 				request,
@@ -2660,7 +2697,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 
 	async getRecentAlertViolations(
 		entityGuid: string
-	): Promise<GetAlertViolationsResponse | undefined> {
+	): Promise<GetAlertViolationsResponse | NRErrorResponse> {
 		try {
 			const response = await this.query<GetAlertViolationsQueryResult>(
 				`query getRecentAlertViolations($entityGuid: EntityGuid!) {
@@ -2688,7 +2725,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			);
 
 			if (response?.actor?.entity) {
-				let entity = response?.actor?.entity;
+				const entity = response?.actor?.entity;
 				const recentAlertViolationsArray = entity?.recentAlertViolations.filter(
 					_ => _.closedAt === null
 				);
@@ -2738,9 +2775,8 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			if (accessTokenError && accessTokenError.innerError && accessTokenError.isAccessTokenError) {
 				throw new Error(accessTokenError.message);
 			}
+			return this.mapNRErrorResponse(ex);
 		}
-
-		return undefined;
 	}
 
 	/**
@@ -2749,12 +2785,14 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 	 *
 	 * @private
 	 * @param {string} repoId
+	 * @param {boolean} skipRepoFetch - Don't error out, let it be skipped
 	 * @param {boolean} force - Don't use cache, force live request
 	 * @return {*}
 	 * @memberof NewRelicProvider
 	 */
 	protected async getObservabilityEntityRepos(
 		repoId: string,
+		skipRepoFetch = false,
 		force = false
 	): Promise<ObservabilityRepo | undefined> {
 		let observabilityRepos: GetObservabilityReposResponse | undefined;
@@ -2765,8 +2803,8 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			});
 		} catch (err) {
 			this.contextWarnLogIfNotIgnored("getObservabilityEntityRepos", { error: err });
-			if (err instanceof GraphqlNrqlError) {
-				throw err;
+			if (!skipRepoFetch) {
+				throw this.mapNRErrorResponse(err);
 			}
 		}
 		if (!observabilityRepos?.repos?.length) {
@@ -2961,7 +2999,9 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		return response;
 	}
 
-	async getEntityLevelGoldenMetrics(entityGuid: string): Promise<EntityGoldenMetrics | undefined> {
+	async getEntityLevelGoldenMetrics(
+		entityGuid: string
+	): Promise<EntityGoldenMetrics | NRErrorResponse | undefined> {
 		try {
 			const entityGoldenMetricsQuery = `
 				{
@@ -2990,7 +3030,11 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			const metricDefinitions =
 				entityGoldenMetricsQueryResults?.actor?.entity?.goldenMetrics?.metrics;
 
-			if (metricDefinitions?.length == 0) {
+			if (!metricDefinitions || metricDefinitions.length === 0) {
+				Logger.warn("getEntityGoldenMetrics no metricDefinitions", {
+					entityGuid,
+					response: JSON.stringify(entityGoldenMetricsQueryResults),
+				});
 				return undefined;
 			}
 
@@ -3018,7 +3062,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			const metricResults = entityGoldenMetricsResults?.actor?.entity;
 
 			const metrics = metricDefinitions.map(md => {
-				const metricResult = metricResults[md.name]?.results[0].result;
+				const metricResult = metricResults[md.name]?.results?.[0]?.result;
 
 				let metricValue: number = NaN;
 
@@ -3057,7 +3101,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				entityGuid,
 				error: ex,
 			});
-			return undefined;
+			return this.mapNRErrorResponse(ex);
 		}
 	}
 
@@ -3095,6 +3139,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			}`;
 
 			const sliResults = await this.query<ServiceLevelIndicatorQueryResult>(sliQuery);
+
 			const indicators = sliResults?.actor?.entity?.serviceLevel?.indicators;
 
 			if (!indicators || indicators?.length === 0) {
@@ -3156,12 +3201,11 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				request,
 				error: ex,
 			});
+			return { error: this.mapNRErrorResponse(ex) };
 		}
-
-		return undefined;
 	}
 
-	private toFixedNoRounding(number: number, precision: number = 1): string {
+	private toFixedNoRounding(number: number, precision = 1): string {
 		const factor = Math.pow(10, precision);
 		return `${Math.floor(number * factor) / factor}`;
 	}
@@ -3700,7 +3744,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 	protected async findRepositoryEntitiesByRepoRemotes(
 		remotes: string[],
 		force = false
-	): Promise<RepoEntitiesByRemotesResponse | undefined> {
+	): Promise<RepoEntitiesByRemotesResponse | NRErrorResponse> {
 		const cacheKey = JSON.stringify(remotes);
 		if (!force) {
 			const cached = this._repositoryEntitiesByRepoRemotes.get(cacheKey);
@@ -3713,7 +3757,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		}
 		try {
 			const remoteVariants: string[] = await this._memoizedBuildRepoRemoteVariants(remotes);
-			if (!remoteVariants.length) return undefined;
+			if (!remoteVariants.length) return {};
 
 			const remoteFilters = remoteVariants.map((_: string) => `tags.url = '${_}'`).join(" OR ");
 			const query = `{
@@ -3750,31 +3794,39 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			ContextLogger.warn("getEntitiesByRepoRemote", {
 				error: ex,
 			});
-			return undefined;
+			return this.mapNRErrorResponse(ex);
 		}
 	}
 
-	protected async findClmSpanDataExists(newRelicGuids: string[]): Promise<
-		{
-			name: string;
-			"code.function": string;
-			"entity.guid": string;
-		}[]
-	> {
+	protected async findClmSpanDataExists(
+		newRelicGuids: string[]
+	): Promise<ClmSpanData[] | NRErrorResponse> {
 		try {
 			const results = await Promise.all(
 				newRelicGuids.map(async _ => {
+					const cached = this._clmSpanDataExistsCache.get(_);
+					if (cached) {
+						if (Logger.isDebugging) {
+							Logger.debug(`findClmSpanDataExists ${JSON.stringify(cached)} from cache for ${_}`);
+						}
+						return cached;
+					}
 					const response = await this.query(generateClmSpanDataExistsQuery(_), {
 						accountId: NewRelicProvider.parseId(_)?.accountId,
 					});
-					return response?.actor?.account?.nrql?.results[0];
+					const spanData = response?.actor?.account?.nrql?.results[0];
+					if (isClmSpanData(spanData)) {
+						// Only cache valid results
+						this._clmSpanDataExistsCache.put(_, spanData);
+					}
+					return spanData;
 				})
 			);
 
 			return results;
 		} catch (ex) {
 			Logger.error(ex);
-			return [];
+			return this.mapNRErrorResponse(ex);
 		}
 	}
 
@@ -3871,11 +3923,10 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 	) {
 		const queries = this.getFingerprintedErrorTraceQueries(applicationGuid, entityType);
 
-		try {
-			const results = [];
-			for (const query of queries) {
-				const response = await this.query(
-					`query fetchErrorsInboxFacetedData($accountId:Int!) {
+		const results = [];
+		for (const query of queries) {
+			const response = await this.query(
+				`query fetchErrorsInboxFacetedData($accountId:Int!) {
 						actor {
 						  account(id: $accountId) {
 							nrql(query: "${query}") { nrql results }
@@ -3883,18 +3934,15 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 						}
 					  }
 					  `,
-					{
-						accountId: accountId,
-					}
-				);
-				if (response.actor.account.nrql.results?.length) {
-					results.push(...response.actor.account.nrql.results);
+				{
+					accountId: accountId,
 				}
+			);
+			if (response.actor.account.nrql.results?.length) {
+				results.push(...response.actor.account.nrql.results);
 			}
-			return results;
-		} catch (err) {
-			throw err;
 		}
+		return results;
 	}
 
 	protected async findRelatedEntityByRepositoryGuids(
@@ -4245,6 +4293,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		// if we don't cache the nrql will execute for every single file they open in the IDE
 		// Flip side: if cache is too long user will get frustrated that new repo association isn't show up in
 		// UI during setup
+
 		const cached = this._entityCountTimedCache.get(ENTITY_CACHE_KEY);
 		if (cached && !request?.force) {
 			return cached;
@@ -4262,11 +4311,20 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			return result;
 		} catch (ex) {
 			this.errorLogIfNotIgnored(ex, "getEntityCount");
-			if (ex instanceof GraphqlNrqlError) {
+			if (ex instanceof ResponseError) {
 				throw ex;
 			}
+			if (ex instanceof GraphqlNrqlTimeoutError) {
+				throw new ResponseError(ERROR_NRQL_TIMEOUT, ex.message);
+			}
+			if (ex instanceof GraphqlNrqlError) {
+				throw new ResponseError(ERROR_NRQL_GENERIC, ex.message);
+			}
+			if (ex instanceof CodedError) {
+				throw new ResponseError(ERROR_NRQL_GENERIC, ex.message, ex.code);
+			}
+			throw new ResponseError(ERROR_GENERIC_USE_ERROR_MESSAGE, ex.message);
 		}
-		return { entityCount: 0 };
 	}
 
 	private productEntityRedirectUrl(entityGuid: string) {
@@ -4404,6 +4462,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		return undefined;
 	}
 
+	// Public for tests
 	public checkGraphqlErrors(response: unknown): void {
 		if (isGraphqlNrqlError(response)) {
 			const timeoutError = response.errors.find(err => err.extensions?.errorClass === "TIMEOUT");
@@ -4495,6 +4554,14 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			};
 		}>(query, { accountId });
 		return results.actor.account.nrql.results;
+	}
+
+	private mapNRErrorResponse(ex: Error): NRErrorResponse {
+		const type = this.errorTypeMapper(ex);
+		if (type) {
+			return <NRErrorResponse>{ error: { type, message: ex.message, stack: ex.stack } };
+		}
+		return <NRErrorResponse>{ error: { type: "NR_UNKNOWN", message: ex.message, stack: ex.stack } };
 	}
 }
 

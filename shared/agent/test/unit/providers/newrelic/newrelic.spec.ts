@@ -878,8 +878,8 @@ describe("NewRelicProvider", () => {
 		const results = await provider.getObservabilityRepos({});
 
 		expect(results?.repos?.length).toEqual(1);
-		expect(results?.repos[0].entityAccounts.length).toEqual(1);
-		expect(results?.repos[0].repoRemote).toEqual(
+		expect(results?.repos![0].entityAccounts.length).toEqual(1);
+		expect(results?.repos![0].repoRemote).toEqual(
 			"git@yoursourcecode.net:biz-enablement/foo-account-persister.git"
 		);
 	});
@@ -983,6 +983,7 @@ class NewRelicProviderStubBase extends NewRelicProvider {
 		return {
 			repoId: "123",
 			hasRepoAssociation: true,
+			hasCodeLevelMetricSpanData: true,
 			repoName: "foo",
 			repoRemote: "https://example.com",
 			entityAccounts: [
@@ -1571,6 +1572,7 @@ class NewRelicProviderStub extends NewRelicProviderStubBase {
 		return {
 			repoId: "123",
 			hasRepoAssociation: true,
+			hasCodeLevelMetricSpanData: true,
 			repoName: "foo",
 			repoRemote: "https://example.com",
 			entityAccounts: [

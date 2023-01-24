@@ -10,6 +10,7 @@ import {
 	updateForProvider,
 } from "@codestream/webview/store/activeIntegrations/actions";
 import { HostApi } from "@codestream/webview/webview-api";
+import { isEmpty } from "lodash-es";
 
 const EMPTY_CUSTOM_FILTERS = { selected: "", filters: {} };
 
@@ -57,12 +58,22 @@ const _fetchCards =
 							customFilter: filterCustom.selected,
 							providerId: provider.id,
 						});
-						dispatch(
-							updateForProvider(provider.id, {
-								cards: response.cards,
-								fetchCardsError: response.error,
-							})
-						);
+
+						if (response.error?.message && isEmpty(response.cards)) {
+							// On an error don't overwrite previous results
+							dispatch(
+								updateForProvider(provider.id, {
+									fetchCardsError: response.error,
+								})
+							);
+						} else {
+							dispatch(
+								updateForProvider(provider.id, {
+									cards: response.cards,
+									fetchCardsError: response.error,
+								})
+							);
+						}
 					} catch (error) {
 						logError(error, { detail: "Error Loading Cards" });
 					}

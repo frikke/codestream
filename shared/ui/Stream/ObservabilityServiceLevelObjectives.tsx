@@ -9,6 +9,7 @@ import Icon from "./Icon";
 
 interface Props {
 	serviceLevelObjectives: ServiceLevelObjectiveResult[];
+	errorMsg?: string;
 }
 
 export const ObjectiveRow = (props: {
@@ -56,7 +57,7 @@ export const ObjectiveRow = (props: {
 
 export const ObservabilityServiceLevelObjectives = React.memo((props: Props) => {
 	const [expanded, setExpanded] = useState<boolean>(false);
-	const { serviceLevelObjectives } = props;
+	const { errorMsg, serviceLevelObjectives } = props;
 
 	const unmetObjectives = serviceLevelObjectives.filter(v => {
 		return v.result === "UNDER";
@@ -88,6 +89,7 @@ export const ObservabilityServiceLevelObjectives = React.memo((props: Props) => 
 						delay={1}
 					/>
 				)}
+				{errorMsg && <Icon name="alert" className="alert" title={errorMsg} delay={1} />}
 			</Row>
 			{expanded && (
 				<>

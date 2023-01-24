@@ -1216,11 +1216,11 @@ export const IssueList = React.memo((props: React.PropsWithChildren<IssueListPro
 						)
 					)}
 					{(fetchCardErrors || []).map(fetchCardError => (
-						<FilterMissing>
-							<p className="error-message">
+						<IssueError>
+							<p className="error-message" style={{ margin: "0 0 5px 0" }}>
 								Error fetching cards from {fetchCardError.provider}: {fetchCardError.error}
 							</p>
-						</FilterMissing>
+						</IssueError>
 					))}
 					{cards.map(card => (
 						<Row
@@ -1468,6 +1468,13 @@ const IssueMissing = styled.div`
 const FilterMissing = styled.div`
 	text-align: left;
 	padding: 10px 20px 0px 20px;
+	color: @text-color-subtle;
+	font-size: 12px;
+`;
+
+const IssueError = styled.div`
+	text-align: left;
+	padding: 0 0 0 20px;
 	color: @text-color-subtle;
 	font-size: 12px;
 `;

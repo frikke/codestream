@@ -3,6 +3,7 @@ import {
 	GetAlertViolationsResponse,
 	GetNewRelicUrlRequestType,
 	GetServiceLevelTelemetryRequestType,
+	isNRErrorResponse,
 	RelatedEntityByType,
 } from "@codestream/protocols/agent";
 import cx from "classnames";
@@ -27,6 +28,7 @@ export const ObservabilityRelatedEntity = React.memo((props: Props) => {
 	const [expanded, setExpanded] = useState<boolean>(false);
 	const [loadingGoldenMetrics, setLoadingGoldenMetrics] = useState<boolean>(true);
 	const [entityGoldenMetrics, setEntityGoldenMetrics] = useState<EntityGoldenMetrics>();
+	const [entityGoldenMetricsErrors, setEntityGoldenMetricsErrors] = useState<Array<string>>([]);
 	const [newRelicUrl, setNewRelicUrl] = useState<string>("");
 	const [recentAlertViolations, setRecentAlertViolations] = useState<
 		GetAlertViolationsResponse | undefined
@@ -73,10 +75,27 @@ export const ObservabilityRelatedEntity = React.memo((props: Props) => {
 				skipRepoFetch: true,
 				fetchRecentAlertViolations: true,
 			});
-			if (response?.entityGoldenMetrics) {
+
+			const errors: string[] = [];
+
+			if (isNRErrorResponse(response.entityGoldenMetrics)) {
+				errors.push(
+					response.entityGoldenMetrics.error.message ?? response.entityGoldenMetrics.error.type
+				);
+			} else {
 				setEntityGoldenMetrics(response.entityGoldenMetrics);
+			}
+
+			if (isNRErrorResponse(response.recentAlertViolations)) {
+				errors.push(
+					response.recentAlertViolations.error.message ?? response.recentAlertViolations.error.type
+				);
+			} else {
 				setRecentAlertViolations(response.recentAlertViolations);
 			}
+
+			setEntityGoldenMetricsErrors(errors);
+
 			setLoadingGoldenMetrics(false);
 		}
 	};
@@ -131,6 +150,7 @@ export const ObservabilityRelatedEntity = React.memo((props: Props) => {
 				<>
 					<ObservabilityGoldenMetricDropdown
 						entityGoldenMetrics={entityGoldenMetrics}
+						errors={entityGoldenMetricsErrors}
 						loadingGoldenMetrics={loadingGoldenMetrics}
 						noDropdown={true}
 					/>
