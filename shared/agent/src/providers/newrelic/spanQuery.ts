@@ -183,10 +183,14 @@ export function generateSpanQuery(
 		}
 
 		case "desperate": {
-			const fuzzierLookup = `code.filepath like '%/${codeFilePath
-				.split("/")
-				.slice(-1)
-				.join("/")}%'`;
+			if (isJavascriptIsh(languageId) && codeFilePath.includes(".")) {
+				const split = codeFilePath.split(".");
+				const extension = split[1];
+				if (removableExtensions.has(extension)) {
+					codeFilePath = split[0];
+				}
+			}
+			const fuzzierLookup = `code.filepath like '%${codeFilePath.split("/").slice(-1).join("/")}%'`;
 			query = `SELECT name, \`transaction.name\`, code.lineno, code.namespace, code.function, traceId, transactionId from Span WHERE \`entity.guid\` = '${newRelicEntityGuid}' AND ${fuzzierLookup} SINCE 30 minutes AGO LIMIT ${LIMIT}`;
 			break;
 		}
