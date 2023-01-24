@@ -26,7 +26,6 @@ import React, { useEffect, useState } from "react";
 import { shallowEqual } from "react-redux";
 import styled from "styled-components";
 
-import { isFeatureEnabled } from "@codestream/webview/store/apiVersioning/reducer";
 import { ObservabilityRelatedWrapper } from "@codestream/webview/Stream/ObservabilityRelatedWrapper";
 import { CurrentMethodLevelTelemetry } from "@codestream/webview/store/context/types";
 import { HealthIcon } from "@codestream/webview/src/components/HealthIcon";
@@ -160,6 +159,7 @@ export const ErrorRow = (props: {
 	url?: string;
 	onClick?: Function;
 	customPadding?: any;
+	icon?: "alert" | "thumbsup";
 }) => {
 	const derivedState = useAppSelector((state: CodeStreamState) => {
 		return {
@@ -175,7 +175,15 @@ export const ErrorRow = (props: {
 			}}
 			style={{ padding: props.customPadding ? props.customPadding : "0 10px 0 40px" }}
 		>
-			<div>{props.isLoading ? <Icon className="spin" name="sync" /> : <Icon name="alert" />}</div>
+			<div>
+				{props.isLoading ? (
+					<Icon className="spin" name="sync" />
+				) : props.icon === "thumbsup" ? (
+					"👍"
+				) : (
+					<Icon name="alert" />
+				)}
+			</div>
 			<div>
 				<Tooltip title={props.tooltip} delay={1} placement="bottom">
 					<>
@@ -236,7 +244,6 @@ export const Observability = React.memo((props: Props) => {
 				{}) as CurrentMethodLevelTelemetry,
 			textEditorUri: state.editorContext.textEditorUri,
 			scmInfo: state.editorContext.scmInfo,
-			showVulnerabilityManagement: isFeatureEnabled(state, "showVulnerabilityManagement"),
 		};
 	}, shallowEqual);
 
@@ -272,7 +279,6 @@ export const Observability = React.memo((props: Props) => {
 		ServiceLevelObjectiveResult[]
 	>([]);
 	const [hasServiceLevelObjectives, setHasServiceLevelObjectives] = useState<boolean>(false);
-	const [newRelicUrl, setNewRelicUrl] = useState<string | undefined>("");
 	const [expandedEntity, setExpandedEntity] = useState<string | undefined>();
 	const [pendingTelemetryCall, setPendingTelemetryCall] = useState<boolean>(false);
 	const [currentRepoId, setCurrentRepoId] = useState<string>();
@@ -644,7 +650,6 @@ export const Observability = React.memo((props: Props) => {
 			if (response) {
 				setEntityGoldenMetrics(response.entityGoldenMetrics);
 				setRecentAlertViolations(response.recentAlertViolations);
-				setNewRelicUrl(response.newRelicUrl);
 			} else {
 				console.warn(`fetchGoldenMetrics no response`);
 				// TODO this is usually Missing entities error - do something
@@ -1010,7 +1015,7 @@ export const Observability = React.memo((props: Props) => {
 																			showChildIconOnCollapse={true}
 																			actionsVisibleIfOpen={true}
 																		>
-																			{newRelicUrl && (
+																			{ea.url && (
 																				<Icon
 																					name="globe"
 																					className={cx("clickable", {
@@ -1026,7 +1031,7 @@ export const Observability = React.memo((props: Props) => {
 																							Section: "Golden Metrics",
 																						});
 																						HostApi.instance.send(OpenUrlRequestType, {
-																							url: newRelicUrl,
+																							url: ea.url!,
 																						});
 																					}}
 																				/>
@@ -1105,14 +1110,13 @@ export const Observability = React.memo((props: Props) => {
 																									/>
 																								</>
 																							)}
-																							{derivedState.showVulnerabilityManagement &&
-																								currentRepoId && (
-																									<SecurityIssuesWrapper
-																										currentRepoId={currentRepoId}
-																										entityGuid={ea.entityGuid}
-																										accountId={ea.accountId}
-																									/>
-																								)}
+																							{currentRepoId && (
+																								<SecurityIssuesWrapper
+																									currentRepoId={currentRepoId}
+																									entityGuid={ea.entityGuid}
+																									accountId={ea.accountId}
+																								/>
+																							)}
 																							{currentRepoId && (
 																								<>
 																									<ObservabilityRelatedWrapper

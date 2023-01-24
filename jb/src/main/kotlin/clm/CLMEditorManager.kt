@@ -91,7 +91,8 @@ class Metrics {
 abstract class CLMEditorManager(
     val editor: Editor,
     private val languageId: String,
-    private val lookupByClassName: Boolean
+    private val lookupByClassName: Boolean,
+    private val lookupBySpan: Boolean = false,
 ) : DocumentListener, GoldenSignalListener, Disposable, FocusListener {
     private val path = editor.document.getUserData(LOCAL_PATH) ?: editor.document.file?.path
     private val project = editor.project
@@ -119,6 +120,8 @@ abstract class CLMEditorManager(
     }
 
     abstract fun getLookupClassNames(psiFile: PsiFile): List<String>?
+
+    abstract fun getLookupSpanSuffixes(psiFile: PsiFile): List<String>?
 
     fun pollLoadInlays() {
         GlobalScope.launch {
@@ -154,6 +157,14 @@ abstract class CLMEditorManager(
                     null
                 }
 
+                val spanSuffixes = if (lookupBySpan) {
+                    getLookupSpanSuffixes(psiFile)
+                } else {
+                    null
+                }
+
+                logger.info("spanSuffixes $spanSuffixes")
+
                 // GlobalScope.launch {
                 //     val fileUri = editor.document.uri ?: return@launch
                 //     val result = project.agentService?.responseTimes(ResponseTimesParams(fileUri)) ?: return@launch
@@ -167,9 +178,11 @@ abstract class CLMEditorManager(
                             return@launch
                         }
                         // logger.info("=== Calling fileLevelTelemetry for ${editor.document.uri} resetCache: $resetCache")
+                        // next.js file path is like posts/[id].tsx - IntelliJ won't create an uri for this file name!
+                        val uri = editor.document.uri ?: "file://${editor.document.file?.path}"
                         val result = project.agentService?.fileLevelTelemetry(
                             FileLevelTelemetryParams(
-                                editor.document.uri,
+                                uri,
                                 languageId,
                                 FunctionLocator(classNames, null),
                                 null,

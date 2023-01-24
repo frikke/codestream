@@ -1,5 +1,25 @@
 # Change Log
 
+## [14.13.0] - 2023-1-24
+
+### Added
+
+- Adds support for code-level metrics for Node.js
+- Adds an integration with [Vulnerability Management](https://newrelic.com/blog/nerdlog/vulnerability-management) to show vulnerabilities in your IDE
+
+### Changed
+
+- The entries in the tree for files with comments in a pull request can no longer be collapsed
+- Loading spinners are now displayed while we're waiting on the SHA to load in orded to display a PR diff
+
+### Fixed
+
+- Fixes an issue with "View on New Relic" buttons opening the wrong service
+- Fixes an issue with users getting disconnected from Jira
+- Fixes an issue with shared Slack channels not being available for selection
+- Fixes an issue where files in a PR weren't clickable
+- Fixes an issue where the compose buttons wouldn't display when selecting code to comment on in an error
+
 ## [14.12.0] - 2023-1-12
 
 ### Changed

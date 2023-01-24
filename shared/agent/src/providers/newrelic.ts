@@ -3,20 +3,6 @@ import fs from "fs";
 import * as path from "path";
 import { join, relative, sep } from "path";
 
-import { Index } from "@codestream/utils/types";
-import { GraphQLClient } from "graphql-request";
-import {
-	flatten as _flatten,
-	groupBy as _groupBy,
-	isEmpty as _isEmpty,
-	isUndefined as _isUndefined,
-	memoize,
-	uniq as _uniq,
-	uniqBy as _uniqBy,
-} from "lodash-es";
-import Cache from "timed-cache";
-import { ResponseError } from "vscode-jsonrpc/lib/messages";
-import { URI } from "vscode-uri";
 import {
 	BuiltFromResult,
 	CodeStreamDiffUriData,
@@ -105,9 +91,21 @@ import {
 	GetObservabilityResponseTimesRequestType,
 } from "@codestream/protocols/agent";
 import { CSMe, CSNewRelicProviderInfo } from "@codestream/protocols/api";
+import { Index } from "@codestream/utils/types";
+import { GraphQLClient } from "graphql-request";
+import {
+	flatten as _flatten,
+	groupBy as _groupBy,
+	isEmpty as _isEmpty,
+	isUndefined as _isUndefined,
+	memoize,
+	uniq as _uniq,
+	uniqBy as _uniqBy,
+} from "lodash-es";
+import Cache from "timed-cache";
+import { ResponseError } from "vscode-jsonrpc/lib/messages";
+import { URI } from "vscode-uri";
 
-import * as csUri from "../system/uri";
-import { customFetch } from "../system/fetchCore";
 import { InternalError, ReportSuppressedMessages } from "../agentError";
 import { SessionContainer, SessionServiceContainer } from "../container";
 import { GitRemoteParser } from "../git/parsers/remoteParser";
@@ -115,6 +113,8 @@ import { Logger } from "../logger";
 import { ReviewsManager } from "../managers/reviewsManager";
 import { CodeStreamSession } from "../session";
 import { Functions, log, lspHandler, lspProvider, Strings } from "../system";
+import { customFetch } from "../system/fetchCore";
+import * as csUri from "../system/uri";
 import {
 	GraphqlNrqlError,
 	GraphqlNrqlTimeoutError,
@@ -152,12 +152,31 @@ import { GitRepository } from "../git/models/repository";
 
 const ignoredErrors = [GraphqlNrqlTimeoutError];
 
-const supportedLanguages = ["python", "ruby", "csharp", "java", "kotlin", "go", "php"] as const;
+const supportedLanguages = [
+	"python",
+	"ruby",
+	"csharp",
+	"java",
+	"kotlin",
+	"go",
+	"php",
+	"javascript",
+	"javascriptreact",
+	"typescript",
+	"typescriptreact",
+] as const;
 export type LanguageId = typeof supportedLanguages[number];
 
 export function escapeNrql(nrql: string) {
 	return nrql.replace(/\\/g, "\\\\\\\\");
 }
+
+type EnhancedMetricTimeslice = MetricTimeslice & {
+	className?: string;
+	functionName?: string;
+	metadata: AdditionalMetadataInfo;
+	namespace?: string;
+};
 
 // Use type guard so that list of languages can be defined once and shared with union type LanguageId
 function isSupportedLanguage(value: string): value is LanguageId {
@@ -857,6 +876,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 								tags: entity.tags,
 								domain: entity.domain,
 								alertSeverity: entity?.alertSeverity,
+								url: `${this.productUrl}/redirect/entity/${entity.guid}`,
 							} as EntityAccount;
 						})
 						.filter(Boolean)
@@ -1860,6 +1880,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 					request.newRelicEntityGuid,
 					request.resolutionMethod,
 					queryType,
+					request.languageId,
 					bestMatchingCodeFilePath || request.codeFilePath,
 					bestMatchingCodeFilePath ? undefined : request.locator
 				);
@@ -2096,8 +2117,8 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		groupedByTransactionName: Index<Span[]>,
 		metricTimesliceNames: MetricTimeslice[],
 		languageId: LanguageId
-	) {
-		return metricTimesliceNames.map(_ => {
+	): EnhancedMetricTimeslice[] {
+		return metricTimesliceNames.reduce<EnhancedMetricTimeslice[]>((enhTimslices, _) => {
 			const additionalMetadata: AdditionalMetadataInfo = {};
 			const metadata =
 				groupedByTransactionName[this.timesliceNameMap(languageId, _.metricTimesliceName)];
@@ -2112,32 +2133,38 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				);
 			}
 
-			let functionInfo: FunctionInfo;
+			let functionInfo: FunctionInfo | undefined = undefined;
+			const codeNamespace = additionalMetadata["code.namespace"];
+			const codeFunction = additionalMetadata["code.function"];
 			switch (languageId) {
 				case "ruby":
-					functionInfo = this.parseRubyFunctionCoordinates(
-						_.metricTimesliceName,
-						additionalMetadata["code.namespace"]
-					);
+					functionInfo = this.parseRubyFunctionCoordinates(_.metricTimesliceName, codeNamespace);
 					break;
 				case "python":
 					functionInfo = this.parsePythonFunctionCoordinates(_.metricTimesliceName);
 					break;
 				case "csharp":
-					functionInfo = this.parseCSharpFunctionCoordinates(
-						additionalMetadata["code.namespace"]!,
-						additionalMetadata["code.function"]!
-					);
+					if (codeNamespace && codeFunction) {
+						functionInfo = this.parseCSharpFunctionCoordinates(codeNamespace, codeFunction);
+					}
 					break;
 				case "java":
 				case "kotlin":
 				case "go":
 				case "php":
+				case "javascript":
+				case "typescript":
+				case "typescriptreact":
+				case "javascriptreact":
 					functionInfo = {
 						functionName: additionalMetadata["code.function"],
 						className: additionalMetadata["code.namespace"],
 					};
 					break;
+			}
+
+			if (!functionInfo) {
+				return enhTimslices;
 			}
 
 			let { className, functionName, namespace } = functionInfo;
@@ -2151,14 +2178,15 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				additionalMetadata["code.namespace"] = namespace;
 			}
 
-			return {
+			enhTimslices.push({
 				..._,
 				metadata: additionalMetadata,
 				namespace: additionalMetadata["code.namespace"],
 				className,
 				functionName,
-			};
-		});
+			});
+			return enhTimslices;
+		}, []);
 	}
 
 	getResolutionMethod(languageId: LanguageId): ResolutionMethod {
@@ -2254,6 +2282,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			// get a list of file-based method telemetry
 			const spanResponse =
 				(await this.getSpans({
+					languageId,
 					newRelicAccountId,
 					newRelicEntityGuid,
 					codeFilePath: relativeFilePath,
@@ -2305,7 +2334,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 						groupedByTransactionName,
 						_.actor.account.nrql.results,
 						languageId
-					).filter(_ => _.functionName);
+					).filter(_ => _ !== null && _.functionName);
 
 					if (request?.locator?.functionName) {
 						_.actor.account.nrql.results = _.actor.account.nrql.results.filter(
@@ -2785,22 +2814,41 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			metricQueries: [
 				// duration
 				{
-					query: `SELECT average(newrelic.timeslice.value) * 1000 AS 'Response time (ms)' FROM Metric WHERE entity.guid IN ('${entityGuid}') AND metricTimesliceName='${metricTimesliceNameMapping["d"]}' TIMESERIES`,
-					extrapolationQuery: `SELECT average(duration) * 1000 AS 'Response time (ms)' FROM Span WHERE entity.guid IN ('${entityGuid}') AND name='${metricTimesliceNameMapping["d"]}' FACET name EXTRAPOLATE TIMESERIES`,
+					query: `SELECT average(newrelic.timeslice.value) * 1000 AS 'Response time (ms)'
+                  FROM Metric
+                  WHERE entity.guid IN ('${entityGuid}')
+                    AND metricTimesliceName = '${metricTimesliceNameMapping["d"]}' TIMESERIES`,
+					extrapolationQuery: `SELECT average(duration) * 1000 AS 'Response time (ms)'
+                               FROM Span
+                               WHERE entity.guid IN ('${entityGuid}')
+                                 AND name = '${metricTimesliceNameMapping["d"]}' FACET name EXTRAPOLATE TIMESERIES`,
 					title: "Response time (ms)",
 					name: "responseTimeMs",
 				},
 				// throughput
 				{
-					query: `SELECT count(newrelic.timeslice.value) AS 'Throughput' FROM Metric WHERE entity.guid IN ('${entityGuid}') AND metricTimesliceName='${metricTimesliceNameMapping["t"]}' TIMESERIES`,
-					extrapolationQuery: `SELECT rate(count(*), 1 minute) AS 'Throughput' FROM Span WHERE entity.guid IN ('${entityGuid}') AND name='${metricTimesliceNameMapping["t"]}' FACET name EXTRAPOLATE TIMESERIES`,
+					query: `SELECT count(newrelic.timeslice.value) AS 'Throughput'
+                  FROM Metric
+                  WHERE entity.guid IN ('${entityGuid}')
+                    AND metricTimesliceName = '${metricTimesliceNameMapping["t"]}' TIMESERIES`,
+					extrapolationQuery: `SELECT rate(count(*), 1 minute) AS 'Throughput'
+                               FROM Span
+                               WHERE entity.guid IN ('${entityGuid}')
+                                 AND name = '${metricTimesliceNameMapping["t"]}' FACET name EXTRAPOLATE TIMESERIES`,
 					title: "Throughput",
 					name: "throughput",
 				},
 				// error
 				{
-					query: `SELECT rate(count(apm.service.transaction.error.count), 1 minute) AS \`errorsPerMinute\` FROM Metric WHERE \`entity.guid\` = '${entityGuid}' AND metricTimesliceName='${metricTimesliceNameMapping["e"]}' FACET metricTimesliceName TIMESERIES`,
-					extrapolationQuery: `SELECT rate(count(*), 1 minute) AS \`errorsPerMinute\` FROM Span WHERE entity.guid IN ('${entityGuid}') AND name='${metricTimesliceNameMapping["e"]}' AND \`error.group.guid\` IS NOT NULL FACET name EXTRAPOLATE TIMESERIES`,
+					query: `SELECT rate(count(apm.service.transaction.error.count), 1 minute) AS \`errorsPerMinute\`
+                  FROM Metric
+                  WHERE \`entity.guid\` = '${entityGuid}'
+                    AND metricTimesliceName = '${metricTimesliceNameMapping["e"]}' FACET metricTimesliceName TIMESERIES`,
+					extrapolationQuery: `SELECT rate(count(*), 1 minute) AS \`errorsPerMinute\`
+                               FROM Span
+                               WHERE entity.guid IN ('${entityGuid}')
+                                 AND name = '${metricTimesliceNameMapping["e"]}'
+                                 AND \`error.group.guid\` IS NOT NULL FACET name EXTRAPOLATE TIMESERIES`,
 					title: "Error rate",
 					name: "errorRate",
 				},
@@ -2829,7 +2877,8 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 
 		const results = await Promise.all(
 			queries.metricQueries.map(_ => {
-				let _query = _.query;
+				let _query = _.query.replace(/\n/g, "");
+				const _extrapolationQuery = _.extrapolationQuery?.replace(/\n/g, "");
 
 				// if no metricTimesliceNames, then we don't need TIMESERIES in query
 				if (!metricTimesliceNames) {
@@ -2849,7 +2898,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 							}
 						  }
 						}
-						extrapolations: nrql(query: "${escapeNrql(_.extrapolationQuery || "")}") {
+						extrapolations: nrql(query: "${escapeNrql(_extrapolationQuery || "")}") {
 						  results
 						  metadata {
 							timeWindow {
@@ -3048,7 +3097,8 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			const sliResults = await this.query<ServiceLevelIndicatorQueryResult>(sliQuery);
 			const indicators = sliResults?.actor?.entity?.serviceLevel?.indicators;
 
-			if (indicators?.length === 0) {
+			if (!indicators || indicators?.length === 0) {
+				Logger.log("getServiceLevelObjectives No indicators found");
 				return undefined;
 			}
 
@@ -3104,6 +3154,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		} catch (ex) {
 			ContextLogger.warn("getServiceLevelObjectives failure", {
 				request,
+				error: ex,
 			});
 		}
 
@@ -3297,6 +3348,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		} catch (ex) {
 			ContextLogger.warn("fetchErrorGroupDataById failure", {
 				errorGroupGuid,
+				error: ex,
 			});
 			const accessTokenError = ex as {
 				message: string;
@@ -3503,6 +3555,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				ContextLogger.warn("fetchErrorGroup (stack trace missing)", {
 					entityGuid: entityGuid,
 					occurrenceId: occurrenceId,
+					error: ex,
 				});
 				stackTracePromise = undefined;
 			}
@@ -3541,6 +3594,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			ContextLogger.warn("fetchErrorGroup (stack trace missing upon waiting)", {
 				entityGuid: entityGuid,
 				occurrenceId: occurrenceId,
+				error: ex,
 			});
 		}
 
@@ -4009,6 +4063,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			ContextLogger.warn("getErrorsInboxAssignments", {
 				userId: userId,
 				usingEmailAddress: emailAddress != null,
+				error: ex,
 			});
 			return undefined;
 		}
@@ -4285,6 +4340,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		} catch (e) {
 			ContextLogger.warn("" + e.message, {
 				idLike,
+				error: e,
 			});
 		}
 		return undefined;
@@ -4342,6 +4398,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			ContextLogger.warn("generateTimestampRange failed", {
 				timestampInMilliseconds: timestampInMilliseconds,
 				plusOrMinusInMinutes: plusOrMinusInMinutes,
+				error: ex,
 			});
 		}
 		return undefined;

@@ -7,7 +7,7 @@ plugins {
 }
 
 group "com.codestream"
-version "14.12.0"
+version "14.13.0"
 
 sourceCompatibility = JavaVersion.VERSION_11
 targetCompatibility = JavaVersion.VERSION_11
@@ -90,12 +90,14 @@ intellij {
     // plugins = ['java', 'git4idea', 'org.jetbrains.plugins.go:221.6008.13', 'Pythonid:221.6008.17', 'org.jetbrains.plugins.ruby:221.6008.13']
     // 2021.3.1
     plugins = [
-        'java', 'git4idea',
+        'java',
+        'git4idea',
         'org.jetbrains.plugins.go:213.6461.48',
         'Pythonid:213.6461.79',
         'org.jetbrains.plugins.ruby:213.6461.79',
         'com.jetbrains.php:213.6461.83',
-        'org.jetbrains.kotlin:213-1.6.10-release-944-IJ6461.79'
+        'org.jetbrains.kotlin:213-1.6.10-release-944-IJ6461.79',
+        'JavaScript'
     ]
 }
 
@@ -195,4 +197,5 @@ copyDebugAgent.dependsOn buildDebugDeps
 
 task buildDebugDependencies {}
 buildDebugDependencies.dependsOn buildDebugDeps, copyDebugAgent, copyProtobuf
+
 

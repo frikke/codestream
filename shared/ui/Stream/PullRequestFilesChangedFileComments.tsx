@@ -204,11 +204,6 @@ export const PullRequestFilesChangedFileComments = (props: Props) => {
 		}
 	};
 
-	const handleClick = e => {
-		e.preventDefault();
-		setShowComments(!showComments);
-	};
-
 	/**
 	 * Github/lab makes it difficult to find a comment line number, so we have to
 	 * parse the diffHunk and do some basic math
@@ -347,9 +342,14 @@ export const PullRequestFilesChangedFileComments = (props: Props) => {
 			["asc", "comment.body"]
 		);
 	}
-	//@TODO: define these on mount, hook, and/or state so we don't do the
-	//		 calculation every re-render.
-	const displayIcon = isGitLab || !supportsViewerViewedState ? icon : iconName;
+
+	let displayIcon = iconName;
+	if (isGitLab || !supportsViewerViewedState) {
+		displayIcon = icon;
+	}
+	if (loading) {
+		displayIcon = "sync";
+	}
 	const iconIsFlex = showCheckIcon || displayIcon === "ok";
 
 	if (!hasComments) {
@@ -370,9 +370,15 @@ export const PullRequestFilesChangedFileComments = (props: Props) => {
 									onClick={e => handleIconClick(e)}
 									name={displayIcon}
 									style={{ color: "var(--text-color-subtle)" }}
-									className={"clickable"}
+									className={displayIcon === "sync" ? "spin" : "clickable"}
 									delay={1}
-									title={displayIcon === "ok" ? "Mark as Not Viewed" : "Mark as Viewed"}
+									title={
+										displayIcon === "sync"
+											? "Looking for this repo in your IDE..."
+											: displayIcon === "ok"
+											? "Mark as Not Viewed"
+											: "Mark as Viewed"
+									}
 									placement="bottom"
 								/>
 							</span>
@@ -420,11 +426,11 @@ export const PullRequestFilesChangedFileComments = (props: Props) => {
 		// hasComments
 		return (
 			<div onMouseEnter={e => handleMouseEnter(e)} onMouseLeave={e => handleMouseLeave(e)}>
-				<FileWithComments onClick={e => handleClick(e)}>
+				<FileWithComments>
 					<ChangesetFile
-						chevron={<Icon name={showComments ? "chevron-down-thin" : "chevron-right-thin"} />}
 						selected={selected}
 						viewMode={props.viewMode}
+						// This is for the additions & deletions count
 						count={
 							<div style={{ margin: "0 10px 0 auto", display: "flex" }}>
 								{comments.length === 0 || showComments ? null : (
@@ -441,6 +447,7 @@ export const PullRequestFilesChangedFileComments = (props: Props) => {
 									display: showGoToFileIcon ? "flex" : "none",
 								}}
 							>
+								{/* this is for the open local file icon on the right hand side */}
 								<Icon
 									title="Open Local File"
 									placement="bottom"
@@ -455,6 +462,7 @@ export const PullRequestFilesChangedFileComments = (props: Props) => {
 						iconLast={
 							isDisabled ? null : (
 								<>
+									{/* This is for the mark as viewed icon on the right hand side */}
 									{iconIsFlex && (
 										<span
 											style={{
@@ -466,9 +474,15 @@ export const PullRequestFilesChangedFileComments = (props: Props) => {
 												onClick={e => handleIconClick(e)}
 												name={displayIcon}
 												style={{ color: "var(--text-color-subtle)" }}
-												className={"clickable"}
+												className={displayIcon === "sync" ? "spin" : "clickable"}
 												delay={1}
-												title={displayIcon === "ok" ? "Mark as Not Viewed" : "Mark as Viewed"}
+												title={
+													displayIcon === "sync"
+														? "Looking for this repo in your IDE..."
+														: displayIcon === "ok"
+														? "Mark as Not Viewed"
+														: "Mark as Viewed"
+												}
 												placement="bottom"
 											/>
 										</span>
@@ -505,38 +519,33 @@ export const PullRequestFilesChangedFileComments = (props: Props) => {
 						customFilenameColor={"var(--text-color-filename-highlight)"}
 					/>
 				</FileWithComments>
-				{showComments && (
-					<>
-						{commentsSortedByLineNumber.map((c, index) => {
-							const isPending = c.comment.state === "PENDING";
-							return (
-								<Comment
-									onClick={e => handleCommentClick(e, c)}
-									style={depth ? { paddingLeft: `${depth * 12}px` } : {}}
-									key={`comment_${c.comment.id}_${index}`}
+				{/* showComments */}
+				{commentsSortedByLineNumber.map((c, index) => {
+					const isPending = c.comment.state === "PENDING";
+					return (
+						<Comment
+							onClick={e => handleCommentClick(e, c)}
+							style={depth ? { paddingLeft: `${depth * 12}px` } : {}}
+							key={`comment_${c.comment.id}_${index}`}
+						>
+							<div style={{ display: "flex" }}>
+								<div
+									style={{
+										overflow: "hidden",
+										textOverflow: "ellipsis",
+										width: "calc(100%)",
+										whiteSpace: "nowrap",
+									}}
 								>
-									<div style={{ display: "flex" }}>
-										<div
-											style={{
-												overflow: "hidden",
-												textOverflow: "ellipsis",
-												width: "calc(100%)",
-												whiteSpace: "nowrap",
-											}}
-										>
-											<Icon name="comment" className="type-icon" />{" "}
-											{lineNumber(c) && <span>Line {lineNumber(c)}: </span>}
-											{c.comment.bodyText || c.comment.body || c.comment.content.raw}
-										</div>
-										{isPending && (
-											<PendingCircle onClick={e => handlePendingClick(e)}>P</PendingCircle>
-										)}
-									</div>
-								</Comment>
-							);
-						})}
-					</>
-				)}
+									<Icon name="comment" className="type-icon" />{" "}
+									{lineNumber(c) && <span>Line {lineNumber(c)}: </span>}
+									{c.comment.bodyText || c.comment.body || c.comment.content.raw}
+								</div>
+								{isPending && <PendingCircle onClick={e => handlePendingClick(e)}>P</PendingCircle>}
+							</div>
+						</Comment>
+					);
+				})}
 			</div>
 		);
 	}

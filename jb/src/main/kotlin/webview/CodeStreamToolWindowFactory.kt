@@ -40,12 +40,14 @@ class CodeStreamToolWindowFactory : ToolWindowFactory, DumbAware {
             }
         } ?: logger.info("Unable to schedule webview attachment - project is disposed")
 
-        toolWindow.contentManager.addContent(
-            toolWindow.contentManager.factory.createContent(
-                csPanel,
-                "",
-                false
+        ApplicationManager.getApplication().invokeLater {
+            toolWindow.contentManager.addContent(
+                toolWindow.contentManager.factory.createContent(
+                    csPanel,
+                    "",
+                    false
+                )
             )
-        )
+        }
     }
 }
