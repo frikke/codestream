@@ -286,13 +286,7 @@ export interface CheckReviewPreconditionsResponse {
 	};
 	error?: {
 		message: string;
-		type:
-			| "REPO_NOT_FOUND"
-			| "REPO_NOT_OPEN"
-			| "COMMIT_NOT_FOUND"
-			| "REFS_NOT_FOUND"
-			| "UNKNOWN"
-			| string;
+		type: "REPO_NOT_FOUND" | "REPO_NOT_OPEN" | "COMMIT_NOT_FOUND" | "UNKNOWN" | string;
 	};
 }
 
