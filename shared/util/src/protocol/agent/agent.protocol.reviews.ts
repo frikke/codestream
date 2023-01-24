@@ -443,7 +443,6 @@ export interface CreatePullRequestResponse {
 		type:
 			| "REPO_NOT_FOUND"
 			| "COMMIT_NOT_FOUND"
-			| "REFS_NOT_FOUND"
 			| "BRANCH_REMOTE_CREATION_FAILED"
 			| "UNKNOWN"
 			| string;
