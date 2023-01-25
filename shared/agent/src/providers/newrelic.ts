@@ -168,7 +168,7 @@ const supportedLanguages = [
 export type LanguageId = typeof supportedLanguages[number];
 
 export function escapeNrql(nrql: string) {
-	return nrql.replace(/\\/g, "\\\\\\\\");
+	return nrql.replace(/\\/g, "\\\\\\\\").replace(/\n/g, " ");
 }
 
 type EnhancedMetricTimeslice = MetricTimeslice & {
@@ -185,6 +185,19 @@ function isSupportedLanguage(value: string): value is LanguageId {
 }
 
 const ENTITY_CACHE_KEY = "entityCache";
+
+function isSameMethod(
+	method1: string,
+	method2: string,
+	language: LanguageId | undefined = undefined
+) {
+	if (method1 === method2) return true;
+
+	// probably need some language-specific logic here
+	const method1Parts = method1.split("/");
+	const method2Parts = method2.split("/");
+	return method1Parts[method1Parts.length - 1] === method2Parts[method2Parts.length - 1];
+}
 
 @lspProvider("newrelic")
 export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProviderInfo> {
@@ -1799,7 +1812,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		}
 	}
 
-	async getMethodThroughput(request: MetricQueryRequest, languageId: LanguageId) {
+	async getMethodSampleSize(request: MetricQueryRequest, languageId: LanguageId) {
 		const query = generateMethodThroughputQuery(
 			languageId,
 			request.newRelicEntityGuid,
@@ -1843,7 +1856,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		return undefined;
 	}
 
-	async getMethodErrorRate(request: MetricQueryRequest, languageId: LanguageId) {
+	async getMethodErrorCount(request: MetricQueryRequest, languageId: LanguageId) {
 		const query = generateMethodErrorRateQuery(
 			languageId,
 			request.newRelicEntityGuid,
@@ -2302,49 +2315,204 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				newRelicEntityGuid,
 				metricTimesliceNames,
 			};
-			const [averageDurationResponse, throughputResponse, errorRateResponse] = await Promise.all([
+			const [averageDurationResponse, sampleSizeResponse, errorRateResponse] = await Promise.all([
 				request.options.includeAverageDuration && metricTimesliceNames?.length
 					? this.getMethodAverageDuration(queryArgs, languageId)
 					: undefined,
-				request.options.includeThroughput && metricTimesliceNames?.length
-					? this.getMethodThroughput(queryArgs, languageId)
-					: undefined,
+				metricTimesliceNames?.length ? this.getMethodSampleSize(queryArgs, languageId) : undefined,
 
 				request.options.includeErrorRate && metricTimesliceNames?.length
-					? this.getMethodErrorRate(queryArgs, languageId)
+					? this.getMethodErrorCount(queryArgs, languageId)
 					: undefined,
 			]);
 
-			[averageDurationResponse, throughputResponse, errorRateResponse].forEach(_ => {
-				if (_) {
-					const consolidatedResults = new Map<string, any>();
-					_.actor.account.extrapolations.results.forEach((e: any) => {
-						e.extrapolated = true;
-						consolidatedResults.set(e.metricTimesliceName, e);
-					});
-					_.actor.account.metrics.results.forEach((e: any) => {
-						consolidatedResults.set(e.metricTimesliceName, e);
-					});
-					_.actor.account.nrql = {
-						results: Array.from(consolidatedResults.values()),
-						metadata: _.actor.account.metrics.metadata || _.actor.account.extrapolations.metadata,
-					};
+			// Consolidate throughput per method
+			const sampleSizeMap = new Map<string, { metric?: number; span?: number }>();
+			if (sampleSizeResponse) {
+				sampleSizeResponse.actor.account.extrapolations.results.forEach((e: any) => {
+					sampleSizeMap.set(e.metricTimesliceName, { span: e.sampleSize });
+				});
+				sampleSizeResponse.actor.account.metrics.results.forEach((e: any) => {
+					if (!sampleSizeMap.has(e.metricTimesliceName)) {
+						sampleSizeMap.set(e.metricTimesliceName, {});
+					}
+					const sampleSize = sampleSizeMap.get(e.metricTimesliceName);
+					sampleSize!.metric = e.sampleSize;
+				});
+			}
 
-					_.actor.account.nrql.results = this.addMethodName(
-						groupedByTransactionName,
-						_.actor.account.nrql.results,
-						languageId
-					).filter(_ => _ !== null && _.functionName);
+			const durationsMetric = averageDurationResponse?.actor?.account?.metrics;
+			const durationsSpan = averageDurationResponse?.actor?.account?.extrapolations;
+			const durationsConsolidated = [];
+			const errorCountsMetric = errorRateResponse?.actor?.account?.metrics;
+			const errorCountsSpan = errorRateResponse?.actor?.account?.extrapolations;
+			const errorRatesConsolidated = [];
+			const sampleSizesMetric = sampleSizeResponse?.actor?.account?.metrics;
+			const sampleSizesSpan = sampleSizeResponse?.actor?.account?.extrapolations;
+			const sampleSizesConsolidated = [];
+			for (const methodName of sampleSizeMap.keys()) {
+				const sampleSizeInfo = sampleSizeMap.get(methodName);
+				const sampleSizeMetricValue = sampleSizeInfo?.metric || 0;
+				const sampleSizeSpanValue = sampleSizeInfo?.span || 0;
+				const canUseMetric = true; // sampleSizeMetric > 30;
+				const canUseSpan = true; // sampleSizeSpan > 30;
+				// prefer metric if it can be used (min 1rpm) and it's at least 80% of span throughput
+				const preferMetric = canUseMetric && sampleSizeMetricValue / sampleSizeSpanValue > 0.8;
 
-					if (request?.locator?.functionName) {
-						_.actor.account.nrql.results = _.actor.account.nrql.results.filter(
-							(r: any) => r.functionName === request?.locator?.functionName
-						);
+				let duration;
+				let errorRate;
+				let sampleSize;
+				if (preferMetric && canUseMetric) {
+					const sampleSizeMetric = sampleSizesMetric?.results?.find((_: any) =>
+						isSameMethod(_.metricTimesliceName, methodName)
+					);
+					const durationMetric = durationsMetric?.results?.find((_: any) =>
+						isSameMethod(_.metricTimesliceName, methodName)
+					);
+					const errorCountMetric = errorCountsMetric?.results?.find((_: any) =>
+						isSameMethod(_.metricTimesliceName, methodName)
+					);
+					if (sampleSizeMetric) {
+						sampleSize = {
+							...sampleSizeMetric,
+							source: "metric",
+						};
+					}
+					duration = durationMetric;
+					if (errorCountMetric != undefined) {
+						errorRate = {
+							...errorCountMetric,
+							errorRate: errorCountMetric.errorCount / sampleSizeMetricValue,
+						};
+					}
+				} else if (canUseSpan) {
+					const sampleSizeSpan = sampleSizesSpan?.results?.find((_: any) =>
+						isSameMethod(_.metricTimesliceName, methodName)
+					);
+					const durationSpan = durationsSpan?.results?.find((_: any) =>
+						isSameMethod(_.metricTimesliceName, methodName)
+					);
+					const errorCountSpan = errorCountsSpan?.results?.find((_: any) =>
+						isSameMethod(_.metricTimesliceName, methodName)
+					);
+					if (sampleSizeSpan) {
+						sampleSize = {
+							...sampleSizeSpan,
+							source: "span",
+						};
+					}
+					duration = durationSpan;
+					if (errorCountSpan) {
+						errorRate = {
+							...errorCountSpan,
+							errorRate: errorCountSpan.errorCount / sampleSizeSpanValue,
+						};
 					}
 				}
-			});
 
-			const throughputResponseLength = throughputResponse?.actor?.account?.nrql?.results.length;
+				if (sampleSize) {
+					sampleSizesConsolidated.push(sampleSize);
+				}
+				if (duration) {
+					durationsConsolidated.push(duration);
+				}
+				if (errorRate) {
+					errorRatesConsolidated.push(errorRate);
+				}
+			}
+
+			// FIXME deduplicate
+			if (averageDurationResponse) {
+				averageDurationResponse.actor.account.nrql = {
+					results: durationsConsolidated,
+					metadata:
+						averageDurationResponse.actor.account.metrics.metadata ||
+						averageDurationResponse.actor.account.extrapolations.metadata,
+				};
+				averageDurationResponse.actor.account.nrql.results = this.addMethodName(
+					groupedByTransactionName,
+					averageDurationResponse.actor.account.nrql.results,
+					languageId
+				).filter(_ => _ !== null && _.functionName);
+
+				if (request?.locator?.functionName) {
+					averageDurationResponse.actor.account.nrql.results =
+						averageDurationResponse.actor.account.nrql.results.filter(
+							(r: any) => r.functionName === request?.locator?.functionName
+						);
+				}
+			}
+
+			if (errorRateResponse) {
+				errorRateResponse.actor.account.nrql = {
+					results: errorRatesConsolidated,
+					metadata:
+						errorRateResponse.actor.account.metrics.metadata ||
+						errorRateResponse.actor.account.extrapolations.metadata,
+				};
+				errorRateResponse.actor.account.nrql.results = this.addMethodName(
+					groupedByTransactionName,
+					errorRateResponse.actor.account.nrql.results,
+					languageId
+				).filter(_ => _ !== null && _.functionName);
+				if (request?.locator?.functionName) {
+					errorRateResponse.actor.account.nrql.results =
+						errorRateResponse.actor.account.nrql.results.filter(
+							(r: any) => r.functionName === request?.locator?.functionName
+						);
+				}
+			}
+
+			if (sampleSizeResponse) {
+				sampleSizeResponse.actor.account.nrql = {
+					results: sampleSizesConsolidated,
+					metadata:
+						sampleSizeResponse.actor.account.metrics.metadata ||
+						sampleSizeResponse.actor.account.extrapolations.metadata,
+				};
+				sampleSizeResponse.actor.account.nrql.results = this.addMethodName(
+					groupedByTransactionName,
+					sampleSizeResponse.actor.account.nrql.results,
+					languageId
+				).filter(_ => _ !== null && _.functionName);
+				if (request?.locator?.functionName) {
+					sampleSizeResponse.actor.account.nrql.results =
+						sampleSizeResponse.actor.account.nrql.results.filter(
+							(r: any) => r.functionName === request?.locator?.functionName
+						);
+				}
+			}
+
+			// [averageDurationResponse, throughputResponse, errorRateResponse].forEach(_ => {
+			// 	if (_) {
+			// 		const consolidatedResults = new Map<string, any>();
+			// 		_.actor.account.extrapolations.results.forEach((e: any) => {
+			// 			e.extrapolated = true;
+			// 			consolidatedResults.set(e.metricTimesliceName, e);
+			// 		});
+			// 		_.actor.account.metrics.results.forEach((e: any) => {
+			// 			consolidatedResults.set(e.metricTimesliceName, e);
+			// 		});
+			// 		_.actor.account.nrql = {
+			// 			results: Array.from(consolidatedResults.values()),
+			// 			metadata: _.actor.account.metrics.metadata || _.actor.account.extrapolations.metadata,
+			// 		};
+			//
+			// 		_.actor.account.nrql.results = this.addMethodName(
+			// 			groupedByTransactionName,
+			// 			_.actor.account.nrql.results,
+			// 			languageId
+			// 		).filter(_ => _.functionName);
+			//
+			// 		if (request?.locator?.functionName) {
+			// 			_.actor.account.nrql.results = _.actor.account.nrql.results.filter(
+			// 				(r: any) => r.functionName === request?.locator?.functionName
+			// 			);
+			// 		}
+			// 	}
+			// });
+
+			const throughputResponseLength = sampleSizeResponse?.actor?.account?.nrql?.results.length;
 			const averageDurationResponseLength =
 				averageDurationResponse?.actor?.account?.nrql?.results.length;
 			const errorRateResponseLength = errorRateResponse?.actor?.account?.nrql?.results.length;
@@ -2354,16 +2522,17 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			const response: GetFileLevelTelemetryResponse = {
 				codeNamespace: request?.locator?.namespace,
 				isConnected: true,
-				throughput: throughputResponse ? throughputResponse.actor.account.nrql.results : [],
+				// throughput: throughputResponse ? throughputResponse.actor.account.nrql.results : [],
+				sampleSize: sampleSizeResponse ? sampleSizeResponse.actor.account.nrql.results : [],
 				averageDuration: averageDurationResponse
 					? averageDurationResponse.actor.account.nrql.results
 					: [],
 				errorRate: errorRateResponse ? errorRateResponse.actor.account.nrql.results : [],
-				sinceDateFormatted: "30 minutes ago", //begin ? Dates.toFormatter(new Date(begin)).fromNow() : "",
+				sinceDateFormatted: "30 minutes", //begin ? Dates.toFormatter(new Date(begin)).fromNow() : "",
 				lastUpdateDate:
 					errorRateResponse?.actor?.account?.nrql?.metadata?.timeWindow?.end ||
 					averageDurationResponse?.actor?.account?.nrql?.metadata?.timeWindow?.end ||
-					throughputResponse?.actor?.account?.nrql?.metadata?.timeWindow?.end,
+					sampleSizeResponse?.actor?.account?.nrql?.metadata?.timeWindow?.end,
 				hasAnyData: hasAnyData,
 				newRelicAlertSeverity: entity.alertSeverity,
 				newRelicAccountId: newRelicAccountId,
@@ -2821,22 +2990,9 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 					extrapolationQuery: `SELECT average(duration) * 1000 AS 'Response time (ms)'
                                FROM Span
                                WHERE entity.guid IN ('${entityGuid}')
-                                 AND name = '${metricTimesliceNameMapping["d"]}' FACET name EXTRAPOLATE TIMESERIES`,
+                                 AND name = '${metricTimesliceNameMapping["d"]}' FACET name TIMESERIES`,
 					title: "Response time (ms)",
 					name: "responseTimeMs",
-				},
-				// throughput
-				{
-					query: `SELECT count(newrelic.timeslice.value) AS 'Throughput'
-                  FROM Metric
-                  WHERE entity.guid IN ('${entityGuid}')
-                    AND metricTimesliceName = '${metricTimesliceNameMapping["t"]}' TIMESERIES`,
-					extrapolationQuery: `SELECT rate(count(*), 1 minute) AS 'Throughput'
-                               FROM Span
-                               WHERE entity.guid IN ('${entityGuid}')
-                                 AND name = '${metricTimesliceNameMapping["t"]}' FACET name EXTRAPOLATE TIMESERIES`,
-					title: "Throughput",
-					name: "throughput",
 				},
 				// error
 				{
@@ -2851,6 +3007,19 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
                                  AND \`error.group.guid\` IS NOT NULL FACET name EXTRAPOLATE TIMESERIES`,
 					title: "Error rate",
 					name: "errorRate",
+				},
+				// samples
+				{
+					query: `SELECT count(newrelic.timeslice.value) AS 'Samples'
+                  FROM Metric
+                  WHERE entity.guid IN ('${entityGuid}')
+                    AND metricTimesliceName = '${metricTimesliceNameMapping["t"]}' TIMESERIES`,
+					extrapolationQuery: `SELECT rate(count(*), 1 minute) AS 'Samples'
+                               FROM Span
+                               WHERE entity.guid IN ('${entityGuid}')
+                                 AND name = '${metricTimesliceNameMapping["t"]}' FACET name TIMESERIES`,
+					title: "Samples",
+					name: "samples",
 				},
 			],
 		};
@@ -2874,42 +3043,32 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		});
 
 		const parsedId = NewRelicProvider.parseId(entityGuid)!;
+		const useSpan = metricTimesliceNames?.source === "span";
 
 		const results = await Promise.all(
 			queries.metricQueries.map(_ => {
-				let _query = _.query.replace(/\n/g, "");
-				const _extrapolationQuery = _.extrapolationQuery?.replace(/\n/g, "");
+				let _query = useSpan ? _.extrapolationQuery : _.query;
+				_query = _query?.replace(/\n/g, "");
 
 				// if no metricTimesliceNames, then we don't need TIMESERIES in query
 				if (!metricTimesliceNames) {
-					_query = _query.replace(/TIMESERIES/, "");
+					_query = _query?.replace(/TIMESERIES/, "");
 				}
-
-				// TODO: 1 query / api call per metric - combine into a single query / call and parse results.
 
 				const q = `query getMetric($accountId: Int!) {
 					actor {
 					  account(id: $accountId) {
-						metrics: nrql(query: "${escapeNrql(_query)}") {
-						  results
-						  metadata {
-							timeWindow {
-							  end
+							nrql(query: "${escapeNrql(_query || "")}") {
+								results
+								metadata {
+									timeWindow {
+										end
+									}
+								}
 							}
-						  }
-						}
-						extrapolations: nrql(query: "${escapeNrql(_extrapolationQuery || "")}") {
-						  results
-						  metadata {
-							timeWindow {
-							  end
-							}
-						  }
-						}
 					  }
 					}
-				  }
-				  `;
+				}`;
 				return this.query(q, {
 					accountId: parsedId.accountId,
 				}).catch(ex => {
@@ -2919,16 +3078,12 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		);
 
 		const response = queries.metricQueries.map((_, i) => {
-			const account = results[i].actor.account;
-			const useExtrapolation =
-				!account.metrics.results.some((r: any) => r[_.title]) &&
-				account.extrapolations?.results?.length > 0;
-			const metricsOrExtrapolations = useExtrapolation ? account.extrapolations : account.metrics;
-			if (i === 2) {
+			const nrql = results[i].actor.account.nrql;
+			if (i === 1) {
 				// TODO this isn't great
 				// fix up the title for this one since the element title != the parent's title
 				_.title = "Error rate";
-				metricsOrExtrapolations.results.forEach((element: any) => {
+				nrql.results.forEach((element: any) => {
 					element["Error rate"] = element["errorsPerMinute"]
 						? element["errorsPerMinute"].toFixed(2)
 						: null;
@@ -2936,7 +3091,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			}
 			return {
 				..._,
-				result: metricsOrExtrapolations.results.map((r: any) => {
+				result: nrql.results.map((r: any) => {
 					const ms = r.endTimeSeconds * 1000;
 					const date = new Date(ms);
 
@@ -2948,8 +3103,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 						endDate: date,
 					};
 				}),
-				timeWindow: metricsOrExtrapolations.metadata?.timeWindow?.end,
-				extrapolated: useExtrapolation,
+				timeWindow: nrql.metadata?.timeWindow?.end,
 			};
 		});
 

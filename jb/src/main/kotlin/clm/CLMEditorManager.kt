@@ -13,10 +13,9 @@ import com.codestream.protocols.agent.FunctionLocator
 import com.codestream.protocols.agent.MethodLevelTelemetryAverageDuration
 import com.codestream.protocols.agent.MethodLevelTelemetryErrorRate
 import com.codestream.protocols.agent.MethodLevelTelemetrySymbolIdentifier
-import com.codestream.protocols.agent.MethodLevelTelemetryThroughput
+import com.codestream.protocols.agent.MethodLevelTelemetrySampleSize
 import com.codestream.protocols.agent.NOT_ASSOCIATED
 import com.codestream.protocols.agent.NOT_CONNECTED
-import com.codestream.protocols.agent.ResponseTimesParams
 import com.codestream.protocols.agent.TelemetryParams
 import com.codestream.protocols.webview.MethodLevelTelemetryNotifications
 import com.codestream.review.LOCAL_PATH
@@ -70,21 +69,22 @@ data class RenderElements(
 class Metrics {
     var errorRate: MethodLevelTelemetryErrorRate? = null
     var averageDuration: MethodLevelTelemetryAverageDuration? = null
-    var throughput: MethodLevelTelemetryThroughput? = null
+    var sampleSize: MethodLevelTelemetrySampleSize? = null
 
     fun format(template: String, since: String): String {
+        val sampleSizeStr = sampleSize?.sampleSize?.toString() ?: "0"
         val averageDurationStr = averageDuration?.averageDuration?.let { "%.3f".format(it) + "ms" } ?: "n/a"
-        val throughputStr = throughput?.requestsPerMinute?.let { "%.3f".format(it) + "rpm" } ?: "n/a"
-        val errorRateStr = errorRate?.errorsPerMinute?.let { "%.3f".format(it) + "epm" } ?: "n/a"
+        val errorRateValue = errorRate?.errorRate ?: 0f
+        val errorRateStr = "%.1f".format(errorRateValue * 100) + "%"
         return template.replace("\${averageDuration}", averageDurationStr)
-            .replace("\${throughput}", throughputStr)
-            .replace("\${errorsPerMinute}", errorRateStr)
+            .replace("\${errorRate}", errorRateStr)
+            .replace("\${sampleSize}", sampleSizeStr)
             .replace("\${since}", since)
     }
 
     val nameMapping: MethodLevelTelemetryNotifications.View.MetricTimesliceNameMapping
         get() = MethodLevelTelemetryNotifications.View.MetricTimesliceNameMapping(
-            averageDuration?.metricTimesliceName, throughput?.metricTimesliceName, errorRate?.metricTimesliceName
+            averageDuration?.metricTimesliceName, sampleSize?.metricTimesliceName, errorRate?.metricTimesliceName, sampleSize?.source
         )
 }
 
@@ -217,9 +217,9 @@ abstract class CLMEditorManager(
                             val metrics = updatedMetrics.getOrPut(averageDuration.symbolIdentifier) { Metrics() }
                             metrics.averageDuration = averageDuration
                         }
-                        lastResult?.throughput?.forEach { throughput ->
-                            val metrics = updatedMetrics.getOrPut(throughput.symbolIdentifier) { Metrics() }
-                            metrics.throughput = throughput
+                        lastResult?.sampleSize?.forEach { sampleSize ->
+                            val metrics = updatedMetrics.getOrPut(sampleSize.symbolIdentifier) { Metrics() }
+                            metrics.sampleSize = sampleSize
                         }
                         metricsBySymbol = updatedMetrics.toImmutableMap()
                         updateInlays()
@@ -317,7 +317,7 @@ abstract class CLMEditorManager(
         }
         val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(editor.document) ?: return
         val presentationFactory = PresentationFactory(editor)
-        val since = result.sinceDateFormatted ?: "30 minutes ago"
+        val since = result.sinceDateFormatted?.replace(" ago", "") ?: "30 minutes"
         val toRender: List<RenderElements> = metricsBySymbol.mapNotNull { (symbolIdentifier, metrics) ->
             val symbol = resolveSymbol(symbolIdentifier, psiFile) ?: return@mapNotNull null
 

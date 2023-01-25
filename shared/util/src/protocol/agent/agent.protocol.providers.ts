@@ -1396,6 +1396,7 @@ export type MetricTimesliceNameMapping = {
 	 * error
 	 */
 	e: string;
+	source: string;
 };
 
 export interface GetFileLevelTelemetryResponse {
@@ -1405,12 +1406,13 @@ export interface GetFileLevelTelemetryResponse {
 		remote: string;
 	};
 	isConnected?: boolean;
-	throughput?: {
-		requestsPerMinute: any;
+	sampleSize?: {
+		sampleSize: any;
 		namespace?: string;
 		className?: string;
 		functionName: string;
 		metricTimesliceName: string;
+		source: string;
 	}[];
 	averageDuration?: {
 		averageDuration: any;
@@ -1420,7 +1422,7 @@ export interface GetFileLevelTelemetryResponse {
 		metricTimesliceName: string;
 	}[];
 	errorRate?: {
-		errorsPerMinute: any;
+		errorRate: any;
 		namespace?: string;
 		className?: string;
 		functionName: string;

@@ -9,7 +9,7 @@ export function generateMethodThroughputQuery(
 	const extrapolationsLookup = metricTimesliceNames?.length
 		? `name in (${metricTimesliceNames.map(metric => `'${metric}'`).join(",")})`
 		: `name LIKE '${codeNamespace}%'`;
-	const extrapolationsQuery = `FROM Span SELECT rate(count(*), 1 minute) AS 'requestsPerMinute' WHERE \`entity.guid\` = '${newRelicEntityGuid}' AND ${extrapolationsLookup} FACET name AS metricTimesliceName SINCE 30 minutes AGO LIMIT 100 EXTRAPOLATE`;
+	const extrapolationsQuery = `FROM Span SELECT count(*) AS 'sampleSize' WHERE \`entity.guid\` = '${newRelicEntityGuid}' AND ${extrapolationsLookup} FACET name AS metricTimesliceName SINCE 30 minutes AGO LIMIT 100 EXTRAPOLATE`;
 	const metricsLookup = metricTimesliceNames?.length
 		? `(metricTimesliceName in ( ${metricTimesliceNames
 				.map(mtsn => `'${mtsn}'`)
@@ -18,7 +18,7 @@ export function generateMethodThroughputQuery(
 				.join(",")}))`
 		: `metricTimesliceName LIKE '${codeNamespace}%'`;
 
-	const metricsQuery = `SELECT rate(count(newrelic.timeslice.value), 1 minute) AS 'requestsPerMinute' FROM Metric WHERE \`entity.guid\` = '${newRelicEntityGuid}' AND ${metricsLookup} FACET metricTimesliceName SINCE 30 minutes AGO LIMIT 100`;
+	const metricsQuery = `SELECT count(newrelic.timeslice.value) AS 'sampleSize' FROM Metric WHERE \`entity.guid\` = '${newRelicEntityGuid}' AND ${metricsLookup} FACET metricTimesliceName SINCE 30 minutes AGO LIMIT 100`;
 
 	return `query GetMethodThroughput($accountId:Int!) {
 	actor {

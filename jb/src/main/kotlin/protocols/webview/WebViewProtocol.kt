@@ -183,7 +183,8 @@ object MethodLevelTelemetryNotifications {
         class MetricTimesliceNameMapping(
             val d: String?,
             val t: String?,
-            val e: String?
+            val e: String?,
+            val source: String?
         )
     }
 }
