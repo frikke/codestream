@@ -13,13 +13,11 @@ import { CSStackTraceInfo } from "@codestream/protocols/api";
 import convert from "convert-source-map";
 import * as NewRelic from "newrelic";
 import StackMapper, { Callsite } from "stack-mapper";
-
-import { CodeStreamAgent } from "./agent";
-import { Logger } from "./logger";
 import { Parser } from "./managers/stackTraceParsers/javascriptStackTraceParser";
-import { CodeStreamSession } from "./session";
 import { lsp, lspHandler, Strings } from "./system";
-
+import Cache from "timed-cache";
+import os from "os";
+import { Container, SessionContainer } from "./container";
 import md5 = Strings.md5;
 
 interface IErrorReporterProvider {
@@ -28,17 +26,12 @@ interface IErrorReporterProvider {
 	webviewError(request: WebviewErrorRequest): void;
 }
 
-abstract class ErrorReporterProviderBase {
-	protected _errorCache = new Set<string>();
-	constructor(protected session: CodeStreamSession) {}
-}
-
 @lsp
 export class ErrorReporter {
 	private readonly _errorProviders: IErrorReporterProvider[];
 
-	constructor(agent: CodeStreamAgent, session: CodeStreamSession) {
-		this._errorProviders = [new NewRelicErrorReporterProvider(agent, session)];
+	constructor() {
+		this._errorProviders = [new NewRelicErrorReporterProvider()];
 	}
 
 	@lspHandler(ReportMessageRequestType)
@@ -68,31 +61,30 @@ const WEB_SOURCE_MAP = "index.js.map";
 
 const WEB_JS_FILENAME = "index.js";
 
-class NewRelicErrorReporterProvider
-	extends ErrorReporterProviderBase
-	implements IErrorReporterProvider
-{
+class NewRelicErrorReporterProvider implements IErrorReporterProvider {
 	private readonly stackMapper?: StackMapper.StackMapper;
+	private _errorCache = new Cache<void>({
+		defaultTtl: 900 * 1000, // 15 minutes
+	});
 
-	constructor(private agent: CodeStreamAgent, session: CodeStreamSession) {
-		super(session);
+	constructor() {
 		try {
 			const webSourceMap = path.resolve(__dirname, WEB_SOURCE_MAP);
 			if (!fs.existsSync(webSourceMap)) {
-				Logger.warn(`${WEB_SOURCE_MAP} not found at ${webSourceMap}`);
+				console.warn(`${WEB_SOURCE_MAP} not found at ${webSourceMap}`);
 				return;
 			}
 			const sourceMapContents = fs.readFileSync(webSourceMap, "utf8");
 			if (!sourceMapContents) {
-				Logger.warn(`Unable to load ${webSourceMap}`);
+				console.warn(`Unable to load ${webSourceMap}`);
 				return;
 			}
 			const theSm = convert.fromJSON(sourceMapContents).sourcemap;
 			theSm.file = WEB_JS_FILENAME;
 			this.stackMapper = StackMapper(theSm);
-			Logger.log(`Loaded ${webSourceMap} mapper`);
+			console.log(`Loaded ${webSourceMap} mapper`);
 		} catch (e) {
-			Logger.error(e);
+			console.error(e);
 			return;
 		}
 	}
@@ -158,7 +150,7 @@ class NewRelicErrorReporterProvider
 
 				return error;
 			} catch (e) {
-				Logger.error(e);
+				console.error(e);
 				return request.error;
 			}
 		} else {
@@ -180,6 +172,44 @@ class NewRelicErrorReporterProvider
 		return md5(hash ?? "");
 	}
 
+	private createNewRelicCustomAttributes() {
+		try {
+			const sessionContainer = SessionContainer.isInitialized()
+				? SessionContainer.instance()
+				: undefined;
+			const session = sessionContainer?.session ?? {
+				teamId: "",
+				userId: "",
+				email: "",
+				environment: "",
+			};
+			const container = Container.isInitialized() ? Container.instance() : undefined;
+			const agentOptions = container?.agent.agentOptions;
+			return {
+				csEnvironment: session.environment,
+				email: session?.email,
+
+				extensionBuildEnv: agentOptions?.extension?.buildEnv,
+				extensionVersion: agentOptions?.extension?.version,
+				// this is used in Errors Inbox
+				"service.version": agentOptions?.extension?.version,
+
+				ideDetail: agentOptions?.ide?.detail,
+				ideName: agentOptions?.ide?.name,
+				ideVersion: agentOptions?.ide?.version,
+
+				platform: os.platform(),
+				proxySupport: agentOptions?.proxySupport,
+				serverUrl: agentOptions?.serverUrl,
+				teamId: session.teamId || "",
+				userId: session.userId || "",
+			};
+		} catch (ex) {
+			console.warn(`createNewRelicCustomAttributes error - ${ex.message}`);
+		}
+		return {};
+	}
+
 	reportMessage(request: ReportMessageRequest) {
 		if (!request.error && !request.message) return;
 
@@ -187,14 +217,14 @@ class NewRelicErrorReporterProvider
 
 		const cacheKey = this.hashError(request);
 
-		if (this._errorCache.has(cacheKey)) {
-			Logger.warn("Ignoring duplicate error", {
+		if (this._errorCache.get(cacheKey)) {
+			console.warn("Ignoring duplicate error", {
 				key: cacheKey,
 			});
 			return;
 		}
 
-		this._errorCache.add(cacheKey);
+		this._errorCache.put(cacheKey);
 
 		try {
 			let error: Error | undefined = undefined;
@@ -215,14 +245,14 @@ class NewRelicErrorReporterProvider
 				error = new Error(request.message);
 			}
 			if (!error) {
-				Logger.warn("Failed to create error for reportMessage", {
+				console.warn("Failed to create error for reportMessage", {
 					request,
 				});
 				return;
 			}
 
 			NewRelic.noticeError(error, {
-				...((this.agent.createNewRelicCustomAttributes() as any) || {}),
+				...((this.createNewRelicCustomAttributes() as any) || {}),
 				extra:
 					typeof request.extra === "object" ? JSON.stringify(request.extra) : request.extra || "",
 				type: request.type,
@@ -230,7 +260,7 @@ class NewRelicErrorReporterProvider
 				stack: stack || undefined,
 			});
 		} catch (ex) {
-			Logger.warn("Failed to reportMessage", {
+			console.warn("Failed to reportMessage", {
 				error: ex,
 			});
 		}
@@ -243,10 +273,10 @@ class NewRelicErrorReporterProvider
 		// 		stack: request.error.stack
 		// 	});
 		// } catch (e) {
-		// 	Logger.warn(e);
+		// 	console.warn(e);
 		// }
 		if (this.stackMapper) {
-			// Logger.log(`=== stack before ${request.error.stack}`);
+			// console.log(`=== stack before ${request.error.stack}`);
 			const stackTraceInfo = this.parseStackString(request.error.stack);
 			// Use source map to resolve original filename / lines
 			const frames = this.stackMapper.map(stackTraceInfo.callsite);
@@ -257,7 +287,7 @@ class NewRelicErrorReporterProvider
 			});
 		}
 
-		Logger.log(`Webview error: ${request.error.message}\n${request.error.stack}`);
+		console.log(`Webview error: ${request.error.message}\n${request.error.stack}`);
 	}
 
 	reportBreadcrumb(request: ReportBreadcrumbRequest) {

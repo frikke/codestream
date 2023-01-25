@@ -19,7 +19,7 @@ const nrApriOrigins = new Set([
 // Rate limits
 function getRateLimit(origin: string): Limit {
 	if (nrApriOrigins.has(origin)) {
-		return { warn: 50, block: 75 };
+		return { warn: 50, block: 10 };
 	}
 	// Uncomment for testing errors - set block to low-ish number
 	// } else if(origin.includes("github")) {
@@ -34,7 +34,7 @@ type Violation = "warn" | "block" | "report";
 
 type RateLimit = {
 	violation: Violation;
-	limit: Limit;
+	limit: number;
 	count: number;
 };
 
@@ -110,13 +110,13 @@ function isOverRateLimit(origin: string): RateLimit | undefined {
 	rateLimitByOrigin.set(key, count);
 	const limit = getRateLimit(origin);
 	if (limit.block && count > limit.block) {
-		return { violation: "block", limit, count };
+		return { violation: "block", limit: limit.block, count };
 	}
 	if (limit.report && count > limit.report) {
-		return { violation: "report", limit, count };
+		return { violation: "report", limit: limit.report, count };
 	}
 	if (count > limit.warn) {
-		return { violation: "warn", limit, count };
+		return { violation: "warn", limit: limit.warn, count };
 	}
 	return undefined;
 }
@@ -127,14 +127,14 @@ export function handleLimit(origin: string) {
 		switch (rateLimit.violation) {
 			case "warn": {
 				Logger.warn(
-					`${origin} is over internal rate limit warning with count ${rateLimit.count} in ${RATE_LIMIT_INTERVAL} seconds`
+					`${origin} is over internal rate limit warning with count ${rateLimit.limit} in ${RATE_LIMIT_INTERVAL} seconds`
 				);
 				break;
 			}
 			case "block":
 			case "report": {
 				const error = new InternalRateError(
-					`${origin} exceeded internal block limit of ${rateLimit.count} in RATE_LIMIT_INTERVAL seconds`
+					`${origin} exceeded internal block limit of ${rateLimit.limit} in ${RATE_LIMIT_INTERVAL} seconds`
 				);
 				Logger.error(error);
 				if (rateLimit.violation === "block") {

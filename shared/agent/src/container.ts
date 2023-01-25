@@ -181,7 +181,7 @@ class ServiceContainer {
 		this._repositoryLocator = new RepositoryLocator(session, this._gitServiceLite);
 		this._unauthenticatedScm = new UnauthenticatedScmManager();
 		this._server = new ServerManager(session);
-		this._errorReporter = new ErrorReporter(agent, session);
+		this._errorReporter = new ErrorReporter();
 		this._telemetry = new TelemetryManager(session);
 		this._urls = new UrlManager();
 		providerRegistry = new ThirdPartyProviderRegistry();
@@ -233,6 +233,10 @@ let container: ServiceContainer | undefined;
 export namespace Container {
 	export function initialize(agent: CodeStreamAgent, session: CodeStreamSession) {
 		container = new ServiceContainer(agent, session);
+	}
+
+	export function isInitialized(): boolean {
+		return !!container;
 	}
 
 	export function instance(): ServiceContainer {
