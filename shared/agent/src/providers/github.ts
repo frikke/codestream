@@ -33,7 +33,6 @@ import {
 	MoveThirdPartyCardResponse,
 	ProviderConfigurationData,
 	ProviderGetForkedReposResponse,
-	ReportingMessageType,
 	ThirdPartyDisconnect,
 	ThirdPartyProviderCard,
 	ThirdPartyProviderConfig,
@@ -42,7 +41,7 @@ import { CSGitHubProviderInfo } from "@codestream/protocols/api";
 
 import { CodeStreamSession } from "session";
 import { InternalError, ReportSuppressedMessages } from "../agentError";
-import { Container, SessionContainer } from "../container";
+import { SessionContainer } from "../container";
 import { GitRemoteLike } from "../git/models/remote";
 import { toRepoName } from "../git/utils";
 import { Logger } from "../logger";
@@ -65,6 +64,7 @@ import { QueryLogger, RateLimit } from "./queryLogger";
 import { WAITING_ON_REVIEW } from "./registry";
 import { ThirdPartyIssueProviderBase } from "./thirdPartyIssueProviderBase";
 import { ProviderVersion } from "./types";
+import { reportAgentError } from "../nrErrorReporter";
 
 interface GitHubRepo {
 	id: string;
@@ -467,9 +467,7 @@ export class GitHubProvider
 			const remainingPercent =
 				(rateLimitHeaders.rateLimitRemaining / rateLimitHeaders.rateLimit) * 100;
 			if (rateLimitHeaders.rateLimitRemaining === 0) {
-				Container.instance().errorReporter.reportMessage({
-					type: ReportingMessageType.Error,
-					source: "agent",
+				reportAgentError({
 					message: "GH rate limit exceeded",
 					extra: {
 						stats: this._queryLogger,

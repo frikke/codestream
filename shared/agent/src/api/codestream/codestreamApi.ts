@@ -140,7 +140,6 @@ import {
 	ReactToPostRequest,
 	RemoveEnterpriseProviderHostRequest,
 	RenameStreamRequest,
-	ReportingMessageType,
 	SendPasswordResetEmailRequest,
 	SendPasswordResetEmailRequestType,
 	SetCodemarkPinnedRequest,
@@ -327,6 +326,7 @@ import {
 import { CodeStreamPreferences } from "../preferences";
 import { BroadcasterEvents } from "./events";
 import { CodeStreamUnreads } from "./unreads";
+import { reportAgentError } from "../../nrErrorReporter";
 
 @lsp
 export class CodeStreamApiProvider implements ApiProvider {
@@ -2769,9 +2769,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 			} catch {}
 		}
 
-		Container.instance().errorReporter.reportMessage({
-			source: "agent",
-			type: ReportingMessageType.Error,
+		reportAgentError({
 			message: `[Server Error]: ${message}`,
 			extra: {
 				data,

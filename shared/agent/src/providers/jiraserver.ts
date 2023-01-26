@@ -18,7 +18,6 @@ import {
 	JiraUser,
 	MoveThirdPartyCardRequest,
 	ProviderConfigurationData,
-	ReportingMessageType,
 	ThirdPartyDisconnect,
 	ThirdPartyProviderConfig,
 } from "@codestream/protocols/agent";
@@ -26,8 +25,6 @@ import { CSJiraServerProviderInfo } from "@codestream/protocols/api";
 import { Iterables } from "@codestream/utils/system/iterable";
 import { OAuth } from "oauth";
 
-
-import { Container } from "../container";
 import { Logger } from "../logger";
 import { CodeStreamSession } from "../session";
 import { log, lspProvider } from "../system";
@@ -46,6 +43,7 @@ import {
 	JiraServerOauthParams,
 } from "./jiraserver.types";
 import { ThirdPartyIssueProviderBase } from "./thirdPartyIssueProviderBase";
+import { reportAgentError } from "../nrErrorReporter";
 
 export type jsonCallback = (
 	err?: { statusCode: number; data?: any },
@@ -270,10 +268,8 @@ export class JiraServerProvider extends ThirdPartyIssueProviderBase<CSJiraServer
 			return { boards: this.boards };
 		} catch (error) {
 			debugger;
-			Container.instance().errorReporter.reportMessage({
-				type: ReportingMessageType.Error,
+			reportAgentError({
 				message: "Jira Server: Error fetching jira boards",
-				source: "agent",
 				extra: { message: error.message },
 			});
 			Logger.error(error, "Error fetching jira boards");
@@ -315,10 +311,8 @@ export class JiraServerProvider extends ThirdPartyIssueProviderBase<CSJiraServer
 		try {
 			return this.getCompatibleBoards(await this.gatherProjectMetadata(projects));
 		} catch (error) {
-			Container.instance().errorReporter.reportMessage({
-				type: ReportingMessageType.Error,
+			reportAgentError({
 				message: "Jira Server: Error fetching issue metadata for projects",
-				source: "agent",
 				extra: { message: error.message },
 			});
 			Logger.error(
@@ -387,10 +381,8 @@ export class JiraServerProvider extends ThirdPartyIssueProviderBase<CSJiraServer
 			const response = await this._getJira(`/rest/api/2/issue/${request.cardId}/transitions`);
 			return { workflow: response.transitions };
 		} catch (error) {
-			Container.instance().errorReporter.reportMessage({
-				type: ReportingMessageType.Error,
+			reportAgentError({
 				message: "Jira Server: Error fetching issue workflow for projects",
-				source: "agent",
 				extra: { message: error.message },
 			});
 			Logger.error(error, "Jira Server: Error fetching card workflow");
@@ -429,10 +421,8 @@ export class JiraServerProvider extends ThirdPartyIssueProviderBase<CSJiraServer
 						nextPage = undefined;
 					}
 				} catch (e) {
-					Container.instance().errorReporter.reportMessage({
-						type: ReportingMessageType.Error,
+					reportAgentError({
 						message: "Jira: Error fetching jira cards",
-						source: "agent",
 						extra: {
 							message: e.message,
 						},
@@ -448,10 +438,8 @@ export class JiraServerProvider extends ThirdPartyIssueProviderBase<CSJiraServer
 			return { cards };
 		} catch (error) {
 			debugger;
-			Container.instance().errorReporter.reportMessage({
-				type: ReportingMessageType.Error,
+			reportAgentError({
 				message: "Jira: Error fetching jira cards",
-				source: "agent",
 				extra: { message: error.message },
 			});
 			Logger.error(error, "Error fetching jira cards");
@@ -498,10 +486,8 @@ export class JiraServerProvider extends ThirdPartyIssueProviderBase<CSJiraServer
 			return response;
 		} catch (error) {
 			debugger;
-			Container.instance().errorReporter.reportMessage({
-				type: ReportingMessageType.Error,
+			reportAgentError({
 				message: "Jira Server: Error moving jira card",
-				source: "agent",
 				extra: { message: error.message },
 			});
 			Logger.error(error, "Error moving jira card");

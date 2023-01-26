@@ -119,6 +119,7 @@ import { GitRepository } from "./git/models/repository";
 import { Logger } from "./logger";
 import { log, memoize, registerDecoratedHandlers, registerProviders, Strings } from "./system";
 import { testGroups } from "./testGroups";
+import { reportAgentError } from "./nrErrorReporter";
 
 const envRegex = /https?:\/\/((?:(\w+)-)?api|localhost|(\w+))\.codestream\.(?:us|com)(?::\d+$)?/i;
 
@@ -1023,9 +1024,8 @@ export class CodeStreamSession {
 	@log({ singleLine: true })
 	async generateLoginCode(request: GenerateLoginCodeRequest) {
 		if (this.status === SessionStatus.SignedIn) {
-			Container.instance().errorReporter.reportMessage({
+			reportAgentError({
 				type: ReportingMessageType.Warning,
-				source: "agent",
 				message: "There was a redundant attempt to login while already logged in.",
 				extra: {
 					loginType: "loginCode",
@@ -1050,10 +1050,8 @@ export class CodeStreamSession {
 				}
 			}
 
-			Container.instance().errorReporter.reportMessage({
-				type: ReportingMessageType.Error,
+			reportAgentError({
 				message: "Unexpected error generating login code",
-				source: "agent",
 				extra: {
 					...ex,
 				},
@@ -1071,9 +1069,8 @@ export class CodeStreamSession {
 	})
 	async login(options: LoginOptions): Promise<LoginResponse> {
 		if (this.status === SessionStatus.SignedIn) {
-			Container.instance().errorReporter.reportMessage({
+			reportAgentError({
 				type: ReportingMessageType.Warning,
-				source: "agent",
 				message: "There was a redundant attempt to login while already logged in.",
 				extra: {
 					loginType: options.type,
@@ -1118,10 +1115,8 @@ export class CodeStreamSession {
 				return ex;
 			}
 
-			Container.instance().errorReporter.reportMessage({
-				type: ReportingMessageType.Error,
+			reportAgentError({
 				message: "Unexpected error logging in",
-				source: "agent",
 				extra: {
 					...ex,
 				},
@@ -1294,10 +1289,8 @@ export class CodeStreamSession {
 				}
 			}
 
-			Container.instance().errorReporter.reportMessage({
-				type: ReportingMessageType.Error,
+			reportAgentError({
 				message: "Unexpected error during registration",
-				source: "agent",
 				extra: {
 					...error,
 				},
@@ -1353,10 +1346,8 @@ export class CodeStreamSession {
 				}
 			}
 
-			Container.instance().errorReporter.reportMessage({
-				type: ReportingMessageType.Error,
+			reportAgentError({
 				message: "Unexpected error during registration",
-				source: "agent",
 				extra: {
 					...error,
 				},
@@ -1412,10 +1403,8 @@ export class CodeStreamSession {
 				}
 			}
 
-			Container.instance().errorReporter.reportMessage({
-				type: ReportingMessageType.Error,
+			reportAgentError({
 				message: "Unexpected error confirming registration",
-				source: "agent",
 				extra: {
 					...error,
 				},
@@ -1437,10 +1426,8 @@ export class CodeStreamSession {
 				}
 			}
 
-			Container.instance().errorReporter.reportMessage({
-				type: ReportingMessageType.Error,
+			reportAgentError({
 				message: "Unexpected error getting invite info",
-				source: "agent",
 				extra: {
 					...error,
 				},

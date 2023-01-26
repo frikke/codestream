@@ -2,6 +2,7 @@ import { setInterval } from "timers";
 import { Logger } from "./logger";
 import { NRErrorType } from "@codestream/protocols/agent";
 import { CodedError } from "./providers/newrelic.types";
+import { reportAgentError } from "./nrErrorReporter";
 
 const rateLimitByOrigin = new Map<string, number>();
 
@@ -19,7 +20,7 @@ const nrApriOrigins = new Set([
 // Rate limits
 function getRateLimit(origin: string): Limit {
 	if (nrApriOrigins.has(origin)) {
-		return { warn: 50, block: 10 };
+		return { warn: 50, block: 75 };
 	}
 	// Uncomment for testing errors - set block to low-ish number
 	// } else if(origin.includes("github")) {
@@ -136,7 +137,7 @@ export function handleLimit(origin: string) {
 				const error = new InternalRateError(
 					`${origin} exceeded internal block limit of ${rateLimit.limit} in ${RATE_LIMIT_INTERVAL} seconds`
 				);
-				Logger.error(error);
+				reportAgentError(error);
 				if (rateLimit.violation === "block") {
 					throw error;
 				}

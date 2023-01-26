@@ -6,7 +6,6 @@ import {
 	CommitsChangedData,
 	MatchReposRequest,
 	RepoMap,
-	ReportingMessageType,
 	WorkspaceChangedData,
 } from "@codestream/protocols/agent";
 import { CSRepository } from "@codestream/protocols/api";
@@ -16,7 +15,7 @@ import * as chokidar from "chokidar";
 import { Disposable, Emitter, Event, WorkspaceFoldersChangeEvent } from "vscode-languageserver";
 import { URI } from "vscode-uri";
 
-import { Container, SessionContainer } from "../container";
+import { SessionContainer } from "../container";
 import { Logger } from "../logger";
 import { CodeStreamSession } from "../session";
 import { Strings } from "../system";
@@ -26,6 +25,7 @@ import { getDriveLetterFromPath, getMappedDrives, mapMountedDriveToUNC } from ".
 import { GitRepository } from "./gitService";
 import { RepositoryLocator } from "./repositoryLocator";
 import { isWindows } from "./shell";
+import { reportAgentError } from "../nrErrorReporter";
 
 export class GitRepositories {
 	private _onWorkspaceDidChange = new Emitter<WorkspaceChangedData>();
@@ -294,9 +294,7 @@ export class GitRepositories {
 					}
 					if (badRemotes.length) {
 						try {
-							Container.instance().errorReporter.reportMessage({
-								type: ReportingMessageType.Error,
-								source: "agent",
+							reportAgentError({
 								message: "Bad remotes found",
 								extra: {
 									badRemotes: badRemotes,

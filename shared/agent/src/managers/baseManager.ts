@@ -1,15 +1,15 @@
 "use strict";
-import { ReportingMessageType } from "@codestream/protocols/agent";
 import { CSEntity, CSMarkerLocations } from "@codestream/protocols/api";
 
 import { RawRTMessage } from "../api/apiProvider";
-import { Container, SessionContainer } from "../container";
+import { SessionContainer } from "../container";
 import { Logger } from "../logger";
 import { CodeStreamSession } from "../session";
 import { debug, log } from "../system";
 import { IndexParams } from "./cache";
 import { BaseCache, KeyValue } from "./cache/baseCache";
 import { isDirective, resolve } from "./operations";
+import { reportAgentError } from "../nrErrorReporter";
 
 function getCacheUpdateAction(
 	newOrDirective: any,
@@ -123,9 +123,7 @@ export abstract class ManagerBase<T> {
 					}
 				} catch (e) {
 					Logger.error(e);
-					Container.instance().errorReporter.reportMessage({
-						source: "agent",
-						type: ReportingMessageType.Error,
+					reportAgentError({
 						message: "Error resolving RT message",
 						extra: {
 							data,

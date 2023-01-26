@@ -14,7 +14,6 @@ import {
 	JiraBoard,
 	JiraUser,
 	MoveThirdPartyCardRequest,
-	ReportingMessageType,
 	ThirdPartyDisconnect,
 	ThirdPartyProviderCard,
 	TransitionsEntity,
@@ -23,11 +22,12 @@ import { CSJiraProviderInfo } from "@codestream/protocols/api";
 import { Iterables } from "@codestream/utils/system/iterable";
 import { sortBy } from "lodash-es";
 
-import { Container, SessionContainer } from "../container";
+import { SessionContainer } from "../container";
 import { Logger } from "../logger";
 import { log, lspProvider } from "../system";
 import { IssuesEntity, JiraCardResponse } from "./jiraserver.types";
 import { ThirdPartyIssueProviderBase } from "./thirdPartyIssueProviderBase";
+import { reportAgentError } from "../nrErrorReporter";
 
 type AccessibleResourcesResponse = { id: string; name: string; url: string }[];
 
@@ -167,10 +167,8 @@ export class JiraProvider extends ThirdPartyIssueProviderBase<CSJiraProviderInfo
 		Logger.debug("Jira: Accessible Resources are", response.body);
 
 		if (response.body.length === 0) {
-			Container.instance().errorReporter.reportMessage({
-				type: ReportingMessageType.Error,
+			reportAgentError({
 				message: "Jira access does not include any jira sites",
-				source: "agent",
 			});
 			throw new Error("Jira access does not include any jira sites");
 		}
@@ -236,10 +234,8 @@ export class JiraProvider extends ThirdPartyIssueProviderBase<CSJiraProviderInfo
 					}
 				} catch (e) {
 					const message = e instanceof Error ? e.message : JSON.stringify(e);
-					Container.instance().errorReporter.reportMessage({
-						type: ReportingMessageType.Error,
+					reportAgentError({
 						message: `Jira: Error fetching jira projects: ${nextPage}`,
-						source: "agent",
 						extra: {
 							message,
 							nextPage,
@@ -261,10 +257,8 @@ export class JiraProvider extends ThirdPartyIssueProviderBase<CSJiraProviderInfo
 			return { boards: this.boards };
 		} catch (error) {
 			debugger;
-			Container.instance().errorReporter.reportMessage({
-				type: ReportingMessageType.Error,
+			reportAgentError({
 				message: "Jira: Error fetching jira boards",
-				source: "agent",
 				extra: {
 					message: error.message,
 					baseUrl: this.baseUrl,
@@ -287,10 +281,8 @@ export class JiraProvider extends ThirdPartyIssueProviderBase<CSJiraProviderInfo
 			);
 			return this.getCompatibleBoards(response.body);
 		} catch (error) {
-			Container.instance().errorReporter.reportMessage({
-				type: ReportingMessageType.Error,
+			reportAgentError({
 				message: "Jira: Error fetching issue metadata for projects",
-				source: "agent",
 				extra: {
 					message: error.message,
 					baseUrl: this.baseUrl,
@@ -379,10 +371,8 @@ export class JiraProvider extends ThirdPartyIssueProviderBase<CSJiraProviderInfo
 					}
 				} catch (e) {
 					errorMessage = e instanceof Error ? e.message : JSON.stringify(e);
-					Container.instance().errorReporter.reportMessage({
-						type: ReportingMessageType.Error,
+					reportAgentError({
 						message: "Jira: Error fetching jira cards",
-						source: "agent",
 						extra: {
 							message: errorMessage,
 							queryString,
@@ -409,10 +399,8 @@ export class JiraProvider extends ThirdPartyIssueProviderBase<CSJiraProviderInfo
 		} catch (error) {
 			debugger;
 			const message = error instanceof Error ? error.message : JSON.stringify(error);
-			Container.instance().errorReporter.reportMessage({
-				type: ReportingMessageType.Error,
+			reportAgentError({
 				message: "Jira: Uncaught error fetching jira cards",
-				source: "agent",
 				extra: {
 					message,
 					baseUrl: this.baseUrl,
@@ -465,10 +453,8 @@ export class JiraProvider extends ThirdPartyIssueProviderBase<CSJiraProviderInfo
 			return response;
 		} catch (error) {
 			debugger;
-			Container.instance().errorReporter.reportMessage({
-				type: ReportingMessageType.Error,
+			reportAgentError({
 				message: "Jira: Error moving jira card",
-				source: "agent",
 				extra: {
 					message: error.message,
 					baseUrl: this.baseUrl,

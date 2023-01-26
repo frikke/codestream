@@ -181,7 +181,7 @@ class ServiceContainer {
 		this._repositoryLocator = new RepositoryLocator(session, this._gitServiceLite);
 		this._unauthenticatedScm = new UnauthenticatedScmManager();
 		this._server = new ServerManager(session);
-		this._errorReporter = new ErrorReporter();
+		this._errorReporter = new ErrorReporter(agent);
 		this._telemetry = new TelemetryManager(session);
 		this._urls = new UrlManager();
 		providerRegistry = new ThirdPartyProviderRegistry();
