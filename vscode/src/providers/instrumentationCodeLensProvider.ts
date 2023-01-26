@@ -556,9 +556,11 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 					repo: fileLevelTelemetryResponse.repo,
 					codeNamespace: fileLevelTelemetryResponse.codeNamespace!,
 					metricTimesliceNameMapping: {
-						t: sampleSizeForFunction ? sampleSizeForFunction.metricTimesliceName : "",
-						d: averageDurationForFunction ? averageDurationForFunction.metricTimesliceName : "",
-						e: errorRateForFunction ? errorRateForFunction.metricTimesliceName : "",
+						sampleSize: sampleSizeForFunction ? sampleSizeForFunction.metricTimesliceName : "",
+						duration: averageDurationForFunction
+							? averageDurationForFunction.metricTimesliceName
+							: "",
+						errorRate: errorRateForFunction ? errorRateForFunction.metricTimesliceName : "",
 						source: sampleSizeForFunction ? sampleSizeForFunction.source : ""
 					},
 					filePath: document.fileName,

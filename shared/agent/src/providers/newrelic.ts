@@ -126,7 +126,7 @@ import {
 import { AnomalyDetector } from "./newrelic/anomalyDetection";
 import { generateMethodAverageDurationQuery } from "./newrelic/methodAverageDurationQuery";
 import { generateMethodErrorRateQuery } from "./newrelic/methodErrorRateQuery";
-import { generateMethodThroughputQuery } from "./newrelic/methodThroughputQuery";
+import { generateMethodSampleSizeQuery } from "./newrelic/methodSampleSizeQuery";
 import {
 	AccessTokenError,
 	AdditionalMetadataInfo,
@@ -1813,7 +1813,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 	}
 
 	async getMethodSampleSize(request: MetricQueryRequest, languageId: LanguageId) {
-		const query = generateMethodThroughputQuery(
+		const query = generateMethodSampleSizeQuery(
 			languageId,
 			request.newRelicEntityGuid,
 			request.metricTimesliceNames,
@@ -2329,7 +2329,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			// Consolidate throughput per method
 			const sampleSizeMap = new Map<string, { metric?: number; span?: number }>();
 			if (sampleSizeResponse) {
-				sampleSizeResponse.actor.account.extrapolations.results.forEach((e: any) => {
+				sampleSizeResponse.actor.account.spans.results.forEach((e: any) => {
 					sampleSizeMap.set(e.metricTimesliceName, { span: e.sampleSize });
 				});
 				sampleSizeResponse.actor.account.metrics.results.forEach((e: any) => {
@@ -2385,7 +2385,8 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 							errorRate: errorCountMetric.errorCount / sampleSizeMetricValue,
 						};
 					}
-				} else if (canUseSpan) {
+				}
+				if (canUseSpan && (!preferMetric || !duration)) {
 					const sampleSizeSpan = sampleSizesSpan?.results?.find((_: any) =>
 						isSameMethod(_.metricTimesliceName, methodName)
 					);
@@ -2483,35 +2484,6 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				}
 			}
 
-			// [averageDurationResponse, throughputResponse, errorRateResponse].forEach(_ => {
-			// 	if (_) {
-			// 		const consolidatedResults = new Map<string, any>();
-			// 		_.actor.account.extrapolations.results.forEach((e: any) => {
-			// 			e.extrapolated = true;
-			// 			consolidatedResults.set(e.metricTimesliceName, e);
-			// 		});
-			// 		_.actor.account.metrics.results.forEach((e: any) => {
-			// 			consolidatedResults.set(e.metricTimesliceName, e);
-			// 		});
-			// 		_.actor.account.nrql = {
-			// 			results: Array.from(consolidatedResults.values()),
-			// 			metadata: _.actor.account.metrics.metadata || _.actor.account.extrapolations.metadata,
-			// 		};
-			//
-			// 		_.actor.account.nrql.results = this.addMethodName(
-			// 			groupedByTransactionName,
-			// 			_.actor.account.nrql.results,
-			// 			languageId
-			// 		).filter(_ => _.functionName);
-			//
-			// 		if (request?.locator?.functionName) {
-			// 			_.actor.account.nrql.results = _.actor.account.nrql.results.filter(
-			// 				(r: any) => r.functionName === request?.locator?.functionName
-			// 			);
-			// 		}
-			// 	}
-			// });
-
 			const throughputResponseLength = sampleSizeResponse?.actor?.account?.nrql?.results.length;
 			const averageDurationResponseLength =
 				averageDurationResponse?.actor?.account?.nrql?.results.length;
@@ -2522,7 +2494,6 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			const response: GetFileLevelTelemetryResponse = {
 				codeNamespace: request?.locator?.namespace,
 				isConnected: true,
-				// throughput: throughputResponse ? throughputResponse.actor.account.nrql.results : [],
 				sampleSize: sampleSizeResponse ? sampleSizeResponse.actor.account.nrql.results : [],
 				averageDuration: averageDurationResponse
 					? averageDurationResponse.actor.account.nrql.results
@@ -2983,41 +2954,41 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			metricQueries: [
 				// duration
 				{
-					query: `SELECT average(newrelic.timeslice.value) * 1000 AS 'Response time (ms)'
-                  FROM Metric
+					metricQuery: `SELECT average(newrelic.timeslice.value) * 1000 AS 'Response time (ms)'
+												FROM Metric
                   WHERE entity.guid IN ('${entityGuid}')
-                    AND metricTimesliceName = '${metricTimesliceNameMapping["d"]}' TIMESERIES`,
-					extrapolationQuery: `SELECT average(duration) * 1000 AS 'Response time (ms)'
+                    AND metricTimesliceName = '${metricTimesliceNameMapping["duration"]}' TIMESERIES`,
+					spanQuery: `SELECT average(duration) * 1000 AS 'Response time (ms)'
                                FROM Span
                                WHERE entity.guid IN ('${entityGuid}')
-                                 AND name = '${metricTimesliceNameMapping["d"]}' FACET name TIMESERIES`,
+                                 AND name = '${metricTimesliceNameMapping["duration"]}' FACET name TIMESERIES`,
 					title: "Response time (ms)",
 					name: "responseTimeMs",
 				},
 				// error
 				{
-					query: `SELECT rate(count(apm.service.transaction.error.count), 1 minute) AS \`errorsPerMinute\`
-                  FROM Metric
+					metricQuery: `SELECT rate(count(apm.service.transaction.error.count), 1 minute) AS \`errorsPerMinute\`
+												FROM Metric
                   WHERE \`entity.guid\` = '${entityGuid}'
-                    AND metricTimesliceName = '${metricTimesliceNameMapping["e"]}' FACET metricTimesliceName TIMESERIES`,
-					extrapolationQuery: `SELECT rate(count(*), 1 minute) AS \`errorsPerMinute\`
+                    AND metricTimesliceName = '${metricTimesliceNameMapping["errorRate"]}' FACET metricTimesliceName TIMESERIES`,
+					spanQuery: `SELECT rate(count(*), 1 minute) AS \`errorsPerMinute\`
                                FROM Span
                                WHERE entity.guid IN ('${entityGuid}')
-                                 AND name = '${metricTimesliceNameMapping["e"]}'
+                                 AND name = '${metricTimesliceNameMapping["errorRate"]}'
                                  AND \`error.group.guid\` IS NOT NULL FACET name EXTRAPOLATE TIMESERIES`,
 					title: "Error rate",
 					name: "errorRate",
 				},
 				// samples
 				{
-					query: `SELECT count(newrelic.timeslice.value) AS 'Samples'
-                  FROM Metric
+					metricQuery: `SELECT count(newrelic.timeslice.value) AS 'Samples'
+												FROM Metric
                   WHERE entity.guid IN ('${entityGuid}')
-                    AND metricTimesliceName = '${metricTimesliceNameMapping["t"]}' TIMESERIES`,
-					extrapolationQuery: `SELECT rate(count(*), 1 minute) AS 'Samples'
+                    AND metricTimesliceName = '${metricTimesliceNameMapping["sampleSize"]}' TIMESERIES`,
+					spanQuery: `SELECT rate(count(*), 1 minute) AS 'Samples'
                                FROM Span
                                WHERE entity.guid IN ('${entityGuid}')
-                                 AND name = '${metricTimesliceNameMapping["t"]}' FACET name TIMESERIES`,
+                                 AND name = '${metricTimesliceNameMapping["sampleSize"]}' FACET name TIMESERIES`,
 					title: "Samples",
 					name: "samples",
 				},
@@ -3047,7 +3018,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 
 		const results = await Promise.all(
 			queries.metricQueries.map(_ => {
-				let _query = useSpan ? _.extrapolationQuery : _.query;
+				let _query = useSpan ? _.spanQuery : _.metricQuery;
 				_query = _query?.replace(/\n/g, "");
 
 				// if no metricTimesliceNames, then we don't need TIMESERIES in query
