@@ -1,5 +1,4 @@
-import { ErrorAttributes } from "./agent";
-import { Logger } from "./logger";
+import { CodeStreamAgent, ErrorAttributes } from "./agent";
 import * as NewRelic from "newrelic";
 import {
 	ReportingMessageType,
@@ -7,15 +6,13 @@ import {
 	WebviewErrorRequest,
 } from "@codestream/protocols/agent";
 import Cache from "timed-cache";
-import { Strings } from "./system";
 import path from "path";
 import fs from "fs";
 import { fromJSON } from "convert-source-map";
 import StackMapper, { Callsite } from "stack-mapper";
 import { Parser } from "./managers/stackTraceParsers/javascriptStackTraceParser";
 import { CSStackTraceInfo } from "@codestream/protocols/api";
-import md5 = Strings.md5;
-import { Container } from "./container";
+import { md5 } from "@codestream/utils/system/string";
 
 const STACK_INDENT = "    ";
 
@@ -38,20 +35,20 @@ function init(): StackMapper.StackMapper | undefined {
 	try {
 		const webSourceMap = path.resolve(__dirname, WEB_SOURCE_MAP);
 		if (!fs.existsSync(webSourceMap)) {
-			Logger.warn(`${WEB_SOURCE_MAP} not found at ${webSourceMap}`);
+			console.warn(`${WEB_SOURCE_MAP} not found at ${webSourceMap}`);
 			return;
 		}
 		const sourceMapContents = fs.readFileSync(webSourceMap, "utf8");
 		if (!sourceMapContents) {
-			Logger.warn(`Unable to load ${webSourceMap}`);
+			console.warn(`Unable to load ${webSourceMap}`);
 			return;
 		}
 		const theSm = fromJSON(sourceMapContents).sourcemap;
 		theSm.file = WEB_JS_FILENAME;
-		Logger.log(`Loaded ${webSourceMap} mapper`);
+		console.log(`Loaded ${webSourceMap} mapper`);
 		return StackMapper(theSm);
 	} catch (e) {
-		Logger.error(e);
+		console.error(e);
 		return;
 	}
 }
@@ -112,7 +109,7 @@ function resolveWebStackTrace(request: ReportMessageRequest): Error | string | u
 
 			return error;
 		} catch (e) {
-			Logger.error(e);
+			console.error(e);
 			return request.error;
 		}
 	} else {
@@ -141,8 +138,8 @@ export type AgentErrorType = {
 	type?: ReportingMessageType;
 };
 
-export function reportAgentError(args: AgentErrorType) {
-	const attributes = Container.instance().agent.createNewRelicCustomAttributes();
+export function reportAgentError(args: AgentErrorType, agent: CodeStreamAgent) {
+	const attributes = agent.createNewRelicCustomAttributes();
 	reportErrorToNr(
 		{ ...args, type: args.type ?? ReportingMessageType.Error, source: "agent" },
 		attributes
@@ -157,7 +154,7 @@ export function reportErrorToNr(request: ReportMessageRequest, attributes?: Erro
 	const cacheKey = hashError(request);
 
 	if (_errorCache.get(cacheKey)) {
-		Logger.warn("Ignoring duplicate error", {
+		console.warn("Ignoring duplicate error", {
 			key: cacheKey,
 		});
 		return;
@@ -179,12 +176,13 @@ export function reportErrorToNr(request: ReportMessageRequest, attributes?: Erro
 				error.stack = stack = deserializedError.stack;
 			} else {
 				error = request.error as Error;
+				stack = error.stack;
 			}
 		} else if (request.message) {
 			error = new Error(request.message);
 		}
 		if (!error) {
-			Logger.warn("Failed to create error for reportMessage", {
+			console.warn("Failed to create error for reportMessage", {
 				request,
 			});
 			return;

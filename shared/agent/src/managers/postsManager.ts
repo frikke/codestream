@@ -84,6 +84,7 @@ import {
 	ReactToPostRequest,
 	ReactToPostRequestType,
 	ReactToPostResponse,
+	ReportingMessageType,
 	ReviewPlus,
 	SharePostViaServerRequest,
 	SharePostViaServerRequestType,
@@ -114,7 +115,6 @@ import { EntityManagerBase, Id } from "./entityManager";
 import { MarkersBuilder } from "./markersBuilder";
 
 import getProviderDisplayName = Marker.getProviderDisplayName;
-import { reportAgentError } from "../nrErrorReporter";
 
 export type FetchPostsFn = (request: FetchPostsRequest) => Promise<FetchPostsResponse>;
 
@@ -2043,7 +2043,9 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 			return response;
 		} catch (ex) {
 			Logger.error(ex);
-			reportAgentError({
+			Container.instance().errorReporter.reportMessage({
+				type: ReportingMessageType.Error,
+				source: "agent",
 				message: "Post creation with markers failed",
 				extra: {
 					message: ex.message,
@@ -2440,8 +2442,10 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 			}
 			return response;
 		} catch (error) {
-			reportAgentError({
+			Container.instance().errorReporter.reportMessage({
+				type: ReportingMessageType.Error,
 				message: `Failed to create a ${attributes.issueProvider.name} card`,
+				source: "agent",
 				extra: { message: error.message },
 			});
 			Logger.error(error, `failed to create a ${attributes.issueProvider.name} card:`);
