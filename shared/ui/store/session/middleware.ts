@@ -1,6 +1,4 @@
-import {
-	PollForMaintenanceModeRequestType,
-} from "@codestream/protocols/agent";
+import { PollForMaintenanceModeRequestType } from "@codestream/protocols/agent";
 import { authenticate } from "@codestream/webview/Authentication/actions";
 import { errorDismissed } from "@codestream/webview/store/connectivity/actions";
 import { Middleware } from "redux";
@@ -21,6 +19,13 @@ export const sessionMiddleware: Middleware =
 			if (action.type === SessionActionType.SetMaintenanceMode) {
 				const { payload: enteringMaintenanceMode, meta }: ReturnType<typeof setMaintenanceMode> =
 					action;
+
+				// @TODO: figure out how to resolve meta.pollRefresh ts complaint
+				// @ts-ignore
+				if (meta?.pollRefresh) {
+					pollingTask?.stop();
+					pollingTask = undefined;
+				}
 
 				// entering maintenance mode, create poll that pings until we leave maintenance mode.
 				// should poll once every minute
