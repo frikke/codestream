@@ -563,6 +563,8 @@ export interface ApiProvider {
 	verifyConnectivity(): Promise<VerifyConnectivityResponse>;
 	setServerUrl(url: string): void;
 
+	pollForMaintenanceMode(): Promise<any>;
+
 	announceHistoryFetch(info: HistoryFetchInfo): void;
 
 	fetchBuilds(request: FetchThirdPartyBuildsRequest): Promise<FetchThirdPartyBuildsResponse>;

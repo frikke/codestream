@@ -332,6 +332,16 @@ export const DidEncounterMaintenanceModeNotificationType = new NotificationType<
 	void
 >("codestream/didEncounterMaintenanceMode");
 
+export interface RefreshMaintenancePollNotification {
+	isMaintenanceMode: boolean;
+	pollRefresh?: boolean;
+}
+
+export const RefreshMaintenancePollNotificationType = new NotificationType<
+	RefreshMaintenancePollNotification,
+	void
+>("codestream/refreshMaintenancePoll");
+
 export interface DidChangeServerUrlNotification {
 	serverUrl: string;
 }

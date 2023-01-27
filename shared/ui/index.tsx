@@ -10,6 +10,7 @@ import {
 	DidChangeServerUrlNotificationType,
 	DidChangeVersionCompatibilityNotificationType,
 	DidEncounterMaintenanceModeNotificationType,
+	RefreshMaintenancePollNotificationType,
 	DidResolveStackTraceLineNotificationType,
 	ExecuteThirdPartyRequestUntypedType,
 	GetDocumentFromMarkerRequestType,
@@ -19,6 +20,7 @@ import {
 	TelemetrySetAnonymousIdRequestType,
 	ThirdPartyProviders,
 	VerifyConnectivityRequestType,
+	PollForMaintenanceModeRequestType,
 	VersionCompatibility,
 } from "@codestream/protocols/agent";
 import { CodemarkType, CSApiCapabilities, CSCodeError, CSMe } from "@codestream/protocols/api";
@@ -124,6 +126,39 @@ export function setupCommunication(host: { postMessage: (message: any) => void }
 	});
 }
 
+// function Timer(fn, t) {
+// 	let timerObj: any = setInterval(fn, t);
+
+// 	this.stop = function () {
+// 		if (timerObj) {
+// 			clearInterval(timerObj);
+// 			timerObj = null;
+// 		}
+// 		return this;
+// 	};
+
+// 	// start timer using current settings (if it's not already running)
+// 	this.start = function () {
+// 		if (!timerObj) {
+// 			this.stop();
+// 			timerObj = setInterval(fn, t);
+// 		}
+// 		return this;
+// 	};
+
+// 	// start with new or original interval, stop current interval
+// 	this.reset = function (newT = t) {
+// 		t = newT;
+// 		return this.stop().start();
+// 	};
+// }
+
+// let timer = new Timer(async () => {
+// 	const response: any = await HostApi.instance.send(PollForMaintenanceModeRequestType, void {});
+// 	console.warn("eric timer", response);
+// 	await store.dispatch(setMaintenanceMode(response.maintenanceMode));
+// }, 5000);
+
 export async function initialize(selector: string) {
 	listenForEvents(store);
 
@@ -148,7 +183,14 @@ export async function initialize(selector: string) {
 
 	// verify we can connect to the server, if successful, as a side effect,
 	// we get the api server's capabilities and our environment
-	const resp = await HostApi.instance.send(VerifyConnectivityRequestType, void {});
+	const resp: any = await HostApi.instance.send(VerifyConnectivityRequestType, void {});
+
+	pollToCheckMaintenanceMode();
+
+	// setInterval(function () {
+	// 	pollToCheckMaintenanceMode();
+	// }, 10000);
+
 	if (resp.error) {
 		if (resp.error.maintenanceMode) {
 			await store.dispatch(setMaintenanceMode(true));
@@ -188,6 +230,11 @@ function listenForEvents(store) {
 			await store.dispatch(reset());
 			store.dispatch(setMaintenanceMode(true, e));
 		}
+	});
+
+	api.on(RefreshMaintenancePollNotificationType, async e => {
+		console.warn(e);
+		store.dispatch(setMaintenanceMode(e.isMaintenanceMode, e));
 	});
 
 	api.on(DidChangeConnectionStatusNotificationType, e => {
@@ -807,6 +854,30 @@ function listenForEvents(store) {
 		);
 	});
 }
+
+// let maintenanceModePollingTimer: any = null;
+// const intervalForMaintenanceModePolling = async function (start) {
+// 	// let timer: any = null;
+// 	if (start) {
+// 		maintenanceModePollingTimer = setInterval(function () {
+// 			console.warn("eric start");
+// 			pollToCheckMaintenanceMode();
+// 		}, 10000);
+// 	}
+// 	if (!start) {
+// 		console.warn("eric stop");
+// 		clearInterval(maintenanceModePollingTimer);
+// 		maintenanceModePollingTimer = null;
+// 	}
+// };
+const pollToCheckMaintenanceMode = async function () {
+	const response: any = await HostApi.instance.send(PollForMaintenanceModeRequestType, void {});
+	// if (response.maintenanceMode) {
+	// intervalForMaintenanceModePolling(false);
+	await store.dispatch(setMaintenanceMode(response.maintenanceMode));
+	// await store.dispatch(setMaintenanceMode(true));
+	// }
+};
 
 const confirmSwitchToTeam = function (
 	store: any,

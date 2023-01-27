@@ -1,4 +1,6 @@
-import { VerifyConnectivityRequestType } from "@codestream/protocols/agent";
+import {
+	PollForMaintenanceModeRequestType,
+} from "@codestream/protocols/agent";
 import { authenticate } from "@codestream/webview/Authentication/actions";
 import { errorDismissed } from "@codestream/webview/store/connectivity/actions";
 import { Middleware } from "redux";
@@ -19,21 +21,59 @@ export const sessionMiddleware: Middleware =
 			if (action.type === SessionActionType.SetMaintenanceMode) {
 				const { payload: enteringMaintenanceMode, meta }: ReturnType<typeof setMaintenanceMode> =
 					action;
-				if (enteringMaintenanceMode && pollingTask == undefined) {
-					pollingTask = new Poller(10000, async () => {
+
+				// entering maintenance mode, create poll that pings until we leave maintenance mode.
+				// should poll once every minute
+				// @TODO: figure out how to resolve meta.pollRefresh ts complaint
+				// @ts-ignore
+				if (enteringMaintenanceMode && (pollingTask == undefined || meta?.pollRefresh)) {
+					pollingTask = new Poller(60000, async () => {
 						if (getState().session.inMaintenanceMode) {
 							try {
-								if (meta) {
+								// @ts-ignore
+								if (meta && !meta?.pollRefresh) {
 									await dispatch(authenticate(meta as any));
 								} else {
-									const resp = await HostApi.instance.send(VerifyConnectivityRequestType, void {});
-									if (resp.ok) {
+									const resp = await HostApi.instance.send(
+										PollForMaintenanceModeRequestType,
+										void {}
+									);
+									if (!resp.maintenanceMode) {
 										await dispatch(setMaintenanceMode(false));
 										await dispatch(errorDismissed());
 										HostApi.instance.send(RestartRequestType, void {});
 									}
 								}
 								return !getState().session.inMaintenanceMode;
+							} catch (error) {
+								return;
+							}
+						} else {
+							return true;
+						}
+					});
+
+					pollingTask.start();
+					pollingTask.onDidStop(() => (pollingTask = undefined));
+				}
+				// leaving maintenance mode, create poll that pings until we enter maintenance mode.
+				// should poll once every 10 minutes
+				// @TODO: figure out how to resolve meta.pollRefresh ts complaint
+				// @ts-ignore
+				if (!enteringMaintenanceMode && (pollingTask == undefined || meta?.pollRefresh)) {
+					pollingTask = new Poller(600000, async () => {
+						if (!getState().session.inMaintenanceMode) {
+							try {
+								const resp = await HostApi.instance.send(
+									PollForMaintenanceModeRequestType,
+									void {}
+								);
+								if (resp.maintenanceMode) {
+									await dispatch(setMaintenanceMode(true));
+									await dispatch(errorDismissed());
+									HostApi.instance.send(RestartRequestType, void {});
+								}
+								return getState().session.inMaintenanceMode;
 							} catch (error) {
 								return;
 							}

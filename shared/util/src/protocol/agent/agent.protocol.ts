@@ -168,6 +168,19 @@ export interface ApiRequest {
 }
 export const ApiRequestType = new RequestType<ApiRequest, any, void, void>("codestream/api");
 
+// export interface PollForMaintenanceModeRequest {}
+
+// export const PollForMaintenanceModeRequestType = new RequestType<
+// 	PollForMaintenanceModeRequest,
+// 	PollForMaintenanceModeResponse,
+// 	void,
+// 	void
+// >("codestream/pollForMaintenanceMode");
+
+// export interface PollForMaintenanceModeResponse {
+// 	maintenanceMode?: boolean;
+// }
+
 export interface EnvironmentHost {
 	name: string;
 	shortName: string;
@@ -200,6 +213,21 @@ export const VerifyConnectivityRequestType = new RequestType<
 	void,
 	void
 >("codestream/verifyConnectivity");
+
+export interface PollForMaintenanceModeResponse {
+	ok?: boolean;
+	maintenanceMode?: boolean;
+	error?: {
+		message: string;
+	};
+}
+
+export const PollForMaintenanceModeRequestType = new RequestType<
+	void,
+	PollForMaintenanceModeResponse,
+	void,
+	void
+>("codestream/pollForMaintenanceMode");
 
 export interface BootstrapRequest {}
 export interface BootstrapResponse {

@@ -67,7 +67,6 @@ import {
 	RegisterUserRequestType,
 	ReportingMessageType,
 	SetServerUrlRequest,
-	SetServerUrlRequestType,
 	ThirdPartyProviders,
 	TokenLoginRequest,
 	TokenLoginRequestType,
@@ -75,6 +74,9 @@ import {
 	UserDidCommitNotificationType,
 	VerifyConnectivityRequestType,
 	VerifyConnectivityResponse,
+	PollForMaintenanceModeRequestType,
+	PollForMaintenanceModeResponse,
+	RefreshMaintenancePollNotificationType,
 	VersionCompatibility,
 } from "@codestream/protocols/agent";
 import {
@@ -377,6 +379,11 @@ export class CodeStreamSession {
 					this._didEncounterMaintenanceMode();
 				}
 
+				let isMaintenanceMode = context.response?.headers.get("X-CS-API-Maintenance-Mode")
+					? true
+					: false;
+				this._refreshMaintenanceModePoll(isMaintenanceMode);
+
 				const alerts = context.response?.headers.get("X-CS-API-Alerts");
 				if (alerts) {
 					Logger.warn(`API Server posted these alerts: ${alerts}`);
@@ -447,7 +454,11 @@ export class CodeStreamSession {
 		this.agent.registerHandler(ApiRequestType, (e, cancellationToken: CancellationToken) =>
 			this.api.fetch(e.url, e.init, e.token)
 		);
-		this.agent.registerHandler(SetServerUrlRequestType, e => this.setServerUrl(e));
+		this.agent.registerHandler(DeclineInviteRequestType, e => this.declineInvite(e));
+		this.agent.registerHandler(PollForMaintenanceModeRequestType, () =>
+			this.pollForMaintenanceMode()
+		);
+
 		this.agent.registerHandler(
 			BootstrapRequestType,
 			async (e, cancellationToken: CancellationToken) => {
@@ -528,6 +539,13 @@ export class CodeStreamSession {
 				teamId: this._teamId!,
 				value: this._codestreamAccessToken!,
 			},
+		});
+	}
+
+	private _refreshMaintenanceModePoll(isMaintenanceMode: boolean) {
+		this.agent.sendNotification(RefreshMaintenancePollNotificationType, {
+			isMaintenanceMode,
+			pollRefresh: true,
 		});
 	}
 
@@ -925,6 +943,13 @@ export class CodeStreamSession {
 		};
 		Logger.log("Got environment from connectivity response:", this._environmentInfo);
 		this.agent.sendNotification(DidSetEnvironmentNotificationType, this._environmentInfo);
+		return response;
+	}
+
+	@log({ singleLine: true })
+	async pollForMaintenanceMode(): Promise<PollForMaintenanceModeResponse> {
+		if (!this._api) throw new Error("cannot verify connectivity, no API connection established");
+		const response = await this._api.pollForMaintenanceMode();
 		return response;
 	}
 
