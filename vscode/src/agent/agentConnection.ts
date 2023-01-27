@@ -69,6 +69,8 @@ import {
 	DidChangeServerUrlNotification,
 	DidChangeServerUrlNotificationType,
 	DidChangeVersionCompatibilityNotification,
+	RefreshMaintenancePollNotification,
+	RefreshMaintenancePollNotificationType,
 	DidChangeVersionCompatibilityNotificationType,
 	DidDetectUnreviewedCommitsNotification,
 	DidDetectUnreviewedCommitsNotificationType,
@@ -168,7 +170,6 @@ import { Functions, log, Strings } from "../system";
 import { getInitializationOptions } from "../extension";
 import { Editor } from "../extensions";
 
-
 export { BaseAgentOptions };
 
 type NotificationParamsOf<NT> = NT extends NotificationType<infer N, any> ? N : never;
@@ -218,6 +219,11 @@ export class CodeStreamAgentConnection implements Disposable {
 		new EventEmitter<DidEncounterMaintenanceModeNotification>();
 	get onDidEncounterMaintenanceMode(): Event<DidEncounterMaintenanceModeNotification> {
 		return this._onDidEncounterMaintenanceMode.event;
+	}
+
+	private _onRefreshMaintenancePoll = new EventEmitter<RefreshMaintenancePollNotification>();
+	get onRefreshMaintenancePoll(): Event<RefreshMaintenancePollNotification> {
+		return this._onRefreshMaintenancePoll.event;
 	}
 
 	private _onDidChangeData = new EventEmitter<DidChangeDataNotification>();
@@ -1285,6 +1291,11 @@ export class CodeStreamAgentConnection implements Disposable {
 		this._client.onNotification(DidEncounterMaintenanceModeNotificationType, e =>
 			this._onDidEncounterMaintenanceMode.fire(e)
 		);
+
+		this._client.onNotification(RefreshMaintenancePollNotificationType, e =>
+			this._onRefreshMaintenancePoll.fire(e)
+		);
+
 		this._client.onNotification(
 			DidChangeServerUrlNotificationType,
 			this.onServerUrlChanged.bind(this)
