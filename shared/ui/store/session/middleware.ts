@@ -8,6 +8,13 @@ import { HostApi } from "../../webview-api";
 import { setMaintenanceMode } from "./actions";
 import { SessionActionType } from "./types";
 
+interface PollRefreshRequest {
+	payload: any;
+	meta?: {
+		pollRefresh: boolean;
+	};
+}
+
 export const sessionMiddleware: Middleware =
 	({ dispatch, getState }: { dispatch: AppDispatch; getState: () => CodeStreamState }) =>
 	next => {
@@ -17,11 +24,8 @@ export const sessionMiddleware: Middleware =
 			const result = next(action);
 
 			if (action.type === SessionActionType.SetMaintenanceMode) {
-				const { payload: enteringMaintenanceMode, meta }: ReturnType<typeof setMaintenanceMode> =
-					action;
+				const { payload: enteringMaintenanceMode, meta }: PollRefreshRequest = action;
 
-				// @TODO: figure out how to resolve meta.pollRefresh ts complaint
-				// @ts-ignore
 				if (meta?.pollRefresh) {
 					pollingTask?.stop();
 					pollingTask = undefined;
@@ -29,8 +33,6 @@ export const sessionMiddleware: Middleware =
 
 				// entering maintenance mode, create poll that pings until we leave maintenance mode.
 				// should poll once every minute
-				// @TODO: figure out how to resolve meta.pollRefresh ts complaint
-				// @ts-ignore
 				if (enteringMaintenanceMode && (pollingTask == undefined || meta?.pollRefresh)) {
 					pollingTask = new Poller(60000, async () => {
 						if (getState().session.inMaintenanceMode) {
@@ -63,8 +65,6 @@ export const sessionMiddleware: Middleware =
 				}
 				// leaving maintenance mode, create poll that pings until we enter maintenance mode.
 				// should poll once every 10 minutes
-				// @TODO: figure out how to resolve meta.pollRefresh ts complaint
-				// @ts-ignore
 				if (!enteringMaintenanceMode && (pollingTask == undefined || meta?.pollRefresh)) {
 					pollingTask = new Poller(600000, async () => {
 						if (!getState().session.inMaintenanceMode) {

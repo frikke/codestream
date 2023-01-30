@@ -12,11 +12,7 @@ export const setSession = (session: Partial<SessionState>) =>
 
 export const setTOS = (value: boolean) => action(SessionActionType.SetTOS, value);
 
-interface pollRefreshRequest {
-	pollRefresh?: boolean;
-}
-
 export const setMaintenanceMode = (
 	value: boolean,
-	meta?: PasswordLoginParams | TokenLoginRequest | ConfirmLoginCodeRequest | pollRefreshRequest
+	meta?: PasswordLoginParams | TokenLoginRequest | ConfirmLoginCodeRequest
 ) => action(SessionActionType.SetMaintenanceMode, value, meta);
