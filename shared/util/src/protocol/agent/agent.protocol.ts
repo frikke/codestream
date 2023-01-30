@@ -168,19 +168,6 @@ export interface ApiRequest {
 }
 export const ApiRequestType = new RequestType<ApiRequest, any, void, void>("codestream/api");
 
-// export interface PollForMaintenanceModeRequest {}
-
-// export const PollForMaintenanceModeRequestType = new RequestType<
-// 	PollForMaintenanceModeRequest,
-// 	PollForMaintenanceModeResponse,
-// 	void,
-// 	void
-// >("codestream/pollForMaintenanceMode");
-
-// export interface PollForMaintenanceModeResponse {
-// 	maintenanceMode?: boolean;
-// }
-
 export interface EnvironmentHost {
 	name: string;
 	shortName: string;

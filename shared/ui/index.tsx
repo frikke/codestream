@@ -126,39 +126,6 @@ export function setupCommunication(host: { postMessage: (message: any) => void }
 	});
 }
 
-// function Timer(fn, t) {
-// 	let timerObj: any = setInterval(fn, t);
-
-// 	this.stop = function () {
-// 		if (timerObj) {
-// 			clearInterval(timerObj);
-// 			timerObj = null;
-// 		}
-// 		return this;
-// 	};
-
-// 	// start timer using current settings (if it's not already running)
-// 	this.start = function () {
-// 		if (!timerObj) {
-// 			this.stop();
-// 			timerObj = setInterval(fn, t);
-// 		}
-// 		return this;
-// 	};
-
-// 	// start with new or original interval, stop current interval
-// 	this.reset = function (newT = t) {
-// 		t = newT;
-// 		return this.stop().start();
-// 	};
-// }
-
-// let timer = new Timer(async () => {
-// 	const response: any = await HostApi.instance.send(PollForMaintenanceModeRequestType, void {});
-// 	console.warn("eric timer", response);
-// 	await store.dispatch(setMaintenanceMode(response.maintenanceMode));
-// }, 5000);
-
 export async function initialize(selector: string) {
 	listenForEvents(store);
 
