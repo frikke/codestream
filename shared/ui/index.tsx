@@ -185,11 +185,9 @@ export async function initialize(selector: string) {
 	// we get the api server's capabilities and our environment
 	const resp: any = await HostApi.instance.send(VerifyConnectivityRequestType, void {});
 
+	// initial call to check if we need to switch to maintence mode or not, this will also
+	// kick off the recurring poll every x minutes
 	pollToCheckMaintenanceMode();
-
-	// setInterval(function () {
-	// 	pollToCheckMaintenanceMode();
-	// }, 10000);
 
 	if (resp.error) {
 		if (resp.error.maintenanceMode) {
@@ -855,28 +853,9 @@ function listenForEvents(store) {
 	});
 }
 
-// let maintenanceModePollingTimer: any = null;
-// const intervalForMaintenanceModePolling = async function (start) {
-// 	// let timer: any = null;
-// 	if (start) {
-// 		maintenanceModePollingTimer = setInterval(function () {
-// 			console.warn("eric start");
-// 			pollToCheckMaintenanceMode();
-// 		}, 10000);
-// 	}
-// 	if (!start) {
-// 		console.warn("eric stop");
-// 		clearInterval(maintenanceModePollingTimer);
-// 		maintenanceModePollingTimer = null;
-// 	}
-// };
 const pollToCheckMaintenanceMode = async function () {
 	const response: any = await HostApi.instance.send(PollForMaintenanceModeRequestType, void {});
-	// if (response.maintenanceMode) {
-	// intervalForMaintenanceModePolling(false);
 	await store.dispatch(setMaintenanceMode(response.maintenanceMode));
-	// await store.dispatch(setMaintenanceMode(true));
-	// }
 };
 
 const confirmSwitchToTeam = function (
