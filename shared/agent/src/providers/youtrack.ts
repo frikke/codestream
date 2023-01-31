@@ -142,11 +142,12 @@ export class YouTrackProvider extends ThirdPartyIssueProviderBase<CSYouTrackProv
 		if (this._assignableUsers) return { users: this._assignableUsers };
 
 		const { body } = await this.get<YouTrackUser[]>(
-			`/admin/users/?${qs.stringify({
-				fields: "id,name,fullName",
+			`/users/me?${qs.stringify({
+				fields: "id,name",
 			})}`
 		);
-		this._assignableUsers = body.map(u => ({ ...u, displayName: u.fullName }));
+
+		this._assignableUsers = body;
 		return { users: this._assignableUsers };
 	}
 
