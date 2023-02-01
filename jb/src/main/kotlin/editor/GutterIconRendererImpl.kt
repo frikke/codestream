@@ -151,7 +151,7 @@ class GutterIconRendererImpl(val editor: Editor, val marker: DocumentMarker) : G
         if (ColorUtil.isDark(bg)) {
             color = "light"
         }
-        val icon = IconLoader.getIcon("/images/icon14/marker-$type-$color.png");
+        val icon = IconLoader.getIcon("/images/icon14/marker-$type-$color.png", this::class.java);
 
         return (icon as IconLoader.CachedImageIcon).url.toString()
     }

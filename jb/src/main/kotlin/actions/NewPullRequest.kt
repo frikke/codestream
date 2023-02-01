@@ -53,5 +53,5 @@ class NewPullRequest : DumbAwareAction(), IntentionAction, LowPriorityAction, Ic
 
     override fun getText() = "New Pull/Merge Request"
 
-    override fun getIcon(flags: Int) = IconLoader.getIcon("/images/pull-request.svg")
+    override fun getIcon(flags: Int) = IconLoader.getIcon("/images/pull-request.svg", this::class.java)
 }

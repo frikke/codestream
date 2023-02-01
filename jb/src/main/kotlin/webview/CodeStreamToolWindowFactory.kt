@@ -19,7 +19,7 @@ class CodeStreamToolWindowFactory : ToolWindowFactory, DumbAware {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         logger.info("Creating tool window content")
         val csPanel = JPanel(BorderLayout())
-        val loadingLabel = JLabel("Loading...", IconLoader.getIcon("/images/codestream.svg"), JLabel.CENTER)
+        val loadingLabel = JLabel("Loading...", IconLoader.getIcon("/images/codestream.svg", this::class.java), JLabel.CENTER)
         csPanel.add(loadingLabel)
 
         project.agentService?.onDidStart {

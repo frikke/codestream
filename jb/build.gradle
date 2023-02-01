@@ -1,7 +1,7 @@
 plugins {
     id "java"
     id "idea"
-    id "org.jetbrains.intellij" version "1.10.1"
+    id "org.jetbrains.intellij" version "1.12.0"
     id "org.jetbrains.kotlin.jvm" version "1.6.10"
     id "de.undercouch.download" version "5.1.0"
 }
@@ -69,10 +69,11 @@ intellij {
     type = "IU"
     // the version parameter dictates which jars will be used at compilation time
 
-    version = "2021.3.1" // earliest version we support
+    version = "2022.1.1" // earliest version we support
     // version = "2022.1.1" // Rider version
 
-    // version "201.5616-EAP-CANDIDATE-SNAPSHOT"
+    // version = "231.5920-EAP-CANDIDATE-SNAPSHOT"
+    // version = "231.5920.14"
     // version "2019.2.3"
     // version "2019.3"
     // version "IC-2019.2.2"
@@ -88,15 +89,15 @@ intellij {
     // plugins = ['java', 'git4idea', 'org.jetbrains.plugins.go:212.5080.55', 'Pythonid:212.5080.64', 'org.jetbrains.plugins.ruby:212.5080.8', 'com.jetbrains.php:212.5080.71']
     // 2022.1.4
     // plugins = ['java', 'git4idea', 'org.jetbrains.plugins.go:221.6008.13', 'Pythonid:221.6008.17', 'org.jetbrains.plugins.ruby:221.6008.13']
-    // 2021.3.1
+    // 2022.1.1
     plugins = [
         'java',
-        'git4idea',
-        'org.jetbrains.plugins.go:213.6461.48',
-        'Pythonid:213.6461.79',
-        'org.jetbrains.plugins.ruby:213.6461.79',
-        'com.jetbrains.php:213.6461.83',
-        'org.jetbrains.kotlin:213-1.6.10-release-944-IJ6461.79',
+        'Git4Idea',
+        'org.jetbrains.plugins.go:221.5591.52',
+        'Pythonid:221.5591.52',
+        'org.jetbrains.plugins.ruby:221.5591.52',
+        'com.jetbrains.php:221.5591.58',
+        'org.jetbrains.kotlin:221-1.8.0-release-345-IJ5591.52',
         'JavaScript'
     ]
 }
