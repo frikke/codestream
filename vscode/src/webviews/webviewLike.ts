@@ -33,6 +33,7 @@ export interface WebviewLike {
 	reload(): any;
 
 	onDidClose: Event<void>;
+	onDidChangeVisibility: Event<void>;
 	onDidMessageReceive: Event<WebviewIpcMessage>;
 	onCompletePendingIpcRequest(e: WebviewIpcResponseMessage): any;
 	onIpcRequest<RT extends RequestType<any, any, any, any>>(

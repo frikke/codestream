@@ -83,6 +83,15 @@ export const HostDidChangeFocusNotificationType = new NotificationType<
 	void
 >(`${IpcRoutes.Webview}/focus/didChange`);
 
+export interface HostDidChangeVisibilityNotification {
+	visible: boolean;
+}
+
+export const HostDidChangeVisibilityNotificationType = new NotificationType<
+	HostDidChangeVisibilityNotification,
+	void
+>(`${IpcRoutes.Webview}/visibility/didChange`);
+
 export interface HostDidLogoutNotification {}
 export const HostDidLogoutNotificationType = new NotificationType<HostDidLogoutNotification, void>(
 	`${IpcRoutes.Webview}/didLogout`

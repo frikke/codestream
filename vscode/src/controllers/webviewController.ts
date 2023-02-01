@@ -562,6 +562,7 @@ export class WebviewController implements Disposable {
 
 		this._disposableWebview = Disposable.from(
 			this._webview!.onDidClose(this.onWebviewClosed, this),
+			// this._webview!.onDidChangeVisibility(this.onWebviewChangeVisibility, this),
 			this._webview!.onDidMessageReceive(
 				(...args) => this.onWebviewMessageReceived(webview, ...args),
 				this
@@ -773,6 +774,10 @@ export class WebviewController implements Disposable {
 	private onWebviewClosed() {
 		this.closeWebview("user");
 	}
+
+	// private onWebviewChangeVisibility() {
+	// 	Logger.warn("ERIC HERE");
+	// }
 
 	private async onWebviewMessageReceived(webview: WebviewLike, e: WebviewIpcMessage) {
 		try {

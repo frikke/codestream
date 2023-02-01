@@ -45,6 +45,11 @@ export class CodeStreamWebviewPanel implements WebviewLike, Disposable {
 		return this._onDidClose.event;
 	}
 
+	private _onDidChangeVisibility = new EventEmitter<void>();
+	get onDidChangeVisibility(): Event<void> {
+		return this._onDidChangeVisibility.event;
+	}
+
 	get onDidMessageReceive(): Event<any> {
 		return this._panel.webview.onDidReceiveMessage;
 	}

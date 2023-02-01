@@ -3,6 +3,7 @@ import { promises as fs } from "fs";
 
 import {
 	HostDidChangeFocusNotificationType,
+	HostDidChangeVisibilityNotificationType,
 	isIpcResponseMessage,
 	ShowStreamNotificationType,
 	WebviewIpcMessage,
@@ -52,6 +53,11 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 		return this._onDidClose.event;
 	}
 
+	private _onDidChangeVisibility = new EventEmitter<void>();
+	get onDidChangeVisibility(): Event<void> {
+		return this._onDidChangeVisibility.event;
+	}
+
 	public get onDidMessageReceive(): Event<any> {
 		return this._webviewView!.webview.onDidReceiveMessage;
 	}
@@ -96,6 +102,7 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 		webviewView.webview.html = await this.getHtml();
 
 		this._disposable = Disposable.from(
+			webviewView.onDidChangeVisibility(this.onWebviewDidChangeVisibility, this),
 			webviewView.onDidDispose(this.onWebviewDisposed, this),
 			window.onDidChangeWindowState(this.onWindowStateChanged, this)
 		);
@@ -165,6 +172,11 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 		}
 
 		this._onDidClose.fire();
+	}
+
+	private onWebviewDidChangeVisibility() {
+		Logger.warn("ERIC this.visible", this.visible);
+		this.notify(HostDidChangeVisibilityNotificationType, { visible: this.visible });
 	}
 
 	// private _panelState: { active: boolean; visible: boolean } = {

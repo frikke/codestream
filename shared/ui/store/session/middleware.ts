@@ -7,11 +7,13 @@ import { RestartRequestType } from "../../ipc/webview.protocol";
 import { HostApi } from "../../webview-api";
 import { setMaintenanceMode } from "./actions";
 import { SessionActionType } from "./types";
+import { isBoolean as _isBoolean } from "lodash-es";
 
 interface PollRefreshRequest {
 	payload: any;
 	meta?: {
-		pollRefresh: boolean;
+		pollRefresh?: boolean;
+		visible?: boolean;
 	};
 }
 
@@ -26,14 +28,20 @@ export const sessionMiddleware: Middleware =
 			if (action.type === SessionActionType.SetMaintenanceMode) {
 				const { payload: enteringMaintenanceMode, meta }: PollRefreshRequest = action;
 
-				if (meta?.pollRefresh) {
+				const csNotVisible = _isBoolean(meta?.visible) && !meta?.visible;
+
+				if (meta?.pollRefresh || csNotVisible) {
 					pollingTask?.stop();
 					pollingTask = undefined;
 				}
 
 				// entering maintenance mode, create poll that pings until we leave maintenance mode.
 				// should poll once every minute
-				if (enteringMaintenanceMode && (pollingTask == undefined || meta?.pollRefresh)) {
+				if (
+					enteringMaintenanceMode &&
+					(pollingTask == undefined || meta?.pollRefresh) &&
+					!csNotVisible
+				) {
 					pollingTask = new Poller(60000, async () => {
 						if (getState().session.inMaintenanceMode) {
 							try {
@@ -65,7 +73,11 @@ export const sessionMiddleware: Middleware =
 				}
 				// leaving maintenance mode, create poll that pings until we enter maintenance mode.
 				// should poll once every 10 minutes
-				if (!enteringMaintenanceMode && (pollingTask == undefined || meta?.pollRefresh)) {
+				if (
+					!enteringMaintenanceMode &&
+					(pollingTask == undefined || meta?.pollRefresh) &&
+					!csNotVisible
+				) {
 					pollingTask = new Poller(600000, async () => {
 						if (!getState().session.inMaintenanceMode) {
 							try {

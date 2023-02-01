@@ -46,6 +46,7 @@ import {
 	HostDidChangeEditorSelectionNotificationType,
 	HostDidChangeEditorVisibleRangesNotificationType,
 	HostDidChangeFocusNotificationType,
+	HostDidChangeVisibilityNotificationType,
 	HostDidChangeLayoutNotificationType,
 	HostDidChangeVisibleEditorsNotificationType,
 	HostDidLogoutNotificationType,
@@ -198,7 +199,6 @@ function listenForEvents(store) {
 	});
 
 	api.on(RefreshMaintenancePollNotificationType, async e => {
-		console.warn(e);
 		store.dispatch(setMaintenanceMode(e.isMaintenanceMode, e));
 	});
 
@@ -309,6 +309,10 @@ function listenForEvents(store) {
 		} else {
 			store.dispatch(blur());
 		}
+	});
+
+	api.on(HostDidChangeVisibilityNotificationType, e => {
+		store.dispatch(setMaintenanceMode(undefined, e));
 	});
 
 	api.on(HostDidLogoutNotificationType, () => {

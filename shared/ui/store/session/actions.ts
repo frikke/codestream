@@ -13,6 +13,6 @@ export const setSession = (session: Partial<SessionState>) =>
 export const setTOS = (value: boolean) => action(SessionActionType.SetTOS, value);
 
 export const setMaintenanceMode = (
-	value: boolean,
+	value: boolean | undefined,
 	meta?: PasswordLoginParams | TokenLoginRequest | ConfirmLoginCodeRequest
 ) => action(SessionActionType.SetMaintenanceMode, value, meta);
