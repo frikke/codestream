@@ -23,6 +23,7 @@ import com.codestream.sessionService
 import com.codestream.settings.ApplicationSettingsService
 import com.codestream.settings.GoldenSignalListener
 import com.codestream.webViewService
+import com.codestream.workaround.HintsPresentationWorkaround
 import com.intellij.codeInsight.hints.InlayPresentationFactory
 import com.intellij.codeInsight.hints.presentation.InlayPresentation
 import com.intellij.codeInsight.hints.presentation.PresentationFactory
@@ -316,7 +317,7 @@ abstract class CLMEditorManager(
             return
         }
         val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(editor.document) ?: return
-        val presentationFactory = PresentationFactory(editor)
+        val presentationFactory = HintsPresentationWorkaround.newPresentationFactory(editor)
         val since = result.sinceDateFormatted?.replace(" ago", "") ?: "30 minutes"
         val toRender: List<RenderElements> = metricsBySymbol.mapNotNull { (symbolIdentifier, metrics) ->
             val symbol = resolveSymbol(symbolIdentifier, psiFile) ?: return@mapNotNull null
@@ -385,7 +386,7 @@ abstract class CLMEditorManager(
 
     private fun updateInlayNotAssociated() {
         val (result, project, path, editor) = displayDeps() ?: return
-        val presentationFactory = PresentationFactory(editor)
+        val presentationFactory = HintsPresentationWorkaround.newPresentationFactory(editor)
         val text = "Click to configure golden signals from New Relic"
         val textPresentation = presentationFactory.text(text)
         val referenceOnHoverPresentation =

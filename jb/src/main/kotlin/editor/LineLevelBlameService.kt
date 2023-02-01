@@ -62,7 +62,6 @@ private class BlameManager(private val editor: EditorImpl, private val iconsCach
     private val uri = editor.document.uri
     private val agent = editor.project?.agentService
     private val settingsService = ServiceManager.getService(ApplicationSettingsService::class.java)
-//    private val presentationFactory = PresentationFactory(editor)
     private val presentationFactory = HintsPresentationWorkaround.newPresentationFactory(editor)
     private val csPresentationFactory = CodeStreamPresentationFactory(editor)
     private val textMetricsStorage = HintsPresentationWorkaround.newTextMetricsStorage(editor)
