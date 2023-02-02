@@ -175,7 +175,6 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 	}
 
 	private onWebviewDidChangeVisibility() {
-		Logger.warn("ERIC this.visible", this.visible);
 		this.notify(HostDidChangeVisibilityNotificationType, { visible: this.visible });
 	}
 

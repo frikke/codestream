@@ -775,10 +775,6 @@ export class WebviewController implements Disposable {
 		this.closeWebview("user");
 	}
 
-	// private onWebviewChangeVisibility() {
-	// 	Logger.warn("ERIC HERE");
-	// }
-
 	private async onWebviewMessageReceived(webview: WebviewLike, e: WebviewIpcMessage) {
 		try {
 			Logger.log(`Webview: Received message ${toLoggableIpcMessage(e)} from the webview`);
