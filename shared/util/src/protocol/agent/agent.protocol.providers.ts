@@ -1188,12 +1188,13 @@ export interface ObservabilityRepo {
 	repoName: string;
 	repoRemote: string;
 	hasRepoAssociation?: boolean;
-	hasCodeLevelMetricSpanData?: boolean;
+	hasCodeLevelMetricSpanData: boolean | NRErrorResponse;
 	entityAccounts: EntityAccount[];
 }
 
 export interface GetObservabilityErrorsResponse {
-	repos: ObservabilityRepoError[];
+	repos?: ObservabilityRepoError[];
+	error?: NRErrorResponse;
 }
 
 export const GetObservabilityErrorsRequestType = new RequestType<
@@ -1265,7 +1266,8 @@ export interface EntityAccount {
 }
 
 export interface GetObservabilityReposResponse {
-	repos: ObservabilityRepo[];
+	repos?: ObservabilityRepo[];
+	error?: NRErrorResponse;
 }
 
 export const GetObservabilityReposRequestType = new RequestType<
@@ -1364,6 +1366,44 @@ export interface GetEntityCountResponse {
 	entityCount: number;
 }
 
+// For returning errors as a part of a graph - for example on GetServiceLevelTelemetry
+// which is made of responses from multiple calls and each one can fail with a
+// different error - as opposed to ResponseError which you throw to indicate
+// a whole response failed.
+export const NRErrorTypes = [
+	"NOT_ASSOCIATED",
+	"NR_TIMEOUT",
+	"NOT_CONNECTED",
+	"NR_GENERIC",
+	"NR_UNKNOWN",
+	"GENERIC",
+	"INTERNAL_RATE",
+] as const;
+
+export type NRErrorType = typeof NRErrorTypes[number];
+
+export interface NRErrorResponse {
+	isConnected?: boolean;
+	repo?: {
+		id: string;
+		name: string;
+		remote: string;
+	};
+	error: {
+		message?: string;
+		stack?: string;
+		type: NRErrorType;
+	};
+}
+
+export function isNRErrorResponse(error: unknown): error is NRErrorResponse {
+	const err = error as NRErrorResponse | undefined;
+	if (!err?.error || !err.error.type) {
+		return false;
+	}
+	return NRErrorTypes.includes(err.error.type);
+}
+
 export interface GetServiceLevelTelemetryRequest {
 	/** CodeStream repoId */
 	repoId: string;
@@ -1384,18 +1424,10 @@ export interface GetServiceLevelObjectivesRequest {
 export interface GetAlertViolationsRequest {}
 
 export type MetricTimesliceNameMapping = {
-	/**
-	 * duration
-	 */
-	d: string;
-	/**
-	 * throughput
-	 */
-	t: string;
-	/**
-	 * error
-	 */
-	e: string;
+	duration: string;
+	sampleSize: string;
+	errorRate: string;
+	source: string;
 };
 
 export interface GetFileLevelTelemetryResponse {
@@ -1405,12 +1437,13 @@ export interface GetFileLevelTelemetryResponse {
 		remote: string;
 	};
 	isConnected?: boolean;
-	throughput?: {
-		requestsPerMinute: any;
+	sampleSize?: {
+		sampleSize: any;
 		namespace?: string;
 		className?: string;
 		functionName: string;
 		metricTimesliceName: string;
+		source: string;
 	}[];
 	averageDuration?: {
 		averageDuration: any;
@@ -1420,7 +1453,7 @@ export interface GetFileLevelTelemetryResponse {
 		metricTimesliceName: string;
 	}[];
 	errorRate?: {
-		errorsPerMinute: any;
+		errorRate: any;
 		namespace?: string;
 		className?: string;
 		functionName: string;
@@ -1445,6 +1478,7 @@ export interface GetFileLevelTelemetryResponse {
 
 export interface GetServiceLevelObjectivesResponse {
 	serviceLevelObjectives?: ServiceLevelObjectiveResult[];
+	error?: NRErrorResponse;
 }
 
 export interface GetMethodLevelTelemetryResponse {
@@ -1459,11 +1493,11 @@ export interface GetMethodLevelTelemetryResponse {
 export interface GetServiceLevelTelemetryResponse {
 	newRelicEntityGuid: string;
 	newRelicUrl?: string;
-	entityGoldenMetrics?: EntityGoldenMetrics;
+	entityGoldenMetrics?: EntityGoldenMetrics | NRErrorResponse;
 	newRelicAlertSeverity?: string;
 	newRelicEntityAccounts: EntityAccount[];
-	newRelicEntityName: string;
-	recentAlertViolations?: GetAlertViolationsResponse;
+	newRelicEntityName?: string;
+	recentAlertViolations?: GetAlertViolationsResponse | NRErrorResponse;
 }
 
 export interface GetAlertViolationsResponse {
@@ -1737,8 +1771,8 @@ export interface ProviderGetForkedReposResponse {
 
 export interface MethodLevelGoldenMetricQueryResult {
 	metricQueries: {
-		query: string;
-		extrapolationQuery?: string;
+		metricQuery: string;
+		spanQuery?: string;
 		title: string;
 		name: string;
 	}[];

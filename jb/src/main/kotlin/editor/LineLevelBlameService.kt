@@ -6,8 +6,8 @@ import com.codestream.extensions.uri
 import com.codestream.protocols.agent.GetBlameParams
 import com.codestream.protocols.agent.GetBlameResultLineInfo
 import com.codestream.settings.ApplicationSettingsService
+import com.codestream.workaround.HintsPresentationWorkaround
 import com.intellij.codeInsight.hints.presentation.InlayTextMetricsStorage
-import com.intellij.codeInsight.hints.presentation.PresentationFactory
 import com.intellij.codeInsight.hints.presentation.PresentationRenderer
 import com.intellij.ide.plugins.PluginManager
 import com.intellij.openapi.Disposable
@@ -19,7 +19,6 @@ import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.editor.event.CaretListener
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
-import com.intellij.openapi.editor.event.SelectionListener
 import com.intellij.openapi.editor.impl.EditorImpl
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
@@ -63,9 +62,9 @@ private class BlameManager(private val editor: EditorImpl, private val iconsCach
     private val uri = editor.document.uri
     private val agent = editor.project?.agentService
     private val settingsService = ServiceManager.getService(ApplicationSettingsService::class.java)
-    private val presentationFactory = PresentationFactory(editor)
+    private val presentationFactory = HintsPresentationWorkaround.newPresentationFactory(editor)
     private val csPresentationFactory = CodeStreamPresentationFactory(editor)
-    private val textMetricsStorage = InlayTextMetricsStorage(editor)
+    private val textMetricsStorage = HintsPresentationWorkaround.newTextMetricsStorage(editor)
     private val lineBlames = mutableMapOf<Int, GetBlameResultLineInfo>()
     private var isLoadingBlame: CompletableFuture<Unit>? = null
     private var inlay: Disposable? = null

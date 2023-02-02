@@ -181,9 +181,10 @@ object MethodLevelTelemetryNotifications {
         override fun getMethod(): String = "webview/mlt/view"
 
         class MetricTimesliceNameMapping(
-            val d: String?,
-            val t: String?,
-            val e: String?
+            val duration: String?,
+            val sampleSize: String?,
+            val errorRate: String?,
+            val source: String?
         )
     }
 }

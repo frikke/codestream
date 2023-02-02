@@ -1787,7 +1787,7 @@ export class ScmManager {
 						sha: "",
 						error: {
 							message: "ref not found",
-							type: "REPO_NOT_FOUND",
+							type: "REFS_NOT_FOUND",
 						},
 					};
 				}

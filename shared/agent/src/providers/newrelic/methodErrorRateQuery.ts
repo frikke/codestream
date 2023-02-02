@@ -1,4 +1,5 @@
-import { escapeNrql, LanguageId } from "../newrelic";
+import { escapeNrql } from "../newrelic";
+import { LanguageId } from "./clm/clmProvider";
 
 export function generateMethodErrorRateQuery(
 	languageId: LanguageId,
@@ -6,21 +7,21 @@ export function generateMethodErrorRateQuery(
 	metricTimesliceNames?: string[],
 	codeNamespace?: string
 ) {
-	const extrapolationsLookup = metricTimesliceNames?.length
+	const spansLookup = metricTimesliceNames?.length
 		? `name in (${metricTimesliceNames.map(metric => `'${metric}'`).join(",")})`
 		: `name LIKE '${codeNamespace}%'`;
-	const extrapolationsQuery = `FROM Span SELECT rate(count(*), 1 minute) AS 'errorsPerMinute' WHERE \`entity.guid\` = '${newRelicEntityGuid}' AND \`error.group.guid\` IS NOT NULL AND ${extrapolationsLookup} FACET name AS metricTimesliceName SINCE 30 minutes AGO LIMIT 100 EXTRAPOLATE`;
+	const spansQuery = `FROM Span SELECT count(*) AS 'errorCount' WHERE \`entity.guid\` = '${newRelicEntityGuid}' AND \`error.group.guid\` IS NOT NULL AND ${spansLookup} FACET name AS metricTimesliceName SINCE 30 minutes AGO LIMIT 100`;
 	const metricsLookup = metricTimesliceNames?.length
 		? `metricTimesliceName in (${metricTimesliceNames
 				.map(z => `'Errors/WebTransaction/${z}'`)
 				.join(",")})`
 		: `metricTimesliceName LIKE '${codeNamespace}%'`;
-	const metricsQuery = `SELECT rate(count(apm.service.transaction.error.count), 1 minute) AS \`errorsPerMinute\` FROM Metric WHERE \`entity.guid\` = '${newRelicEntityGuid}' AND ${metricsLookup} FACET metricTimesliceName SINCE 30 minutes AGO LIMIT 100`;
+	const metricsQuery = `SELECT count(apm.service.transaction.error.count) AS \`errorCount\` FROM Metric WHERE \`entity.guid\` = '${newRelicEntityGuid}' AND ${metricsLookup} FACET metricTimesliceName SINCE 30 minutes AGO LIMIT 100`;
 
 	return `query GetMethodErrorRate($accountId:Int!) {
 			actor {
 				account(id: $accountId) {
-					metrics: nrql(query: "${escapeNrql(metricsQuery)}") {
+					metrics: nrql(query: "${escapeNrql(metricsQuery)}", timeout: 30) {
 						results
 						metadata {
 							timeWindow {
@@ -29,7 +30,7 @@ export function generateMethodErrorRateQuery(
 							}
 						}
 					}
-					extrapolations: nrql(query: "${escapeNrql(extrapolationsQuery)}") {
+					spans: nrql(query: "${escapeNrql(spansQuery)}", timeout: 30) {
 						results
 						metadata {
 							timeWindow {

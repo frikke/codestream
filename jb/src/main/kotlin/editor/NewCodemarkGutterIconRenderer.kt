@@ -39,7 +39,7 @@ import java.awt.dnd.DragSource
 import java.util.concurrent.CompletableFuture
 import javax.swing.Icon
 
-val ICON = IconLoader.getIcon("/images/marker-add-comment-green.svg")
+val ICON = IconLoader.getIcon("/images/marker-add-comment-green.svg", NewCodemarkGutterIconRenderer::class.java)
 
 class NewCodemarkGutterIconRenderer(
     val editor: Editor,

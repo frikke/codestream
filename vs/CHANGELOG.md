@@ -1,5 +1,22 @@
 # Change Log
 
+## [14.14.0] - 2023-2-2
+
+### Added
+
+- Adds stack trace parcing for Elixir to support the errors integration
+
+### Changed
+
+- Adds clearer messaging when a PR can't be displayed because a password is required to do a fetch
+- Adds clearer messaging when CodeStream can't connect to an on-prem code host due to network/VPN issues
+
+### Fixed
+
+- Fixes an issue with sharing an existing codemark to a direct message on Slack
+- Addresses [#1319](https://github.com/TeamCodeStream/CodeStream/issues/1319) &mdash; Connections to YouTrack aren't working
+- Addresses [#1215](https://github.com/TeamCodeStream/CodeStream/issues/1215) &mdash; Edit branch name infinite edit
+
 ## [14.13.0] - 2023-1-24
 
 ### Added

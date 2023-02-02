@@ -1,7 +1,12 @@
-import { Entity, GetFileLevelTelemetryResponse } from "@codestream/protocols/agent";
+import { Entity, GetFileLevelTelemetryResponse, NRErrorType } from "@codestream/protocols/agent";
 
-export class GraphqlNrqlError extends Error {
+export abstract class CodedError extends Error {
+	abstract code: NRErrorType;
+}
+
+export class GraphqlNrqlError extends CodedError {
 	errors: Array<GraphqlNrqlErrorItem>;
+	code: NRErrorType = "NR_GENERIC";
 
 	constructor(errors: Array<GraphqlNrqlErrorItem>, message?: string) {
 		super(message);
@@ -9,7 +14,9 @@ export class GraphqlNrqlError extends Error {
 	}
 }
 
-export class GraphqlNrqlTimeoutError extends GraphqlNrqlError {}
+export class GraphqlNrqlTimeoutError extends GraphqlNrqlError {
+	code: NRErrorType = "NR_TIMEOUT";
+}
 
 export function isGraphqlNrqlError(error: unknown): error is GraphqlNrqlErrorResponse {
 	const err = error as GraphqlNrqlErrorResponse;
@@ -41,22 +48,24 @@ export interface GraphqlNrqlErrorResponse {
 	errors: Array<GraphqlNrqlErrorItem>;
 }
 
-export type NRErrorType = "NOT_ASSOCIATED" | "NR_TIMEOUT" | "NOT_CONNECTED" | "NR_UNKNOWN";
-
-export interface NRErrorResponse {
-	isConnected?: boolean;
-	repo?: {
-		id: string;
-		name: string;
-		remote: string;
-	};
-	error: {
-		message?: string;
-		type: NRErrorType;
-	};
-}
-
 export interface RepoEntitiesByRemotesResponse {
 	entities?: Entity[];
 	remotes?: string[];
+}
+
+export type ClmSpanData = {
+	name: string;
+	"code.function": string;
+	"entity.guid": string;
+};
+
+export function isClmSpanData(obj: unknown): obj is ClmSpanData {
+	if (obj === null || obj === undefined) {
+		return false;
+	}
+	return (
+		Object.prototype.hasOwnProperty.call(obj, "name") &&
+		Object.prototype.hasOwnProperty.call(obj, "code.function") &&
+		Object.prototype.hasOwnProperty.call(obj, "entity.guid")
+	);
 }

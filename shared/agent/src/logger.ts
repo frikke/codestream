@@ -32,6 +32,7 @@ import { URI } from "vscode-uri";
 import { CodeStreamAgent } from "./agent";
 import { getCorrelationContext } from "./system";
 import { LogCorrelationContext, TraceLevel } from "./types";
+import { reportAgentError } from "./nrErrorReporter";
 // import { Telemetry } from './telemetry';
 
 // const ConsolePrefix = `[CodeStreamAgent]`;
@@ -113,9 +114,9 @@ export class Logger {
 		// }
 
 		if (this._agent !== undefined) {
-			this._agent.error(
-				`${this.timestamp} ${message || ""}${this.toLoggableParams(false, params)}\n${ex}\n${stack}`
-			);
+			const loggable = `${this.toLoggableParams(false, params)}\n${ex}\n${stack}`;
+			this._agent.error(`${this.timestamp} ${message || ""}${loggable}`);
+			reportAgentError({ error: ex, extra: params }, this._agent);
 		}
 
 		// Telemetry.trackException(ex);

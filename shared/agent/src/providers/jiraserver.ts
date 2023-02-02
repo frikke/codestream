@@ -26,7 +26,6 @@ import { CSJiraServerProviderInfo } from "@codestream/protocols/api";
 import { Iterables } from "@codestream/utils/system/iterable";
 import { OAuth } from "oauth";
 
-
 import { Container } from "../container";
 import { Logger } from "../logger";
 import { CodeStreamSession } from "../session";

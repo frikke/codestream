@@ -142,6 +142,15 @@ export const PullRequestFilesChanged = (props: Props) => {
 						A commit required to perform this review was not found in the local git repository.
 						Fetch all remotes and try again.
 					</span>
+				) : pr && forkPointResponse.error.type === "REFS_NOT_FOUND" ? (
+					<div>
+						Unable to fetch for <span className="monospace highlight">{pr.repository?.name}</span>.
+						Please run{" "}
+						<span style={{ marginLeft: "3px" }} className="monospace highlight">
+							git fetch -all
+						</span>
+						.
+					</div>
 				) : pr && forkPointResponse.error.type === "REPO_NOT_FOUND" ? (
 					<div>
 						Repo <span className="monospace highlight">{pr.repository?.name}</span> not found in

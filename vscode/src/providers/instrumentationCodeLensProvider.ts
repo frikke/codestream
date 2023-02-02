@@ -389,8 +389,8 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 
 			const methodLevelTelemetryRequestOptions = {
 				includeAverageDuration: this.codeLensTemplate.indexOf("${averageDuration}") > -1,
-				includeThroughput: this.codeLensTemplate.indexOf("${throughput}") > -1,
-				includeErrorRate: this.codeLensTemplate.indexOf("${errorsPerMinute}") > -1
+				includeThroughput: this.codeLensTemplate.indexOf("${sampleSize}") > -1,
+				includeErrorRate: this.codeLensTemplate.indexOf("${errorRate}") > -1
 			};
 
 			let functionLocator: FunctionLocator | undefined = undefined;
@@ -481,7 +481,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 
 			if (
 				allEmpty([
-					fileLevelTelemetryResponse.throughput,
+					fileLevelTelemetryResponse.sampleSize,
 					fileLevelTelemetryResponse.averageDuration,
 					fileLevelTelemetryResponse.errorRate
 				])
@@ -535,8 +535,8 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 			};
 
 			const lenses = instrumentableSymbols.map(_ => {
-				const throughputForFunction = fileLevelTelemetryResponse.throughput
-					? fileLevelTelemetryResponse.throughput.find((i: any) => symbolMatcherFn(_, i))
+				const sampleSizeForFunction = fileLevelTelemetryResponse.sampleSize
+					? fileLevelTelemetryResponse.sampleSize.find((i: any) => symbolMatcherFn(_, i))
 					: undefined;
 
 				const averageDurationForFunction = fileLevelTelemetryResponse.averageDuration
@@ -547,7 +547,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 					? fileLevelTelemetryResponse.errorRate.find((i: any) => symbolMatcherFn(_, i))
 					: undefined;
 
-				if (!throughputForFunction && !averageDurationForFunction && !errorRateForFunction) {
+				if (!sampleSizeForFunction && !averageDurationForFunction && !errorRateForFunction) {
 					Logger.warn(`provideCodeLenses no data for ${_.symbol.name}`);
 					return undefined;
 				}
@@ -556,9 +556,12 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 					repo: fileLevelTelemetryResponse.repo,
 					codeNamespace: fileLevelTelemetryResponse.codeNamespace!,
 					metricTimesliceNameMapping: {
-						t: throughputForFunction ? throughputForFunction.metricTimesliceName : "",
-						d: averageDurationForFunction ? averageDurationForFunction.metricTimesliceName : "",
-						e: errorRateForFunction ? errorRateForFunction.metricTimesliceName : ""
+						sampleSize: sampleSizeForFunction ? sampleSizeForFunction.metricTimesliceName : "",
+						duration: averageDurationForFunction
+							? averageDurationForFunction.metricTimesliceName
+							: "",
+						errorRate: errorRateForFunction ? errorRateForFunction.metricTimesliceName : "",
+						source: sampleSizeForFunction ? sampleSizeForFunction.source : ""
 					},
 					filePath: document.fileName,
 					relativeFilePath: fileLevelTelemetryResponse.relativeFilePath,
@@ -578,14 +581,14 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 								averageDurationForFunction && averageDurationForFunction.averageDuration
 									? `${averageDurationForFunction.averageDuration.toFixed(3) || "0.00"}ms`
 									: "n/a",
-							throughput:
-								throughputForFunction && throughputForFunction.requestsPerMinute
-									? `${throughputForFunction.requestsPerMinute.toFixed(3) || "0.00"}rpm`
+							sampleSize:
+								sampleSizeForFunction && sampleSizeForFunction.sampleSize
+									? `${sampleSizeForFunction.sampleSize}`
 									: "n/a",
-							errorsPerMinute:
-								errorRateForFunction && errorRateForFunction.errorsPerMinute
-									? `${errorRateForFunction.errorsPerMinute.toFixed(3) || "0"}epm`
-									: "n/a",
+							errorRate:
+								errorRateForFunction && errorRateForFunction.errorRate
+									? `${(errorRateForFunction.errorRate * 100).toFixed(2)}%`
+									: "0.00%",
 							since: fileLevelTelemetryResponse.sinceDateFormatted,
 							date: date
 						}),

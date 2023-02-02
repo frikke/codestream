@@ -2,7 +2,7 @@
 	"name": "codestream",
 	"displayName": "New Relic CodeStream: GitHub, GitLab, Bitbucket PRs and Code Review",
 	"description": "GitHub pull requests, GitLab merge requests, and code reviews in your IDE. Eliminate context-switching. Integrates with New Relic observability, Bitbucket, Slack, MS Teams, Jira, Trello and more.",
-	"version": "14.13.0",
+	"version": "14.14.0",
 	"author": "CodeStream",
 	"publisher": "CodeStream",
 	"license": "UNLICENSED",
@@ -194,7 +194,7 @@
 				},
 				"codestream.goldenSignalsInEditorFormat": {
 					"type": "string",
-					"default": "avg duration: ${averageDuration} | throughput: ${throughput} | error rate: ${errorsPerMinute} - since ${since}",
+					"default": "avg duration: ${averageDuration} | error rate: ${errorRate} - ${sampleSize} samples in the last ${since}",
 					"description": "Specifies how to format the CodeStream golden signals in the editor",
 					"scope": "window"
 				},

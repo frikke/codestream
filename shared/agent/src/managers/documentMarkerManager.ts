@@ -592,7 +592,6 @@ export class DocumentMarkerManager {
 			};
 		} catch (ex) {
 			Logger.error(ex, cc);
-			debugger;
 			return emptyResponse;
 		}
 	}

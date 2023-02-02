@@ -2,6 +2,7 @@ import { isEmpty } from "lodash";
 import fetch, { Request, RequestInfo, RequestInit, Response } from "node-fetch";
 import { Logger } from "../logger";
 import { Functions } from "./function";
+import { handleLimit, InternalRateError } from "../rateLimits";
 
 const noLogRetries = ["reason: connect ECONNREFUSED", "reason: getaddrinfo ENOTFOUND"];
 
@@ -44,7 +45,9 @@ export async function fetchCore(
 	url: RequestInfo,
 	init?: RequestInit
 ): Promise<[Response, number]> {
+	const origin = urlOrigin(url);
 	try {
+		handleLimit(origin);
 		const resp = await fetch(url, init);
 		if (resp.status < 200 || resp.status > 299) {
 			if (resp.status < 400 || resp.status >= 500) {
@@ -52,7 +55,7 @@ export async function fetchCore(
 				if (count <= 3) {
 					const waitMs = 250 * count;
 					if (Logger.isDebugging) {
-						const logUrl = `[${init?.method ?? "GET"}] ${urlOrigin(url)}`;
+						const logUrl = `[${init?.method ?? "GET"}] ${origin}`;
 						Logger.debug(
 							`fetchCore: Retry ${count} for ${logUrl} due to http status ${resp.status} waiting ${waitMs}`
 						);
@@ -64,6 +67,9 @@ export async function fetchCore(
 		}
 		return [resp, count];
 	} catch (ex) {
+		if (ex instanceof InternalRateError) {
+			throw ex;
+		}
 		const shouldLog = shouldLogRetry(ex.message);
 		if (shouldLog) {
 			Logger.error(ex);
@@ -72,7 +78,7 @@ export async function fetchCore(
 		if (count <= 3) {
 			const waitMs = 250 * count;
 			if (Logger.isDebugging) {
-				const logUrl = `[${init?.method ?? "GET"}] ${urlOrigin(url)}`;
+				const logUrl = `[${init?.method ?? "GET"}] ${origin}`;
 				Logger.debug(
 					`fetchCore: Retry ${count} for ${logUrl} due to Error ${ex.message} waiting ${waitMs}`
 				);

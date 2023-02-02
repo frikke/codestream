@@ -15,7 +15,6 @@ import { useAppDispatch, useAppSelector, useDidMount } from "@codestream/webview
 import { emptyArray } from "@codestream/webview/utils";
 import React from "react";
 import ReactDOM from "react-dom";
-import { useDispatch, useSelector } from "react-redux";
 import AsyncSelect from "react-select/async";
 import { HostApi } from "@codestream/webview/webview-api";
 import { CrossPostIssueContext } from "../CodemarkForm";

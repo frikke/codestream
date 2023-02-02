@@ -50,5 +50,5 @@ class StartWork : DumbAwareAction(), IntentionAction, LowPriorityAction, Iconabl
 
     override fun getText() = "Start work"
 
-    override fun getIcon(flags: Int) = IconLoader.getIcon("/images/startwork.svg")
+    override fun getIcon(flags: Int) = IconLoader.getIcon("/images/startwork.svg", this::class.java)
 }

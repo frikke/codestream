@@ -11,7 +11,7 @@ import com.codestream.protocols.agent.EnvironmentInfo
 import com.codestream.protocols.agent.FileLevelTelemetryResult
 import com.codestream.protocols.agent.LoginState
 import com.codestream.protocols.agent.MethodLevelTelemetryAverageDuration
-import com.codestream.protocols.agent.MethodLevelTelemetryThroughput
+import com.codestream.protocols.agent.MethodLevelTelemetrySampleSize
 import com.codestream.protocols.agent.UserLoggedIn
 import com.codestream.sessionService
 import com.codestream.webview.JxBrowserEngineService
@@ -98,7 +98,7 @@ class CLMLanguageComponentTest : BasePlatformTestCase() {
                     averageDuration = 3.333f
                 ),
             ),
-            throughput = null,
+            sampleSize = null,
             errorRate = null,
             newRelicEntityGuid = "abcd-1234",
             codeNamespace = "fooNamespace",
@@ -137,18 +137,18 @@ class CLMLanguageComponentTest : BasePlatformTestCase() {
 
         val result = FileLevelTelemetryResult(
             repo = CSRepo("123", "repo", "remote"),
-            throughput = listOf(
-                MethodLevelTelemetryThroughput(
+            sampleSize = listOf(
+                MethodLevelTelemetrySampleSize(
                     className = "Controller",
                     functionName = "getStuff",
                     metricTimesliceName = "t",
-                    requestsPerMinute = 100f,
+                    sampleSize = 100f,
                     namespace = null
-                ), MethodLevelTelemetryThroughput(
+                ), MethodLevelTelemetrySampleSize(
                     className = "Controller",
                     functionName = "postSomething",
                     metricTimesliceName = "t",
-                    requestsPerMinute = 150f,
+                    sampleSize = 150f,
                     namespace = null,
                 )
             ),

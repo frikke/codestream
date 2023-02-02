@@ -576,12 +576,13 @@ open class MethodLevelTelemetryData(
         get() = MethodLevelTelemetrySymbolIdentifier(namespace, className, functionName)
 }
 
-class MethodLevelTelemetryThroughput (
+class MethodLevelTelemetrySampleSize (
     namespace: String?,
     className: String?,
     functionName: String,
     metricTimesliceName: String,
-    val requestsPerMinute: Float
+    val sampleSize: Int,
+    val source: String
 ) : MethodLevelTelemetryData(namespace, className, functionName, metricTimesliceName)
 
 class MethodLevelTelemetryAverageDuration(
@@ -597,13 +598,13 @@ class MethodLevelTelemetryErrorRate(
     className: String?,
     functionName: String,
     metricTimesliceName: String,
-    val errorsPerMinute: Float
+    val errorRate: Float
 ) : MethodLevelTelemetryData(namespace, className, functionName, metricTimesliceName)
 
 class FileLevelTelemetryResult(
     var error: FileLevelTelemetryResultError?,
     val repo: CSRepo,
-    val throughput: List<MethodLevelTelemetryThroughput>?,
+    val sampleSize: List<MethodLevelTelemetrySampleSize>?,
     val averageDuration: List<MethodLevelTelemetryAverageDuration>?,
     val errorRate: List<MethodLevelTelemetryErrorRate>?,
     val lastUpdateDate: Int?,

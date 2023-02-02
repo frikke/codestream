@@ -11,6 +11,7 @@ describe("newRelicProvider", () => {
 			repoId: "123",
 			repoName: "repo1",
 			repoRemote: "remote",
+			hasCodeLevelMetricSpanData: true,
 			entityAccounts: [
 				{
 					accountId: 1,
@@ -30,6 +31,7 @@ describe("newRelicProvider", () => {
 			repoId: "123",
 			repoName: "repo1",
 			repoRemote: "remote",
+			hasCodeLevelMetricSpanData: true,
 			entityAccounts: [
 				{
 					accountId: 1,
@@ -56,6 +58,7 @@ describe("newRelicProvider", () => {
 			repoId: "123",
 			repoName: "repo1",
 			repoRemote: "remote",
+			hasCodeLevelMetricSpanData: true,
 			entityAccounts: [
 				{
 					accountId: 2,
@@ -123,6 +126,7 @@ describe("newRelicProvider", () => {
 				repoId: "555",
 				repoName: "repo1",
 				repoRemote: "remote",
+				hasCodeLevelMetricSpanData: true,
 				entityAccounts: [
 					{
 						accountId: 1,

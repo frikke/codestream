@@ -9,6 +9,7 @@ import Tooltip from "./Tooltip";
 
 interface Props {
 	entityGoldenMetrics: EntityGoldenMetrics | undefined;
+	errors: string[];
 	loadingGoldenMetrics: boolean;
 	noDropdown?: boolean;
 	recentAlertViolations?: GetAlertViolationsResponse;
@@ -16,7 +17,11 @@ interface Props {
 
 export const ObservabilityGoldenMetricDropdown = React.memo((props: Props) => {
 	const [expanded, setExpanded] = useState<boolean>(true);
-	const { entityGoldenMetrics, loadingGoldenMetrics, noDropdown, recentAlertViolations } = props;
+	const { errors, entityGoldenMetrics, loadingGoldenMetrics, noDropdown, recentAlertViolations } =
+		props;
+
+	const errorTitle: string | undefined =
+		errors.length === 0 ? undefined : `Last request failed:\n${errors.join("\n")}`;
 
 	const goldenMetricOutput = () => {
 		return (
@@ -80,6 +85,17 @@ export const ObservabilityGoldenMetricDropdown = React.memo((props: Props) => {
 								delay={1}
 							/>
 						)}
+						{errorTitle && (
+							<Icon
+								style={{ transform: "scale(0.8)" }}
+								name="alert"
+								className="clickable"
+								placement="bottom"
+								title={errorTitle}
+								delay={1}
+							/>
+						)}
+						{}
 					</Row>
 				</>
 			)}

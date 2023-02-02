@@ -59,8 +59,8 @@ class InlineTextField(
         private val SUBMIT_SHORTCUT_SET = CommonShortcuts.CTRL_ENTER
         private val CANCEL_SHORTCUT_SET = CommonShortcuts.ESCAPE
 
-        private val ICON_SEND = IconLoader.getIcon("/images/inline-send.svg")
-        private val ICON_SEND_HOVERED = IconLoader.getIcon("/images/inline-send-hovered.svg")
+        private val ICON_SEND = IconLoader.getIcon("/images/inline-send.svg", this::class.java)
+        private val ICON_SEND_HOVERED = IconLoader.getIcon("/images/inline-send-hovered.svg", this::class.java)
 
         fun getEditorTextFieldVerticalOffset() = if (UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF()) 6 else 4
     }

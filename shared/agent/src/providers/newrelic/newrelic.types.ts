@@ -1,5 +1,5 @@
 import { FunctionLocator } from "@codestream/protocols/agent";
-import { LanguageId } from "../newrelic";
+import { LanguageId } from "./clm/clmProvider";
 
 export interface Directive {
 	type: "assignRepository" | "removeAssignee" | "setAssignee" | "setState";

@@ -41,6 +41,25 @@ import { Logger } from "./logger";
 import { CodeStreamSession } from "./session";
 import { Disposables, Functions, log, memoize } from "./system";
 
+export type ErrorAttributes = {
+	csEnvironment: string;
+	email: string;
+
+	extensionBuildEnv?: string;
+	extensionVersion?: string;
+	"service.version"?: string;
+
+	ideDetail?: string;
+	ideName?: string;
+	ideVersion?: string;
+
+	platform: string;
+	proxySupport?: string;
+	serverUrl?: string;
+	teamId: string;
+	userId: string;
+};
+
 type NotificationParamsOf<NT> = NT extends NotificationType<infer N, any> ? N : never;
 type RequestParamsOf<RT> = RT extends RequestType<infer R, any, any, any> ? R : never;
 type RequestResponseOf<RT> = RT extends RequestType<any, infer R, any, any> ? R : never;
@@ -329,7 +348,7 @@ export class CodeStreamAgent implements Disposable {
 		}
 	}
 
-	createNewRelicCustomAttributes() {
+	createNewRelicCustomAttributes(): ErrorAttributes | undefined {
 		const that = this;
 		try {
 			const session = that._session || { teamId: "", userId: "", email: "", environment: "" };
@@ -355,7 +374,7 @@ export class CodeStreamAgent implements Disposable {
 		} catch (ex) {
 			Logger.warn(`createNewRelicCustomAttributes error - ${ex.message}`);
 		}
-		return {};
+		return undefined;
 	}
 
 	error(exception: Error): void;

@@ -151,9 +151,8 @@ class GutterIconRendererImpl(val editor: Editor, val marker: DocumentMarker) : G
         if (ColorUtil.isDark(bg)) {
             color = "light"
         }
-        val icon = IconLoader.getIcon("/images/icon14/marker-$type-$color.png");
 
-        return (icon as IconLoader.CachedImageIcon).url.toString()
+        return this.javaClass.getResource("/images/icon14/marker-$type-$color.png").toString()
     }
 
     fun serializeRange(range: Range): String{

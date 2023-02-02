@@ -53,5 +53,5 @@ class CreateReview : DumbAwareAction(), IntentionAction, LowPriorityAction, Icon
 
     override fun getText() = "Request feedback"
 
-    override fun getIcon(flags: Int) = IconLoader.getIcon("/images/review.svg")
+    override fun getIcon(flags: Int) = IconLoader.getIcon("/images/review.svg", this::class.java)
 }

@@ -157,9 +157,9 @@ class CodeStreamProjectService(val project: Project) : Disposable {
         project.sessionService?.onUnreadsChanged {
             ApplicationManager.getApplication().invokeLater {
                 toolWindow?.setIcon(if (it > 0) {
-                    IconLoader.getIcon("/images/codestream-unread.svg")
+                    IconLoader.getIcon("/images/codestream-unread.svg", this::class.java)
                 } else {
-                    IconLoader.getIcon("/images/codestream.svg")
+                    IconLoader.getIcon("/images/codestream.svg", this::class.java)
                 })
             }
         }

@@ -1,6 +1,7 @@
 import {
 	EntityGoldenMetrics,
 	GetServiceLevelTelemetryRequestType,
+	isNRErrorResponse,
 	RelatedEntitiesByType,
 } from "@codestream/protocols/agent";
 import { isEmpty as _isEmpty } from "lodash-es";
@@ -26,6 +27,7 @@ export const ObservabilityRelatedSearch = React.memo((props: Props) => {
 	const [expanded, setExpanded] = useState<boolean>(false);
 	const [loadingGoldenMetrics, setLoadingGoldenMetrics] = useState<boolean>(false);
 	const [entityGoldenMetrics, setEntityGoldenMetrics] = useState<EntityGoldenMetrics>();
+	const [entityGoldenMetricsErrors, setEntityGoldenMetricsErrors] = useState<Array<string>>([]);
 	const [selectedOption, setSelectedOption] = useState<SelectedOption | undefined>(undefined);
 	const [selectOptions, setSelectOptions] = useState<SelectedOption[]>([]);
 	const { searchItems } = props;
@@ -111,9 +113,19 @@ export const ObservabilityRelatedSearch = React.memo((props: Props) => {
 				repoId: props.currentRepoId,
 				skipRepoFetch: true,
 			});
-			if (response?.entityGoldenMetrics) {
+
+			const errors: string[] = [];
+
+			if (isNRErrorResponse(response.entityGoldenMetrics)) {
+				errors.push(
+					response.entityGoldenMetrics.error.message ?? response.entityGoldenMetrics.error.type
+				);
+			} else {
 				setEntityGoldenMetrics(response.entityGoldenMetrics);
 			}
+
+			setEntityGoldenMetricsErrors(errors);
+
 			setLoadingGoldenMetrics(false);
 		}
 	};
@@ -158,6 +170,7 @@ export const ObservabilityRelatedSearch = React.memo((props: Props) => {
 					{loadingGoldenMetrics && <div style={{ marginTop: "2px" }}> </div>}
 					<ObservabilityGoldenMetricDropdown
 						entityGoldenMetrics={entityGoldenMetrics}
+						errors={entityGoldenMetricsErrors}
 						loadingGoldenMetrics={loadingGoldenMetrics}
 						noDropdown={true}
 					/>

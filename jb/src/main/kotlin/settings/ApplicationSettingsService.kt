@@ -20,7 +20,7 @@ const val API_PD = "https://pd-api.codestream.us"
 const val API_QA = "https://qa-api.codestream.us"
 const val API_PROD = "https://api.codestream.com"
 const val DEFAULT_GOLDEN_SIGNALS_FORMAT =
-    "avg duration: \${averageDuration} | throughput: \${throughput} | error rate: \${errorsPerMinute} - since \${since}"
+    "avg duration: \${averageDuration} | error rate: \${errorRate} - \${sampleSize} samples in the last \${since}"
 
 enum class ProxySupport(val value: String, val label: String) {
     ON("on", "On"),
@@ -71,6 +71,9 @@ class ApplicationSettingsService : PersistentStateComponent<ApplicationSettingsS
 
     override fun loadState(state: ApplicationSettingsServiceState) {
         state.serverUrl = if (state.serverUrl.isNullOrEmpty()) state.serverUrl else state.serverUrl.trimEnd('/')
+        if (state.goldenSignalsInEditorFormat.contains("{throughput}") || state.goldenSignalsInEditorFormat.contains("{errorsPerMinute}")) {
+            state.goldenSignalsInEditorFormat = DEFAULT_GOLDEN_SIGNALS_FORMAT
+        }
         _state = state
     }
 

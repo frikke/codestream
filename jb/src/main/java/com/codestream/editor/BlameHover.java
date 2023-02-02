@@ -14,7 +14,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.components.ActionLink;
-import com.intellij.util.ui.JBUI;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -42,7 +41,7 @@ public class BlameHover {
         authorEmail.setText(blame.getAuthorEmail());
         commitDate.setText(blame.getDateFromNow() + " (" + blame.getDateFormatted() + ")");
         commitSha.setText(blame.getSha().substring(0, 8));
-        commitSha.setIcon(IconLoader.getIcon("/images/git-commit.svg"));
+        commitSha.setIcon(IconLoader.getIcon("/images/git-commit.svg", this.getClass()));
         commitSha.setBorder(new EmptyBorder(7, 0, 0, 0));
         commitMessage.setText(blame.getSummary());
         commitMessage.setBorder(new EmptyBorder(0, 0, 7, 0));
@@ -58,7 +57,7 @@ public class BlameHover {
                 BrowserUtil.browse(pr.getUrl());
                 notifyActionInvokedListeners();
             });
-            actionLink.setIcon(IconLoader.getIcon("/images/pull-request.svg"));
+            actionLink.setIcon(IconLoader.getIcon("/images/pull-request.svg", this.getClass()));
             actionLink.setBorder(new EmptyBorder(2, 0, 2, 0));
             externalContents.add(actionLink);
         });
@@ -71,7 +70,7 @@ public class BlameHover {
                 return null;
             });
         })).forEach(actionLink -> {
-            actionLink.setIcon(IconLoader.getIcon("/images/marker-fr.svg"));
+            actionLink.setIcon(IconLoader.getIcon("/images/marker-fr.svg", this.getClass()));
             actionLink.setBorder(new EmptyBorder(2, 0, 2, 0));
             externalContents.add(actionLink);
         });
