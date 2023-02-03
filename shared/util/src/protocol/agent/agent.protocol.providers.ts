@@ -693,8 +693,6 @@ export interface FetchThirdPartyPullRequestPullRequest {
 	participants: {
 		nodes: {
 			avatarUrl: string;
-		}[];
-		participant?: {
 			type?: string;
 			user?: {
 				display_name?: string;
@@ -712,7 +710,7 @@ export interface FetchThirdPartyPullRequestPullRequest {
 			approved?: boolean;
 			state?: string;
 			participated_on?: string;
-		}[]
+		}[];
 	};
 	assignees: {
 		nodes: {
