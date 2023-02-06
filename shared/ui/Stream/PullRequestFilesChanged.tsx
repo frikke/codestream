@@ -185,7 +185,6 @@ export const PullRequestFilesChanged = (props: Props) => {
 				inEditorOnly: true,
 				includeCurrentBranches: true,
 				includeProviders: true,
-				includeRemotes: true,
 				includeConnectedProviders: true,
 			});
 			if (response && response.repositories) {
