@@ -692,7 +692,9 @@ export interface FetchThirdPartyPullRequestPullRequest {
 	};
 	participants: {
 		nodes: {
+			//gitlab
 			avatarUrl: string;
+			//bitbucket
 			type?: string;
 			user?: {
 				display_name?: string;
