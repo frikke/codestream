@@ -21,9 +21,14 @@ import { IndexParams, IndexType } from "./cache";
 import { getValues, KeyValue } from "./cache/baseCache";
 import { EntityManagerBase, Id } from "./entityManager";
 import { MarkersBuilder } from "./markersBuilder";
+import { CodeStreamSession } from "../session";
 
 @lsp
 export class MarkersManager extends EntityManagerBase<CSMarker> {
+	constructor(private readonly session: CodeStreamSession) {
+		super();
+	}
+
 	async getByStreamId(streamId: Id, visibleOnly?: boolean): Promise<CSMarker[]> {
 		const markers = await this.cache.getGroup([["fileStreamId", streamId]]);
 		this.polyfill(markers);

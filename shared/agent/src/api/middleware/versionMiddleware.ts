@@ -6,11 +6,11 @@ import { Disposable, Emitter, Event } from "vscode-languageserver";
 import { Logger } from "../../logger";
 import { log, Versions } from "../../system";
 import {
-	ApiProvider,
 	CodeStreamApiMiddleware,
 	CodeStreamApiMiddlewareContext,
 } from "../apiProvider";
 import { APIServerVersionInfo } from "../codestream/apiServerVersionInfo";
+import { ApiClient } from "../codestream/api/apiClient";
 
 export interface VersionCompatibilityChangedEvent {
 	compatibility: VersionCompatibility;
@@ -39,8 +39,8 @@ export class VersionMiddlewareManager implements Disposable {
 	private _compatibility: VersionCompatibility | undefined;
 	private _apiVersion: string = "";
 
-	constructor(private readonly _api: ApiProvider) {
-		this._disposable = this._api.useMiddleware(new VersionMiddleware(this));
+	constructor(private readonly _apiClient: ApiClient) {
+		this._disposable = this._apiClient.useMiddleware(new VersionMiddleware(this));
 	}
 
 	dispose() {

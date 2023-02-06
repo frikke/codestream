@@ -63,11 +63,16 @@ import { Logger } from "../logger";
 import { lsp, lspHandler } from "../system";
 import { KeyValue } from "./cache/baseCache";
 import { CachedEntityManagerBase, Id } from "./entityManager";
+import { CodeStreamSession } from "../session";
 
 @lsp
 export class StreamsManager extends CachedEntityManagerBase<
 	CSChannelStream | CSDirectStream | CSObjectStream
 > {
+	constructor(private readonly session: CodeStreamSession) {
+		super();
+	}
+
 	@lspHandler(FetchStreamsRequestType)
 	async get(request?: FetchStreamsRequest): Promise<FetchStreamsResponse> {
 		let streams = await this.getAllCached();

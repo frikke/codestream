@@ -122,7 +122,7 @@ describe("NewRelicProvider", () => {
 			name: "Thing for Android - Production",
 		};
 
-		const results = new NewRelicProvider({} as any, {} as any).tryFormatStack(
+		const results = new NewRelicProvider({} as any, {} as any, {} as any).tryFormatStack(
 			data.entityType,
 			data.exception
 		);
@@ -147,7 +147,7 @@ describe("NewRelicProvider", () => {
 
 	describe("addMethodName", () => {
 		it("parses python function name", async () => {
-			const provider = new NewRelicProviderStub({} as any, {} as any);
+			const provider = new NewRelicProviderStub({} as any, {} as any, {} as any);
 			const results = provider.addMethodName(
 				{
 					"Function/routes.app:hello_world": [
@@ -221,7 +221,7 @@ describe("NewRelicProvider", () => {
 		});
 
 		it("maps python code.namespace", async () => {
-			const provider = new NewRelicProviderStub({} as any, {} as any);
+			const provider = new NewRelicProviderStub({} as any, {} as any, {} as any);
 			const results = provider.addMethodName(
 				{
 					"Carrot/foo_bar.system.tasks.bill_credit_payment_item": [
@@ -266,7 +266,7 @@ describe("NewRelicProvider", () => {
 		});
 
 		it("handles ruby controller", () => {
-			const newrelic = new NewRelicProvider({} as any, {} as any);
+			const newrelic = new NewRelicProvider({} as any, {} as any, {} as any);
 			const groupedByTransactionName = {
 				"Controller/agents/show": [
 					{
@@ -380,7 +380,7 @@ describe("NewRelicProvider", () => {
 		});
 
 		it("handles ruby ActiveJob", () => {
-			const newrelic = new NewRelicProvider({} as any, {} as any);
+			const newrelic = new NewRelicProvider({} as any, {} as any, {} as any);
 			const groupedByTransactionName = {
 				"MessageBroker/ActiveJob::Async/Queue/Produce/Named/default": [
 					{
@@ -441,7 +441,7 @@ describe("NewRelicProvider", () => {
 		});
 
 		it("parses ruby modules:class:functions syntax", () => {
-			const newrelic = new NewRelicProvider({} as any, {} as any);
+			const newrelic = new NewRelicProvider({} as any, {} as any, {} as any);
 			const groupedByTransactionName: Dictionary<Span[]> = {
 				"Nested/OtherTransaction/Background/Custom::Helpers/custom_class_method": [
 					{
@@ -631,7 +631,7 @@ describe("NewRelicProvider", () => {
 		});
 
 		it("parses ruby class/function syntax", () => {
-			const newrelic = new NewRelicProvider({} as any, {} as any);
+			const newrelic = new NewRelicProvider({} as any, {} as any, {} as any);
 			const groupedByTransactionName: Dictionary<Span[]> = {
 				"Nested/OtherTransaction/Background/WhichIsWhich/samename": [
 					{
@@ -747,7 +747,7 @@ describe("NewRelicProvider", () => {
 				newRelicApiUrl: "",
 			},
 		} as any;
-		const provider = new NewRelicProviderStub({} as any, {} as any);
+		const provider = new NewRelicProviderStub({} as any, {} as any, {} as any);
 		provider.sessionServiceContainer = serviceLocatorStub;
 
 		const results = await provider.getFileLevelTelemetry({
@@ -802,7 +802,7 @@ describe("NewRelicProvider", () => {
 				newRelicApiUrl: "",
 			},
 		} as any;
-		const provider = new NewRelicProviderStub2({} as any, {} as any);
+		const provider = new NewRelicProviderStub2({} as any, {} as any, {} as any);
 		provider.sessionServiceContainer = serviceLocatorStub;
 
 		const results = await provider.getFileLevelTelemetry({
@@ -826,7 +826,7 @@ describe("NewRelicProvider", () => {
 	});
 
 	it("generateEntityQueryStatements", async () => {
-		const provider = new NewRelicProvider({} as any, {} as any);
+		const provider = new NewRelicProvider({} as any, {} as any, {} as any);
 		expect(provider.generateEntityQueryStatement("foo-bar_baz")).toEqual(
 			"name LIKE '%foo-bar_baz%'"
 		);
@@ -872,7 +872,7 @@ describe("NewRelicProvider", () => {
 			},
 		} as any;
 
-		const provider = new NewRelicProviderStub2({} as any, {} as any);
+		const provider = new NewRelicProviderStub2({} as any, {} as any, {} as any);
 		provider.sessionServiceContainer = serviceLocatorStub;
 
 		const results = await provider.getObservabilityRepos({});
@@ -885,7 +885,7 @@ describe("NewRelicProvider", () => {
 	});
 
 	it("getsSpansForFlask", async () => {
-		const provider = new NewRelicProviderStub2({} as any, {} as any);
+		const provider = new NewRelicProviderStub2({} as any, {} as any, {} as any);
 
 		const results = await provider.addMethodName(
 			{
@@ -915,7 +915,7 @@ describe("NewRelicProvider", () => {
 	});
 
 	it("throws GraphqlNrqlTimeoutError for matching response", () => {
-		const provider = new NewRelicProvider({} as any, {} as any);
+		const provider = new NewRelicProvider({} as any, {} as any, {} as any);
 		const responseBody: GraphqlNrqlErrorResponse = {
 			errors: [
 				{
@@ -943,7 +943,7 @@ describe("NewRelicProvider", () => {
 	});
 
 	it("throws GraphqlNrqlError for other gql errors", () => {
-		const provider = new NewRelicProvider({} as any, {} as any);
+		const provider = new NewRelicProvider({} as any, {} as any, {} as any);
 		const responseBody: GraphqlNrqlErrorResponse = {
 			errors: [
 				{

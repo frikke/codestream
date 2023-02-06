@@ -74,11 +74,16 @@ import { gate } from "../system/decorators/gate";
 import { xfs } from "../xfs";
 import { CachedEntityManagerBase, Id } from "./entityManager";
 import { trackReviewPostCreation } from "./postsManager";
+import { TeamsManager } from "./teamsManager";
+import { CodeStreamSession } from "../session";
 
 const uriRegexp = /codestream-diff:\/\/(\w+)\/(\w+)\/(\w+)\/(\w+)\/(.+)/;
 
 @lsp
 export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
+	constructor(private readonly session: CodeStreamSession, private teamsManager: TeamsManager) {
+		super();
+	}
 	static parseUri(uri: string): {
 		reviewId: string;
 		checkpoint: CSReviewCheckpoint;
@@ -1267,7 +1272,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 		repo: GitRepository,
 		currentUserEmail: string
 	): Promise<CSReview | undefined> {
-		const { git, posts, session, scm, users, teams } = SessionContainer.instance();
+		const { git, posts, session, scm, users } = SessionContainer.instance();
 		const newestCommit = commits[0];
 		const oldestCommit = commits[commits.length - 1];
 		const repoStatus = await scm.getRepoStatus({
@@ -1283,7 +1288,7 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 			return;
 		}
 
-		const myTeam = await teams.getById(session.teamId);
+		const myTeam = await this.teamsManager.getById(session.teamId);
 		const codeAuthorIds = [];
 		const addedUsers = [];
 		if (newestCommit.email) {

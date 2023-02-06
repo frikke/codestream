@@ -6,7 +6,7 @@ import { NewRelicProvider } from "../../../../src/providers/newrelic";
 
 describe("newRelicProvider", () => {
 	it("getBestEntity-basedOnTag", () => {
-		const newrelic = new NewRelicProvider({} as any, {} as any);
+		const newrelic = new NewRelicProvider({} as any, {} as any, {} as any);
 		const asdf = newrelic.getGoldenSignalsEntity({} as any, {
 			repoId: "123",
 			repoName: "repo1",
@@ -26,7 +26,7 @@ describe("newRelicProvider", () => {
 	});
 
 	it("getBestEntity-basedOnName", () => {
-		const newrelic = new NewRelicProvider({} as any, {} as any);
+		const newrelic = new NewRelicProvider({} as any, {} as any, {} as any);
 		const asdf = newrelic.getGoldenSignalsEntity({} as any, {
 			repoId: "123",
 			repoName: "repo1",
@@ -53,7 +53,7 @@ describe("newRelicProvider", () => {
 	});
 
 	it("getBestEntity-default", () => {
-		const newrelic = new NewRelicProvider({} as any, {} as any);
+		const newrelic = new NewRelicProvider({} as any, {} as any, {} as any);
 		const asdf = newrelic.getGoldenSignalsEntity({} as any, {
 			repoId: "123",
 			repoName: "repo1",
@@ -86,7 +86,7 @@ describe("newRelicProvider", () => {
 		expect(asdf.entityGuid).toEqual("012");
 	});
 	it("getBestEntity-basedOnpreferences", () => {
-		const newrelic = new NewRelicProvider({} as any, {} as any);
+		const newrelic = new NewRelicProvider({} as any, {} as any, {} as any);
 		const asdf = newrelic.getGoldenSignalsEntity(
 			{
 				preferences: {

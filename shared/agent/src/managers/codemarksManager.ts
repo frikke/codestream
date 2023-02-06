@@ -51,10 +51,15 @@ import { Container, SessionContainer } from "../container";
 import { Logger } from "../logger";
 import { log, lsp, lspHandler, Strings } from "../system";
 import { CachedEntityManagerBase, Id } from "./entityManager";
+import { CodeStreamSession } from "../session";
 
 @lsp
 export class CodemarksManager extends CachedEntityManagerBase<CSCodemark> {
 	private _codemarkSha1Cache = new Map<string, GetCodemarkSha1Response>();
+
+	constructor(private readonly session: CodeStreamSession) {
+		super();
+	}
 
 	async cacheSet(entity: CSCodemark, oldEntity?: CSCodemark): Promise<CSCodemark | undefined> {
 		if (await this.canSeeCodemark(entity)) {

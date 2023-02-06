@@ -20,9 +20,14 @@ import { CSCodeError } from "@codestream/protocols/api";
 import { MessageType } from "../api/apiProvider";
 import { log, lsp, lspHandler } from "../system";
 import { CachedEntityManagerBase, Id } from "./entityManager";
+import { CodeStreamSession } from "../session";
 
 @lsp
 export class CodeErrorsManager extends CachedEntityManagerBase<CSCodeError> {
+	constructor(private readonly session: CodeStreamSession) {
+		super();
+	}
+
 	@lspHandler(FetchCodeErrorsRequestType)
 	@log()
 	async get(request?: FetchCodeErrorsRequest): Promise<FetchCodeErrorsResponse> {

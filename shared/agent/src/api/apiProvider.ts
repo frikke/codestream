@@ -1,5 +1,5 @@
 import { RequestInit, Response } from "node-fetch";
-import { Disposable, Event } from "vscode-languageserver";
+import { Event } from "vscode-languageserver";
 
 import { HistoryFetchInfo } from "broadcaster/broadcaster";
 import {
@@ -77,8 +77,6 @@ import {
 	FetchReviewsResponse,
 	FetchStreamsRequest,
 	FetchStreamsResponse,
-	FetchTeamsRequest,
-	FetchTeamsResponse,
 	FetchThirdPartyBuildsRequest,
 	FetchThirdPartyBuildsResponse,
 	FetchUnreadStreamsRequest,
@@ -113,8 +111,6 @@ import {
 	GetReviewResponse,
 	GetStreamRequest,
 	GetStreamResponse,
-	GetTeamRequest,
-	GetTeamResponse,
 	GetUnreadsRequest,
 	GetUnreadsResponse,
 	GetUserRequest,
@@ -382,8 +378,6 @@ export type RTMessage =
 
 export interface ApiProvider {
 	onDidReceiveMessage: Event<RTMessage>;
-
-	readonly baseUrl: string;
 	readonly teamId: string;
 	readonly userId: string;
 	readonly capabilities: Capabilities;
@@ -391,8 +385,6 @@ export interface ApiProvider {
 
 	providerType: ProviderType;
 
-	fetch<R extends object>(url: string, init?: RequestInit, token?: string): Promise<R>;
-	useMiddleware(middleware: CodeStreamApiMiddleware): Disposable;
 	dispose(): Promise<void>;
 
 	login(options: LoginOptions): Promise<ApiProviderLoginResponse>;
@@ -510,9 +502,6 @@ export interface ApiProvider {
 		request: UpdateStreamMembershipRequest
 	): Promise<UpdateStreamMembershipResponse>;
 
-	fetchTeams(request: FetchTeamsRequest): Promise<FetchTeamsResponse>;
-	getTeam(request: GetTeamRequest): Promise<GetTeamResponse>;
-
 	fetchCompanies(request: FetchCompaniesRequest): Promise<FetchCompaniesResponse>;
 	getCompany(request: GetCompanyRequest): Promise<GetCompanyResponse>;
 	deleteCompany(request: DeleteCompanyRequest): Promise<DeleteCompanyResponse>;
@@ -561,16 +550,10 @@ export interface ApiProvider {
 	): Promise<LookupNewRelicOrganizationsResponse>;
 
 	verifyConnectivity(): Promise<VerifyConnectivityResponse>;
-	setServerUrl(url: string): void;
 
 	announceHistoryFetch(info: HistoryFetchInfo): void;
 
 	fetchBuilds(request: FetchThirdPartyBuildsRequest): Promise<FetchThirdPartyBuildsResponse>;
-
-	get<R extends object>(url: string, token?: string): Promise<R>;
-	post<RQ extends object, R extends object>(url: string, body: any, token?: string): Promise<R>;
-	put<RQ extends object, R extends object>(url: string, body: RQ, token?: string): Promise<R>;
-	delete<R extends object>(url: string, token?: string): Promise<R>;
 }
 export interface CodeStreamApiMiddlewareContext {
 	url: string;

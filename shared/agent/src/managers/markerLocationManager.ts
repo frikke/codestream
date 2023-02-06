@@ -28,6 +28,7 @@ import { ManagerBase } from "./baseManager";
 import { IndexParams, IndexType } from "./cache";
 import { getValues, KeyValue } from "./cache/baseCache";
 import { Id } from "./entityManager";
+import { CodeStreamSession } from "../session";
 
 export interface Markerish {
 	id: string;
@@ -83,6 +84,10 @@ function compareReferenceLocations(a: CSReferenceLocation, b: CSReferenceLocatio
 
 export class MarkerLocationManager extends ManagerBase<CSMarkerLocations> {
 	protected forceFetchToResolveOnCacheMiss = true;
+
+	constructor(private readonly session: CodeStreamSession) {
+		super();
+	}
 
 	getIndexedFields(): IndexParams<CSMarkerLocations>[] {
 		return [

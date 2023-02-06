@@ -19,10 +19,15 @@ import { lsp, lspHandler } from "../system";
 import { IndexParams, IndexType } from "./cache";
 import { getValues, KeyValue } from "./cache/baseCache";
 import { EntityManagerBase, Id } from "./entityManager";
+import { CodeStreamSession } from "../session";
 
 @lsp
 export class FilesManager extends EntityManagerBase<CSFileStream> {
 	private idsByPath = new Map<string, Id>();
+
+	constructor(private readonly session: CodeStreamSession) {
+		super();
+	}
 
 	getIndexedFields(): IndexParams<CSFileStream>[] {
 		return [

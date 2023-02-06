@@ -9,12 +9,14 @@ import {
 } from "@codestream/protocols/agent";
 
 import { Logger } from "../logger";
-import { CodeStreamSession } from "../session";
 import { lsp, lspHandler } from "../system";
+import { ApiClient } from "../api/codestream/api/apiClient";
 
 @lsp
 export class ServerManager {
-	constructor(private readonly session: CodeStreamSession) {}
+	constructor(private apiClient: ApiClient) {}
+
+	public static inject = ["apiClient"] as const;
 
 	@lspHandler(CodeStreamApiGetRequestType)
 	async get(request: { url: string; queryData: ParsedUrlQueryInput }): Promise<any> {
@@ -22,7 +24,7 @@ export class ServerManager {
 			if (request.queryData) {
 				request.url += `?${qs.stringify(request.queryData)}`;
 			}
-			return this.session.api.get(request.url);
+			return this.apiClient.get(request.url);
 		} catch (e) {
 			Logger.error(e, "Could not GET", {
 				url: request.url,
@@ -33,7 +35,7 @@ export class ServerManager {
 	@lspHandler(CodeStreamApiPostRequestType)
 	async post(request: { url: string; body?: any }): Promise<any> {
 		try {
-			return this.session.api.post(request.url, request.body);
+			return this.apiClient.post(request.url, request.body);
 		} catch (e) {
 			Logger.error(e, "Could not POST", {
 				url: request.url,
@@ -44,7 +46,7 @@ export class ServerManager {
 	@lspHandler(CodeStreamApiPutRequestType)
 	async put(request: { url: string; body?: any }): Promise<any> {
 		try {
-			return this.session.api.put(request.url, request.body);
+			return this.apiClient.put(request.url, request.body);
 		} catch (e) {
 			Logger.error(e, "Could not PUT", {
 				url: request.url,
@@ -55,7 +57,7 @@ export class ServerManager {
 	@lspHandler(CodeStreamApiDeleteRequestType)
 	async delete(request: { url: string }): Promise<any> {
 		try {
-			return this.session.api.delete(request.url);
+			return this.apiClient.delete(request.url);
 		} catch (e) {
 			Logger.error(e, "Could not DELETE", {
 				url: request.url,

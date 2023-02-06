@@ -144,6 +144,7 @@ import { generateClmSpanDataExistsQuery } from "./newrelic/spanQuery";
 import { ThirdPartyIssueProviderBase } from "./thirdPartyIssueProviderBase";
 import { ClmManager, EnhancedMetricTimeslice, LanguageId } from "./newrelic/clm/clmManager";
 import { Index } from "@codestream/utils/types";
+import { TeamsManager } from "../managers/teamsManager";
 
 const ignoredErrors = [GraphqlNrqlTimeoutError];
 
@@ -185,7 +186,11 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		this.errorLogIfNotIgnored.bind(this)
 	);
 
-	constructor(session: CodeStreamSession, config: ThirdPartyProviderConfig) {
+	constructor(
+		session: CodeStreamSession,
+		config: ThirdPartyProviderConfig,
+		private teamsManager: TeamsManager
+	) {
 		super(session, config);
 		this._memoizedBuildRepoRemoteVariants = memoize(
 			this.buildRepoRemoteVariants,
@@ -369,7 +374,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 	@log()
 	async updateOrgId(request: UpdateNewRelicOrgIdRequest): Promise<UpdateNewRelicOrgIdResponse> {
 		const orgId = await this.getOrgId();
-		const team = await SessionContainer.instance().teams.getByIdFromCache(request.teamId);
+		const team = await this.teamsManager.getByIdFromCache(request.teamId);
 		const company =
 			team && (await SessionContainer.instance().companies.getByIdFromCache(team.companyId));
 		if (orgId && company) {

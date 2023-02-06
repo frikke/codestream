@@ -8,9 +8,14 @@ import { CSCompany } from "@codestream/protocols/api";
 
 import { lsp, lspHandler } from "../system";
 import { CachedEntityManagerBase, Id } from "./entityManager";
+import { CodeStreamSession } from "../session";
 
 @lsp
 export class CompaniesManager extends CachedEntityManagerBase<CSCompany> {
+	constructor(private readonly session: CodeStreamSession) {
+		super();
+	}
+
 	@lspHandler(FetchCompaniesRequestType)
 	async get(request?: FetchCompaniesRequest): Promise<FetchCompaniesResponse> {
 		let companies = await this.getAllCached();

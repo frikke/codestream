@@ -4,7 +4,7 @@ import { ReviewsManager } from "../../../src/managers/reviewsManager";
 describe("ReviewsManager.spec.ts", () => {
 	describe("checkPullRequestPreconditions", () => {
 		it("REPO_NOT_FOUND", async () => {
-			const manager = new ReviewsManager({ onDidRequestReset: function () {} } as any);
+			const manager = new ReviewsManager({ onDidRequestReset: function () {} } as any, {} as any);
 			const response = await manager.checkPullRequestPreconditions({} as any, null, {
 				session: {} as any,
 				git: {},
@@ -16,7 +16,7 @@ describe("ReviewsManager.spec.ts", () => {
 
 		describe("with review", () => {
 			it("HAS_LOCAL_MODIFICATIONS", async () => {
-				const manager = new ReviewsManager({ onDidRequestReset: function () {} } as any);
+				const manager = new ReviewsManager({ onDidRequestReset: function () {} } as any, {} as any);
 				manager.getById = async function () {
 					return {
 						reviewChangesets: [
@@ -52,7 +52,7 @@ describe("ReviewsManager.spec.ts", () => {
 			});
 
 			it("HAS_LOCAL_COMMITS", async () => {
-				const manager = new ReviewsManager({ onDidRequestReset: function () {} } as any);
+				const manager = new ReviewsManager({ onDidRequestReset: function () {} } as any, {} as any);
 				manager.getById = async function () {
 					return {
 						reviewChangesets: [
@@ -90,7 +90,7 @@ describe("ReviewsManager.spec.ts", () => {
 
 		describe("without review", () => {
 			it("REQUIRES_PROVIDER", async () => {
-				const manager = new ReviewsManager({ onDidRequestReset: function () {} } as any);
+				const manager = new ReviewsManager({ onDidRequestReset: function () {} } as any, {} as any);
 
 				const response = await manager.checkPullRequestPreconditions(
 					{
@@ -146,7 +146,7 @@ describe("ReviewsManager.spec.ts", () => {
 			});
 
 			it("works", async () => {
-				const manager = new ReviewsManager({ onDidRequestReset: function () {} } as any);
+				const manager = new ReviewsManager({ onDidRequestReset: function () {} } as any, {} as any);
 
 				const response = await manager.checkPullRequestPreconditions(
 					{ headRefName: "develop", repoId: "123" } as any,

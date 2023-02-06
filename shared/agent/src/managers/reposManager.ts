@@ -14,9 +14,14 @@ import { CSRepository } from "@codestream/protocols/api";
 
 import { lsp, lspHandler } from "../system";
 import { CachedEntityManagerBase, Id } from "./entityManager";
+import { CodeStreamSession } from "../session";
 
 @lsp
 export class ReposManager extends CachedEntityManagerBase<CSRepository> {
+	constructor(private readonly session: CodeStreamSession) {
+		super();
+	}
+
 	@lspHandler(CreateRepoRequestType)
 	createRepo(request: CreateRepoRequest): Promise<CreateRepoResponse> {
 		return this.session.api.createRepo(request);

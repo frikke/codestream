@@ -2,7 +2,6 @@
 import { CSEntity } from "@codestream/protocols/api";
 
 import { RawRTMessage } from "../api/apiProvider";
-import { CodeStreamSession } from "../session";
 import { log } from "../system";
 import { ManagerBase } from "./baseManager";
 import { KeyValue } from "./cache/baseCache";
@@ -19,10 +18,6 @@ export abstract class EntityManagerBase<T extends CSEntity> extends ManagerBase<
 		fetchFn: this.fetch.bind(this),
 		entityName: this.getEntityName(),
 	});
-
-	constructor(session: CodeStreamSession) {
-		super(session);
-	}
 
 	getById(id: Id): Promise<T> {
 		return this.cache.getById(id);

@@ -115,6 +115,7 @@ import { EntityManagerBase, Id } from "./entityManager";
 import { MarkersBuilder } from "./markersBuilder";
 
 import getProviderDisplayName = Marker.getProviderDisplayName;
+import { CodeStreamSession } from "../session";
 
 export type FetchPostsFn = (request: FetchPostsRequest) => Promise<FetchPostsResponse>;
 
@@ -735,6 +736,10 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 		fetchPosts: this.fetchPosts.bind(this),
 		entityName: this.getEntityName(),
 	});
+
+	constructor(private readonly session: CodeStreamSession) {
+		super();
+	}
 
 	disableCache() {
 		this.cache.disable();

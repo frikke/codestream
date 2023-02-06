@@ -24,7 +24,6 @@ import { ReviewsManager } from "./managers/reviewsManager";
 import { ScmManager } from "./managers/scmManager";
 import { ServerManager } from "./managers/serverManager";
 import { StreamsManager } from "./managers/streamsManager";
-import { TeamsManager } from "./managers/teamsManager";
 import { TelemetryManager } from "./managers/telemetryManager";
 import { TextFilesManager } from "./managers/textFilesManager";
 import { UnauthenticatedScmManager } from "./managers/unauthenticatedScmManager";
@@ -79,11 +78,6 @@ export class SessionServiceContainer {
 	private readonly _streams: StreamsManager;
 	get streams(): StreamsManager {
 		return this._streams;
-	}
-
-	private readonly _teams: TeamsManager;
-	get teams(): TeamsManager {
-		return this._teams;
 	}
 
 	private readonly _companies: CompaniesManager;
@@ -147,6 +141,7 @@ export class SessionServiceContainer {
 	}
 
 	constructor(public readonly session: CodeStreamSession) {
+		const teamsManagerInstance = session.appInjector.resolve("teamsManager");
 		const cinstance = Container.instance();
 		this._git = new GitService(session, cinstance.repositoryLocator, cinstance.gitServiceLite);
 		this._scm = new ScmManager(session);
@@ -157,7 +152,6 @@ export class SessionServiceContainer {
 		this._posts = new PostsManager(session);
 		this._repos = new ReposManager(session);
 		this._streams = new StreamsManager(session);
-		this._teams = new TeamsManager(session);
 		this._users = new UsersManager(session);
 		this._documentMarkers = new DocumentMarkerManager(session);
 		this._providerRegistry = providerRegistry!.initialize(session);
@@ -165,7 +159,7 @@ export class SessionServiceContainer {
 		this._companies = new CompaniesManager(session);
 		this._ignoreFiles = new IgnoreFilesManager(session);
 		this._textFiles = new TextFilesManager(session);
-		this._reviews = new ReviewsManager(session);
+		this._reviews = new ReviewsManager(session, teamsManagerInstance);
 		this._codeErrors = new CodeErrorsManager(session);
 		this._nr = new NRManager(session);
 		this._repoIdentifier = new RepoIdentificationManager(session);
@@ -176,11 +170,12 @@ export class SessionServiceContainer {
 class ServiceContainer {
 	// TODO: [EA] I think we should try to rework this to avoid the need of the session here
 	constructor(public readonly agent: CodeStreamAgent, private session: CodeStreamSession) {
+		const apiClientInstance = session.appInjector.resolve("apiClient");
 		this._documents = agent.documents;
 		this._gitServiceLite = new GitServiceLite(session);
 		this._repositoryLocator = new RepositoryLocator(session, this._gitServiceLite);
 		this._unauthenticatedScm = new UnauthenticatedScmManager();
-		this._server = new ServerManager(session);
+		this._server = new ServerManager(apiClientInstance);
 		this._errorReporter = new ErrorReporter(agent);
 		this._telemetry = new TelemetryManager(session);
 		this._urls = new UrlManager();
@@ -228,26 +223,26 @@ class ServiceContainer {
 	}
 }
 
-let container: ServiceContainer | undefined;
+let serviceContainer: ServiceContainer | undefined;
 
 export namespace Container {
 	export function initialize(agent: CodeStreamAgent, session: CodeStreamSession) {
-		container = new ServiceContainer(agent, session);
+		serviceContainer = new ServiceContainer(agent, session);
 	}
 
 	export function isInitialized(): boolean {
-		return !!container;
+		return !!serviceContainer;
 	}
 
 	export function instance(): ServiceContainer {
-		if (container === undefined) {
+		if (serviceContainer === undefined) {
 			debugger;
 			const ex = new Error("Container not yet initialized.");
 			Logger.error(ex);
 			throw ex;
 		}
 
-		return container;
+		return serviceContainer;
 	}
 }
 

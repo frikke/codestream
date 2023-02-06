@@ -35,9 +35,14 @@ import { CSMe, CSUser } from "@codestream/protocols/api";
 
 import { lsp, lspHandler } from "../system";
 import { CachedEntityManagerBase, Id } from "./entityManager";
+import { CodeStreamSession } from "../session";
 
 @lsp
 export class UsersManager extends CachedEntityManagerBase<CSUser> {
+	constructor(private readonly session: CodeStreamSession) {
+		super();
+	}
+
 	@lspHandler(FetchUsersRequestType)
 	async get(request?: FetchUsersRequest): Promise<FetchUsersResponse> {
 		let users = await this.getAllCached();

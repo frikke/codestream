@@ -5,11 +5,11 @@ import { CSEntity, CSMarkerLocations } from "@codestream/protocols/api";
 import { RawRTMessage } from "../api/apiProvider";
 import { Container, SessionContainer } from "../container";
 import { Logger } from "../logger";
-import { CodeStreamSession } from "../session";
 import { debug, log } from "../system";
 import { IndexParams } from "./cache";
 import { BaseCache, KeyValue } from "./cache/baseCache";
 import { isDirective, resolve } from "./operations";
+import cacheReset from "./cache/cacheReset";
 
 function getCacheUpdateAction(
 	newOrDirective: any,
@@ -59,8 +59,8 @@ export abstract class ManagerBase<T> {
 
 	protected forceFetchToResolveOnCacheMiss = false;
 
-	constructor(public readonly session: CodeStreamSession) {
-		this.session.onDidRequestReset(() => {
+	constructor() {
+		cacheReset.onDidRequestReset(() => {
 			this.invalidateCache();
 		});
 

@@ -89,6 +89,7 @@
 		"timed-cache": "2.0.0",
 		"tiny-async-pool": "1.2.0",
 		"tmp": "0.1.0",
+		"typed-inject": "3.0.1",
 		"utf-8-validate": "5.0.8",
 		"uuid": "3.3.2",
 		"vscode-languageserver": "5.2.1",

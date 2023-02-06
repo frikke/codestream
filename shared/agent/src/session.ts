@@ -119,6 +119,11 @@ import { GitRepository } from "./git/models/repository";
 import { Logger } from "./logger";
 import { log, memoize, registerDecoratedHandlers, registerProviders, Strings } from "./system";
 import { testGroups } from "./testGroups";
+import cacheReset from "./managers/cache/cacheReset";
+import { ApiClient } from "./api/codestream/api/apiClient";
+import { TeamsManager } from "./managers/teamsManager";
+import { createInjector, Injector, Scope, TChildContext } from "typed-inject";
+import { TeamsApi } from "./api/codestream/api/teamsApi";
 
 const envRegex = /https?:\/\/((?:(\w+)-)?api|localhost|(\w+))\.codestream\.(?:us|com)(?::\d+$)?/i;
 
@@ -248,11 +253,6 @@ export class CodeStreamSession {
 		return this._onDidChangeTeams.event;
 	}
 
-	private _onDidRequestReset = new Emitter<void>();
-	get onDidRequestReset(): Event<void> {
-		return this._onDidRequestReset.event;
-	}
-
 	private _onDidChangeSessionStatus = new Emitter<SessionStatusChangedEvent>();
 	get onDidChangeSessionStatus(): Event<SessionStatusChangedEvent> {
 		return this._onDidChangeSessionStatus.event;
@@ -273,6 +273,19 @@ export class CodeStreamSession {
 	private _broadcasterRecoveryTimer: NodeJS.Timer | undefined;
 	private _echoTimer: NodeJS.Timer | undefined;
 	private _echoDidTimeout: boolean = false;
+	private teamsManager: TeamsManager;
+	private apiClient: ApiClient;
+	public appInjector: Injector<
+		TChildContext<
+			TChildContext<
+				TChildContext<TChildContext<{}, ApiClient, "apiClient">, TeamsApi, "teamsApi">,
+				TeamsManager,
+				"teamsManager"
+			>,
+			CodeStreamApiProvider,
+			"codeStreamApiProvider"
+		>
+	>;
 
 	// HACK in certain scenarios the agent may want to use more performance-intensive
 	// operations when handling document change and saves. This is true for when
@@ -294,8 +307,6 @@ export class CodeStreamSession {
 				resolve();
 			})
 		);
-
-		Container.initialize(agent, this);
 
 		registerProviders(PROVIDERS_TO_REGISTER_BEFORE_SIGNIN, this);
 
@@ -357,14 +368,28 @@ export class CodeStreamSession {
 
 		Logger.log(`API Server URL: >${_options.serverUrl}<`);
 		Logger.log(`Reject unauthorized: ${this.rejectUnauthorized}`);
-		this._api = new CodeStreamApiProvider(
-			_options.serverUrl?.trim(),
-			this.versionInfo,
-			this._httpAgent || this._httpsAgent,
-			this.rejectUnauthorized
-		);
 
-		this._api.useMiddleware({
+		this.appInjector = createInjector()
+			.provideValue(
+				"apiClient",
+				new ApiClient(
+					_options.serverUrl?.trim(),
+					this.versionInfo,
+					this._httpAgent || this._httpsAgent,
+					this.rejectUnauthorized
+				)
+			)
+			.provideClass("teamsApi", TeamsApi, Scope.Singleton)
+			.provideClass("teamsManager", TeamsManager, Scope.Singleton)
+			.provideClass("codeStreamApiProvider", CodeStreamApiProvider, Scope.Singleton);
+
+		this.teamsManager = this.appInjector.resolve("teamsManager");
+		this.apiClient = this.appInjector.resolve("apiClient");
+		this._api = this.appInjector.resolve("codeStreamApiProvider");
+
+		Logger.log("*** this.appInjector created");
+
+		this.apiClient.useMiddleware({
 			get name() {
 				return "MaintenanceMode";
 			},
@@ -398,7 +423,7 @@ export class CodeStreamSession {
 							this._broadcasterRecoveryTimer = setTimeout(() => {
 								delete this._broadcasterRecoveryTimer;
 								Logger.log("Calling API server to detect broadcaster recovery");
-								this.api.fetch("/no-auth/capabilities");
+								this.apiClient.fetch("/no-auth/capabilities");
 							}, 30000);
 						}
 					}
@@ -413,7 +438,7 @@ export class CodeStreamSession {
 		});
 
 		this.verifyConnectivity();
-		const versionManager = new VersionMiddlewareManager(this._api);
+		const versionManager = new VersionMiddlewareManager(this.apiClient);
 		versionManager.onDidChangeCompatibility(this.onVersionCompatibilityChanged, this);
 		versionManager.onDidChangeApiCompatibility(this.onApiVersionCompatibilityChanged, this);
 
@@ -445,13 +470,13 @@ export class CodeStreamSession {
 		this.agent.registerHandler(JoinCompanyRequestType, e => this.joinCompany(e));
 		this.agent.registerHandler(DeclineInviteRequestType, e => this.declineInvite(e));
 		this.agent.registerHandler(ApiRequestType, (e, cancellationToken: CancellationToken) =>
-			this.api.fetch(e.url, e.init, e.token)
+			this.apiClient.fetch(e.url, e.init, e.token)
 		);
 		this.agent.registerHandler(SetServerUrlRequestType, e => this.setServerUrl(e));
 		this.agent.registerHandler(
 			BootstrapRequestType,
 			async (e, cancellationToken: CancellationToken) => {
-				const { companies, repos, streams, teams, users, codeErrors } = SessionContainer.instance();
+				const { companies, repos, streams, users, codeErrors } = SessionContainer.instance();
 
 				// needed to ensure we subscribe to object streams for all code errors we have access to
 				await codeErrors.ensureCached();
@@ -460,7 +485,7 @@ export class CodeStreamSession {
 					companies.get(),
 					repos.get(),
 					streams.get(),
-					teams.get(),
+					this.teamsManager.get(),
 					users.getUnreads({}),
 					users.get(),
 					users.getPreferences(),
@@ -490,6 +515,7 @@ export class CodeStreamSession {
 				};
 			}
 		);
+		Container.initialize(agent, this);
 	}
 
 	private logNodeEnvVariables() {
@@ -505,7 +531,7 @@ export class CodeStreamSession {
 	setServerUrl(options: SetServerUrlRequest) {
 		this._options.serverUrl = options.serverUrl;
 		this._options.disableStrictSSL = options.disableStrictSSL;
-		this._api?.setServerUrl(this._options.serverUrl);
+		this.apiClient.setServerUrl(this._options.serverUrl);
 		this.agent.sendNotification(DidChangeServerUrlNotificationType, {
 			serverUrl: options.serverUrl,
 		});
@@ -545,7 +571,7 @@ export class CodeStreamSession {
 			}
 			// the API server will respond with headers that tell us whether we are still
 			// in broadcast failure mode
-			this.api.fetch("/no-auth/capabilities");
+			this.apiClient.fetch("/no-auth/capabilities");
 		}
 
 		switch (e.type) {
@@ -565,7 +591,7 @@ export class CodeStreamSession {
 				break;
 			case MessageType.Connection:
 				if (e.data.status === ConnectionStatus.Reconnected && e.data.reset) {
-					void SessionContainer.instance().session.reset();
+					cacheReset.reset();
 				}
 
 				const data = { ...e.data } as DidChangeConnectionStatusNotification;
@@ -698,7 +724,7 @@ export class CodeStreamSession {
 		) {
 			const oldCapabilities = SessionContainer.instance().session.apiCapabilities;
 			const newCapabilities = await this.api.getApiCapabilities();
-			const currentTeam = await SessionContainer.instance().teams.getByIdFromCache(this.teamId);
+			const currentTeam = await this.teamsManager.getByIdFromCache(this.teamId);
 			if (!isEqual(oldCapabilities, newCapabilities)) {
 				this.registerApiCapabilities(newCapabilities, currentTeam);
 				this.agent.sendNotification(DidChangeDataNotificationType, {
@@ -899,7 +925,7 @@ export class CodeStreamSession {
 			return undefined;
 		}
 		try {
-			return await SessionContainer.instance().teams.getByIdFromCache(this.teamId);
+			return await this.teamsManager.getByIdFromCache(this.teamId);
 		} catch (e) {
 			// ignore
 			return undefined;
@@ -1460,11 +1486,6 @@ export class CodeStreamSession {
 	}
 
 	@log()
-	async reset() {
-		this._onDidRequestReset.fire(undefined);
-	}
-
-	@log()
 	showErrorMessage<T extends MessageActionItem>(message: string, ...actions: T[]) {
 		return this._connection.window.showErrorMessage(message, ...actions);
 	}
@@ -1647,7 +1668,7 @@ export class CodeStreamSession {
 
 	@log()
 	async updateProviders() {
-		const currentTeam = await SessionContainer.instance().teams.getByIdFromCache(this.teamId);
+		const currentTeam = await this.teamsManager.getByIdFromCache(this.teamId);
 		if (currentTeam) {
 			registerProviders(this._providers, this);
 			this.agent.sendNotification(DidChangeDataNotificationType, {
@@ -1678,7 +1699,7 @@ export class CodeStreamSession {
 	}
 
 	async setCompanyTestGroups() {
-		const team = await SessionContainer.instance().teams.getByIdFromCache(this.teamId);
+		const team = await this.teamsManager.getByIdFromCache(this.teamId);
 		if (!team) return;
 		const company = await SessionContainer.instance().companies.getByIdFromCache(team.companyId);
 		if (!company) return;
