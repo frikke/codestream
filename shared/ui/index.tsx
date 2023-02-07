@@ -22,6 +22,7 @@ import {
 	VerifyConnectivityRequestType,
 	PollForMaintenanceModeRequestType,
 	VersionCompatibility,
+	VerifyConnectivityResponse,
 } from "@codestream/protocols/agent";
 import { CodemarkType, CSApiCapabilities, CSCodeError, CSMe } from "@codestream/protocols/api";
 import React from "react";
@@ -151,7 +152,10 @@ export async function initialize(selector: string) {
 
 	// verify we can connect to the server, if successful, as a side effect,
 	// we get the api server's capabilities and our environment
-	const resp: any = await HostApi.instance.send(VerifyConnectivityRequestType, void {});
+	const resp: VerifyConnectivityResponse = await HostApi.instance.send(
+		VerifyConnectivityRequestType,
+		void {}
+	);
 
 	// initial call to check if we need to switch to maintence mode or not, this will also
 	// kick off the recurring poll every x minutes

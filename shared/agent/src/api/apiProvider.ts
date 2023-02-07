@@ -186,6 +186,7 @@ import {
 	UpdateUserRequest,
 	UpdateUserResponse,
 	VerifyConnectivityResponse,
+	PollForMaintenanceModeResponse,
 } from "@codestream/protocols/agent";
 import {
 	CSApiCapabilities,
@@ -563,7 +564,7 @@ export interface ApiProvider {
 	verifyConnectivity(): Promise<VerifyConnectivityResponse>;
 	setServerUrl(url: string): void;
 
-	pollForMaintenanceMode(): Promise<any>;
+	pollForMaintenanceMode(): Promise<PollForMaintenanceModeResponse>;
 
 	announceHistoryFetch(info: HistoryFetchInfo): void;
 

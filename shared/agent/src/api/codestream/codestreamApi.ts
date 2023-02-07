@@ -2912,12 +2912,17 @@ export class CodeStreamApiProvider implements ApiProvider {
 		try {
 			Logger.log("Verifying API server connectivity");
 
-			const resp = await customFetch(this.baseUrl + "/no-auth/capabilities", {
-				agent: this._httpsAgent,
-				signal: controller.signal,
-			});
+			const nonJsonCapabilitiesResponse = await customFetch(
+				this.baseUrl + "/no-auth/capabilities",
+				{
+					agent: this._httpsAgent,
+					signal: controller.signal,
+				}
+			);
 
-			response.maintenanceMode = !!resp.headers.get("x-cs-api-maintenance-mode");
+			response.maintenanceMode = !!nonJsonCapabilitiesResponse.headers.get(
+				"x-cs-api-maintenance-mode"
+			);
 		} catch (err) {
 			Logger.log(`Error connecting to the API server: ${err.message}`);
 			response.ok = false;
