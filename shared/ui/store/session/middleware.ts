@@ -78,8 +78,7 @@ export const sessionMiddleware: Middleware =
 					(pollingTask == undefined || meta?.pollRefresh) &&
 					!csNotVisible
 				) {
-					// pollingTask = new Poller(600000, async () => {
-					pollingTask = new Poller(10000, async () => {
+					pollingTask = new Poller(600000, async () => {
 						if (!getState().session.inMaintenanceMode) {
 							try {
 								const resp = await HostApi.instance.send(
