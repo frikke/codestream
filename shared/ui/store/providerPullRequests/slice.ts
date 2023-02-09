@@ -914,7 +914,6 @@ export const getPullRequestExactId = createSelector(
 		) {
 			try {
 				if (context.currentPullRequest.id.indexOf("{") === 0) {
-					// console.warn(JSON.parse(context.currentPullRequest.id).id);
 					return JSON.parse(context.currentPullRequest.id).id;
 				} else {
 					return context.currentPullRequest.id.substring(

@@ -3317,9 +3317,6 @@ export class GitLabProvider
 		// both are valid
 		// http://gitlab.codestream.us/my-group/my-subgroup/baz/-/merge_requests/1
 		// http://gitlab.codestream.us/project/repo/-/merge_requests/1
-
-		// invalid?
-		// http://gitlab.codestream.us/eric-j/test1/-/merge_requests/1
 		for (let i = 0; i < path.length; i++) {
 			const current = path[i];
 			if (!current) continue;
