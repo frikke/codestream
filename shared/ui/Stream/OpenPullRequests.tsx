@@ -14,7 +14,7 @@ import {
 } from "@codestream/protocols/agent";
 import { PullRequestQuery } from "@codestream/protocols/api";
 import copy from "copy-to-clipboard";
-import { isEmpty, isEqual } from "lodash-es";
+import { isEmpty, isEqual, remove } from "lodash-es";
 import React, { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { shallowEqual } from "react-redux";
 import styled from "styled-components";
@@ -384,11 +384,20 @@ export const OpenPullRequests = React.memo((props: Props) => {
 					setPrError({ provider: connectedProvider.id });
 					if (connectedProvider.id?.includes("bitbucket")) continue;
 
-					const queriesByProvider: PullRequestQuery[] =
+					let queriesByProvider: PullRequestQuery[] =
 						theQueries[connectedProvider.id] || defaultQueries[connectedProvider.id];
 					if (!queriesByProvider) {
 						continue;
 					}
+
+					// Don't allow waiting on my review for gitlab enterprise
+					// safegaurd from possible leftover from user preferences
+					if (connectedProvider.id === "gitlab/enterprise") {
+						remove(queriesByProvider, _ => {
+							return _.name === "Waiting on my Review";
+						});
+					}
+
 					activePrListedIndex = queriesByProvider?.findIndex(
 						_ => _?.name === "Waiting on my Review"
 					);
