@@ -717,6 +717,8 @@ export interface FetchThirdPartyPullRequestPullRequest {
 	//bitbucket
 	isApproved: boolean;
 	isRequested: boolean;
+	approvalStatus: {icon: string; text: string; requestedState: string};
+	requestStatus: {icon: string; text: string; requestedState: string};
 	assignees: {
 		nodes: {
 			avatarUrl: string;
