@@ -98,11 +98,6 @@ const PR_QUERIES: PRProviderQueries = {
 		},
 	],
 	"gitlab/enterprise": [
-		// {
-		// 	providerId: "gitlab/enterprise",
-		// 	name: "is waiting on your review",
-		// 	query: `state=opened&reviewer_username=@me&scope=all`,
-		// },
 		{
 			providerId: "gitlab/enterprise",
 			name: "was assigned to you",
@@ -854,12 +849,6 @@ export class ThirdPartyProviderRegistry {
 				},
 			],
 			"gitlab/enterprise": [
-				// {
-				// 	providerId: "gitlab/enterprise",
-				// 	name: WAITING_ON_REVIEW,
-				// 	query: `state=opened&reviewer_username=@me&scope=all`,
-				// 	hidden: false,
-				// },
 				{
 					providerId: "gitlab/enterprise",
 					name: ASSIGNED_TO_ME,

@@ -374,7 +374,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 					setPrError({ provider: connectedProvider.id });
 					if (connectedProvider.id?.includes("bitbucket")) continue;
 
-					let queriesByProvider: PullRequestQuery[] =
+					const queriesByProvider: PullRequestQuery[] =
 						theQueries[connectedProvider.id] || defaultQueries[connectedProvider.id];
 					if (!queriesByProvider) {
 						continue;

@@ -151,9 +151,7 @@ export class GitLabProvider
 	}
 
 	async verifyConnection(config: ProviderConfigurationData): Promise<void> {
-		console.warn("eric config", config);
 		await this.verifyConnectionWithCurrentUserQuery();
-		// await this.getCurrentUser();
 	}
 
 	protected getPRExternalContent(comment: PullRequestComment) {
