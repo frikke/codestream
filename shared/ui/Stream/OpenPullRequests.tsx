@@ -14,7 +14,7 @@ import {
 } from "@codestream/protocols/agent";
 import { PullRequestQuery } from "@codestream/protocols/api";
 import copy from "copy-to-clipboard";
-import { isEmpty, isEqual, remove } from "lodash-es";
+import { isEmpty, isEqual } from "lodash-es";
 import React, { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { shallowEqual } from "react-redux";
 import styled from "styled-components";
@@ -308,16 +308,6 @@ export const OpenPullRequests = React.memo((props: Props) => {
 		};
 	}, shallowEqual);
 
-	// const openReposWithName = props.openRepos.map(repo => {
-	// 	const id = repo.id || "";
-	// 	return { ...repo, name: derivedState.repos[id] ? derivedState.repos[id].name : "" };
-	// });
-
-	// Currently always showing, regardless of provider
-	// const hasPRSupportedRepos =
-	// 	openReposWithName.filter(r => r.providerGuess === "github" || r.providerGuess === "gitlab")
-	// 		.length > 0;
-
 	const { PRConnectedProviders, pullRequestProviderHidden, prLabel } = derivedState;
 	const [queries, setQueries] = React.useState<FetchProviderDefaultPullResponse>({});
 	const [defaultQueries, setDefaultQueries] = React.useState<FetchProviderDefaultPullResponse>({});
@@ -388,14 +378,6 @@ export const OpenPullRequests = React.memo((props: Props) => {
 						theQueries[connectedProvider.id] || defaultQueries[connectedProvider.id];
 					if (!queriesByProvider) {
 						continue;
-					}
-
-					// Don't allow waiting on my review for gitlab enterprise
-					// safegaurd from possible leftover from user preferences
-					if (connectedProvider.id === "gitlab/enterprise") {
-						remove(queriesByProvider, _ => {
-							return _.name === "Waiting on my Review";
-						});
 					}
 
 					activePrListedIndex = queriesByProvider?.findIndex(
