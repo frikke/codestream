@@ -791,8 +791,6 @@ const mapStateToProps = (state: CodeStreamState): ConnectedProps => {
 		preferences.acceptedPrereleaseTOS ||
 		(team.settings ? team.settings.acceptedPrereleaseTOS : false);
 
-	console.warn("eric", context.panelStack);
-
 	return {
 		acceptedPrereleaseTOS,
 		activeModal: context.activeModal,
