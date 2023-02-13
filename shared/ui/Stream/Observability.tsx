@@ -502,6 +502,10 @@ export const Observability = React.memo((props: Props) => {
 	 *	State telemetry tracking for the obervability panel
 	 */
 	const callObservabilityTelemetry = () => {
+		// Allow for react setStates to finish, I found it easier to simply use a timeout
+		// than having this call be reliant on multiple variables to be set given the
+		// complicated nature of this component, and since its telemetry tracking, the delay
+		// is not user facing.
 		setTimeout(() => {
 			let telemetryStateValue;
 			// "No Entities" - We don’t find any entities on NR and are showing the instrument-your-app message.
@@ -524,6 +528,7 @@ export const Observability = React.memo((props: Props) => {
 			}
 
 			if (!isEmpty(telemetryStateValue)) {
+				console.warn("eric NO SERVICES?", telemetryStateValue);
 				HostApi.instance.track("O11y Rendered", {
 					State: telemetryStateValue,
 				});
@@ -532,7 +537,7 @@ export const Observability = React.memo((props: Props) => {
 			if (expandedEntity) {
 				callServiceClickedTelemetry();
 			}
-		}, 1000);
+		}, 3000);
 	};
 
 	const callServiceClickedTelemetry = () => {
@@ -828,13 +833,14 @@ export const Observability = React.memo((props: Props) => {
 			// Checks if any value in loadingErrors object is false
 			Object.keys(loadingErrors).some(k => !loadingErrors[k]) &&
 			!loadingAssigments &&
-			hasLoadedOnce === false
+			hasLoadedOnce === false &&
+			!loadingEntities
 		) {
 			hasLoadedOnce = true;
 
 			callObservabilityTelemetry();
 		}
-	}, [loadingErrors, loadingAssigments]);
+	}, [loadingErrors, loadingAssigments, loadingEntities]);
 
 	useEffect(() => {
 		if (!_isEmpty(currentRepoId) && !_isEmpty(observabilityRepos)) {
@@ -900,6 +906,8 @@ export const Observability = React.memo((props: Props) => {
 	};
 
 	const { activeO11y } = derivedState;
+
+	console.warn(observabilityRepos);
 
 	return (
 		<Root>
