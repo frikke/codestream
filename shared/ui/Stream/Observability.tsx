@@ -528,7 +528,6 @@ export const Observability = React.memo((props: Props) => {
 			}
 
 			if (!isEmpty(telemetryStateValue)) {
-				console.warn("eric NO SERVICES?", telemetryStateValue);
 				HostApi.instance.track("O11y Rendered", {
 					State: telemetryStateValue,
 				});
@@ -906,8 +905,6 @@ export const Observability = React.memo((props: Props) => {
 	};
 
 	const { activeO11y } = derivedState;
-
-	console.warn(observabilityRepos);
 
 	return (
 		<Root>
