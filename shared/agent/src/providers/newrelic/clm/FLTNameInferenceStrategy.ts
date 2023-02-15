@@ -145,7 +145,7 @@ export abstract class FLTNameInferenceStrategy implements FLTStrategy {
 		const query =
 			`SELECT count(*) AS 'value' ` +
 			`FROM Span WHERE \`entity.guid\` = '${this.entityGuid}' AND \`error.group.guid\` IS NOT NULL AND (${lookup}) FACET name ` +
-			`${this._timeFrame} LIMIT MAX EXTRAPOLATE`;
+			`${this._timeFrame} LIMIT MAX`;
 		const results = await this.runNrql<NameValue>(query);
 		return results.map(_ => this.toFileLevelErrorRate(_, sampleSizes));
 	}
