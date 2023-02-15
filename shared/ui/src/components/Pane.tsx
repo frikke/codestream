@@ -62,15 +62,6 @@ export const PaneNodeName = styled((props: PropsWithChildren<PaneNodeNameProps>)
 			? hiddenPaneNodes[props.id]
 			: true;
 
-		// prioritize props.collapse, then userPreference hiddenPaneNode value, if available
-		// let collapsed = true;
-		// if (!_isNil(props?.collapsed)) {
-		// 	collapsed = props?.collapsed;
-		// } else if (props?.id && hiddenPaneNodes[props?.id]) {
-		// 	collapsed = hiddenPaneNodes[props.id];
-		// }
-
-		// console.warn("derivedState", props?.id, hiddenPaneNodes[props.id], collapsed);
 		return {
 			collapsed,
 		};
@@ -87,7 +78,6 @@ export const PaneNodeName = styled((props: PropsWithChildren<PaneNodeNameProps>)
 		);
 	};
 
-	console.warn(props.id, derivedState.collapsed);
 	return (
 		<div className={props.className} onClick={props.onClick || toggleNode}>
 			<div style={{ display: props.labelIsFlex ? "flex" : "block" }} className="label">
