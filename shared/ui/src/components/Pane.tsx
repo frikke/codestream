@@ -1,5 +1,5 @@
 import cx from "classnames";
-import { isNil as _isNil } from "lodash-es";
+import { isNil as _isNil, isBoolean as _isBoolean } from "lodash-es";
 import React, { PropsWithChildren } from "react";
 import Draggable from "react-draggable";
 import { shallowEqual } from "react-redux";
@@ -58,10 +58,19 @@ export const PaneNodeName = styled((props: PropsWithChildren<PaneNodeNameProps>)
 		// If that is still null, set collapsed default value to true.
 		const collapsed = !_isNil(props?.collapsed)
 			? props?.collapsed
-			: props?.id && hiddenPaneNodes[props?.id]
+			: props?.id && _isBoolean(hiddenPaneNodes[props?.id])
 			? hiddenPaneNodes[props.id]
 			: true;
 
+		// prioritize props.collapse, then userPreference hiddenPaneNode value, if available
+		// let collapsed = true;
+		// if (!_isNil(props?.collapsed)) {
+		// 	collapsed = props?.collapsed;
+		// } else if (props?.id && hiddenPaneNodes[props?.id]) {
+		// 	collapsed = hiddenPaneNodes[props.id];
+		// }
+
+		// console.warn("derivedState", props?.id, hiddenPaneNodes[props.id], collapsed);
 		return {
 			collapsed,
 		};
@@ -78,6 +87,7 @@ export const PaneNodeName = styled((props: PropsWithChildren<PaneNodeNameProps>)
 		);
 	};
 
+	console.warn(props.id, derivedState.collapsed);
 	return (
 		<div className={props.className} onClick={props.onClick || toggleNode}>
 			<div style={{ display: props.labelIsFlex ? "flex" : "block" }} className="label">
