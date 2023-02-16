@@ -1,5 +1,5 @@
 import { escapeNrql } from "../newrelic";
-import { LanguageId } from "./clm/clmProvider";
+import { LanguageId } from "./clm/clmManager";
 
 function mapRubyTimesliceName(name: string): string {
 	if (name.startsWith("Nested/Controller")) {
@@ -39,7 +39,7 @@ export function generateMethodAverageDurationQuery(
 	return `query GetMethodAverageDuration($accountId:Int!) {
 	actor {
 		account(id: $accountId) {
-			metrics: nrql(query: "${escapeNrql(metricsQuery)}", timeout: 30) {
+			metrics: nrql(query: "${escapeNrql(metricsQuery)}", timeout: 60) {
 				results
 				metadata {
 					timeWindow {
@@ -48,7 +48,7 @@ export function generateMethodAverageDurationQuery(
 					}
 				}
 			}
-			spans: nrql(query: "${escapeNrql(spansQuery)}", timeout: 30) {
+			spans: nrql(query: "${escapeNrql(spansQuery)}", timeout: 60) {
 				results
 				metadata {
 					timeWindow {

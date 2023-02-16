@@ -1,5 +1,5 @@
 import { escapeNrql } from "../newrelic";
-import { LanguageId } from "./clm/clmProvider";
+import { LanguageId } from "./clm/clmManager";
 
 export function generateMethodErrorRateQuery(
 	languageId: LanguageId,
@@ -21,7 +21,7 @@ export function generateMethodErrorRateQuery(
 	return `query GetMethodErrorRate($accountId:Int!) {
 			actor {
 				account(id: $accountId) {
-					metrics: nrql(query: "${escapeNrql(metricsQuery)}", timeout: 30) {
+					metrics: nrql(query: "${escapeNrql(metricsQuery)}", timeout: 60) {
 						results
 						metadata {
 							timeWindow {
@@ -30,7 +30,7 @@ export function generateMethodErrorRateQuery(
 							}
 						}
 					}
-					spans: nrql(query: "${escapeNrql(spansQuery)}", timeout: 30) {
+					spans: nrql(query: "${escapeNrql(spansQuery)}", timeout: 60) {
 						results
 						metadata {
 							timeWindow {

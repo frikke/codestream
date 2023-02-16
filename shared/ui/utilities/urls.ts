@@ -63,7 +63,7 @@ export const parseProtocol = function (uriString: string | undefined): Route | u
 		controller,
 		action,
 		id,
-		query: parsedQuery,
+		query: parsedQuery || {},
 	};
 };
 

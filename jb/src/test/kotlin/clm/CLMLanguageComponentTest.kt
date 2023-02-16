@@ -142,14 +142,16 @@ class CLMLanguageComponentTest : BasePlatformTestCase() {
                     className = "Controller",
                     functionName = "getStuff",
                     metricTimesliceName = "t",
-                    sampleSize = 100f,
-                    namespace = null
+                    sampleSize = 100,
+                    namespace = null,
+                    source = "span"
                 ), MethodLevelTelemetrySampleSize(
                     className = "Controller",
                     functionName = "postSomething",
                     metricTimesliceName = "t",
-                    sampleSize = 150f,
+                    sampleSize = 150,
                     namespace = null,
+                    source = "span"
                 )
             ),
             averageDuration = listOf(

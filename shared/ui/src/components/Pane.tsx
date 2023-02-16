@@ -1,5 +1,5 @@
 import cx from "classnames";
-import { isNil as _isNil } from "lodash-es";
+import { isNil as _isNil, isBoolean as _isBoolean } from "lodash-es";
 import React, { PropsWithChildren } from "react";
 import Draggable from "react-draggable";
 import { shallowEqual } from "react-redux";
@@ -58,7 +58,7 @@ export const PaneNodeName = styled((props: PropsWithChildren<PaneNodeNameProps>)
 		// If that is still null, set collapsed default value to true.
 		const collapsed = !_isNil(props?.collapsed)
 			? props?.collapsed
-			: props?.id && hiddenPaneNodes[props?.id]
+			: props?.id && _isBoolean(hiddenPaneNodes[props?.id])
 			? hiddenPaneNodes[props.id]
 			: true;
 

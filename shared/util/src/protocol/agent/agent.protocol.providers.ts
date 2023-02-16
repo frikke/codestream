@@ -1430,6 +1430,32 @@ export type MetricTimesliceNameMapping = {
 	source: string;
 };
 
+export interface FileLevelTelemetryMetric {
+	metricTimesliceName: string;
+}
+
+export interface FileLevelTelemetryAverageDuration extends FileLevelTelemetryMetric {
+	averageDuration: any;
+	namespace?: string;
+	className?: string;
+	functionName: string;
+}
+
+export interface FileLevelTelemetrySampleSize extends FileLevelTelemetryMetric {
+	sampleSize: any;
+	namespace?: string;
+	className?: string;
+	functionName: string;
+	source: string;
+}
+
+export interface FileLevelTelemetryErrorRate extends FileLevelTelemetryMetric {
+	errorRate: any;
+	namespace?: string;
+	className?: string;
+	functionName: string;
+}
+
 export interface GetFileLevelTelemetryResponse {
 	repo: {
 		id: string;
@@ -1437,28 +1463,9 @@ export interface GetFileLevelTelemetryResponse {
 		remote: string;
 	};
 	isConnected?: boolean;
-	sampleSize?: {
-		sampleSize: any;
-		namespace?: string;
-		className?: string;
-		functionName: string;
-		metricTimesliceName: string;
-		source: string;
-	}[];
-	averageDuration?: {
-		averageDuration: any;
-		namespace?: string;
-		className?: string;
-		functionName: string;
-		metricTimesliceName: string;
-	}[];
-	errorRate?: {
-		errorRate: any;
-		namespace?: string;
-		className?: string;
-		functionName: string;
-		metricTimesliceName: string;
-	}[];
+	sampleSize?: FileLevelTelemetrySampleSize[];
+	averageDuration?: FileLevelTelemetryAverageDuration[];
+	errorRate?: FileLevelTelemetryErrorRate[];
 	lastUpdateDate?: number;
 	hasAnyData?: boolean;
 	sinceDateFormatted?: string;

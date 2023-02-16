@@ -3,6 +3,7 @@
 import {
 	CodeStreamDiffUriData,
 	EntityAccount,
+	FileLevelTelemetryMetric,
 	GetEntityCountRequest,
 	GetEntityCountResponse,
 	GetFileLevelTelemetryRequest,
@@ -39,8 +40,9 @@ import Cache from "timed-cache";
 import { GitRepository } from "../../../git/models/repository";
 import { CSMe } from "@codestream/protocols/api";
 import { Index } from "@codestream/utils/types";
+import { CLMNameInferenceStrategy } from "./clmNameInferenceStrategy";
 
-export class CLMProvider {
+export class ClmManager {
 	constructor(
 		private _getProductUrl: () => string,
 		private _query: <T = any>(query: string, variables: any) => Promise<T>,
@@ -148,7 +150,7 @@ export class CLMProvider {
 		let entityName = entity.entityName;
 
 		try {
-			const { spans, averageDurationResponse, sampleSizeResponse, errorRateResponse } =
+			const { averageDurationResponse, sampleSizeResponse, errorRateResponse } =
 				await this.getFileLevelTelemetryWithSpanLookup(
 					languageId,
 					newRelicAccountId,
@@ -158,27 +160,44 @@ export class CLMProvider {
 					resolutionMethod
 				);
 
-			const sampleSizeResponseLength = sampleSizeResponse?.actor?.account?.nrql?.results.length;
-			const averageDurationResponseLength =
-				averageDurationResponse?.actor?.account?.nrql?.results.length;
-			const errorRateResponseLength = errorRateResponse?.actor?.account?.nrql?.results.length;
+			const nameInferenceStrategy = new CLMNameInferenceStrategy(
+				newRelicEntityGuid,
+				newRelicAccountId,
+				this._runNrql.bind(this)
+			);
+			const clmNameInference = await nameInferenceStrategy.execute(
+				languageId,
+				relativeFilePath,
+				request,
+				resolutionMethod
+			);
 
-			const hasAnyData =
-				sampleSizeResponseLength || averageDurationResponseLength || errorRateResponseLength;
+			const averageDuration = this.mergeResults(
+				averageDurationResponse?.actor?.account?.nrql?.results || [],
+				clmNameInference?.averageDuration || []
+			);
+			const errorRate = this.mergeResults(
+				errorRateResponse?.actor?.account?.nrql?.results || [],
+				clmNameInference?.errorRate || []
+			);
+			const sampleSize = this.mergeResults(
+				sampleSizeResponse?.actor?.account?.nrql?.results || [],
+				clmNameInference?.sampleSize || []
+			);
+
+			const hasAnyData = sampleSize.length || averageDuration.length || errorRate.length;
 			const response: GetFileLevelTelemetryResponse = {
 				codeNamespace: request?.locator?.namespace,
 				isConnected: true,
-				sampleSize: sampleSizeResponse ? sampleSizeResponse.actor.account.nrql.results : [],
-				averageDuration: averageDurationResponse
-					? averageDurationResponse.actor.account.nrql.results
-					: [],
-				errorRate: errorRateResponse ? errorRateResponse.actor.account.nrql.results : [],
+				sampleSize,
+				averageDuration,
+				errorRate,
 				sinceDateFormatted: "30 minutes", //begin ? Dates.toFormatter(new Date(begin)).fromNow() : "",
 				lastUpdateDate:
 					errorRateResponse?.actor?.account?.nrql?.metadata?.timeWindow?.end ||
 					averageDurationResponse?.actor?.account?.nrql?.metadata?.timeWindow?.end ||
 					sampleSizeResponse?.actor?.account?.nrql?.metadata?.timeWindow?.end,
-				hasAnyData: hasAnyData,
+				hasAnyData: Boolean(hasAnyData),
 				newRelicAlertSeverity: entity.alertSeverity,
 				newRelicAccountId: newRelicAccountId,
 				newRelicEntityGuid: newRelicEntityGuid,
@@ -193,15 +212,15 @@ export class CLMProvider {
 				newRelicUrl: `${this._getProductUrl()}/redirect/entity/${newRelicEntityGuid}`,
 			};
 
-			if (spans?.length > 0) {
+			if (sampleSize?.length > 0) {
 				this._mltTimedCache.put(cacheKey, response);
 				Logger.log("getFileLevelTelemetry caching success", {
-					spansLength: spans.length,
+					spansLength: sampleSize.length,
 					hasAnyData: hasAnyData,
 					data: {
-						throughputResponseLength: sampleSizeResponseLength,
-						averageDurationResponseLength,
-						errorRateResponseLength,
+						throughputResponseLength: sampleSize.length,
+						averageDurationResponseLength: averageDuration.length,
+						errorRateResponseLength: errorRate.length,
 					},
 					newRelicEntityGuid,
 					newRelicAccountId,
@@ -956,6 +975,20 @@ export class CLMProvider {
 				return "filePath";
 		}
 	}
+
+	private mergeResults<T extends FileLevelTelemetryMetric>(
+		...averageDurationResultSets: T[][]
+	): T[] {
+		const consolidated = new Map<string, T>();
+		for (const resultSet of averageDurationResultSets) {
+			for (const result of resultSet) {
+				if (!consolidated.has(result.metricTimesliceName)) {
+					consolidated.set(result.metricTimesliceName, result);
+				}
+			}
+		}
+		return Array.from(consolidated.values());
+	}
 }
 
 function isSameMethod(
@@ -999,3 +1032,8 @@ export type EnhancedMetricTimeslice = MetricTimeslice & {
 	metadata: AdditionalMetadataInfo;
 	namespace?: string;
 };
+
+interface NameValue {
+	name: string;
+	value: number;
+}

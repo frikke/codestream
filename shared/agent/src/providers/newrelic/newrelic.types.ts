@@ -1,5 +1,5 @@
 import { FunctionLocator } from "@codestream/protocols/agent";
-import { LanguageId } from "./clm/clmProvider";
+import { LanguageId } from "./clm/clmManager";
 
 export interface Directive {
 	type: "assignRepository" | "removeAssignee" | "setAssignee" | "setState";

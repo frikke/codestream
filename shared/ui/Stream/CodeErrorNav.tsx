@@ -47,7 +47,7 @@ import { getCodeError, getErrorGroup } from "../store/codeErrors/reducer";
 import { getSidebarLocation } from "../store/editorContext/reducer";
 import { isConnected } from "../store/providers/reducer";
 import KeystrokeDispatcher from "../utilities/keystroke-dispatcher";
-import { closePanel, markItemRead, setUserPreference } from "./actions";
+import { markItemRead, setUserPreference } from "./actions";
 import { BaseCodeErrorHeader, CodeError, Description, ExpandedAuthor } from "./CodeError";
 import { RepositoryAssociator } from "./CodeError/RepositoryAssociator";
 import { BigTitle, Header, Meta } from "./Codemark/BaseCodemark";
@@ -219,7 +219,7 @@ export function CodeErrorNav(props: Props) {
 	const exit = async () => {
 		// clear out the current code error (set to blank) in the webview
 		await dispatch(setCurrentCodeError(undefined, undefined));
-		dispatch(closePanel());
+		dispatch(closeAllPanels());
 	};
 
 	const unreadEnabled = useSelector((state: CodeStreamState) =>

@@ -151,7 +151,7 @@ export class GitLabProvider
 	}
 
 	async verifyConnection(config: ProviderConfigurationData): Promise<void> {
-		await this.getCurrentUser();
+		await this.verifyConnectionWithCurrentUserQuery();
 	}
 
 	protected getPRExternalContent(comment: PullRequestComment) {
@@ -1041,6 +1041,22 @@ export class GitLabProvider
 		return this.delete<R>(url, {}, options);
 	}
 
+	// For GLSM we need to verify with graphql instead of the rest API.  This is because
+	// GLSM has project tokens that could potentially be used and allow for rest api
+	// authentication, but will not work when we eventually have to use graphql.
+	async verifyConnectionWithCurrentUserQuery() {
+		const response = await this.query<any>(
+			`{
+				currentUser {
+					id
+				}
+			}			  
+			`,
+			{}
+		);
+		if (!response.currentUser) throw new Error("PAT could not fetch currentUser");
+		return response.currentUser;
+	}
 	/**
 	 * Gets the current user based on the GL providerId
 	 *

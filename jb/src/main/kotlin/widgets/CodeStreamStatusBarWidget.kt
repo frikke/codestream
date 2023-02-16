@@ -34,7 +34,6 @@ class CodeStreamStatusBarWidget(val project: Project) : StatusBarWidget, StatusB
     }
 
     override fun dispose() {
-        myStatusBar?.dispose()
     }
 
     override fun getTooltipText() = "Click to open CodeStream"

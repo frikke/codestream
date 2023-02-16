@@ -1,5 +1,16 @@
 # Change Log
 
+## [14.15.0] - 2023-2-16
+
+### Fixed
+
+- Fixes an issue where a newly cloned repo would not be reflected in the Observability or Codemarks sections
+- Fixes an issue with the sub-sections in the Codemarks section not being collapsable
+- Fixes an issue with the parsing of stack traces in errors for Elixir
+- Fixes an issue that caused the "Waiting on my Review" section to appear in Merge Requests when connected to GitLab Self-Managed, where it's not supported
+- Fixes an issue with permalinks not taking you to the file/line number in the IDE
+- Fixes an issue where when closing an error you'd be left on the Activity Feed
+
 ## [14.14.0] - 2023-2-2
 
 ### Added
@@ -8,6 +19,7 @@
 
 ### Changed
 
+- Changed the implementation of code-level metrics to display error rate as a percentage, and removing throughput in favor of just showing the sample size
 - Adds clearer messaging when a PR can't be displayed because a password is required to do a fetch
 - Adds clearer messaging when CodeStream can't connect to an on-prem code host due to network/VPN issues
 

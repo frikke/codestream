@@ -39,10 +39,10 @@ export class AnomalyDetector {
 	async getResponseTimeAnomalies() {
 		try {
 			const [spanData, spanBaseline, metricData, metricBaseline] = await Promise.all([
-				this.getSpanResponseTime(this._dataTimeFrame),
-				this.getSpanResponseTime(this._baselineTimeFrame),
-				this.getMetricResponseTime(this._dataTimeFrame),
-				this.getMetricResponseTime(this._baselineTimeFrame),
+				this.getResponseTimeSpan(this._dataTimeFrame),
+				this.getResponseTimeSpan(this._baselineTimeFrame),
+				this.getResponseTimeMetric(this._dataTimeFrame),
+				this.getResponseTimeMetric(this._baselineTimeFrame),
 			]);
 			return this.formattedOutput(spanData, spanBaseline, metricData, metricBaseline);
 		} catch (ex) {
@@ -54,10 +54,10 @@ export class AnomalyDetector {
 	async getErrorRateAnomalies() {
 		try {
 			const [spanData, spanBaseline, metricData, metricBaseline] = await Promise.all([
-				this.getSpanErrorRate(this._dataTimeFrame),
-				this.getSpanErrorRate(this._baselineTimeFrame),
-				this.getMetricErrorRate(this._dataTimeFrame),
-				this.getMetricErrorRate(this._baselineTimeFrame),
+				this.getErrorRateSpan(this._dataTimeFrame),
+				this.getErrorRateSpan(this._baselineTimeFrame),
+				this.getErrorRateMetric(this._dataTimeFrame),
+				this.getErrorRateMetric(this._baselineTimeFrame),
 			]);
 			return this.formattedOutput(spanData, spanBaseline, metricData, metricBaseline);
 		} catch (ex) {
@@ -66,13 +66,13 @@ export class AnomalyDetector {
 		}
 	}
 
-	async getObservabilityAnomaliesThroughput() {
+	async getThroughputAnomalies() {
 		try {
 			const [spanData, spanBaseline, metricData, metricBaseline] = await Promise.all([
-				this.getSpanThroughput(this._dataTimeFrame),
-				this.getSpanThroughput(this._baselineTimeFrame),
-				this.getMetricThroughput(this._dataTimeFrame),
-				this.getMetricThroughput(this._baselineTimeFrame),
+				this.getThroughputSpan(this._dataTimeFrame),
+				this.getThroughputSpan(this._baselineTimeFrame),
+				this.getThroughputMetric(this._dataTimeFrame),
+				this.getThroughputMetric(this._baselineTimeFrame),
 			]);
 			return this.formattedOutput(spanData, spanBaseline, metricData, metricBaseline);
 		} catch (ex) {
@@ -198,7 +198,7 @@ export class AnomalyDetector {
 		return map;
 	}
 
-	private getSpanResponseTime(timeFrame: string): Promise<NameValue[]> {
+	private getResponseTimeSpan(timeFrame: string): Promise<NameValue[]> {
 		const query =
 			`SELECT average(duration) * 1000 AS 'value' ` +
 			`FROM Span WHERE \`entity.guid\` = '${this.entityGuid}' AND (${this.spanLookup}) FACET name ` +
@@ -206,7 +206,7 @@ export class AnomalyDetector {
 		return this.runNrql(query);
 	}
 
-	private getMetricResponseTime(timeFrame: string): Promise<NameValue[]> {
+	getResponseTimeMetric(timeFrame: string): Promise<NameValue[]> {
 		const query =
 			`SELECT average(newrelic.timeslice.value) * 1000 AS 'value' ` +
 			`FROM Metric WHERE \`entity.guid\` = '${this.entityGuid}' AND (${this.metricLookup}) FACET metricTimesliceName AS name ` +
@@ -214,7 +214,7 @@ export class AnomalyDetector {
 		return this.runNrql(query);
 	}
 
-	private getSpanErrorRate(timeFrame: string): Promise<NameValue[]> {
+	private getErrorRateSpan(timeFrame: string): Promise<NameValue[]> {
 		const query =
 			`SELECT rate(count(*), 1 minute) AS 'value' ` +
 			`FROM Span WHERE \`entity.guid\` = '${this.entityGuid}' AND \`error.group.guid\` IS NOT NULL AND (${this.spanLookup}) FACET name ` +
@@ -222,7 +222,7 @@ export class AnomalyDetector {
 		return this.runNrql(query);
 	}
 
-	private async getMetricErrorRate(timeFrame: string): Promise<NameValue[]> {
+	private async getErrorRateMetric(timeFrame: string): Promise<NameValue[]> {
 		const query =
 			`SELECT rate(count(apm.service.transaction.error.count), 1 minute) AS 'value' ` +
 			`FROM Metric WHERE \`entity.guid\` = '${this.entityGuid}' AND (${this.metricLookup}) FACET metricTimesliceName AS name ` +
@@ -230,7 +230,7 @@ export class AnomalyDetector {
 		return this.runNrql(query);
 	}
 
-	private getSpanThroughput(timeFrame: string): Promise<NameValue[]> {
+	private getThroughputSpan(timeFrame: string): Promise<NameValue[]> {
 		const query =
 			`SELECT rate(count(*), 1 minute) AS 'value' ` +
 			`FROM Span WHERE \`entity.guid\` = '${this.entityGuid}' AND (${this.spanLookup}) FACET name ` +
@@ -239,7 +239,7 @@ export class AnomalyDetector {
 		return this.runNrql(query);
 	}
 
-	private async getMetricThroughput(timeFrame: string): Promise<NameValue[]> {
+	private async getThroughputMetric(timeFrame: string): Promise<NameValue[]> {
 		const query =
 			`SELECT rate(count(newrelic.timeslice.value), 1 minute) AS 'value' ` +
 			`FROM Metric WHERE \`entity.guid\` = '${this.entityGuid}' AND (${this.metricLookup}) FACET metricTimesliceName AS name ` +

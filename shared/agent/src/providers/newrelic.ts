@@ -139,7 +139,7 @@ import {
 } from "./newrelic/newrelic.types";
 import { generateClmSpanDataExistsQuery } from "./newrelic/spanQuery";
 import { ThirdPartyIssueProviderBase } from "./thirdPartyIssueProviderBase";
-import { CLMProvider, EnhancedMetricTimeslice, LanguageId } from "./newrelic/clm/clmProvider";
+import { ClmManager, EnhancedMetricTimeslice, LanguageId } from "./newrelic/clm/clmManager";
 import { Index } from "@codestream/utils/types";
 
 const ignoredErrors = [GraphqlNrqlTimeoutError];
@@ -169,7 +169,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		defaultTtl: 30 * 1000,
 	});
 
-	private _clmProvider = new CLMProvider(
+	private _clmProvider = new ClmManager(
 		this.getProductUrl.bind(this),
 		this.query.bind(this),
 		this.runNrql.bind(this),
@@ -1081,7 +1081,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			void (await anomalyDetector.init());
 			const responseTimePromise = anomalyDetector.getResponseTimeAnomalies();
 			const errorRatePromise = anomalyDetector.getErrorRateAnomalies();
-			const throughputPromise = anomalyDetector.getObservabilityAnomaliesThroughput();
+			const throughputPromise = anomalyDetector.getThroughputAnomalies();
 
 			const [responseTime, errorRate, throughput] = await Promise.all([
 				responseTimePromise,
@@ -2233,7 +2233,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				const q = `query getMetric($accountId: Int!) {
 					actor {
 					  account(id: $accountId) {
-							nrql(query: "${escapeNrql(_query || "")}", timeout: 30) {
+							nrql(query: "${escapeNrql(_query || "")}", timeout: 60) {
 								results
 								metadata {
 									timeWindow {
@@ -2339,7 +2339,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			metricDefinitions.forEach(md => {
 				const whereClause = md.definition.where ? `WHERE ${md.definition.where}` : "";
 				gmQuery += `
-					${md.name}: nrdbQuery(nrql: "SELECT ${md.definition.select} AS 'result' FROM ${md.definition.from} ${whereClause} SINCE ${since} AGO", timeout: 10, async: true) {
+					${md.name}: nrdbQuery(nrql: "SELECT ${md.definition.select} AS 'result' FROM ${md.definition.from} ${whereClause} SINCE ${since} AGO", timeout: 60, async: true) {
 						results
 					}
 				`;
@@ -2447,7 +2447,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				const sinceQuery = `SINCE ${indicatorObjective.count} ${indicatorObjective.unit} AGO`;
 				sloQuery += `
 				${v.guid}: entity(guid: "${v.guid}") {
-					nrdbQuery(nrql: "${v.resultQueries.indicator.nrql} ${sinceQuery}", timeout: 10, async: true) {
+					nrdbQuery(nrql: "${v.resultQueries.indicator.nrql} ${sinceQuery}", timeout: 60, async: true) {
 						results
 					}
 				}`;
@@ -2522,7 +2522,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			const query = `{
 				actor {
 					account(id: ${accountId}) {
-						transactionTypeList: nrql(query: "SELECT rate(count(apm.service.transaction.duration), 1 minute) as 'transactionCount' FROM Metric WHERE (entity.guid = '${entityGuid}') LIMIT MAX SINCE 10 MINUTES AGO TIMESERIES facet transactionType", timeout: 30) {
+						transactionTypeList: nrql(query: "SELECT rate(count(apm.service.transaction.duration), 1 minute) as 'transactionCount' FROM Metric WHERE (entity.guid = '${entityGuid}') LIMIT MAX SINCE 10 MINUTES AGO TIMESERIES facet transactionType", timeout: 60) {
 							results
 							metadata {
 								timeWindow {
@@ -3220,7 +3220,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				`query fetchErrorsInboxFacetedData($accountId:Int!) {
 						actor {
 						  account(id: $accountId) {
-							nrql(query: "${query}", timeout: 30) { nrql results }
+							nrql(query: "${query}", timeout: 60) { nrql results }
 						  }
 						}
 					  }
@@ -3472,7 +3472,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				`query getErrorTrace($accountId: Int!) {
 						actor {
 						  account(id: $accountId) {
-							nrql(query: "${errorTraceQuery}", timeout: 30) {
+							nrql(query: "${errorTraceQuery}", timeout: 60) {
 							  results
 							}
 						  }
@@ -3776,7 +3776,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		ContextLogger.warn(message, params);
 	}
 
-	private async runNrql<T>(accountId: number, nrql: string, timeout: number = 30): Promise<T[]> {
+	private async runNrql<T>(accountId: number, nrql: string, timeout: number = 60): Promise<T[]> {
 		const query = `query Nrql($accountId:Int!) {
 			actor {
 				account(id: $accountId) {

@@ -608,7 +608,7 @@ class FileLevelTelemetryResult(
     val averageDuration: List<MethodLevelTelemetryAverageDuration>?,
     val errorRate: List<MethodLevelTelemetryErrorRate>?,
     val lastUpdateDate: Int?,
-    val hasAnyData: Int?,
+    val hasAnyData: Boolean?,
     val sinceDateFormatted: String?,
     val newRelicAccountId: Int?,
     val newRelicEntityGuid: String?,
