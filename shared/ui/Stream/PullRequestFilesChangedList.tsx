@@ -474,6 +474,7 @@ export const PullRequestFilesChangedList = (props: Props) => {
 								<h1 className={hidden ? "hidden" : ""}>
 									<Icon
 										name={hidden ? "chevron-right-thin" : "chevron-down-thin"}
+										style={{ marginRight: "2px" }}
 										className="toggle clickable"
 										onClick={() => hideFile(_.filename, !hidden)}
 									/>

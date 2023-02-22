@@ -118,7 +118,11 @@ export function DropdownButton(props: React.PropsWithChildren<DropdownButtonProp
 						narrow
 					>
 						{props.noChevronDown ? null : (
-							<Icon name="chevron-down-thin" className="chevron-down" />
+							<Icon
+								name="chevron-down-thin"
+								className="chevron-down"
+								style={{ marginRight: "2px" }}
+							/>
 						)}
 					</Button>
 				</span>
