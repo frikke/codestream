@@ -2371,7 +2371,14 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 
 				if (metricResult !== null && metricResult !== undefined) {
 					if (typeof metricResult === "number") {
-						metricValue = metricResult;
+						// PERCENTAGE values are given as a decimal, IE 0.5 for 50%
+						// For the purposes of entity level golden metrics, we
+						// want this converted to the % value, not decimal value.
+						if (md.unit === "PERCENTAGE") {
+							metricValue = metricResult * 100;
+						} else {
+							metricValue = metricResult;
+						}
 					}
 
 					if (typeof metricResult === "object") {
