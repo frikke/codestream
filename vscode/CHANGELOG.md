@@ -1,5 +1,11 @@
 # Change Log
 
+## [14.15.2] - 2023-2-24
+
+### Fixed
+
+- Fixes an issue with CodeStream taking up an inordinate amount of CPU
+
 ## [14.15.0] - 2023-2-16
 
 ### Fixed
