@@ -492,38 +492,42 @@ export class GitRepositories {
 		// This watches for when a user clones/copies/creates/etc a new repository in
 		// an existing workspace folder so that we can track the repository properly.
 		const workspaceFolders = await this.session.getWorkspaceFolders();
-		if (workspaceFolders && workspaceFolders.length > 0) {
-			const basePaths = workspaceFolders.map(_ => `${url.fileURLToPath(_.uri)}/**/.git`);
-			Logger.debug(`add git dir watch: basePaths: ${basePaths}`);
-			const newCloneWatcher = chokidar
-				.watch(basePaths, { ignoreInitial: true })
-				.on("addDir", async gitPath => {
-					Logger.debug(`add git dir watch: addDir gitPath: ${gitPath}`);
-					const normalizedGitPath = Strings.normalizePath(gitPath, isWindows);
-					const pathElements = normalizedGitPath.split("/");
-					if (pathElements[pathElements.length - 1] === ".git") {
-						const name = pathElements[pathElements.length - 2];
-						const uri = url.pathToFileURL(`${pathElements.slice(0, -1).join("/")}`);
-						Logger.log(
-							`add git dir watch: onWorkspaceFoldersChanged name: ${name}, uri: ${uri.toString()}`
-						);
-						await this.onWorkspaceFoldersChanged({
-							added: [
-								{
-									name,
-									uri: uri.toString(),
-								},
-							],
-							removed: [],
-						});
-					}
-				});
+		try {
+			if (workspaceFolders && workspaceFolders.length > 0) {
+				const basePaths = workspaceFolders.map(_ => `${url.fileURLToPath(_.uri)}/**/.git`);
+				Logger.log(`add git dir watch: basePaths: ${basePaths}`);
+				const newCloneWatcher = chokidar
+					.watch(basePaths, { ignoreInitial: true, usePolling: false })
+					.on("addDir", async gitPath => {
+						Logger.debug(`add git dir watch: addDir gitPath: ${gitPath}`);
+						const normalizedGitPath = Strings.normalizePath(gitPath, isWindows);
+						const pathElements = normalizedGitPath.split("/");
+						if (pathElements[pathElements.length - 1] === ".git") {
+							const name = pathElements[pathElements.length - 2];
+							const uri = url.pathToFileURL(`${pathElements.slice(0, -1).join("/")}`);
+							Logger.log(
+								`add git dir watch: onWorkspaceFoldersChanged name: ${name}, uri: ${uri.toString()}`
+							);
+							await this.onWorkspaceFoldersChanged({
+								added: [
+									{
+										name,
+										uri: uri.toString(),
+									},
+								],
+								removed: [],
+							});
+						}
+					});
 
-			this._monitors.push({
-				dispose() {
-					return newCloneWatcher.close();
-				},
-			});
+				this._monitors.push({
+					dispose() {
+						return newCloneWatcher.close();
+					},
+				});
+			}
+		} catch (e) {
+			Logger.log("Error setting up git dir watch", e);
 		}
 
 		const repos = this._repositoryTree.values();
@@ -547,29 +551,29 @@ export class GitRepositories {
 
 			try {
 				/**
-                 *  Portions adapted from https://github.com/eamodio/vscode-gitlens/blob/e2a6ae1317ce348985314e18c3d5ed257f0ef357/src/git/models/repository.ts#L133 which carries this notice:
-                 *    The MIT License (MIT)
+				 *  Portions adapted from https://github.com/eamodio/vscode-gitlens/blob/e2a6ae1317ce348985314e18c3d5ed257f0ef357/src/git/models/repository.ts#L133 which carries this notice:
+				 *  The MIT License (MIT)
 
-                 Copyright (c) 2016-2021 Eric Amodio
+				 Copyright (c) 2016-2021 Eric Amodio
 
-                 Permission is hereby granted, free of charge, to any person obtaining a copy
-                 of this software and associated documentation files (the "Software"), to deal
-                 in the Software without restriction, including without limitation the rights
-                 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-                 copies of the Software, and to permit persons to whom the Software is
-                 furnished to do so, subject to the following conditions:
+				 Permission is hereby granted, free of charge, to any person obtaining a copy
+				 of this software and associated documentation files (the "Software"), to deal
+				 in the Software without restriction, including without limitation the rights
+				 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+				 copies of the Software, and to permit persons to whom the Software is
+				 furnished to do so, subject to the following conditions:
 
-                 The above copyright notice and this permission notice shall be included in all
-                 copies or substantial portions of the Software.
+				 The above copyright notice and this permission notice shall be included in all
+				 copies or substantial portions of the Software.
 
-                 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-                 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-                 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-                 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-                 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-                 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-                 SOFTWARE.
-                 */
+				 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+				 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+				 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+				 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+				 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+				 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+				 SOFTWARE.
+				 */
 				/**
 				 * Modifications Copyright CodeStream Inc. under the Apache 2.0 License (Apache-2.0)
 				 */

@@ -97,11 +97,16 @@ import org.eclipse.lsp4j.WorkspaceClientCapabilities
 import org.eclipse.lsp4j.jsonrpc.RemoteEndpoint
 import org.eclipse.lsp4j.jsonrpc.messages.Either
 import org.eclipse.lsp4j.launch.LSPLauncher
+import org.reflections.Reflections
+import org.reflections.scanners.Scanners
+import org.reflections.util.ConfigurationBuilder
+import org.reflections.util.FilterBuilder
 import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission
+import java.nio.file.attribute.PosixFilePermissions
 import java.util.Collections
 import java.util.Scanner
 import java.util.concurrent.CompletableFuture
@@ -286,6 +291,32 @@ class AgentService(private val project: Project) : Disposable {
         FileUtils.copyToFile(javaClass.getResourceAsStream("/agent/agent.js.map"), agentJsMap)
         FileUtils.copyToFile(javaClass.getResourceAsStream("/webview/index.js.map"), webJsMap)
 
+        if (platform == Platform.MAC_X64 || platform == Platform.MAC_ARM64) {
+            try {
+                logger.info("Extracting extraLibs")
+                val reflections = Reflections(ConfigurationBuilder()
+                    .forPackage("agent.node_modules")
+                    .filterInputsBy(FilterBuilder().includePackage("agent.node_modules"))
+                    .setScanners(Scanners.Resources))
+                val resourceList = reflections.getResources(".*")
+                logger.info("Copying ${resourceList.size} files to node_modules")
+                val baseDir = userHomeDir.resolve(".codestream")
+                resourceList.forEach {
+                    val dest = baseDir.resolve(it)
+                    if (!dest.parentFile.exists()) {
+                        Files.createDirectories(dest.parentFile.toPath())
+                    }
+                    FileUtils.copyToFile(javaClass.getResourceAsStream("/$it"), dest)
+                    if (platform.isPosix && it.endsWith(".node")) {
+                        val executable = PosixFilePermissions.fromString("rwxr-xr-x")
+                        Files.setPosixFilePermissions(dest.toPath(), executable)
+                    }
+                }
+            } catch (t: Throwable) {
+                logger.error("Error copying extra libs", t)
+            }
+        }
+
         getNodeResourcePath()?.let {
             val nodeDestFile = getNodeDestFile(agentDir, agentVersion)
             deleteAllExcept(agentDir, "node", nodeDestFile.name)
@@ -317,7 +348,7 @@ class AgentService(private val project: Project) : Disposable {
             "--nolazy",
             agentJsDestFile.absolutePath,
             "--stdio"
-        ).withEnvironment(agentEnv).createProcess()
+        ).withEnvironment(agentEnv).createProcess().also { logger.info("Falling back to system-installed node") }
     }
 
     private fun createDebugProcess(agentEnv: Map<String, String>): Process {

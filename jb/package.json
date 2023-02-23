@@ -10,10 +10,9 @@
 		"url": ""
 	},
 	"scripts": {
-
 		"build": "npm run agent:build && tsx esbuild.ts --prod",
-		"bundle": "npm install --no-save && npm run webview:verify && npm run agent:bundle && npm run agent:pkg && tsx esbuild.ts --prod",
-		"bundle:mac": "npm run agent:bundle && npm run agent:pkg:mac && tsx esbuild.ts --prod",
+		"bundle": "npm install --no-save && npm run webview:verify && npm run agent:bundle && tsx esbuild.ts --prod",
+		"bundle:mac": "npm run agent:bundle && tsx esbuild.ts --prod",
 		"bundle:ci": "npm run clean:ci && npm run bundle",
 		"clean:ci": "git clean -xdf -e licenses/**/* && npm run webview:clean:ci && npm run agent:clean:ci",
 		"rebuild": "npm install --no-save && npm run agent:rebuild && npm run build",
@@ -21,8 +20,6 @@
 		"agent:build": "pushd \"../shared/agent\" && npm run build -- --ide jb && popd",
 		"agent:bundle": "pushd \"../shared/agent\" && npm run bundle && popd",
 		"agent:clean:ci": "pushd \"../shared/agent\" && npm run clean:ci && popd",
-		"agent:pkg": "pushd \"../shared/agent\" && npm run pkg-jetbrains && popd",
-		"agent:pkg:mac": "pushd \"../shared/agent\" && npm run pkg-jetbrains-mac && popd",
 		"agent:rebuild": "pushd \"../shared/agent\" && npm run rebuild --ide jb && popd",
 		"agent:test": "pushd \"../shared/agent\" && npm run test && popd",
 		"agent:watch": "pushd \"../shared/agent\" && npm run watch -- --ide jb && popd",
