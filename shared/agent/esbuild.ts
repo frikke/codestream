@@ -54,6 +54,7 @@ const postBuildCopy: CopyStuff[] = [
 			agent: "./src/main.ts",
 			"agent-vs-2019": "./src/main-vs-2019.ts",
 		},
+		external: ["fsevents"],
 		plugins: [
 			graphqlLoaderPlugin(),
 			nativeNodeModulesPlugin,

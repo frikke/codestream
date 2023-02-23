@@ -20,10 +20,11 @@
 	"main": "./dist/agent",
 	"scripts": {
 		"build": "tsx esbuild.ts",
-		"bundle": "npm install --no-save && npm run verify:compile && tsx esbuild.ts --prod",
+		"bundle": "npm install --no-save && npm run verify:compile && tsx esbuild.ts --prod && npm run extraClientBuildLibs",
 		"bundle:ci": "npm run clean:ci && npm run bundle",
 		"clean": "rimraf ../util/src/protocol/*.js",
 		"clean:ci": "git clean -xdf",
+		"extraClientBuildLibs": "scripts/extraLibs.sh",
 		"pkg": "npm run pkg-vs & npm run pkg-jetbrains",
 		"pkg-jetbrains": "pkg dist/agent.js --targets node16-linux-x64,node16-macos-x64,node16-win-x64 --options max_old_space_size=2048 --out-path dist/",
 		"pkg-jetbrains-mac": "pkg dist/agent.js --targets node16-macos-x64 --options max_old_space_size=2048 --output dist/agent-macos-x64",
