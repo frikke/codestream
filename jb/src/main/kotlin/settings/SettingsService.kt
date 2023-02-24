@@ -1,6 +1,7 @@
 package com.codestream.settings
 
 import com.codestream.agentService
+import com.codestream.appDispatcher
 import com.codestream.codeStream
 import com.codestream.gson
 import com.codestream.protocols.webview.ShowProgressIndicator
@@ -21,7 +22,6 @@ import com.intellij.openapi.components.Storage
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlin.properties.Delegates
 
@@ -88,7 +88,7 @@ class SettingsService(val project: Project) : PersistentStateComponent<SettingsS
             state.teamId = null
             applicationSettings.state.teamId = null
         }
-        GlobalScope.launch {
+        appDispatcher.launch {
             try {
                 project.webViewService?.postNotification(
                     ShowProgressIndicator.Start()

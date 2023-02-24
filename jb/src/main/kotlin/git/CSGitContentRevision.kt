@@ -1,12 +1,12 @@
 package com.codestream.git
 
 import com.codestream.agentService
+import com.codestream.appDispatcher
 import com.codestream.protocols.agent.GetFileContentsAtRevisionParams
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vcs.FilePath
 import com.intellij.openapi.vcs.changes.ContentRevision
 import com.intellij.openapi.vcs.history.VcsRevisionNumber
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.concurrent.CompletableFuture
 
@@ -16,7 +16,7 @@ class CSGitContentRevision(val project: Project, val filePath: FilePath, val rev
     override fun getContent(): String? {
         val contentFuture = CompletableFuture<String?>()
 
-        GlobalScope.launch {
+        appDispatcher.launch {
             val fileContents = project.agentService?.getFileContentsAtRevision(
                 GetFileContentsAtRevisionParams(
                     null,

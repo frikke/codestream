@@ -1,6 +1,7 @@
 package com.codestream.webview
 
 import com.codestream.agentService
+import com.codestream.appDispatcher
 import com.codestream.authenticationService
 import com.codestream.editorService
 import com.codestream.gson
@@ -47,7 +48,6 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.teamdev.jxbrowser.js.JsAccessible
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import org.eclipse.lsp4j.jsonrpc.ResponseErrorException
@@ -60,7 +60,7 @@ class WebViewRouter(val project: Project) {
     val initialization = CompletableFuture<Unit>()
 
     @JsAccessible
-    fun handle(rawMessage: String, origin: String?) = GlobalScope.launch {
+    fun handle(rawMessage: String, origin: String?) = appDispatcher.launch {
         val message = try {
             parse(rawMessage)
         } catch (e: Exception) {

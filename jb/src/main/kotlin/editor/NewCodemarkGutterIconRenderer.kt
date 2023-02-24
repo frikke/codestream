@@ -4,7 +4,7 @@ import com.codestream.actions.AddComment
 import com.codestream.actions.CreateIssue
 import com.codestream.actions.GetPermalink
 import com.codestream.actions.NewCodemark
-import com.codestream.agentService
+import com.codestream.appDispatcher
 import com.codestream.codeStream
 import com.codestream.extensions.addCommentToReviewText
 import com.codestream.extensions.addSingleCommentText
@@ -32,7 +32,6 @@ import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.vfs.VirtualFile
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.awt.Cursor
 import java.awt.dnd.DragSource
@@ -77,7 +76,7 @@ class NewCodemarkGutterIconRenderer(
         val isInPrRange = editor.isSelectionWithinDiffRange()
         return if (pullRequest != null) {
             val future = CompletableFuture<DefaultActionGroup>()
-            GlobalScope.launch {
+            appDispatcher.launch {
                 val startReviewAction = PullRequestCommentAction(editor.startReviewText, true, editor, line, onClick)
                 val addSingleCommentAction =
                     PullRequestCommentAction(editor.addSingleCommentText, false, editor, line, onClick)

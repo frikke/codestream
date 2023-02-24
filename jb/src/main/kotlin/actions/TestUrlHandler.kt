@@ -2,8 +2,6 @@ package com.codestream.actions
 
 import com.codestream.DEBUG
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.application.JBProtocolCommand
-import com.intellij.openapi.application.JetBrainsProtocolHandler
 import com.intellij.openapi.project.DumbAwareAction
 
 class TestUrlHandler : DumbAwareAction() {

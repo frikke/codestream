@@ -8,7 +8,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.NavigatablePsiElement
 import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
-import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 
 val httpMethods = arrayOf("post", "patch", "put", "get", "delete")
 

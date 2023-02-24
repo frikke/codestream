@@ -1,15 +1,13 @@
 package com.codestream.telemetry
 
 import com.codestream.agent.AgentService
-import com.codestream.protocols.agent.Ide
+import com.codestream.appDispatcher
 import com.codestream.protocols.agent.UserLoggedIn
-import com.codestream.system.platform
 import com.intellij.diagnostic.LogMessage
 import com.intellij.openapi.diagnostic.ErrorReportSubmitter
 import com.intellij.openapi.diagnostic.IdeaLoggingEvent
 import com.intellij.openapi.diagnostic.SubmittedReportInfo
 import com.intellij.util.Consumer
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.awt.Component
 
@@ -36,7 +34,7 @@ class ErrorHandler : ErrorReportSubmitter() {
         for (event in events) {
             val logMessage = event.data as? LogMessage
             logMessage?.let {
-                GlobalScope.launch {
+                appDispatcher.launch {
                     agentService?.reportMessage(it.throwable)
                 }
             }

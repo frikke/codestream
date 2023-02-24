@@ -5,8 +5,6 @@ import com.codestream.protocols.agent.Extension
 import com.codestream.protocols.agent.ProxySettings
 import com.codestream.protocols.agent.TraceLevel
 import com.codestream.protocols.webview.Configs
-import com.intellij.credentialStore.CredentialAttributes
-import com.intellij.credentialStore.generateServiceName
 import com.intellij.ide.plugins.PluginManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State

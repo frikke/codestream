@@ -1,6 +1,7 @@
 package com.codestream.editor
 
 import com.codestream.agentService
+import com.codestream.appDispatcher
 import com.codestream.codeStream
 import com.codestream.extensions.displayPath
 import com.codestream.extensions.file
@@ -65,7 +66,6 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.ui.JBColor
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.eclipse.lsp4j.DidChangeTextDocumentParams
@@ -215,7 +215,7 @@ class EditorService(val project: Project) {
         codeStreamVisible = isVisible
         updateMarkers()
 
-        GlobalScope.launch {
+        appDispatcher.launch {
             delay(250L)
             ApplicationManager.getApplication().invokeLater {
                 val editor = activeEditor
@@ -267,7 +267,7 @@ class EditorService(val project: Project) {
                 reviewFile?.side == ReviewDiffSide.RIGHT
             }
             .forEach {
-                GlobalScope.launch {
+                appDispatcher.launch {
                     val markers = getDocumentMarkers(it.document)
                     it.renderMarkers(markers)
                 }
@@ -284,7 +284,7 @@ class EditorService(val project: Project) {
             }
         if (visibleEditors.isEmpty()) return@invokeLater
 
-        GlobalScope.launch {
+        appDispatcher.launch {
             val markers = getDocumentMarkers(document)
             visibleEditors.forEach { it.renderMarkers(markers) }
         }
@@ -713,7 +713,7 @@ class EditorService(val project: Project) {
         val agentService = project.agentService ?: return@invokeLater
         val uri = editor.document.uri ?: return@invokeLater
 
-        GlobalScope.launch {
+        appDispatcher.launch {
             val result = agentService.reviewCoverage(ReviewCoverageParams(TextDocument(uri)))
             ApplicationManager.getApplication().invokeLater {
                 result.reviewIds.forEachIndexed { index, s ->

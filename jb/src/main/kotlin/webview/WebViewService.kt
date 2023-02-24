@@ -3,6 +3,7 @@ package com.codestream.webview
 import com.codestream.ENV_DISABLE_JCEF
 import com.codestream.WEBVIEW_PATH
 import com.codestream.agentService
+import com.codestream.appDispatcher
 import com.codestream.gson
 import com.codestream.protocols.agent.TelemetryParams
 import com.codestream.protocols.webview.WebViewNotification
@@ -18,7 +19,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.ui.jcef.JBCefApp
 import com.intellij.ui.jcef.JBCefBrowser
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import org.apache.commons.io.FileUtils
@@ -49,7 +49,7 @@ class WebViewService(val project: Project) : Disposable {
 
     init {
         logger.info("Initializing WebViewService for project ${project.basePath}")
-        GlobalScope.launch {
+        appDispatcher.launch {
             webView = createWebView(router)
             webViewCreation.complete(Unit)
         }
@@ -84,7 +84,7 @@ class WebViewService(val project: Project) : Disposable {
             project.settingsService?.clearWebViewContext()
         }
         generateHtmlFile()
-        GlobalScope.launch {
+        appDispatcher.launch {
             try {
                 webViewCreation.await()
                 webView.loadUrl(htmlFile.url)

@@ -1,8 +1,6 @@
 package com.codestream.review
 
 import com.codestream.gson
-import com.google.gson.JsonArray
-import com.google.gson.JsonElement
 import com.intellij.util.Base64
 import java.nio.charset.Charset
 
