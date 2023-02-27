@@ -6,6 +6,7 @@ import {
 } from "@codestream/protocols/agent";
 import { LanguageId } from "./clmManager";
 import { Logger } from "../../../logger";
+import { INrqlClient } from "../INrqlClient";
 
 interface NameValue {
 	name: string;
@@ -23,7 +24,7 @@ export class CLMNameInferenceStrategy {
 	constructor(
 		private entityGuid: string,
 		private accountId: number,
-		private _runNrql: <T>(accountId: number, nrql: string, timeout: number) => Promise<T[]>
+		private nrqlClient: INrqlClient
 	) {}
 
 	async execute(
@@ -245,7 +246,7 @@ export class CLMNameInferenceStrategy {
 	}
 
 	private runNrql<T>(nrql: string): Promise<T[]> {
-		return this._runNrql(this.accountId, nrql, 200);
+		return this.nrqlClient.runNrql(this.accountId, nrql, 200);
 	}
 
 	private extractNamespace(spanName: string): string | undefined {

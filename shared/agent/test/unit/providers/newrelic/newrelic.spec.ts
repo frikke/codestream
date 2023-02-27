@@ -973,13 +973,11 @@ class NewRelicProviderStubBase extends NewRelicProvider {
 		return true;
 	}
 
-	public async getEntityCount(): Promise<GetEntityCountResponse> {
+	async getEntityCount(): Promise<GetEntityCountResponse> {
 		return { entityCount: 1 };
 	}
 
-	protected async getObservabilityEntityRepos(
-		repoId: string
-	): Promise<ObservabilityRepo | undefined> {
+	async getObservabilityEntityRepos(repoId: string): Promise<ObservabilityRepo | undefined> {
 		return {
 			repoId: "123",
 			hasRepoAssociation: true,
@@ -1562,13 +1560,11 @@ class NewRelicProviderStub extends NewRelicProviderStubBase {
 		return true;
 	}
 
-	public async getEntityCount(): Promise<GetEntityCountResponse> {
+	async getEntityCount(): Promise<GetEntityCountResponse> {
 		return { entityCount: 1 };
 	}
 
-	protected async getObservabilityEntityRepos(
-		repoId: string
-	): Promise<ObservabilityRepo | undefined> {
+	async getObservabilityEntityRepos(repoId: string): Promise<ObservabilityRepo | undefined> {
 		return {
 			repoId: "123",
 			hasRepoAssociation: true,

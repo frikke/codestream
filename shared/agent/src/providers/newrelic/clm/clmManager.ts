@@ -4,14 +4,11 @@ import {
 	CodeStreamDiffUriData,
 	EntityAccount,
 	FileLevelTelemetryMetric,
-	GetEntityCountRequest,
-	GetEntityCountResponse,
 	GetFileLevelTelemetryRequest,
 	GetFileLevelTelemetryResponse,
 	GetObservabilityResponseTimesRequest,
 	GetObservabilityResponseTimesResponse,
 	NRErrorResponse,
-	NRErrorType,
 	ObservabilityRepo,
 } from "@codestream/protocols/agent";
 import { groupBy as _groupBy } from "lodash-es";
@@ -38,33 +35,12 @@ import { generateMethodErrorRateQuery } from "../methodErrorRateQuery";
 import { ContextLogger } from "../../newrelic";
 import Cache from "timed-cache";
 import { GitRepository } from "../../../git/models/repository";
-import { CSMe } from "@codestream/protocols/api";
 import { Index } from "@codestream/utils/types";
 import { CLMNameInferenceStrategy } from "./clmNameInferenceStrategy";
+import { INrqlClient } from "../INrqlClient";
 
 export class ClmManager {
-	constructor(
-		private _getProductUrl: () => string,
-		private _query: <T = any>(query: string, variables: any) => Promise<T>,
-		private _runNrql: <T>(accountId: number, nrql: string, timeout?: number) => Promise<T[]>,
-		private _getRepoName: (repoLike: {
-			folder?: { name?: string; uri: string };
-			path: string;
-		}) => string,
-		private _errorTypeMapper: (ex: Error) => NRErrorType,
-		private _isConnected: (user: CSMe) => boolean,
-		private _getEntityCount: (request?: GetEntityCountRequest) => Promise<GetEntityCountResponse>,
-		private _getObservabilityEntityRepos: (
-			repoId: string,
-			skipRepoFetch?: boolean,
-			force?: boolean
-		) => Promise<ObservabilityRepo | undefined>,
-		private _getGoldenSignalsEntity: (
-			codestreamUser: CSMe,
-			observabilityRepo: ObservabilityRepo
-		) => EntityAccount,
-		private _errorLogIfNotIgnored: (ex: Error, message: string, ...params: any[]) => void
-	) {}
+	constructor(private nrqlClient: INrqlClient) {}
 
 	// 2 minute cache
 	private _mltTimedCache = new Cache<GetFileLevelTelemetryResponse | null>({
@@ -73,13 +49,13 @@ export class ClmManager {
 
 	private _sessionServiceContainer: SessionServiceContainer | undefined;
 	set sessionServiceContainer(value: SessionServiceContainer) {
-		this._sessionServiceContainer = value;
+		this.sessionServiceContainer = value;
 	}
 
 	async getFileLevelTelemetry(
 		request: GetFileLevelTelemetryRequest
 	): Promise<GetFileLevelTelemetryResponse | NRErrorResponse | undefined> {
-		const { git } = this._sessionServiceContainer || SessionContainer.instance();
+		const { git } = this.sessionServiceContainer || SessionContainer.instance();
 		const languageId: LanguageId | undefined = isSupportedLanguage(request.languageId)
 			? request.languageId
 			: undefined;
@@ -163,7 +139,7 @@ export class ClmManager {
 			const nameInferenceStrategy = new CLMNameInferenceStrategy(
 				newRelicEntityGuid,
 				newRelicAccountId,
-				this._runNrql.bind(this)
+				this.nrqlClient
 			);
 			const clmNameInference = await nameInferenceStrategy.execute(
 				languageId,
@@ -205,11 +181,11 @@ export class ClmManager {
 				newRelicEntityAccounts: observabilityRepo.entityAccounts,
 				repo: {
 					id: repoForFile.id!,
-					name: this._getRepoName(repoForFile),
+					name: this.nrqlClient.getRepoName(repoForFile),
 					remote: remote,
 				},
 				relativeFilePath: relativeFilePath,
-				newRelicUrl: `${this._getProductUrl()}/redirect/entity/${newRelicEntityGuid}`,
+				newRelicUrl: `${this.nrqlClient.getProductUrl()}/redirect/entity/${newRelicEntityGuid}`,
 			};
 
 			if (sampleSize?.length > 0) {
@@ -238,7 +214,7 @@ export class ClmManager {
 			return response;
 		} catch (ex) {
 			if (ex instanceof GraphqlNrqlError) {
-				const type = this._errorTypeMapper(ex);
+				const type = this.nrqlClient.errorTypeMapper(ex);
 				Logger.warn(`getFileLevelTelemetry error ${type}`, {
 					request,
 					newRelicEntityGuid,
@@ -292,7 +268,7 @@ export class ClmManager {
 			`FACET name ` +
 			`SINCE 7 days ago LIMIT MAX`;
 
-		const results = await this._runNrql<{ name: string; value: number }>(
+		const results = await this.nrqlClient.runNrql<{ name: string; value: number }>(
 			result.entity.accountId,
 			query,
 			200
@@ -312,10 +288,10 @@ export class ClmManager {
 		};
 		error?: NRErrorResponse;
 	}> {
-		const { git, users } = this._sessionServiceContainer || SessionContainer.instance();
+		const { git, users } = this.sessionServiceContainer || SessionContainer.instance();
 		const codeStreamUser = await users.getMe();
 
-		const isConnected = this._isConnected(codeStreamUser);
+		const isConnected = this.nrqlClient.isConnected(codeStreamUser);
 		if (!isConnected) {
 			ContextLogger.warn("getFileLevelTelemetry: not connected", {
 				filePath,
@@ -340,14 +316,14 @@ export class ClmManager {
 		}
 
 		try {
-			const { entityCount } = await this._getEntityCount();
+			const { entityCount } = await this.nrqlClient.getEntityCount();
 			if (entityCount < 1) {
 				ContextLogger.log("getFileLevelTelemetry: no NR1 entities");
 				return {};
 			}
 		} catch (ex) {
 			if (ex instanceof GraphqlNrqlError) {
-				const type = this._errorTypeMapper(ex);
+				const type = this.nrqlClient.errorTypeMapper(ex);
 				Logger.warn(`getFileLevelTelemetry error ${type}`, {
 					filePath,
 				});
@@ -372,7 +348,7 @@ export class ClmManager {
 		}
 
 		// See if the git repo is associated with NR1
-		const observabilityRepo = await this._getObservabilityEntityRepos(repoForFile.id);
+		const observabilityRepo = await this.nrqlClient.getObservabilityEntityRepos(repoForFile.id);
 		if (!observabilityRepo) {
 			ContextLogger.warn("getFileLevelTelemetry: no observabilityRepo");
 			return {};
@@ -383,7 +359,7 @@ export class ClmManager {
 				error: <NRErrorResponse>{
 					repo: {
 						id: repoForFile.id,
-						name: this._getRepoName(repoForFile),
+						name: this.nrqlClient.getRepoName(repoForFile),
 						remote: remote,
 					},
 					error: {
@@ -394,7 +370,7 @@ export class ClmManager {
 			};
 		}
 
-		const entity = this._getGoldenSignalsEntity(codeStreamUser!, observabilityRepo);
+		const entity = this.nrqlClient.getGoldenSignalsEntity(codeStreamUser!, observabilityRepo);
 		return {
 			result: {
 				entity,
@@ -823,7 +799,7 @@ export class ClmManager {
 					bestMatchingCodeFilePath ? undefined : request.locator
 				);
 
-				const response = await this._query(query, {
+				const response = await this.nrqlClient.query(query, {
 					accountId: request.newRelicAccountId!,
 				});
 
@@ -835,7 +811,7 @@ export class ClmManager {
 				}
 			}
 		} catch (ex) {
-			this._errorLogIfNotIgnored(ex, "getSpans", { request });
+			this.nrqlClient.errorLogIfNotIgnored(ex, "getSpans", { request });
 			if (ex instanceof GraphqlNrqlError) {
 				throw ex;
 			}
@@ -871,7 +847,7 @@ export class ClmManager {
 			` WHERE \`entity.guid\` = '${newRelicEntityGuid}' AND \`code.filepath\` LIKE '%${filename}'` +
 			` FACET name SINCE 30 minutes AGO LIMIT 100`;
 
-		const results = await this._runNrql<{
+		const results = await this.nrqlClient.runNrql<{
 			name: string;
 			codeFilePath: string;
 		}>(newRelicAccountId, nrql);
@@ -906,11 +882,11 @@ export class ClmManager {
 			request.codeNamespace
 		);
 		try {
-			return this._query(query, {
+			return this.nrqlClient.query(query, {
 				accountId: request.newRelicAccountId!,
 			});
 		} catch (ex) {
-			this._errorLogIfNotIgnored(ex, "getMethodThroughput", {
+			this.nrqlClient.errorLogIfNotIgnored(ex, "getMethodThroughput", {
 				request,
 			});
 			if (ex instanceof GraphqlNrqlError) {
@@ -928,11 +904,11 @@ export class ClmManager {
 			request.codeNamespace
 		);
 		try {
-			return await this._query(query, {
+			return await this.nrqlClient.query(query, {
 				accountId: request.newRelicAccountId!,
 			});
 		} catch (ex) {
-			this._errorLogIfNotIgnored(ex, "getMethodAverageDuration", {
+			this.nrqlClient.errorLogIfNotIgnored(ex, "getMethodAverageDuration", {
 				request,
 			});
 			if (ex instanceof GraphqlNrqlError) {
@@ -950,11 +926,11 @@ export class ClmManager {
 			request.codeNamespace
 		);
 		try {
-			return this._query(query, {
+			return this.nrqlClient.query(query, {
 				accountId: request.newRelicAccountId!,
 			});
 		} catch (ex) {
-			this._errorLogIfNotIgnored(ex, "getMethodErrorRate", { request });
+			this.nrqlClient.errorLogIfNotIgnored(ex, "getMethodErrorRate", { request });
 			if (ex instanceof GraphqlNrqlError) {
 				throw ex;
 			}

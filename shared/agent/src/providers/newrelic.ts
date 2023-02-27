@@ -95,8 +95,8 @@ import {
 	StackTraceResponse,
 	ThirdPartyDisconnect,
 	ThirdPartyProviderConfig,
-	UpdateNewRelicOrgIdRequestType,
 	UpdateNewRelicOrgIdRequest,
+	UpdateNewRelicOrgIdRequestType,
 	UpdateNewRelicOrgIdResponse,
 } from "@codestream/protocols/agent";
 import { CSMe, CSNewRelicProviderInfo } from "@codestream/protocols/api";
@@ -141,9 +141,10 @@ import {
 	Span,
 } from "./newrelic/newrelic.types";
 import { generateClmSpanDataExistsQuery } from "./newrelic/spanQuery";
-import { ThirdPartyIssueProviderBase } from "./thirdPartyIssueProviderBase";
 import { ClmManager, EnhancedMetricTimeslice, LanguageId } from "./newrelic/clm/clmManager";
 import { Index } from "@codestream/utils/types";
+import { INrqlClient } from "./newrelic/INrqlClient";
+import { ThirdPartyIssueProviderBase } from "./thirdPartyIssueProviderBase";
 
 const ignoredErrors = [GraphqlNrqlTimeoutError];
 
@@ -154,7 +155,10 @@ export function escapeNrql(nrql: string) {
 const ENTITY_CACHE_KEY = "entityCache";
 
 @lspProvider("newrelic")
-export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProviderInfo> {
+export class NewRelicProvider
+	extends ThirdPartyIssueProviderBase<CSNewRelicProviderInfo>
+	implements INrqlClient
+{
 	private _newRelicUserId: number | undefined = undefined;
 	private _accountIds: number[] | undefined = undefined;
 	private _memoizedBuildRepoRemoteVariants: any;
@@ -172,18 +176,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		defaultTtl: 30 * 1000,
 	});
 
-	private _clmProvider = new ClmManager(
-		this.getProductUrl.bind(this),
-		this.query.bind(this),
-		this.runNrql.bind(this),
-		this.getRepoName.bind(this),
-		this.errorTypeMapper.bind(this),
-		this.isConnected.bind(this),
-		this.getEntityCount.bind(this),
-		this.getObservabilityEntityRepos.bind(this),
-		this.getGoldenSignalsEntity.bind(this),
-		this.errorLogIfNotIgnored.bind(this)
-	);
+	private _clmProvider = new ClmManager(this);
 
 	constructor(session: CodeStreamSession, config: ThirdPartyProviderConfig) {
 		super(session, config);
@@ -1909,7 +1902,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		return this._clmProvider.getFileLevelTelemetry(request);
 	}
 
-	private errorTypeMapper(ex: Error): NRErrorType {
+	errorTypeMapper(ex: Error): NRErrorType {
 		if (ex instanceof CodedError) {
 			return ex.code;
 		}
@@ -2108,7 +2101,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 	 * @return {*}
 	 * @memberof NewRelicProvider
 	 */
-	protected async getObservabilityEntityRepos(
+	public async getObservabilityEntityRepos(
 		repoId: string,
 		skipRepoFetch = false,
 		force = false
@@ -3714,7 +3707,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		return undefined;
 	}
 
-	private getRepoName(repoLike: { folder?: { name?: string; uri: string }; path: string }) {
+	getRepoName(repoLike: { folder?: { name?: string; uri: string }; path: string }) {
 		try {
 			if (!repoLike) return "repo";
 
@@ -3784,7 +3777,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		}
 	}
 
-	private errorLogIfNotIgnored(ex: Error, message: string, ...params: any[]): void {
+	public errorLogIfNotIgnored(ex: Error, message: string, ...params: any[]): void {
 		const match = ignoredErrors.find(ignored => ex instanceof ignored);
 		if (!match) {
 			ContextLogger.error(ex, message, params);
@@ -3795,7 +3788,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		ContextLogger.warn(message, params);
 	}
 
-	private async runNrql<T>(accountId: number, nrql: string, timeout: number = 60): Promise<T[]> {
+	async runNrql<T>(accountId: number, nrql: string, timeout: number = 60): Promise<T[]> {
 		const query = `query Nrql($accountId:Int!) {
 			actor {
 				account(id: $accountId) {
