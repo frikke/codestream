@@ -230,7 +230,7 @@ export const openErrorGroup =
 								This error can't be displayed because it's owned by {orgDesc} on CodeStream.
 							</div>
 							<div style={{ fontSize: "smaller", marginTop: "25px" }} className="subtle">
-								{response.companyId}
+								{response?.companyId}
 							</div>
 						</div>
 					);

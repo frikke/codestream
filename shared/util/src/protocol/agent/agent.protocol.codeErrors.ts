@@ -97,6 +97,7 @@ export interface ClaimCodeErrorResponse {
 	stream?: CSObjectStream;
 	accountId?: string;
 	ownedBy?: string;
+	companyId?: string;
 }
 
 export const ClaimCodeErrorRequestType = new RequestType<
