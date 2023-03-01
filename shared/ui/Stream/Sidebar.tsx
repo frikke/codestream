@@ -23,6 +23,7 @@ import { Observability } from "./Observability";
 import { OpenPullRequests } from "./OpenPullRequests";
 import { OpenReviews } from "./OpenReviews";
 import { WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
+import { isFeatureEnabled } from "../store/apiVersioning/reducer";
 
 const Root = styled.div`
 	height: 100%;
@@ -92,6 +93,7 @@ export const Sidebar = React.memo(function Sidebar() {
 	const derivedState = useAppSelector((state: CodeStreamState) => {
 		const preferences = getPreferences(state);
 		const repos = getRepos(state);
+		const isPDIdev = isFeatureEnabled(state, "PDIdev");
 
 		// get the preferences, or use the default
 		let sidebarPaneOrder = preferences.sidebarPaneOrder || AVAILABLE_PANES;
@@ -109,6 +111,11 @@ export const Sidebar = React.memo(function Sidebar() {
 				}
 			});
 		}
+		if (isPDIdev) {
+			sidebarPaneOrder = sidebarPaneOrder.filter(
+				_ => _ !== WebviewPanels.OpenReviews && _ !== WebviewPanels.CodemarksForFile
+			);
+		}
 
 		return {
 			repos,
@@ -119,6 +126,7 @@ export const Sidebar = React.memo(function Sidebar() {
 			ideName: state.ide.name,
 			currentRepoId: state.editorContext.scmInfo?.scm?.repoId,
 			textEditorUri: state.editorContext.textEditorUri,
+			isPDIdev,
 		};
 	}, shallowEqual);
 	const { sidebarPanes } = derivedState;
@@ -210,8 +218,11 @@ export const Sidebar = React.memo(function Sidebar() {
 		maximized: boolean;
 		size: number;
 	}[] = derivedState.sidebarPaneOrder
-		// .filter(id => showPullRequests || id !== WebviewPanels.OpenPullRequests)
-		.filter(id => AVAILABLE_PANES.includes(id))
+		// .filter(
+		// 	_ =>
+		// 		// derivedState.isPDIdev &&
+		// 		_ !== WebviewPanels.OpenReviews && _ !== WebviewPanels.CodemarksForFile
+		// )
 		.map(id => {
 			const settings = sidebarPanes[id] || {};
 			const defaults = DEFAULT_PANE_SETTINGS[id] || {};
@@ -223,7 +234,6 @@ export const Sidebar = React.memo(function Sidebar() {
 				size: sizes[id] || Math.abs(settings.size) || 1,
 			};
 		});
-	// }, [sidebarPanes, sizes, derivedState.sidebarPaneOrder, showPullRequests]);
 
 	const maximizedPane = panes.find(p => p.maximized && !p.removed);
 	const collapsed = pane => {
