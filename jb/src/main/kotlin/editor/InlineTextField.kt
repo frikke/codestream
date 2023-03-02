@@ -20,7 +20,6 @@ import com.intellij.ui.ListFocusTraversalPolicy
 import com.intellij.ui.TextFieldWithAutoCompletionListProvider
 import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBLabel
-import com.intellij.ui.components.labels.LinkLabel
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.textCompletion.TextFieldWithCompletion
 import com.intellij.util.ui.JBInsets

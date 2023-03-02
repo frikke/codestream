@@ -1,6 +1,5 @@
 package com.codestream.editor
 
-import com.google.gson.JsonElement
 import javax.swing.Icon
 
 abstract class InlineTextFieldMentionableUser(

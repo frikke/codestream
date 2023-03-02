@@ -174,6 +174,8 @@ export interface UpdateServerUrlRequest {
 	serverUrl: string;
 	disableStrictSSL?: boolean;
 	environment?: string;
+	copyToken?: boolean;
+	currentTeamId?: string;
 }
 
 export interface UpdateServerUrlResponse {}

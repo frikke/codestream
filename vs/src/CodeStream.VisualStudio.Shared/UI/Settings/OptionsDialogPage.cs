@@ -26,16 +26,13 @@ namespace CodeStream.VisualStudio.Shared.UI.Settings {
 		
 		
 #if DEBUG
-		private string _serverUrl = "https://pd-api.codestream.us";
+		private string _serverUrl = "https://codestream-pd.staging-service.nr-ops.net";
 #else
         private string _serverUrl = "https://api.codestream.com";
 #endif
 		private bool _disableStrictSsl;
 		private bool _proxyStrictSsl;
 		private string _extraCertificates;
-
-		private string _goldenSignalsInEditorFormat =
-			"avg duration: ${averageDuration} | throughput: ${throughput} | error rate: ${errorsPerMinute} - since ${since}";
 
 		private ProxySupport _proxySupport;
 
@@ -245,17 +242,5 @@ namespace CodeStream.VisualStudio.Shared.UI.Settings {
 			}
 		}
 
-		[Category("UI")]
-		[DisplayName("Golden Signals Format")]
-		[Description("Specifies how to format the CodeStream golden signals in the editor")]
-		public string GoldenSignalsInEditorFormat {
-			get => _goldenSignalsInEditorFormat;
-			set {
-				if (_goldenSignalsInEditorFormat != value) {
-					_goldenSignalsInEditorFormat = value;
-					NotifyPropertyChanged();
-				}
-			}
-		}
 	}
 }

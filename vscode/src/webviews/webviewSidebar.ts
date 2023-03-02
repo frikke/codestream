@@ -1,10 +1,12 @@
 "use strict";
 import { promises as fs } from "fs";
 
+import { Deferred } from "@codestream/utils/system/deferred";
+
 import {
 	HostDidChangeFocusNotificationType,
+	HostDidChangeVisibilityNotificationType,
 	isIpcResponseMessage,
-	ShowStreamNotificationType,
 	WebviewIpcMessage,
 	WebviewIpcNotificationMessage,
 	WebviewIpcRequestMessage,
@@ -27,7 +29,7 @@ import {
 import { NotificationType, RequestType, ResponseError } from "vscode-jsonrpc";
 
 import { gate } from "../system/decorators/gate";
-import { CodeStreamSession, StreamThread } from "../api/session";
+import { CodeStreamSession } from "../api/session";
 import { Container } from "../container";
 import { Logger, TraceLevel } from "../logger";
 import { log } from "../system";
@@ -52,6 +54,11 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 		return this._onDidClose.event;
 	}
 
+	private _onDidChangeVisibility = new EventEmitter<void>();
+	get onDidChangeVisibility(): Event<void> {
+		return this._onDidChangeVisibility.event;
+	}
+
 	public get onDidMessageReceive(): Event<any> {
 		return this._webviewView!.webview.onDidReceiveMessage;
 	}
@@ -70,7 +77,7 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 	private _ipcReady: boolean = false;
 
 	private _disposable: Disposable | undefined;
-	private _onIpcReadyResolver: ((cancelled: boolean) => void) | undefined;
+	private _ipcReadyDeferred = new Deferred<boolean>();
 
 	constructor(public readonly session: CodeStreamSession, private readonly _extensionUri: Uri) {
 		this._ipcPending = new Map();
@@ -96,6 +103,7 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 		webviewView.webview.html = await this.getHtml();
 
 		this._disposable = Disposable.from(
+			webviewView.onDidChangeVisibility(this.onWebviewDidChangeVisibility, this),
 			webviewView.onDidDispose(this.onWebviewDisposed, this),
 			window.onDidChangeWindowState(this.onWindowStateChanged, this)
 		);
@@ -103,6 +111,7 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 		Container.webview.onWebviewInitialized();
 		await this.triggerIpc();
 		Logger.log("resolveWebviewView completed");
+		await this.triggerIpc();
 	}
 
 	private _html: string | undefined;
@@ -160,11 +169,11 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 	}
 
 	private onWebviewDisposed() {
-		if (this._onIpcReadyResolver !== undefined) {
-			this._onIpcReadyResolver(true);
-		}
-
 		this._onDidClose.fire();
+	}
+
+	private onWebviewDidChangeVisibility() {
+		this.notify(HostDidChangeVisibilityNotificationType, { visible: this.visible });
 	}
 
 	// private _panelState: { active: boolean; visible: boolean } = {
@@ -235,9 +244,7 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 	}
 
 	onIpcReady() {
-		if (this._onIpcReadyResolver !== undefined) {
-			this._onIpcReadyResolver(false);
-		}
+		this._ipcReadyDeferred.resolve(false);
 	}
 
 	notify<NT extends NotificationType<any, any>>(type: NT, params: NotificationParamsOf<NT>): void {
@@ -276,34 +283,14 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 		});
 	}
 
-	@log({
-		args: false
-	})
-	async show(streamThread?: StreamThread) {
-		const cc = Logger.getCorrelationContext();
-		if (!this._ipcReady || !this.visible || streamThread === undefined) {
-			commands.executeCommand("workbench.view.extension.codestream-activitybar");
-
-			if (!this._ipcReady) {
-				Logger.log(cc, "waiting for WebView ready");
-				const cancelled = await this.waitForWebviewIpcReadyNotification();
-				Logger.log(cc, `waiting for WebView complete. cancelled=${cancelled}`);
-				if (cancelled) return;
-			}
-		}
-
-		// TODO: Convert this to a request vs a notification
-		if (streamThread) {
-			this.notify(ShowStreamNotificationType, {
-				streamId: streamThread.streamId,
-				threadId: streamThread.id
-			});
+	@log({ args: false })
+	async show() {
+		if (!this.visible) {
+			await commands.executeCommand("workbench.view.extension.codestream-activitybar");
 		}
 	}
 
-	@log({
-		args: false
-	})
+	@log({ args: false })
 	async triggerIpc() {
 		const cc = Logger.getCorrelationContext();
 
@@ -476,34 +463,30 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 	}
 
 	@gate()
-	private waitForWebviewIpcReadyNotification() {
+	private async waitForWebviewIpcReadyNotification(): Promise<boolean> {
 		// Wait until the webview is ready
-		return new Promise(resolve => {
-			let timer: NodeJS.Timer;
-			if (Logger.level !== TraceLevel.Debug && !Logger.isDebugging) {
-				timer = setTimeout(() => {
-					Logger.warn("WebviewPanel: FAILED waiting for webview ready event; closing webview...");
-					this.dispose();
-					resolve(true);
-				}, 30000);
-			}
+		let timer: NodeJS.Timer | undefined = undefined;
+		if (Logger.level !== TraceLevel.Debug && !Logger.isDebugging) {
+			timer = setTimeout(() => {
+				Logger.warn("WebviewPanel: FAILED waiting for webview ready event; closing webview...");
+				this.dispose();
+				this._ipcReadyDeferred.resolve(true);
+			}, 30000);
+		}
 
-			this._onIpcReadyResolver = (cancelled: boolean) => {
-				if (timer !== undefined) {
-					clearTimeout(timer);
-				}
+		const cancelled = await this._ipcReadyDeferred.promise;
 
-				if (cancelled) {
-					Logger.log("WebviewPanel: CANCELLED waiting for webview ready event");
-					this.clearIpc();
-				} else {
-					this._ipcReady = true;
-					this.resumeIpc();
-				}
+		if (timer !== undefined) {
+			clearTimeout(timer);
+		}
 
-				this._onIpcReadyResolver = undefined;
-				resolve(cancelled);
-			};
-		});
+		if (cancelled) {
+			Logger.log("WebviewPanel: CANCELLED waiting for webview ready event");
+			this.clearIpc();
+		} else {
+			this._ipcReady = true;
+			this.resumeIpc();
+		}
+		return cancelled;
 	}
 }

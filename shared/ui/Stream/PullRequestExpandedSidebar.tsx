@@ -91,7 +91,7 @@ export const PullRequestExpandedSidebar = (props: PullRequestExpandedSidebarProp
 		<>
 			<Row onClick={e => handleRowClick(e)} style={{ padding: "0 0 0 45px" }}>
 				<div>
-					<Icon name="git-branch" />
+					<Icon name="git-branch" style={{ marginRight: "2px" }} />
 					PR Details
 				</div>
 				<div>

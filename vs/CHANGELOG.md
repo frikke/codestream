@@ -1,33 +1,31 @@
 # Change Log
 
-## [14.15.0] - 2023-2-16
+## [14.16.0] - 2023-3-2
+
+### Added
+
+- Adds stack trace parcing for Elixir to support the errors integration
 
 ### Fixed
 
+- Fixes an issue where violations in the Golden Metrics section were linking to the wrong page on New Relic
+- Fixes an issue with the conversion of decimal to percentage in the display of error rate in Golden Metrics 
+- Fixes an issue with the parsing of Ruby stack traces in errors
 - Fixes an issue where a newly cloned repo would not be reflected in the Observability or Codemarks sections
 - Fixes an issue with the sub-sections in the Codemarks section not being collapsable
 - Fixes an issue with the parsing of stack traces in errors for Elixir
 - Fixes an issue that caused the "Waiting on my Review" section to appear in Merge Requests when connected to GitLab Self-Managed, where it's not supported
 - Fixes an issue with permalinks not taking you to the file/line number in the IDE
 - Fixes an issue where when closing an error you'd be left on the Activity Feed
-
-## [14.14.0] - 2023-2-2
-
-### Added
-
-- Adds stack trace parcing for Elixir to support the errors integration
+- Fixes an issue with sharing an existing codemark to a direct message on Slack
+- Addresses [#1319](https://github.com/TeamCodeStream/CodeStream/issues/1319) &mdash; Connections to YouTrack aren't working
+- Addresses [#1215](https://github.com/TeamCodeStream/CodeStream/issues/1215) &mdash; Edit branch name infinite edit
 
 ### Changed
 
 - Changed the implementation of code-level metrics to display error rate as a percentage, and removing throughput in favor of just showing the sample size
 - Adds clearer messaging when a PR can't be displayed because a password is required to do a fetch
 - Adds clearer messaging when CodeStream can't connect to an on-prem code host due to network/VPN issues
-
-### Fixed
-
-- Fixes an issue with sharing an existing codemark to a direct message on Slack
-- Addresses [#1319](https://github.com/TeamCodeStream/CodeStream/issues/1319) &mdash; Connections to YouTrack aren't working
-- Addresses [#1215](https://github.com/TeamCodeStream/CodeStream/issues/1215) &mdash; Edit branch name infinite edit
 
 ## [14.13.0] - 2023-1-24
 

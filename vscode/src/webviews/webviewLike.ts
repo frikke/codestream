@@ -9,8 +9,6 @@ import {
 import { Event, ViewColumn } from "vscode";
 import { NotificationType, RequestType } from "vscode-languageclient";
 
-import { StreamThread } from "../api/session";
-
 export type NotificationParamsOf<NT> = NT extends NotificationType<infer N, any> ? N : never;
 export type RequestParamsOf<RT> = RT extends RequestType<infer R, any, any, any> ? R : never;
 export type RequestResponseOf<RT> = RT extends RequestType<any, infer R, any, any> ? R : never;
@@ -25,7 +23,7 @@ export function toLoggableIpcMessage(msg: WebviewIpcMessage) {
 export interface WebviewLike {
 	notify<NT extends NotificationType<any, any>>(type: NT, params: NotificationParamsOf<NT>): void;
 	dispose(): void;
-	show(streamThread?: StreamThread): Promise<void>;
+	show(): Promise<void>;
 	triggerIpc(): Promise<void>;
 	visible: boolean | undefined;
 	viewColumn: ViewColumn | undefined;
@@ -33,6 +31,7 @@ export interface WebviewLike {
 	reload(): any;
 
 	onDidClose: Event<void>;
+	onDidChangeVisibility: Event<void>;
 	onDidMessageReceive: Event<WebviewIpcMessage>;
 	onCompletePendingIpcRequest(e: WebviewIpcResponseMessage): any;
 	onIpcRequest<RT extends RequestType<any, any, any, any>>(

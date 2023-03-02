@@ -1,5 +1,6 @@
 package com.codestream.actions
 
+import com.codestream.appDispatcher
 import com.codestream.codeStream
 import com.codestream.editorService
 import com.codestream.extensions.getDefaultPrCommentText
@@ -23,7 +24,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.Iconable
 import com.intellij.psi.PsiFile
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.awt.event.KeyEvent
 
@@ -43,7 +43,7 @@ abstract class NewCodemark(val name: String, val type: CodemarkType) : AnAction(
             }
 
             val isReview = isPullRequest() && isSelectionWithinDiffRange()
-            GlobalScope.launch {
+            appDispatcher.launch {
                 inlineTextFieldManager?.showTextField(isReview, line, getDefaultPrCommentText())
                     ?: project.codeStream?.show {
                         project.webViewService?.postNotification(

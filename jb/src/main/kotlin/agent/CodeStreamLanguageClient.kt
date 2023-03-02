@@ -1,6 +1,7 @@
 package com.codestream.agent
 
 import com.codestream.agentService
+import com.codestream.appDispatcher
 import com.codestream.authenticationService
 import com.codestream.clmService
 import com.codestream.codeStream
@@ -30,7 +31,6 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.NonUrgentExecutor
 import git4idea.GitUtil
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.eclipse.lsp4j.ConfigurationParams
 import org.eclipse.lsp4j.MessageActionItem
@@ -108,7 +108,7 @@ class CodeStreamLanguageClient(private val project: Project) : LanguageClient {
         ApplicationManager.getApplication().invokeLater {
             project.codeStream?.show {
                 project.webViewService?.postNotification("codestream/didEncounterMaintenanceMode", json, true)
-                GlobalScope.launch {
+                appDispatcher.launch {
                     project.authenticationService?.logout()
                 }
             }
@@ -138,7 +138,7 @@ class CodeStreamLanguageClient(private val project: Project) : LanguageClient {
     }
 
     @JsonNotification("codestream/didLogout")
-    fun didLogout(notification: DidLogoutNotification) = GlobalScope.launch {
+    fun didLogout(notification: DidLogoutNotification) = appDispatcher.launch {
         project.authenticationService?.logout()
 
         if (notification.reason === LogoutReason.TOKEN) {
@@ -171,7 +171,7 @@ class CodeStreamLanguageClient(private val project: Project) : LanguageClient {
     }
 
     @JsonNotification("codestream/restartRequired")
-    fun restartRequired(json: JsonElement) = GlobalScope.launch {
+    fun restartRequired(json: JsonElement) = appDispatcher.launch {
         project.agentService?.restart()
     }
 

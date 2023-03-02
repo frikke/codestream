@@ -2,6 +2,7 @@ package com.codestream.agent
 
 import com.codestream.AGENT_PATH
 import com.codestream.DEBUG
+import com.codestream.appDispatcher
 import com.codestream.authenticationService
 import com.codestream.codeStream
 import com.codestream.extensions.baseUri
@@ -81,7 +82,6 @@ import com.intellij.openapi.util.SystemInfo
 import git4idea.config.GitExecutableManager
 import git4idea.config.GitVcsApplicationSettings
 import git4idea.config.GitVcsSettings
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import org.apache.commons.io.FileUtils
@@ -149,7 +149,7 @@ class AgentService(private val project: Project) : Disposable {
 
     init {
         if (System.getProperty("TEST_MODE") != "true") {
-            GlobalScope.launch {
+            appDispatcher.launch {
                 initAgent()
             }
         }
@@ -405,7 +405,7 @@ class AgentService(private val project: Project) : Disposable {
             logger.info("LSP agent terminated with exit code $code")
             if (!isDisposing && !isRestarting) {
                 logger.info("LSP agent will be restarted")
-                GlobalScope.launch {
+                appDispatcher.launch {
                     restart(null, true)
                     onDidStart {
                         agent.telemetry(TelemetryParams("Agent Restarted", mapOf(

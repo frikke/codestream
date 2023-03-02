@@ -1,6 +1,7 @@
 package com.codestream.webview
 
 import com.codestream.DEBUG
+import com.codestream.appDispatcher
 import com.codestream.system.Platform
 import com.codestream.system.platform
 import com.intellij.ide.BrowserUtil
@@ -15,7 +16,6 @@ import com.teamdev.jxbrowser.engine.RenderingMode
 import com.teamdev.jxbrowser.net.ResourceType
 import com.teamdev.jxbrowser.net.callback.BeforeUrlRequestCallback
 import com.teamdev.jxbrowser.plugin.callback.AllowPluginCallback
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
@@ -37,7 +37,7 @@ class JxBrowserEngineService : Disposable {
         synchronized(this) {
             if (engineFuture != null) return engineFuture!!
             engineFuture = CompletableFuture<Engine>()
-            GlobalScope.launch {
+            appDispatcher.launch {
                 try {
                     val chromiumDir = downloadAndExtractJxBrowserChromium()
                     val dir = createTempDir()
@@ -117,7 +117,7 @@ class JxBrowserEngineService : Disposable {
 
     override fun dispose() {
         logger.info("Disposing JxBrowser engine")
-        GlobalScope.launch {
+        appDispatcher.launch {
             getEngine().await().close()
         }
     }
@@ -158,7 +158,7 @@ class JxBrowserEngineService : Disposable {
 
                 if (platform == Platform.LINUX_X64) {
                     // Downloader class is broken on Linux. It downloads, but the Future never completes.
-                    GlobalScope.launch {
+                    appDispatcher.launch {
                         while(!downloadedFiles.isDone) {
                             val downloaded = jarNames.all {
                                 val jarFile = jxBrowserJarsDir.resolve(it.value())

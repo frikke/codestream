@@ -7,7 +7,7 @@ plugins {
 }
 
 group "com.codestream"
-version "14.15.2"
+version "14.16.0"
 
 sourceCompatibility = JavaVersion.VERSION_11
 targetCompatibility = JavaVersion.VERSION_11
@@ -25,7 +25,6 @@ ext {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
     implementation "org.jetbrains.kotlin:kotlin-reflect:1.6.10"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.5.2"
 
     implementation "com.teamdev.jxbrowser:jxbrowser:${jxBrowserVersion}"
     implementation "com.teamdev.jxbrowser:jxbrowser-swing:${jxBrowserVersion}"
@@ -178,6 +177,15 @@ task buildDependenciesMac {}
 buildDependenciesMac.dependsOn buildDepsMac, copyAgent, copyProtobuf
 
 buildPlugin.dependsOn downloadNode, buildDependencies
+
+tasks {
+    buildPlugin {
+        exclude { "coroutines" in it.name }
+    }
+    prepareSandbox {
+        exclude { "coroutines" in it.name }
+    }
+}
 
 task buildDebugDeps(type: Exec) {
     String npm = 'npm';

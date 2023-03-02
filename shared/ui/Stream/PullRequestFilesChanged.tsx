@@ -426,7 +426,10 @@ export const PullRequestFilesChanged = (props: Props) => {
 				onClick={() => props.toggleDirectory(hideKey)}
 				key={`directory_${dirPath}_${hideKey}`}
 			>
-				<Icon name={hidden ? "chevron-right-thin" : "chevron-down-thin"} />
+				<Icon
+					style={{ marginRight: "2px" }}
+					name={hidden ? "chevron-right-thin" : "chevron-down-thin"}
+				/>
 				{path.join(...dirPath)}
 			</Directory>
 		);

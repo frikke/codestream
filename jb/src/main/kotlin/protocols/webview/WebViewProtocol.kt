@@ -136,6 +136,14 @@ object FocusNotifications {
     }
 }
 
+object VisibilityNotifications {
+    class DidChange(
+        val visibility: Boolean
+    ) : WebViewNotification {
+        override fun getMethod(): String = "webview/visibility/didChange"
+    }
+}
+
 object HostNotifications {
     class DidReceiveRequest(
         val url: String?

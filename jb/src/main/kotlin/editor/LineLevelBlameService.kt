@@ -1,13 +1,13 @@
 package com.codestream.editor
 
 import com.codestream.agentService
+import com.codestream.appDispatcher
 import com.codestream.extensions.getOffset
 import com.codestream.extensions.uri
 import com.codestream.protocols.agent.GetBlameParams
 import com.codestream.protocols.agent.GetBlameResultLineInfo
 import com.codestream.settings.ApplicationSettingsService
 import com.codestream.workaround.HintsPresentationWorkaround
-import com.intellij.codeInsight.hints.presentation.InlayTextMetricsStorage
 import com.intellij.codeInsight.hints.presentation.PresentationRenderer
 import com.intellij.ide.plugins.PluginManager
 import com.intellij.openapi.Disposable
@@ -24,7 +24,6 @@ import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.util.io.HttpRequests
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.future.await
@@ -105,7 +104,7 @@ private class BlameManager(private val editor: EditorImpl, private val iconsCach
         if (!lineBlames.containsKey(line)) {
             isLoadingBlame = CompletableFuture<Unit>()
             project?.agentService?.onDidStart {
-                GlobalScope.launch {
+                appDispatcher.launch {
                     try {
                         var lineStart = line
                         var lineEnd = line
@@ -154,7 +153,7 @@ private class BlameManager(private val editor: EditorImpl, private val iconsCach
         inlay = null
         if (!settingsService.showGitBlame) return@invokeLater
         val project = editor.project ?: return@invokeLater
-        GlobalScope.launch {
+        appDispatcher.launch {
             try {
                 val blame = getBlame(currentLine) ?: return@launch
                 val textPresentation = presentationFactory.smallText(blame.formattedBlame)
@@ -179,7 +178,7 @@ private class BlameManager(private val editor: EditorImpl, private val iconsCach
     override fun documentChanged(event: DocumentEvent) {
         lineBlames.clear()
         debouncedRenderBlame?.cancel()
-        debouncedRenderBlame = GlobalScope.launch {
+        debouncedRenderBlame = appDispatcher.launch {
             delay(2000L)
             renderBlame()
         }
@@ -196,7 +195,7 @@ class IconsCache {
     fun load(url: String) {
         cache.getOrPut(url) {
             val iconFuture = CompletableFuture<Icon?>()
-            GlobalScope.launch {
+            appDispatcher.launch {
                 try {
                     val bytes: ByteArray = HttpRequests.request(url).readBytes(null)
                     val tempIcon = ImageIcon(bytes)

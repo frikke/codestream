@@ -201,6 +201,21 @@ export const VerifyConnectivityRequestType = new RequestType<
 	void
 >("codestream/verifyConnectivity");
 
+export interface PollForMaintenanceModeResponse {
+	ok?: boolean;
+	maintenanceMode?: boolean;
+	error?: {
+		message: string;
+	};
+}
+
+export const PollForMaintenanceModeRequestType = new RequestType<
+	void,
+	PollForMaintenanceModeResponse,
+	void,
+	void
+>("codestream/pollForMaintenanceMode");
+
 export interface BootstrapRequest {}
 export interface BootstrapResponse {
 	preferences: CSMePreferences;

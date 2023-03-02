@@ -10,6 +10,7 @@ import {
 	DidChangeServerUrlNotificationType,
 	DidChangeVersionCompatibilityNotificationType,
 	DidEncounterMaintenanceModeNotificationType,
+	RefreshMaintenancePollNotificationType,
 	DidResolveStackTraceLineNotificationType,
 	ExecuteThirdPartyRequestUntypedType,
 	GetDocumentFromMarkerRequestType,
@@ -19,7 +20,9 @@ import {
 	TelemetrySetAnonymousIdRequestType,
 	ThirdPartyProviders,
 	VerifyConnectivityRequestType,
+	PollForMaintenanceModeRequestType,
 	VersionCompatibility,
+	VerifyConnectivityResponse,
 } from "@codestream/protocols/agent";
 import { CodemarkType, CSApiCapabilities, CSCodeError, CSMe } from "@codestream/protocols/api";
 import React from "react";
@@ -44,6 +47,7 @@ import {
 	HostDidChangeEditorSelectionNotificationType,
 	HostDidChangeEditorVisibleRangesNotificationType,
 	HostDidChangeFocusNotificationType,
+	HostDidChangeVisibilityNotificationType,
 	HostDidChangeLayoutNotificationType,
 	HostDidChangeVisibleEditorsNotificationType,
 	HostDidLogoutNotificationType,
@@ -148,7 +152,15 @@ export async function initialize(selector: string) {
 
 	// verify we can connect to the server, if successful, as a side effect,
 	// we get the api server's capabilities and our environment
-	const resp = await HostApi.instance.send(VerifyConnectivityRequestType, void {});
+	const resp: VerifyConnectivityResponse = await HostApi.instance.send(
+		VerifyConnectivityRequestType,
+		void {}
+	);
+
+	// initial call to check if we need to switch to maintence mode or not, this will also
+	// kick off the recurring poll every x minutes
+	pollToCheckMaintenanceMode();
+
 	if (resp.error) {
 		if (resp.error.maintenanceMode) {
 			await store.dispatch(setMaintenanceMode(true));
@@ -157,7 +169,11 @@ export async function initialize(selector: string) {
 			errorOccurred(resp.error.message, resp.error.details, resp.error.maintenanceMode)
 		);
 	} else {
-		if (resp.capabilities) {
+		// NOTE: only update api capabilities here if we don't have a logged in user,
+		// the reason is that api capabilities will get updated in the bootstrap, and they are user-specific,
+		// the api capabilities returned by the verify connectivity call are generic and don't have
+		// the user-specific capabilities attached
+		if (resp.capabilities && !store.getState().session.userId) {
 			store.dispatch(apiCapabilities.actions.updateCapabilities(resp.capabilities));
 			store.dispatch(apiCapabilitiesUpdated(resp.capabilities));
 		}
@@ -188,6 +204,10 @@ function listenForEvents(store) {
 			await store.dispatch(reset());
 			store.dispatch(setMaintenanceMode(true, e));
 		}
+	});
+
+	api.on(RefreshMaintenancePollNotificationType, async e => {
+		store.dispatch(setMaintenanceMode(e.isMaintenanceMode, e));
 	});
 
 	api.on(DidChangeConnectionStatusNotificationType, e => {
@@ -297,6 +317,10 @@ function listenForEvents(store) {
 		} else {
 			store.dispatch(blur());
 		}
+	});
+
+	api.on(HostDidChangeVisibilityNotificationType, e => {
+		store.dispatch(setMaintenanceMode(undefined, e));
 	});
 
 	api.on(HostDidLogoutNotificationType, () => {
@@ -807,6 +831,11 @@ function listenForEvents(store) {
 		);
 	});
 }
+
+const pollToCheckMaintenanceMode = async function () {
+	const response: any = await HostApi.instance.send(PollForMaintenanceModeRequestType, void {});
+	await store.dispatch(setMaintenanceMode(response.maintenanceMode));
+};
 
 const confirmSwitchToTeam = function (
 	store: any,

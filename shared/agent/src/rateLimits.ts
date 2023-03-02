@@ -53,7 +53,7 @@ export class InternalRateError extends CodedError {
 const rateLimitByOrigin = new HistoryCounter(
 	RATE_LIMIT_INTERVAL,
 	100,
-	Logger.debug,
+	Logger.debug.bind(Logger),
 	Logger.isDebugging
 );
 

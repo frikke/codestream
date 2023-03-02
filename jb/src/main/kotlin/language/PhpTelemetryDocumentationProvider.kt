@@ -1,20 +1,17 @@
 package com.codestream.language
 
 import com.codestream.agentService
+import com.codestream.appDispatcher
 import com.codestream.protocols.agent.FileLevelTelemetryOptions
 import com.codestream.protocols.agent.FileLevelTelemetryParams
 import com.codestream.protocols.agent.FunctionLocator
 import com.intellij.psi.PsiElement
-import com.intellij.psi.search.GlobalSearchScopes
-import com.intellij.psi.search.searches.ClassInheritorsSearch
 import com.jetbrains.php.lang.documentation.PhpDocumentationProvider
 import com.jetbrains.php.lang.psi.PhpPsiUtil
-import com.jetbrains.php.lang.psi.elements.PhpClassMember
 import com.jetbrains.php.lang.psi.elements.PhpReference
 import com.jetbrains.php.lang.psi.elements.Statement
 import com.jetbrains.php.lang.psi.elements.impl.MethodImpl
 import com.jetbrains.php.lang.psi.elements.impl.MethodReferenceImpl
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.concurrent.CompletableFuture
 
@@ -53,7 +50,7 @@ class PhpTelemetryDocumentationProvider: PhpDocumentationProvider() {
             }
         }
 
-        GlobalScope.launch {
+        appDispatcher.launch {
             try {
                 val result = agent.fileLevelTelemetry(FileLevelTelemetryParams(
                     element.containingFile.virtualFile.url,

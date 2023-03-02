@@ -367,7 +367,11 @@ export const PullRequestFilesChangedTab = (props: {
 							className="files-changed-list-dropdown"
 						>
 							<div>
-								<Icon name={showDirectory ? "chevron-down-thin" : "chevron-right-thin"} /> Files
+								<Icon
+									style={{ marginRight: "2px" }}
+									name={showDirectory ? "chevron-down-thin" : "chevron-right-thin"}
+								/>
+								Files
 								<DropdownButton
 									variant="text"
 									items={dropdownItems}

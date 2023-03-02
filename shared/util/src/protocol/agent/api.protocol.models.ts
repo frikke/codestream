@@ -482,6 +482,7 @@ export interface CSCompany extends CSEntity {
 	nrAccountIds?: number[];
 	isNRConnected?: boolean;
 	host?: EnvironmentHost;
+	switchToServerUrl?: string;
 }
 
 export interface CSTeam extends CSEntity {
@@ -859,6 +860,7 @@ export interface CSApiCapability {
 	url?: string;
 	version?: string;
 	restricted?: boolean;
+	userRestricted?: boolean;
 	supportedIdes?: string[];
 }
 

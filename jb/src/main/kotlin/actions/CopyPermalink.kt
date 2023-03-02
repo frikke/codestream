@@ -1,6 +1,7 @@
 package com.codestream.actions
 
 import com.codestream.agentService
+import com.codestream.appDispatcher
 import com.codestream.extensions.selectionOrCurrentLine
 import com.codestream.extensions.uri
 import com.codestream.protocols.agent.CreatePermalinkParams
@@ -12,7 +13,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.project.DumbAwareAction
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.awt.datatransfer.StringSelection
 
@@ -32,7 +32,7 @@ class CopyPermalink : DumbAwareAction() {
         val uri = editor.document.uri
         val selection = editor.selectionOrCurrentLine
 
-        GlobalScope.launch {
+        appDispatcher.launch {
             val result = agentService.createPermalink(
                 CreatePermalinkParams(uri, selection, PermalinkPrivacy.PRIVATE.value)
             )

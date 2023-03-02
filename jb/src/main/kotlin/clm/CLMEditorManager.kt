@@ -26,9 +26,9 @@ import com.codestream.webViewService
 import com.codestream.workaround.HintsPresentationWorkaround
 import com.intellij.codeInsight.hints.InlayPresentationFactory
 import com.intellij.codeInsight.hints.presentation.InlayPresentation
-import com.intellij.codeInsight.hints.presentation.PresentationFactory
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
@@ -50,8 +50,10 @@ import com.intellij.refactoring.suggested.endOffset
 import com.intellij.refactoring.suggested.startOffset
 import com.intellij.util.concurrency.NonUrgentExecutor
 import kotlinx.collections.immutable.toImmutableMap
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.eclipse.lsp4j.Range
@@ -59,6 +61,7 @@ import java.awt.Point
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.MouseEvent
+import java.util.concurrent.Callable
 
 private val OPTIONS = FileLevelTelemetryOptions(true, true, true)
 
@@ -95,6 +98,7 @@ abstract class CLMEditorManager(
     private val lookupByClassName: Boolean,
     private val lookupBySpan: Boolean = false,
 ) : DocumentListener, GoldenSignalListener, Disposable, FocusListener {
+    private val tasksCoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.EDT)
     private val path = editor.document.getUserData(LOCAL_PATH) ?: editor.document.file?.path
     private val project = editor.project
     private var metricsBySymbol = mapOf<MethodLevelTelemetrySymbolIdentifier, Metrics>()
@@ -125,7 +129,7 @@ abstract class CLMEditorManager(
     abstract fun getLookupSpanSuffixes(psiFile: PsiFile): List<String>?
 
     fun pollLoadInlays() {
-        GlobalScope.launch {
+        tasksCoroutineScope.launch {
             while (doPoll) {
                 if (project?.isDisposed == false && project.sessionService?.userLoggedIn?.user != null) {
                     loadInlays(false)
@@ -135,8 +139,8 @@ abstract class CLMEditorManager(
         }
     }
 
-    fun runInBackground(toExecute: () -> Unit) {
-        ReadAction.nonBlocking { toExecute() }.submit(NonUrgentExecutor.getInstance())
+    fun runInBackground(toExecute: Callable<Unit>) {
+        ReadAction.nonBlocking(toExecute).submit(NonUrgentExecutor.getInstance())
     }
 
     fun loadInlays(resetCache: Boolean = false) {
@@ -145,15 +149,15 @@ abstract class CLMEditorManager(
         if (!isStale()) return
 
         project?.agentService?.onDidStart {
-            runInBackground {
-                if (project.isDisposed) return@runInBackground
+            tasksCoroutineScope.launch {
+                if (project.isDisposed) return@launch
                 // logger.debug("=== ${editor.displayPath} isShowing: ${editor.component.isShowing}")
-                if (!editor.component.isShowing) return@runInBackground
+                if (!editor.component.isShowing) return@launch
                 val psiFile =
-                    PsiDocumentManager.getInstance(project).getPsiFile(editor.document) ?: return@runInBackground
+                    PsiDocumentManager.getInstance(project).getPsiFile(editor.document) ?: return@launch
 
                 val classNames = if (lookupByClassName) {
-                    getLookupClassNames(psiFile) ?: return@runInBackground
+                    getLookupClassNames(psiFile) ?: return@launch
                 } else {
                     null
                 }
@@ -172,7 +176,7 @@ abstract class CLMEditorManager(
                 //     val symbols = findSymbols(psiFile, result.responseTimes.map { it.name })
                 // }
 
-                GlobalScope.launch {
+                tasksCoroutineScope.launch {
                     try {
                         lastFetchAttempt = System.currentTimeMillis()
                         if (project.sessionService?.userLoggedIn?.user == null) {
@@ -235,7 +239,7 @@ abstract class CLMEditorManager(
     private var debouncedRenderBlame: Job? = null
     override fun documentChanged(event: DocumentEvent) {
         debouncedRenderBlame?.cancel()
-        debouncedRenderBlame = GlobalScope.launch {
+        debouncedRenderBlame = tasksCoroutineScope.launch {
             delay(750L)
             updateInlays()
         }
@@ -363,10 +367,10 @@ abstract class CLMEditorManager(
             if (!analyticsTracked && toRender.isNotEmpty()) {
                 val params = TelemetryParams(
                     "MLT Codelenses Rendered", mapOf(
-                        "NR Account ID" to (result.newRelicAccountId ?: 0),
-                        "Language" to languageId,
-                        "Codelense Count" to toRender.size
-                    )
+                    "NR Account ID" to (result.newRelicAccountId ?: 0),
+                    "Language" to languageId,
+                    "Codelense Count" to toRender.size
+                )
                 )
                 project.agentService?.agent?.telemetry(params)
                 analyticsTracked = true
@@ -451,7 +455,9 @@ abstract class CLMEditorManager(
     override fun focusGained(event: FocusEvent?) {
         if (event != null) {
             // logger.info("=== loadInlays from focus event for ${editor.displayPath}")
-            this.loadInlays(false)
+            tasksCoroutineScope.launch {
+                loadInlays(false)
+            }
         }
     }
 

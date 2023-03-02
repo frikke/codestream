@@ -19,6 +19,7 @@ import {
 	DidChangeVersionCompatibilityNotification,
 	DidChangeVersionCompatibilityNotificationType,
 	DidEncounterMaintenanceModeNotificationType,
+	RefreshMaintenancePollNotificationType,
 	DidResolveStackTraceLineNotificationType,
 	ReportingMessageType,
 	VersionCompatibility
@@ -123,6 +124,7 @@ import { Editor } from "../extensions";
 import { Logger } from "../logger";
 import { BuiltInCommands } from "../constants";
 import * as csUri from "../system/uri";
+import * as TokenManager from "../api/tokenManager";
 
 const emptyObj = {};
 
@@ -156,6 +158,9 @@ export class WebviewController implements Disposable {
 			workspace.onDidChangeWorkspaceFolders(this.onWorkspaceFoldersChanged, this),
 			Container.agent.onDidEncounterMaintenanceMode(e => {
 				if (this._webview) this._webview.notify(DidEncounterMaintenanceModeNotificationType, e);
+			}),
+			Container.agent.onRefreshMaintenancePoll(e => {
+				if (this._webview) this._webview.notify(RefreshMaintenancePollNotificationType, e);
 			}),
 			Container.agent.onDidResolveStackTraceLine(e => {
 				if (this._webview) this._webview.notify(DidResolveStackTraceLineNotificationType, e);
@@ -558,6 +563,7 @@ export class WebviewController implements Disposable {
 
 		this._disposableWebview = Disposable.from(
 			this._webview!.onDidClose(this.onWebviewClosed, this),
+			// this._webview!.onDidChangeVisibility(this.onWebviewChangeVisibility, this),
 			this._webview!.onDidMessageReceive(
 				(...args) => this.onWebviewMessageReceived(webview, ...args),
 				this
@@ -595,11 +601,11 @@ export class WebviewController implements Disposable {
 	@log({
 		args: false
 	})
-	async show(streamThread?: StreamThread) {
+	async show() {
 		await this.ensureWebView();
 
 		this.updateState();
-		await this._webview!.show(streamThread);
+		await this._webview!.show();
 
 		return this.activeStreamThread as StreamThread | undefined;
 	}
@@ -1026,6 +1032,24 @@ export class WebviewController implements Disposable {
 			case UpdateServerUrlRequestType.method: {
 				webview.onIpcRequest(UpdateServerUrlRequestType, e, async (_type, params) => {
 					Container.setPendingServerUrl(params.serverUrl);
+					if (params.copyToken && params.currentTeamId) {
+						// in the case of switching to a new server url, we need to copy the access token
+						// in our key store, which is indexed to serverUrl, email, and teamId
+						const token = await TokenManager.get(
+							Container.config.serverUrl,
+							Container.config.email,
+							params.currentTeamId
+						);
+						if (token) {
+							token.url = params.serverUrl;
+							await TokenManager.addOrUpdate(
+								params.serverUrl,
+								Container.config.email,
+								params.currentTeamId,
+								token
+							);
+						}
+					}
 					await configuration.update("serverUrl", params.serverUrl, ConfigurationTarget.Global);
 					if (params.disableStrictSSL !== undefined) {
 						await configuration.update(

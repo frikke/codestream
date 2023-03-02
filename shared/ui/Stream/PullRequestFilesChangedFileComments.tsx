@@ -539,7 +539,7 @@ export const PullRequestFilesChangedFileComments = (props: Props) => {
 								>
 									<Icon name="comment" className="type-icon" />{" "}
 									{lineNumber(c) && <span>Line {lineNumber(c)}: </span>}
-									{c.comment.bodyText || c.comment.body || c.comment.content.raw}
+									{c.comment?.bodyText || c.comment?.body || c.comment.content?.raw || ""}
 								</div>
 								{isPending && <PendingCircle onClick={e => handlePendingClick(e)}>P</PendingCircle>}
 							</div>

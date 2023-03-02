@@ -932,9 +932,9 @@ export const OpenPullRequests = React.memo((props: Props) => {
 
 		const isLoadingPR = prId === individualLoadingPR;
 		const chevronIcon = derivedState.hideDiffs ? null : expanded ? (
-			<Icon name="chevron-down-thin" />
+			<Icon name="chevron-down-thin" style={{ marginRight: "2px" }} />
 		) : (
-			<Icon name="chevron-right-thin" />
+			<Icon name="chevron-right-thin" style={{ marginRight: "2px" }} />
 		);
 
 		if (providerId === "github*com" || providerId === "github/enterprise") {

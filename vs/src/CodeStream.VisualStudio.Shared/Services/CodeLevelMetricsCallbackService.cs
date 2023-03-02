@@ -21,8 +21,8 @@ using CodeStream.VisualStudio.Core.Events;
 using CodeStream.VisualStudio.Shared.Events;
 using CodeStream.VisualStudio.Shared.Models;
 using Process = System.Diagnostics.Process;
-using CSConstants = CodeStream.VisualStudio.Core.Constants;
 using Microsoft;
+using CSConstants = CodeStream.VisualStudio.Core.Constants;
 
 namespace CodeStream.VisualStudio.Shared.Services {
 
@@ -70,11 +70,6 @@ namespace CodeStream.VisualStudio.Shared.Services {
 			Assumes.Present(_vsSolution);
 		}
 
-		public string GetEditorFormat() {
-			var settings = _settingsServiceFactory.GetOrCreate(nameof(CodeLevelMetricsCallbackService));
-			return settings.GoldenSignalsInEditorFormat;
-		}
-
 		public async Task<CodeLevelMetricsTelemetry> GetTelemetryAsync(string codeNamespace, string functionName) {
 			if (!_sessionService.IsReady)
 			{
@@ -84,11 +79,10 @@ namespace CodeStream.VisualStudio.Shared.Services {
 			await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 			var solution = new Uri(_vsSolution.GetSolutionFile());
 
-			//example: "avg duration: ${averageDuration} | throughput: ${throughput} | error rate: ${errorsPerMinute} - since ${since}"
-			var formatString = GetEditorFormat().ToLower();
-			var includeThroughput = formatString.Contains(CSConstants.CodeLevelMetrics.Tokens.Throughput);
+			//example: "avg duration: ${averageDuration} | error rate: ${errorRate} - ${sampleSize} samples in the last ${since}"
+			var formatString = CSConstants.CodeLevelMetrics.GoldenSignalsFormat.ToLower();
 			var includeAverageDuration = formatString.Contains(CSConstants.CodeLevelMetrics.Tokens.AverageDuration);
-			var includeErrorRate = formatString.Contains(CSConstants.CodeLevelMetrics.Tokens.ErrorsPerMinute);
+			var includeErrorRate = formatString.Contains(CSConstants.CodeLevelMetrics.Tokens.ErrorRate);
 
 			try {
 				var metrics = await _codeStreamAgentService.GetFileLevelTelemetryAsync(
@@ -97,8 +91,7 @@ namespace CodeStream.VisualStudio.Shared.Services {
 					false,
 					codeNamespace,
 					functionName,
-					includeThroughput,
-					includeAverageDuration,
+					includeAverageDuration, 
 					includeErrorRate
 				);
 
@@ -109,7 +102,7 @@ namespace CodeStream.VisualStudio.Shared.Services {
 
 				return new CodeLevelMetricsTelemetry(
 					metrics.AverageDuration,
-					metrics.Throughput,
+					metrics.SampleSize,
 					metrics.ErrorRate,
 					metrics.SinceDateFormatted,
 					metrics.Repo,

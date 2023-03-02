@@ -1,6 +1,7 @@
 package com.codestream.editor
 
 import com.codestream.agentService
+import com.codestream.appDispatcher
 import com.codestream.protocols.agent.TelemetryParams
 import com.intellij.codeInsight.hint.HintManager
 import com.intellij.codeInsight.hint.HintManagerImpl
@@ -35,7 +36,7 @@ class CodeStreamPresentationFactory(val editor: EditorImpl) {
         return onHover(base, object : InlayPresentationFactory.HoverListener {
             override fun onHover(event: MouseEvent, translated: Point) {
                 if (hoverJob != null) return
-                hoverJob = GlobalScope.launch {
+                hoverJob = appDispatcher.launch {
                     delay(500L)
                     ApplicationManager.getApplication().invokeLater {
                         if (hint?.isVisible != true) {

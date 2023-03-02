@@ -1,6 +1,7 @@
 package com.codestream.editor
 
 import com.codestream.agentService
+import com.codestream.appDispatcher
 import com.codestream.codeStream
 import com.codestream.extensions.selectionOrCurrentLine
 import com.codestream.extensions.textDocumentIdentifier
@@ -32,7 +33,6 @@ import com.intellij.ui.components.ActionLink
 import com.intellij.util.io.HttpRequests
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import java.awt.Image
@@ -63,7 +63,7 @@ class InlineTextFieldManager(val editor: Editor) {
             val url = it.avatar.image ?: return@forEach
             iconsCache.getOrPut(url) {
                 val iconFuture = CompletableFuture<Icon?>()
-                GlobalScope.launch {
+                appDispatcher.launch {
                     try {
                         val bytes: ByteArray = HttpRequests.request(url).readBytes(null)
                         val tempIcon = ImageIcon(bytes)
@@ -100,7 +100,7 @@ class InlineTextFieldManager(val editor: Editor) {
             val pullRequestData = editor.document.getUserData(PULL_REQUEST)
             val done = CompletableFuture<Unit>()
 
-            GlobalScope.launch {
+            appDispatcher.launch {
                 if (agent == null) return@launch
                 if (webview == null) return@launch
                 val uri = editor.document.uri ?: return@launch
@@ -212,7 +212,7 @@ class InlineTextFieldManager(val editor: Editor) {
             return
         }
 
-        GlobalScope.launch {
+        appDispatcher.launch {
             val pullRequest = editor.document.getUserData(PULL_REQUEST)
             val users = pullRequest?.collaborators?.map {
                 val icon = it.avatar.image?.let { iconsCache[it]?.await() }
@@ -266,7 +266,7 @@ class InlineTextFieldManager(val editor: Editor) {
                     border = JBUI.Borders.empty(InlineTextField.getEditorTextFieldVerticalOffset() - 2, 0)
                     putClientProperty(UIUtil.HIDE_EDITOR_FROM_DATA_CONTEXT_PROPERTY, true)
                 }
-                GlobalScope.launch {
+                appDispatcher.launch {
                     authorLabel.icon = editor.project?.sessionService?.userLoggedIn?.avatarIcon
                 }
 

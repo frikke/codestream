@@ -4,10 +4,7 @@ import com.codestream.agent.ModuleListenerImpl
 import com.codestream.editor.EditorFactoryListenerImpl
 import com.codestream.editor.FileEditorManagerListenerImpl
 import com.codestream.editor.VirtualFileListenerImpl
-import com.codestream.protocols.webview.EditorNotifications
-import com.codestream.protocols.webview.FocusNotifications
-import com.codestream.protocols.webview.Sidebar
-import com.codestream.protocols.webview.SidebarLocation
+import com.codestream.protocols.webview.*
 import com.codestream.system.CodeStreamDiffURLStreamHandler
 import com.codestream.workaround.ToolWindowManagerWorkaround
 import com.intellij.ProjectTopics
@@ -60,6 +57,7 @@ class CodeStreamProjectService(val project: Project) : Disposable {
         initVirtualFileListener()
         initMessageBusSubscriptions()
         ApplicationManager.getApplication().invokeLater {
+            initWindowVisibilityListener()
             initWindowFocusListener()
             initUnreadsListener()
         }
@@ -106,6 +104,9 @@ class CodeStreamProjectService(val project: Project) : Disposable {
         })
     }
 
+    private fun initWindowVisibilityListener() {
+        project.codeStream?.onIsVisibleChanged(this::updateWebViewVisibility)
+    }
     private fun initEditorFactoryListener() {
         if (project.isDisposed) return
         EditorFactory.getInstance().addEditorFactoryListener(
@@ -194,6 +195,13 @@ class CodeStreamProjectService(val project: Project) : Disposable {
             FocusNotifications.DidChange(isFocused && isVisible)
         )
     }
+
+    private fun updateWebViewVisibility(isVisible: Boolean) {
+        project.webViewService?.postNotification(
+            VisibilityNotifications.DidChange(isVisible)
+        )
+    }
+
 
     private var oldSidebarLocation: SidebarLocation? = null
     private fun updateSidebar() {

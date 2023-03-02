@@ -5,7 +5,6 @@ import com.codestream.extensions.uri
 import com.codestream.extensions.workspaceFolders
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.impl.scopes.ModuleWithDependenciesScope
 import com.intellij.openapi.project.ModuleListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.rootManager

@@ -67,7 +67,6 @@ import {
 	RegisterUserRequestType,
 	ReportingMessageType,
 	SetServerUrlRequest,
-	SetServerUrlRequestType,
 	ThirdPartyProviders,
 	TokenLoginRequest,
 	TokenLoginRequestType,
@@ -75,6 +74,9 @@ import {
 	UserDidCommitNotificationType,
 	VerifyConnectivityRequestType,
 	VerifyConnectivityResponse,
+	PollForMaintenanceModeRequestType,
+	PollForMaintenanceModeResponse,
+	RefreshMaintenancePollNotificationType,
 	VersionCompatibility,
 } from "@codestream/protocols/agent";
 import {
@@ -377,6 +379,11 @@ export class CodeStreamSession {
 					this._didEncounterMaintenanceMode();
 				}
 
+				let isMaintenanceMode = context.response?.headers.get("X-CS-API-Maintenance-Mode")
+					? true
+					: false;
+				this._refreshMaintenanceModePoll(isMaintenanceMode);
+
 				const alerts = context.response?.headers.get("X-CS-API-Alerts");
 				if (alerts) {
 					Logger.warn(`API Server posted these alerts: ${alerts}`);
@@ -447,7 +454,11 @@ export class CodeStreamSession {
 		this.agent.registerHandler(ApiRequestType, (e, cancellationToken: CancellationToken) =>
 			this.api.fetch(e.url, e.init, e.token)
 		);
-		this.agent.registerHandler(SetServerUrlRequestType, e => this.setServerUrl(e));
+		this.agent.registerHandler(DeclineInviteRequestType, e => this.declineInvite(e));
+		this.agent.registerHandler(PollForMaintenanceModeRequestType, () =>
+			this.pollForMaintenanceMode()
+		);
+
 		this.agent.registerHandler(
 			BootstrapRequestType,
 			async (e, cancellationToken: CancellationToken) => {
@@ -528,6 +539,13 @@ export class CodeStreamSession {
 				teamId: this._teamId!,
 				value: this._codestreamAccessToken!,
 			},
+		});
+	}
+
+	private _refreshMaintenanceModePoll(isMaintenanceMode: boolean) {
+		this.agent.sendNotification(RefreshMaintenancePollNotificationType, {
+			isMaintenanceMode,
+			pollRefresh: true,
 		});
 	}
 
@@ -698,9 +716,12 @@ export class CodeStreamSession {
 		) {
 			const oldCapabilities = SessionContainer.instance().session.apiCapabilities;
 			const newCapabilities = await this.api.getApiCapabilities();
-			const currentTeam = await SessionContainer.instance().teams.getByIdFromCache(this.teamId);
+			const { teams, users } = SessionContainer.instance();
+			const currentTeam = await teams.getByIdFromCache(this.teamId);
+			const me = await users.getMe();
+
 			if (!isEqual(oldCapabilities, newCapabilities)) {
-				this.registerApiCapabilities(newCapabilities, currentTeam);
+				this.registerApiCapabilities(newCapabilities, currentTeam, me);
 				this.agent.sendNotification(DidChangeDataNotificationType, {
 					type: ChangeDataType.ApiCapabilities,
 					data: this._apiCapabilities, // Use filtered apiCapabilities
@@ -929,6 +950,13 @@ export class CodeStreamSession {
 	}
 
 	@log({ singleLine: true })
+	async pollForMaintenanceMode(): Promise<PollForMaintenanceModeResponse> {
+		if (!this._api) throw new Error("cannot verify connectivity, no API connection established");
+		const response = await this._api.pollForMaintenanceMode();
+		return response;
+	}
+
+	@log({ singleLine: true })
 	async passwordLogin(request: PasswordLoginRequest) {
 		const cc = Logger.getCorrelationContext();
 		Logger.log(
@@ -1137,7 +1165,11 @@ export class CodeStreamSession {
 		this._email = response.user.email;
 
 		const currentTeam = response.teams.find(t => t.id === this._teamId)!;
-		this.registerApiCapabilities(response.capabilities || {}, currentTeam);
+		this.registerApiCapabilities(response.capabilities || {}, currentTeam, response.user);
+		this.agent.sendNotification(DidChangeDataNotificationType, {
+			type: ChangeDataType.ApiCapabilities,
+			data: this._apiCapabilities,
+		});
 
 		if (response.provider === "codestream") {
 			if (
@@ -1657,10 +1689,16 @@ export class CodeStreamSession {
 		}
 	}
 
-	registerApiCapabilities(apiCapabilities: CSApiCapabilities, team?: CSTeam): void {
+	registerApiCapabilities(apiCapabilities: CSApiCapabilities, team?: CSTeam, user?: CSMe): void {
 		const teamSettings = (team && team.settings) || {};
 		const teamFeatures = teamSettings.features || {};
-		Logger.log(`registerApiCapabilities for teamId ${team?.id}`, teamFeatures);
+		const userPreferences = (user && user.preferences) || {};
+		const userFeatures = userPreferences.features || {};
+		Logger.log(
+			`registerApiCapabilities for teamId ${team?.id}, userId ${user?.id}`,
+			teamFeatures,
+			userFeatures
+		);
 		this._apiCapabilities = {};
 		if (this.versionInfo.ide.name == null || this.versionInfo.ide.name === "") {
 			Logger.warn("IDE name not set - IDE-specific capabilities can't be identified");
@@ -1669,6 +1707,7 @@ export class CodeStreamSession {
 			const capability = apiCapabilities[key];
 			if (
 				(!capability.restricted || teamFeatures[key]) &&
+				(!capability.userRestricted || userFeatures[key]) &&
 				(!capability.supportedIdes || capability.supportedIdes.includes(this.versionInfo.ide.name))
 			) {
 				this._apiCapabilities[key] = capability;

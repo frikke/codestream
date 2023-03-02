@@ -1,5 +1,14 @@
 # Change Log
 
+## [14.16.0] - 2023-3-2
+
+### Fixed
+
+- Fixes an issue where violations in the Golden Metrics section were linking to the wrong page on New Relic
+- Fixes an issue with the conversion of decimal to percentage in the display of error rate in Golden Metrics
+- Fixes an issue with the parsing of Ruby stack traces in errors
+- Fixes an issue where CodeStream hangs for 30 seconds on first time install of VS Code
+
 ## [14.15.2] - 2023-2-24
 
 ### Fixed
@@ -164,7 +173,7 @@
 
 - Fixes an issue that was preventing signup via New Relic api key for users that had been invited
 - Fixes an issue that would cause the list of pull requests to disappear on transient network errors
-- Fixes an issue where closed violations were being displayed in the Observability section 
+- Fixes an issue where closed violations were being displayed in the Observability section
 - Addresses [#1198](https://github.com/TeamCodeStream/CodeStream/issues/1198) &mdash; java.lang.Throwable: class com.intellij.openapi.module.ModuleManager it is a service, use getService instead of getComponent
 
 ## [14.2.0] - 2022-9-29

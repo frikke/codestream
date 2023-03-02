@@ -1,6 +1,7 @@
 package com.codestream.extensions
 
 import com.codestream.agentService
+import com.codestream.appDispatcher
 import com.codestream.editor.InlineTextFieldManager
 import com.codestream.editorService
 import com.codestream.protocols.webview.EditorMargins
@@ -19,7 +20,6 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.tabs.impl.JBTabsImpl
 import com.intellij.util.DocumentUtil
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import org.eclipse.lsp4j.Position
@@ -227,7 +227,7 @@ suspend fun Editor.getDefaultPrCommentText(): String? {
     val textFuture = CompletableFuture<String>()
     ApplicationManager.getApplication().invokeLater {
         val isSelectionWithinDiffRange = isSelectionWithinDiffRange()
-        GlobalScope.launch {
+        appDispatcher.launch {
             val text = when {
                 isPullRequest() -> {
                     if (isSelectionWithinDiffRange) {

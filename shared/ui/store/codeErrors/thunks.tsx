@@ -36,6 +36,7 @@ import { highlightRange } from "@codestream/webview/Stream/api-functions";
 import { confirmPopup } from "@codestream/webview/Stream/Confirm";
 import { HostApi } from "@codestream/webview/webview-api";
 import { Position, Range } from "vscode-languageserver-types";
+import React from "react";
 
 export const updateCodeErrors =
 	(codeErrors: CSCodeError[]) => async (dispatch, getState: () => CodeStreamState) => {
@@ -223,7 +224,16 @@ export const openErrorGroup =
 					const orgDesc = response.ownedBy
 						? `the ${response.ownedBy} organization`
 						: "another organization";
-					message = `This error can't be displayed because it's owned by ${orgDesc} on CodeStream.`;
+					message = (
+						<div>
+							<div>
+								This error can't be displayed because it's owned by {orgDesc} on CodeStream.
+							</div>
+							<div style={{ fontSize: "smaller", marginTop: "25px" }} className="subtle">
+								{response?.companyId}
+							</div>
+						</div>
+					);
 				}
 			}
 		}
