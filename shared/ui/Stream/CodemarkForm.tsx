@@ -180,6 +180,7 @@ interface ConnectedProps {
 	prLabel: LabelHash;
 	codeErrors: CodeErrorsState;
 	currentPullRequestSupportsReview?: boolean;
+	isPDIdev?: boolean;
 }
 
 interface State {
@@ -2103,7 +2104,7 @@ class CodemarkForm extends React.Component<Props, State> {
 					<PanelHeader
 						title={
 							this.props.currentCodeErrorId
-								? "Add Comment to Error"
+								? "Add Comment to Errorrrr"
 								: this.props.currentReviewId
 								? "Add Comment to Review"
 								: this.props.textEditorUriHasPullRequestContext
@@ -2562,7 +2563,7 @@ class CodemarkForm extends React.Component<Props, State> {
 										: this.props.editingCodemark
 										? "Save"
 										: this.props.currentCodeErrorId
-										? "Add Comment to Error"
+										? "Adddd Comment to Error"
 										: "Submit"}
 								</Button>
 							</Tooltip>
@@ -2709,6 +2710,7 @@ const mapStateToProps = (state: CodeStreamState): ConnectedProps => {
 		inviteUsersOnTheFly,
 		prLabel: getPRLabel(state),
 		codeErrors: codeErrors,
+		isPDIdev: isFeatureEnabled(state, "PDIdev"),
 	};
 };
 

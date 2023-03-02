@@ -71,6 +71,7 @@ import { SharingModal } from "../SharingModal";
 import Timestamp from "../Timestamp";
 import Tooltip from "../Tooltip";
 import { ConditionalNewRelic } from "./ConditionalComponent";
+import { isFeatureEnabled } from "../../store/apiVersioning/reducer";
 
 interface SimpleError {
 	/**
@@ -1509,6 +1510,7 @@ const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 			replies: props.collapsed
 				? emptyArray
 				: getThreadPosts(state, codeError.streamId, codeError.postId),
+			isPDIdev: isFeatureEnabled(state, "PDIdev"),
 		};
 	});
 
@@ -1547,7 +1549,7 @@ const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 						</>
 					)}
 
-					{InputContainer && (
+					{InputContainer && !derivedState.isPDIdev && (
 						<InputContainer>
 							<ReplyInput codeError={codeError} />
 						</InputContainer>
