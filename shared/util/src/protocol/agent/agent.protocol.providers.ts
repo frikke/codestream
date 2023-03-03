@@ -1332,6 +1332,7 @@ export interface GetObservabilityErrorGroupMetadataResponse {
 	occurrenceId?: string;
 	entityId?: string;
 	remote?: string;
+	relatedRepos?: RelatedRepository[];
 }
 
 export const GetObservabilityErrorGroupMetadataRequestType = new RequestType<
