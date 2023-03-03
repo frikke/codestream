@@ -579,6 +579,7 @@ function listenForEvents(store) {
 					case "errorsinbox": {
 						store.dispatch(closeAllPanels());
 
+						//Values in this query come from parsing the URL provided when opening in IDE
 						const definedQuery = route as RouteWithQuery<{
 							errorGroupGuid: string;
 							traceId?: string;

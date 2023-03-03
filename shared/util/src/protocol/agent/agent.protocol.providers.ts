@@ -1715,6 +1715,10 @@ export interface BuiltFromResult {
 	};
 }
 
+export interface RelatedRepository {
+	repos?: string[];
+}
+
 export interface ErrorGroup {
 	id: string;
 	state?: string;

@@ -621,11 +621,11 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			const metricResponse = await this.getMetricData(request.errorGroupGuid);
 			if (!metricResponse) return undefined;
 
-			const mappedEntity = await this.findMappedRemoteByEntity(metricResponse?.entityGuid);
+			const mappedRepoEntities = await this.findMappedRemoteByEntity(metricResponse?.entityGuid);
 			return {
 				entityId: metricResponse?.entityGuid,
 				occurrenceId: metricResponse?.traceId,
-				remote: mappedEntity?.url,
+				relatedRepos: mappedRepoEntities,
 			} as GetObservabilityErrorGroupMetadataResponse;
 		} catch (ex) {
 			ContextLogger.error(ex, "getErrorGroupMetadata", {
@@ -3303,6 +3303,45 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		);
 	}
 
+	protected async findRelatedRepositoriesByServiceGuid(
+		serviceGuid: string
+	): Promise<RelatedEntityByRepositoryGuidsResult> {
+		return this.query(
+			`query RelatedRepositoriesQuery($guid: EntityGuid) {
+				actor {
+				  entity(guid: $guid) {
+					guid
+					name
+					relatedEntities(
+					  filter: {
+						entityDomainTypes: { include: { domain: "REF", type: "REPOSITORY" } }
+						relationshipTypes: { include: BUILT_FROM }
+					  }
+					) {
+					  results {
+						target {
+						  entity {
+							accountId
+							guid
+							name
+							tags {
+							  key
+							  values
+							}
+						  }
+						}
+					  }
+					}
+				  }
+				}
+			  }
+		  `,
+			{
+				guid: serviceGuid,
+			}
+		);
+	}
+
 	@log({ timed: true })
 	private async findRelatedEntityByRepositoryGuid(repositoryGuid: string): Promise<{
 		actor: {
@@ -3529,24 +3568,26 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		return undefined;
 	}
 
-	private async findMappedRemoteByEntity(entityGuid: string): Promise<
-		| {
-				url: string;
-				name: string;
-		  }
-		| undefined
-	> {
+	private async findMappedRemoteByEntity(
+		entityGuid: string
+	): Promise<BuiltFromResult[] | undefined> {
 		if (!entityGuid) return undefined;
 
 		const relatedEntityResponse = await this.findRelatedEntityByRepositoryGuid(entityGuid);
 		if (relatedEntityResponse) {
-			const result = this.findBuiltFrom(relatedEntityResponse.actor.entity.relatedEntities.results);
-			if (result?.name && result.url) {
-				return {
-					name: result.name,
-					url: result.url,
-				};
+			const remotes = this.findRelatedReposFromServiceEntity(
+				relatedEntityResponse.actor.entity.relatedEntities.results
+			);
+			if (!_isEmpty(remotes)) {
+				return remotes;
 			}
+			// const result = this.findBuiltFrom(relatedEntityResponse.actor.entity.relatedEntities.results);
+			// if (result?.name && result.url) {
+			// 	return {
+			// 		name: result.name,
+			// 		url: result.url,
+			// 	};
+			// }
 		}
 		return undefined;
 	}
@@ -3689,6 +3730,35 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		}
 
 		return undefined;
+	}
+
+	private findRelatedReposFromServiceEntity(
+		relatedEntities: RelatedEntity[]
+	): BuiltFromResult[] | undefined {
+		if (!relatedEntities || !relatedEntities.length) return undefined;
+
+		const relatedRepoData = relatedEntities.flatMap(_ => {
+			if (_.type !== "BUILT_FROM") return [];
+			const tags = _.target?.entity?.tags;
+			if (tags) {
+				const targetEntityTagsValues = tags.find((_: any) => _.key === "url");
+				if (
+					targetEntityTagsValues &&
+					targetEntityTagsValues.values &&
+					targetEntityTagsValues.values.length
+				) {
+					return [
+						{
+							url: targetEntityTagsValues.values[0],
+							name: _.target?.entity?.name,
+						},
+					];
+				}
+			}
+			return [];
+		});
+
+		return _isEmpty(relatedRepoData) ? undefined : relatedRepoData;
 	}
 
 	public static parseId(idLike: string): NewRelicId | undefined {
