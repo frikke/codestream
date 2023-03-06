@@ -112,7 +112,7 @@ export function RepositoryAssociator(props: {
 						return repo.name === _.name;
 					});
 				});
-				if (filteredResults.length < 2) {
+				if (filteredResults.length === 1) {
 					setSelected(filteredResults[0]);
 					handleOnSubmitWithOneItemInDropdown(filteredResults[0]);
 				} else {

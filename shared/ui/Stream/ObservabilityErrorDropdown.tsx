@@ -92,20 +92,11 @@ export const ObservabilityErrorDropdown = React.memo((props: Props) => {
 															multipleRepos: response?.relatedRepos
 																? response.relatedRepos.length > 1
 																: false,
-															relatedRepos: response?.relatedRepos
-																? response.relatedRepos
-																: undefined,
-															remote: response?.remote
-																? response.remote
-																: observabilityRepo.repoRemote,
+															relatedRepos: response?.relatedRepos || undefined,
 															timestamp: err.lastOccurrence,
 															sessionStart: derivedState.sessionStart,
-															pendingEntityId: response?.entityId
-																? response.entityId
-																: err.entityId,
-															occurrenceId: response?.occurrenceId
-																? response.occurrenceId
-																: err.occurrenceId,
+															pendingEntityId: response?.entityId || err.entityId,
+															occurrenceId: response?.occurrenceId || err.occurrenceId,
 															pendingErrorGroupGuid: err.errorGroupGuid,
 															openType: "Observability Section",
 														})

@@ -1387,22 +1387,11 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 					};
 				}
 
-				const builtFromResult = this.findBuiltFrom(
+				const relatedRepos = this.findRelatedReposFromServiceEntity(
 					errorGroupFullResponse.actor.entity.relatedEntities.results
 				);
-				if (errorGroup.entity && builtFromResult) {
-					if (builtFromResult.error) {
-						errorGroup.entity.relationship = {
-							error: builtFromResult.error,
-						};
-					} else {
-						errorGroup.entity = {
-							repo: {
-								name: builtFromResult.name!,
-								urls: [builtFromResult.url!],
-							},
-						};
-					}
+				if (errorGroup.entity && relatedRepos) {
+					errorGroup.entity.relatedRepos;
 				}
 
 				ContextLogger.log("ErrorGroup found", {
