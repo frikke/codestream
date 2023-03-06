@@ -71,6 +71,7 @@ export function RepositoryAssociator(props: {
 	const [selected, setSelected] = React.useState<any>(undefined);
 	const [multiRemoteRepository, setMultiRemoteRepository] = React.useState(false);
 	const [isLoading, setIsLoading] = React.useState(false);
+	const [hasFetchedRepos, setHasFetchedRepos] = React.useState(false);
 
 	const fetchRepos = () => {
 		HostApi.instance
@@ -126,23 +127,24 @@ export function RepositoryAssociator(props: {
 					props.isLoadingCallback(false);
 				}
 				logWarning(`could not get repos: ${e.message}`);
+			})
+			.finally(() => {
+				setHasFetchedRepos(true);
 			});
 	};
 
 	useDidMount(() => {
+		if (props.isLoadingCallback) {
+			props.isLoadingCallback(true);
+		}
 		if (!repositoryError) return;
 
 		const disposable = HostApi.instance.on(DidChangeDataNotificationType, (e: any) => {
 			if (e.type === ChangeDataType.Workspace) {
-				if (props.isLoadingCallback) {
-					props.isLoadingCallback(true);
-				}
 				fetchRepos();
 			}
 		});
-		if (props.isLoadingCallback) {
-			props.isLoadingCallback(true);
-		}
+
 		fetchRepos();
 
 		return () => {
@@ -181,7 +183,8 @@ export function RepositoryAssociator(props: {
 		setIsLoading(false);
 	};
 
-	if (!props.isLoadingParent) {
+	// console.warn("eric", props.isLoadingParent);
+	if (hasFetchedRepos && !props.isLoadingParent) {
 		return (
 			<Dismissable
 				title={repositoryError.title}

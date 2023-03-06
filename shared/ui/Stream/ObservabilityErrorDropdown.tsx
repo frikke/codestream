@@ -87,25 +87,29 @@ export const ObservabilityErrorDropdown = React.memo((props: Props) => {
 														GetObservabilityErrorGroupMetadataRequestType,
 														{ errorGroupGuid: err.errorGroupGuid }
 													)) as GetObservabilityErrorGroupMetadataResponse;
-													if (response) {
-														dispatch(
-															openErrorGroup(err.errorGroupGuid, err.occurrenceId, {
-																multipleRepos: response?.relatedRepos
-																	? response.relatedRepos.length > 1
-																	: false,
-																relatedRepos: response?.relatedRepos,
-																remote: response?.remote,
-																timestamp: err.lastOccurrence,
-																sessionStart: derivedState.sessionStart,
-																pendingEntityId: response.entityId,
-																occurrenceId: response.occurrenceId,
-																pendingErrorGroupGuid: err.errorGroupGuid,
-																openType: "Observability Section",
-															})
-														);
-													} else {
-														console.error("could not open error group");
-													}
+													dispatch(
+														openErrorGroup(err.errorGroupGuid, err.occurrenceId, {
+															multipleRepos: response?.relatedRepos
+																? response.relatedRepos.length > 1
+																: false,
+															relatedRepos: response?.relatedRepos
+																? response.relatedRepos
+																: undefined,
+															remote: response?.remote
+																? response.remote
+																: observabilityRepo.repoRemote,
+															timestamp: err.lastOccurrence,
+															sessionStart: derivedState.sessionStart,
+															pendingEntityId: response?.entityId
+																? response.entityId
+																: err.entityId,
+															occurrenceId: response?.occurrenceId
+																? response.occurrenceId
+																: err.occurrenceId,
+															pendingErrorGroupGuid: err.errorGroupGuid,
+															openType: "Observability Section",
+														})
+													);
 												} catch (ex) {
 													console.error(ex);
 												} finally {
