@@ -795,6 +795,8 @@ export function CodeErrorNav(props: Props) {
 				onCancelled={e => {
 					exit();
 				}}
+				isLoadingCallback={setIsLoading}
+				isLoadingParent={isLoading}
 				onSubmit={r => {
 					setIsLoading(true);
 					return new Promise((resolve, reject) => {
@@ -819,6 +821,8 @@ export function CodeErrorNav(props: Props) {
 				onCancelled={e => {
 					exit();
 				}}
+				isLoadingCallback={setIsLoading}
+				isLoadingParent={isLoading}
 				onSubmit={r => {
 					return new Promise((resolve, reject) => {
 						const payload = {

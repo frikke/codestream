@@ -16,6 +16,8 @@ import { CodeStreamState } from "../../store";
 import { getCodeError } from "../../store/codeErrors/reducer";
 import Dismissable from "../Dismissable";
 import { DropdownButton } from "../DropdownButton";
+import { DelayedRender } from "../../Container/DelayedRender";
+import { LoadingMessage } from "../../src/components/LoadingMessage";
 
 const Ellipsize = styled.div`
 	button {
@@ -47,6 +49,8 @@ export function RepositoryAssociator(props: {
 	onSelected?: Function;
 	onSubmit: Function;
 	onCancelled: Function;
+	isLoadingCallback?: Function;
+	isLoadingParent?: boolean;
 }) {
 	const derivedState = useSelector((state: CodeStreamState) => {
 		const codeError = state.context.currentCodeErrorId
@@ -110,10 +114,17 @@ export function RepositoryAssociator(props: {
 				if (filteredResults.length < 2) {
 					setSelected(filteredResults[0]);
 					handleOnSubmitWithOneItemInDropdown(filteredResults[0]);
+				} else {
+					setOpenRepositories(filteredResults);
 				}
-				setOpenRepositories(filteredResults);
+				if (props.isLoadingCallback) {
+					props.isLoadingCallback(false);
+				}
 			})
 			.catch(e => {
+				if (props.isLoadingCallback) {
+					props.isLoadingCallback(false);
+				}
 				logWarning(`could not get repos: ${e.message}`);
 			});
 	};
@@ -123,9 +134,15 @@ export function RepositoryAssociator(props: {
 
 		const disposable = HostApi.instance.on(DidChangeDataNotificationType, (e: any) => {
 			if (e.type === ChangeDataType.Workspace) {
+				if (props.isLoadingCallback) {
+					props.isLoadingCallback(true);
+				}
 				fetchRepos();
 			}
 		});
+		if (props.isLoadingCallback) {
+			props.isLoadingCallback(true);
+		}
 		fetchRepos();
 
 		return () => {
@@ -164,64 +181,74 @@ export function RepositoryAssociator(props: {
 		setIsLoading(false);
 	};
 
-	return (
-		<Dismissable
-			title={repositoryError.title}
-			buttons={[
-				{
-					text: props.buttonText || "Associate",
-					loading: isLoading,
-					onClick: async e => {
-						setIsLoading(true);
-						e.preventDefault();
+	if (!props.isLoadingParent) {
+		return (
+			<Dismissable
+				title={repositoryError.title}
+				buttons={[
+					{
+						text: props.buttonText || "Associate",
+						loading: isLoading,
+						onClick: async e => {
+							setIsLoading(true);
+							e.preventDefault();
 
-						await props.onSubmit(selected);
-						if (!props.disableEmitDidChangeObservabilityDataNotification) {
-							HostApi.instance.emit(DidChangeObservabilityDataNotificationType.method, {
-								type: "RepositoryAssociation",
-							});
+							await props.onSubmit(selected);
+							if (!props.disableEmitDidChangeObservabilityDataNotification) {
+								HostApi.instance.emit(DidChangeObservabilityDataNotificationType.method, {
+									type: "RepositoryAssociation",
+								});
+							}
+							setIsLoading(false);
+						},
+						disabled: !selected,
+					},
+					{
+						text: "Cancel",
+						isSecondary: true,
+						onClick: e => {
+							e.preventDefault();
+							props.onCancelled(e);
+						},
+					},
+				]}
+			>
+				<p>{repositoryError.description}</p>
+				{multiRemoteRepository && (
+					<p>If this is a forked repository, please select the upstream remote.</p>
+				)}
+				<Ellipsize>
+					<DropdownButton
+						items={
+							openRepositories
+								?.sort((a, b) => a.label.localeCompare(b.label))
+								.map(remote => {
+									return {
+										key: remote.key,
+										label: remote.label,
+										action: () => {
+											setSelected(remote);
+											props.onSelected && props.onSelected(remote);
+										},
+									};
+								}) || []
 						}
-						setIsLoading(false);
-					},
-					disabled: !selected,
-				},
-				{
-					text: "Cancel",
-					isSecondary: true,
-					onClick: e => {
-						e.preventDefault();
-						props.onCancelled(e);
-					},
-				},
-			]}
-		>
-			<p>{repositoryError.description}</p>
-			{multiRemoteRepository && (
-				<p>If this is a forked repository, please select the upstream remote.</p>
-			)}
-			<Ellipsize>
-				<DropdownButton
-					items={
-						openRepositories
-							?.sort((a, b) => a.label.localeCompare(b.label))
-							.map(remote => {
-								return {
-									key: remote.key,
-									label: remote.label,
-									action: () => {
-										setSelected(remote);
-										props.onSelected && props.onSelected(remote);
-									},
-								};
-							}) || []
-					}
-					selectedKey={selected ? selected.id : null}
-					variant={selected ? "secondary" : "primary"}
-					wrap
-				>
-					{selected ? selected.name : "Select a Repository"}
-				</DropdownButton>
-			</Ellipsize>
-		</Dismissable>
-	);
+						selectedKey={selected ? selected.id : null}
+						variant={selected ? "secondary" : "primary"}
+						wrap
+					>
+						{selected ? selected.name : "Select a Repository"}
+					</DropdownButton>
+				</Ellipsize>
+			</Dismissable>
+		);
+	} else {
+		return (
+			<DelayedRender>
+				<div style={{ display: "flex", height: "100vh", alignItems: "center" }}>
+					<LoadingMessage>Loading Error Group...</LoadingMessage>
+				</div>
+			</DelayedRender>
+		);
+	}
 }
