@@ -47,14 +47,11 @@ export function RepositoryAssociator(props: {
 	onSelected?: Function;
 	onSubmit: Function;
 	onCancelled: Function;
-	repoSubset?: string[];
 }) {
 	const derivedState = useSelector((state: CodeStreamState) => {
 		const codeError = state.context.currentCodeErrorId
 			? (getCodeError(state.codeErrors, state.context.currentCodeErrorId) as CSCodeError)
 			: undefined;
-
-		const currentCodeErrorData = state.context.currentCodeErrorData;
 
 		return {
 			codeError: codeError,
@@ -103,9 +100,11 @@ export function RepositoryAssociator(props: {
 						}
 					}
 				}
+				//take repos in users IDE, and filter them with a list of
+				//related repos to service entity the error originates from
 				const filteredResults = results.filter(_ => {
 					return derivedState.relatedRepos.some(repo => {
-						return repo.url === _.remote && repo.name === _.name;
+						return repo.name === _.name;
 					});
 				});
 				if (filteredResults.length < 2) {
