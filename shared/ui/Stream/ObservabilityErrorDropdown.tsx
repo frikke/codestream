@@ -38,32 +38,12 @@ export const ObservabilityErrorDropdown = React.memo((props: Props) => {
 		const _filteredErrors = _filteredErrorsByRepo.map(fe => {
 			return fe.errors.filter(error => {
 				return error.entityId === props.entityGuid;
-				// if (error.entityId === props.entityGuid) {
-				// 	return error;
-				// }
 			});
 		});
 		setFilteredErrors(_filteredErrors || []);
 	}, [props.observabilityErrors]);
 
-	// useDidMount(() => {});
-	// useEffect(() => {}, []);
-
 	const { observabilityErrors, observabilityRepo } = props;
-
-	// onClick={e => {
-	// 	dispatch(
-	// 		openErrorGroup(err.errorGroupGuid, err.occurrenceId, {
-	// 			timestamp: err.lastOccurrence,
-	// 			remote: observabilityRepo.repoRemote,
-	// 			sessionStart: derivedState.sessionStart,
-	// 			pendingEntityId: err.entityId,
-	// 			occurrenceId: err.occurrenceId,
-	// 			pendingErrorGroupGuid: err.errorGroupGuid,
-	// 			src: "Observability Section",
-	// 		})
-	// 	);
-	// }}
 
 	return (
 		<>

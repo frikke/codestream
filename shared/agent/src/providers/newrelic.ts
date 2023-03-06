@@ -3303,45 +3303,6 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		);
 	}
 
-	protected async findRelatedRepositoriesByServiceGuid(
-		serviceGuid: string
-	): Promise<RelatedEntityByRepositoryGuidsResult> {
-		return this.query(
-			`query RelatedRepositoriesQuery($guid: EntityGuid) {
-				actor {
-				  entity(guid: $guid) {
-					guid
-					name
-					relatedEntities(
-					  filter: {
-						entityDomainTypes: { include: { domain: "REF", type: "REPOSITORY" } }
-						relationshipTypes: { include: BUILT_FROM }
-					  }
-					) {
-					  results {
-						target {
-						  entity {
-							accountId
-							guid
-							name
-							tags {
-							  key
-							  values
-							}
-						  }
-						}
-					  }
-					}
-				  }
-				}
-			  }
-		  `,
-			{
-				guid: serviceGuid,
-			}
-		);
-	}
-
 	@log({ timed: true })
 	private async findRelatedEntityByRepositoryGuid(repositoryGuid: string): Promise<{
 		actor: {
@@ -3581,13 +3542,6 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			if (!_isEmpty(remotes)) {
 				return remotes;
 			}
-			// const result = this.findBuiltFrom(relatedEntityResponse.actor.entity.relatedEntities.results);
-			// if (result?.name && result.url) {
-			// 	return {
-			// 		name: result.name,
-			// 		url: result.url,
-			// 	};
-			// }
 		}
 		return undefined;
 	}
