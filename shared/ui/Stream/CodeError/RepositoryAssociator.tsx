@@ -183,7 +183,6 @@ export function RepositoryAssociator(props: {
 		setIsLoading(false);
 	};
 
-	// console.warn("eric", props.isLoadingParent);
 	if (hasFetchedRepos && !props.isLoadingParent) {
 		return (
 			<Dismissable
