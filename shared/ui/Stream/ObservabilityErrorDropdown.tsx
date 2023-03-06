@@ -7,6 +7,12 @@ import { CodeStreamState } from "../store";
 import { ErrorRow } from "./Observability";
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import Icon from "./Icon";
+import { HostApi } from "../webview-api";
+import {
+	GetObservabilityErrorGroupMetadataRequestType,
+	GetObservabilityErrorGroupMetadataResponse,
+} from "@codestream/protocols/agent";
+
 interface Props {
 	observabilityErrors?: any;
 	observabilityRepo?: any;
@@ -45,6 +51,20 @@ export const ObservabilityErrorDropdown = React.memo((props: Props) => {
 
 	const { observabilityErrors, observabilityRepo } = props;
 
+	// onClick={e => {
+	// 	dispatch(
+	// 		openErrorGroup(err.errorGroupGuid, err.occurrenceId, {
+	// 			timestamp: err.lastOccurrence,
+	// 			remote: observabilityRepo.repoRemote,
+	// 			sessionStart: derivedState.sessionStart,
+	// 			pendingEntityId: err.entityId,
+	// 			occurrenceId: err.occurrenceId,
+	// 			pendingErrorGroupGuid: err.errorGroupGuid,
+	// 			src: "Observability Section",
+	// 		})
+	// 	);
+	// }}
+
 	return (
 		<>
 			<Row
@@ -81,18 +101,35 @@ export const ObservabilityErrorDropdown = React.memo((props: Props) => {
 											timestamp={err.lastOccurrence}
 											url={err.errorGroupUrl}
 											customPadding={"0 10px 0 50px"}
-											onClick={e => {
-												dispatch(
-													openErrorGroup(err.errorGroupGuid, err.occurrenceId, {
-														timestamp: err.lastOccurrence,
-														remote: observabilityRepo.repoRemote,
-														sessionStart: derivedState.sessionStart,
-														pendingEntityId: err.entityId,
-														occurrenceId: err.occurrenceId,
-														pendingErrorGroupGuid: err.errorGroupGuid,
-														src: "Observability Section",
-													})
-												);
+											onClick={async e => {
+												try {
+													const response = (await HostApi.instance.send(
+														GetObservabilityErrorGroupMetadataRequestType,
+														{ errorGroupGuid: err.errorGroupGuid }
+													)) as GetObservabilityErrorGroupMetadataResponse;
+													if (response) {
+														dispatch(
+															openErrorGroup(err.errorGroupGuid, err.occurrenceId, {
+																multipleRepos: response?.relatedRepos
+																	? response.relatedRepos.length > 1
+																	: false,
+																relatedRepos: response?.relatedRepos,
+																remote: response?.remote,
+																timestamp: err.lastOccurrence,
+																sessionStart: derivedState.sessionStart,
+																pendingEntityId: response.entityId,
+																occurrenceId: response.occurrenceId,
+																pendingErrorGroupGuid: err.errorGroupGuid,
+																openType: "Observability Section",
+															})
+														);
+													} else {
+														console.error("could not open error group");
+													}
+												} catch (ex) {
+													console.error(ex);
+												} finally {
+												}
 											}}
 										/>
 									);

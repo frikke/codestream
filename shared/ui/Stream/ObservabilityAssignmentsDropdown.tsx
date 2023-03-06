@@ -87,6 +87,7 @@ export const ObservabilityAssignmentsDropdown = React.memo((props: Props) => {
 															multipleRepos: response?.relatedRepos
 																? response.relatedRepos.length > 1
 																: false,
+															relatedRepos: response?.relatedRepos,
 															remote: response?.remote,
 															sessionStart: derivedState.sessionStart,
 															pendingEntityId: response.entityId,

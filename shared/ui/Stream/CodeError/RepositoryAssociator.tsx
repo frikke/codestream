@@ -47,15 +47,19 @@ export function RepositoryAssociator(props: {
 	onSelected?: Function;
 	onSubmit: Function;
 	onCancelled: Function;
+	repoSubset?: string[];
 }) {
 	const derivedState = useSelector((state: CodeStreamState) => {
 		const codeError = state.context.currentCodeErrorId
 			? (getCodeError(state.codeErrors, state.context.currentCodeErrorId) as CSCodeError)
 			: undefined;
 
+		const currentCodeErrorData = state.context.currentCodeErrorData;
+
 		return {
 			codeError: codeError,
 			repos: state.repos,
+			relatedRepos: state.context.currentCodeErrorData?.relatedRepos,
 		};
 	});
 	const { error: repositoryError } = props;
@@ -99,8 +103,16 @@ export function RepositoryAssociator(props: {
 						}
 					}
 				}
-
-				setOpenRepositories(results);
+				const filteredResults = results.filter(_ => {
+					return derivedState.relatedRepos.some(repo => {
+						return repo.url === _.remote && repo.name === _.name;
+					});
+				});
+				if (filteredResults.length < 2) {
+					setSelected(filteredResults[0]);
+					handleOnSubmitWithOneItemInDropdown(filteredResults[0]);
+				}
+				setOpenRepositories(filteredResults);
 			})
 			.catch(e => {
 				logWarning(`could not get repos: ${e.message}`);
@@ -140,6 +152,18 @@ export function RepositoryAssociator(props: {
 			</Dismissable>
 		);
 	}
+
+	const handleOnSubmitWithOneItemInDropdown = async repo => {
+		setIsLoading(true);
+
+		await props.onSubmit(repo);
+		if (!props.disableEmitDidChangeObservabilityDataNotification) {
+			HostApi.instance.emit(DidChangeObservabilityDataNotificationType.method, {
+				type: "RepositoryAssociation",
+			});
+		}
+		setIsLoading(false);
+	};
 
 	return (
 		<Dismissable
@@ -194,10 +218,9 @@ export function RepositoryAssociator(props: {
 					}
 					selectedKey={selected ? selected.id : null}
 					variant={selected ? "secondary" : "primary"}
-					size="compact"
 					wrap
 				>
-					{selected ? selected.name : "select a repository"}
+					{selected ? selected.name : "Select a Repository"}
 				</DropdownButton>
 			</Ellipsize>
 		</Dismissable>

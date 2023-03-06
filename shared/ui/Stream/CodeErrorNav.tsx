@@ -440,7 +440,7 @@ export function CodeErrorNav(props: Props) {
 					return;
 				}
 
-				if (errorGroupResult?.errorGroup?.entity?.repo?.urls != null) {
+				if (errorGroupResult?.errorGroup?.entity?.repo?.urls != null && !multipleRepos) {
 					targetRemote = errorGroupResult?.errorGroup?.entity?.repo?.urls[0]!;
 				} else if (codeError?.objectInfo?.remote) {
 					targetRemote = codeError?.objectInfo?.remote;
