@@ -7,6 +7,8 @@ interface Props {
 	projects: {
 		[key: string]: ThirdPartyBuild[];
 	};
+
+	totalConfiguredProviders: number;
 }
 
 export const CircleCIBuilds = (props: Props) => {

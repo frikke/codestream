@@ -1,18 +1,9 @@
 import React from "react";
-import styled from "styled-components";
 
 import { configureAndConnectProvider } from "@codestream/webview/store/providers/actions";
 import { useAppDispatch } from "@codestream/webview/utilities/hooks";
 import Icon from "../Icon";
 import { IntegrationButtons, Provider } from "../IntegrationsPanel";
-import { Link } from "@codestream/webview/Stream/Link";
-
-
-const ProviderMissing = styled.div`
-	text-align: center;
-	padding: 0px 20px 0px 20px;
-	margin-top: -20px;
-`;
 
 export const ConnectCICD = () => {
 	const dispatch = useAppDispatch();
@@ -46,13 +37,6 @@ export const ConnectCICD = () => {
 					Connect to Jenkins
 				</Provider>
 			</IntegrationButtons>
-
-			<ProviderMissing>
-				Don't see your service?{" "}
-				<Link href="https://github.com/TeamCodeStream/codestream/issues?q=is%3Aissue+is%3Aopen+label%3A%22enhancement%22">
-					Let us know.
-				</Link>
-			</ProviderMissing>
 		</>
 	);
 };

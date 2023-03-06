@@ -7,12 +7,11 @@ import {
 import React, { useEffect, useState } from "react";
 import { shallowEqual, useSelector } from "react-redux";
 
-import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { CodeStreamState } from "@codestream/webview/store";
 import { getUserProviderInfoFromState } from "@codestream/webview/store/providers/utils";
 import { HostApi } from "@codestream/webview/webview-api";
 import { WebviewPanels } from "../../ipc/webview.protocol.common";
-import { PaneBody, PaneHeader, PaneState } from "../../src/components/Pane";
+import { NoContent, PaneBody, PaneHeader, PaneState } from "../../src/components/Pane";
 import Icon from "../Icon";
 import { CircleCIBuilds } from "./CircleCIBuilds";
 import { ConnectCICD } from "./ConnectCICD";
@@ -40,12 +39,14 @@ export const CICD = (props: Props) => {
 	const derivedState = useSelector((state: CodeStreamState) => {
 		const { editorContext, providers } = state;
 		const providerInfo: { [key: string]: object | undefined } = {};
+		const userConfiguredProviders: string[] = [];
 		for (const provider of ["circleci*com", "jenkins"]) {
 			const name = providers[provider]?.name;
 			if (name) {
 				const p = getUserProviderInfoFromState(name, state);
 				if (p) {
 					providerInfo[name] = p;
+					userConfiguredProviders.push(name);
 				}
 			}
 		}
@@ -59,13 +60,14 @@ export const CICD = (props: Props) => {
 			providers,
 			currentRepo,
 			currentBranch: editorContext.scmInfo?.scm?.branch,
+			totalConfiguredProviders: userConfiguredProviders.length ?? 0,
+			userConfiguredProviders: userConfiguredProviders,
 		};
 	}, shallowEqual);
 	const [loading, setLoading] = useState(false);
 	const [refresh, setRefresh] = useState(false);
 	const [refreshTimeout, setRefreshTimeout] = useState<number>();
 	const [projects, setProjects] = useState<Projects>({});
-	const [dashboardUrls, setDashboardUrls] = useState<DashboardUrls>({});
 
 	const scheduleRefresh = (active: boolean) => {
 		const timeout = active ? ACTIVE_REFRESH_INTERVAL : INACTIVE_REFRESH_INTERVAL;
@@ -123,7 +125,6 @@ export const CICD = (props: Props) => {
 		scheduleRefresh(buildsInProgress);
 		setRefresh(false);
 		setProjects(projects);
-		setDashboardUrls(dashboardUrls);
 		setLoading(false);
 	};
 
@@ -155,6 +156,7 @@ export const CICD = (props: Props) => {
 				id={WebviewPanels.CICD}
 				isLoading={loading}
 				subtitle={
+					derivedState.bootstrapped &&
 					derivedState.currentRepo && (
 						<>
 							<span>
@@ -190,40 +192,37 @@ export const CICD = (props: Props) => {
 						}}
 					/>
 				)}
-				{derivedState.bootstrapped && dashboardUrls.circleci && (
-					<Icon
-						name="link-external"
-						title="View Dashboard on CircleCI"
-						placement="bottom"
-						delay={1}
-						onClick={e => {
-							e.preventDefault();
-							e.stopPropagation();
-							HostApi.instance.send(OpenUrlRequestType, { url: dashboardUrls.circleci });
-						}}
-					/>
-				)}
 			</PaneHeader>
 			{props.paneState != PaneState.Collapsed && (
 				<PaneBody key="ci-cd">
 					{!derivedState.bootstrapped && <ConnectCICD />}
 
-					{derivedState.bootstrapped && !loading && Object.keys(projects).length === 0 && (
-						<div style={{ padding: "0 20px 0 40px" }}>
-							{`There were no builds found for ${derivedState.currentBranch}.`}
-						</div>
-					)}
+					{derivedState.bootstrapped &&
+						!loading &&
+						Object.keys(projects).length === 0 &&
+						derivedState.totalConfiguredProviders === 1 && (
+							<NoContent>
+								There were no builds found for the '{derivedState.currentBranch}' branch.
+							</NoContent>
+						)}
 
-					{derivedState.bootstrapped && projects.circleci && (
-						<CircleCIBuilds projects={projects.circleci} />
-					)}
+					{derivedState.bootstrapped &&
+						projects.circleci &&
+						derivedState.userConfiguredProviders.includes("circleci*com") && (
+							<CircleCIBuilds
+								projects={projects.circleci}
+								totalConfiguredProviders={derivedState.totalConfiguredProviders}
+							/>
+						)}
 
-					{derivedState.bootstrapped && (
-						<JenkinsBuilds
-							projects={projects.jenkins}
-							jenkinsBaseUrl={derivedState.providerInfo!.jenkins!["data"]["baseUrl"]}
-						/>
-					)}
+					{derivedState.bootstrapped &&
+						derivedState.userConfiguredProviders.includes("jenkins") && (
+							<JenkinsBuilds
+								projects={projects.jenkins}
+								jenkinsBaseUrl={derivedState.providerInfo!.jenkins!["data"]["baseUrl"]}
+								totalConfiguredProviders={derivedState.totalConfiguredProviders}
+							/>
+						)}
 				</PaneBody>
 			)}
 		</>
