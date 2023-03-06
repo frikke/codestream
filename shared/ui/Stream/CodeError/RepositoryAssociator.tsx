@@ -108,7 +108,7 @@ export function RepositoryAssociator(props: {
 				//take repos in users IDE, and filter them with a list of
 				//related repos to service entity the error originates from
 				const filteredResults = results.filter(_ => {
-					return derivedState.relatedRepos.some(repo => {
+					return derivedState.relatedRepos?.some(repo => {
 						return repo.name === _.name;
 					});
 				});
