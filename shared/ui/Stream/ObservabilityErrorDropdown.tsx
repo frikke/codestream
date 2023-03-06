@@ -89,9 +89,7 @@ export const ObservabilityErrorDropdown = React.memo((props: Props) => {
 													)) as GetObservabilityErrorGroupMetadataResponse;
 													dispatch(
 														openErrorGroup(err.errorGroupGuid, err.occurrenceId, {
-															multipleRepos: response?.relatedRepos
-																? response.relatedRepos.length > 1
-																: false,
+															multipleRepos: response?.relatedRepos?.length > 1,
 															relatedRepos: response?.relatedRepos || undefined,
 															timestamp: err.lastOccurrence,
 															sessionStart: derivedState.sessionStart,

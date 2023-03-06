@@ -84,9 +84,7 @@ export const ObservabilityAssignmentsDropdown = React.memo((props: Props) => {
 												if (response) {
 													dispatch(
 														openErrorGroup(_.errorGroupGuid, response.occurrenceId, {
-															multipleRepos: response?.relatedRepos
-																? response.relatedRepos.length > 1
-																: false,
+															multipleRepos: response?.relatedRepos?.length > 1,
 															relatedRepos: response?.relatedRepos,
 															sessionStart: derivedState.sessionStart,
 															pendingEntityId: response.entityId,

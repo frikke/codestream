@@ -625,7 +625,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			return {
 				entityId: metricResponse?.entityGuid,
 				occurrenceId: metricResponse?.traceId,
-				relatedRepos: mappedRepoEntities,
+				relatedRepos: mappedRepoEntities || [],
 			} as GetObservabilityErrorGroupMetadataResponse;
 		} catch (ex) {
 			ContextLogger.error(ex, "getErrorGroupMetadata", {
@@ -3623,56 +3623,6 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 
 	private productEntityRedirectUrl(entityGuid: string) {
 		return `${this.productUrl}/redirect/entity/${entityGuid}`;
-	}
-
-	private findBuiltFrom(relatedEntities: RelatedEntity[]): BuiltFromResult | undefined {
-		if (!relatedEntities || !relatedEntities.length) return undefined;
-
-		const builtFrom = relatedEntities.find(_ => _.type === "BUILT_FROM");
-		if (!builtFrom) return undefined;
-
-		const targetEntity = builtFrom.target?.entity;
-		if (targetEntity) {
-			const targetEntityTags = targetEntity.tags;
-			if (targetEntityTags) {
-				const targetEntityTagsValues = targetEntityTags.find((_: any) => _.key === "url");
-				if (targetEntityTagsValues) {
-					// why would there ever be more than 1??
-					if (
-						targetEntityTagsValues &&
-						targetEntityTagsValues.values &&
-						targetEntityTagsValues.values.length
-					) {
-						return {
-							url: targetEntityTagsValues.values[0],
-							name: builtFrom.target.entity.name,
-						};
-					} else {
-						ContextLogger.warn("findBuiltFrom missing tags with url[s]", {
-							relatedEntities: relatedEntities,
-						});
-						return {
-							error: {
-								message:
-									"Could not find a repository relationship. Please check your setup and try again.",
-							},
-						};
-					}
-				}
-			} else {
-				ContextLogger.warn("findBuiltFrom missing tags", {
-					relatedEntities: relatedEntities,
-				});
-				return {
-					error: {
-						message:
-							"Could not find a repository relationship. Please check your setup and try again.",
-					},
-				};
-			}
-		}
-
-		return undefined;
 	}
 
 	private findRelatedReposFromServiceEntity(
