@@ -2113,9 +2113,15 @@ class CodemarkForm extends React.Component<Props, State> {
 								: this.props.textEditorUriHasPullRequestContext
 								? "Add Comment to Pull Request"
 								: commentType === "comment"
-								? "Add a Comment"
+								? this.props.isPDIdev
+									? "Codemarks have been disabled"
+									: "Add a Comment"
 								: commentType === "link"
-								? "Grab a Permalink"
+								? this.props.isPDIdev
+									? "Permalinks have been disabled"
+									: "Grab a Permalink"
+								: this.props.isPDIdev
+								? "Opening issues is disabled"
 								: "Open an Issue"
 						}
 					></PanelHeader>
@@ -2339,7 +2345,10 @@ class CodemarkForm extends React.Component<Props, State> {
 				this.props.textEditorUriHasPullRequestContext &&
 				this.state.isInsidePrChangeSet);
 
-		const isPDIdevAndError = this.props.isPDIdev && !_isEmpty(this.props.currentCodeErrorId);
+		const isPDIdevAndCodemarkIsNotPrRelated =
+			this.props.isPDIdev &&
+			_isEmpty(this.props.textEditorUriHasPullRequestContext) &&
+			_isEmpty(this.props.currentReviewId);
 
 		return [
 			<form
@@ -2552,7 +2561,9 @@ class CodemarkForm extends React.Component<Props, State> {
 											: this.handleClickSubmit
 									}
 									disabled={
-										commentIsDisabled || prReviewInProgressAndOutsideChangeset || isPDIdevAndError
+										commentIsDisabled ||
+										prReviewInProgressAndOutsideChangeset ||
+										isPDIdevAndCodemarkIsNotPrRelated
 									}
 								>
 									{commentType === "link"
