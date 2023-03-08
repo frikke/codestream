@@ -1,5 +1,4 @@
 import React from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { useAppDispatch, useAppSelector, useDidMount } from "../utilities/hooks";
 import { CodeStreamState } from "../store";
 import { WebviewPanels } from "../ipc/webview.protocol.common";
@@ -28,6 +27,7 @@ export function PlusMenu(props: PlusMenuProps) {
 	const derivedState = useAppSelector((state: CodeStreamState) => {
 		return {
 			kickstartEnabled: isFeatureEnabled(state, "kickstart"),
+			isPDIdev: isFeatureEnabled(state, "PDIdev"),
 			activePanel: state.context.panelStack[0],
 			textEditorUri: state.editorContext && state.editorContext.textEditorUri,
 			lightningCodeReviewsEnabled: isFeatureEnabled(state, "lightningCodeReviews"),
@@ -82,7 +82,7 @@ export function PlusMenu(props: PlusMenuProps) {
 		);
 	}
 
-	if (canCreateCodemark(derivedState.textEditorUri)) {
+	if (canCreateCodemark(derivedState.textEditorUri) && !derivedState.isPDIdev) {
 		menuItems.push(
 			{
 				icon: <Icon name="comment" />,
@@ -104,7 +104,7 @@ export function PlusMenu(props: PlusMenuProps) {
 		);
 	}
 
-	if (derivedState.lightningCodeReviewsEnabled) {
+	if (derivedState.lightningCodeReviewsEnabled && !derivedState.isPDIdev) {
 		if (menuItems.length > 0) menuItems.push({ label: "-" });
 		menuItems.push({
 			icon: <Icon name="review" />,

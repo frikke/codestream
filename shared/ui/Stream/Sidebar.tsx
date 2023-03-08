@@ -23,6 +23,7 @@ import { Observability } from "./Observability";
 import { OpenPullRequests } from "./OpenPullRequests";
 import { OpenReviews } from "./OpenReviews";
 import { WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
+import { isFeatureEnabled } from "../store/apiVersioning/reducer";
 
 const Root = styled.div`
 	height: 100%;
@@ -92,7 +93,6 @@ export const Sidebar = React.memo(function Sidebar() {
 	const derivedState = useAppSelector((state: CodeStreamState) => {
 		const preferences = getPreferences(state);
 		const repos = getRepos(state);
-
 		// get the preferences, or use the default
 		let sidebarPaneOrder = preferences.sidebarPaneOrder || AVAILABLE_PANES;
 		// in case someone has customized their pane order, but then we
@@ -108,6 +108,11 @@ export const Sidebar = React.memo(function Sidebar() {
 					}
 				}
 			});
+		}
+		if (isFeatureEnabled(state, "PDIdev")) {
+			sidebarPaneOrder = sidebarPaneOrder.filter(
+				_ => _ !== WebviewPanels.OpenReviews && _ !== WebviewPanels.CodemarksForFile
+			);
 		}
 
 		return {
@@ -209,21 +214,17 @@ export const Sidebar = React.memo(function Sidebar() {
 		collapsed: boolean;
 		maximized: boolean;
 		size: number;
-	}[] = derivedState.sidebarPaneOrder
-		// .filter(id => showPullRequests || id !== WebviewPanels.OpenPullRequests)
-		.filter(id => AVAILABLE_PANES.includes(id))
-		.map(id => {
-			const settings = sidebarPanes[id] || {};
-			const defaults = DEFAULT_PANE_SETTINGS[id] || {};
-			return {
-				id,
-				removed: settings.removed == null ? defaults.removed : settings.removed,
-				collapsed: settings.collapsed == null ? defaults.collapsed : settings.collapsed,
-				maximized: settings.maximized,
-				size: sizes[id] || Math.abs(settings.size) || 1,
-			};
-		});
-	// }, [sidebarPanes, sizes, derivedState.sidebarPaneOrder, showPullRequests]);
+	}[] = derivedState.sidebarPaneOrder.map(id => {
+		const settings = sidebarPanes[id] || {};
+		const defaults = DEFAULT_PANE_SETTINGS[id] || {};
+		return {
+			id,
+			removed: settings.removed == null ? defaults.removed : settings.removed,
+			collapsed: settings.collapsed == null ? defaults.collapsed : settings.collapsed,
+			maximized: settings.maximized,
+			size: sizes[id] || Math.abs(settings.size) || 1,
+		};
+	});
 
 	const maximizedPane = panes.find(p => p.maximized && !p.removed);
 	const collapsed = pane => {

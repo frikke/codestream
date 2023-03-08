@@ -16,6 +16,8 @@ import { CodeStreamState } from "../../store";
 import { getCodeError } from "../../store/codeErrors/reducer";
 import Dismissable from "../Dismissable";
 import { DropdownButton } from "../DropdownButton";
+import { DelayedRender } from "../../Container/DelayedRender";
+import { LoadingMessage } from "../../src/components/LoadingMessage";
 
 const Ellipsize = styled.div`
 	button {
@@ -47,6 +49,8 @@ export function RepositoryAssociator(props: {
 	onSelected?: Function;
 	onSubmit: Function;
 	onCancelled: Function;
+	isLoadingCallback?: Function;
+	isLoadingParent?: boolean;
 }) {
 	const derivedState = useSelector((state: CodeStreamState) => {
 		const codeError = state.context.currentCodeErrorId
@@ -56,6 +60,7 @@ export function RepositoryAssociator(props: {
 		return {
 			codeError: codeError,
 			repos: state.repos,
+			relatedRepos: state.context.currentCodeErrorData?.relatedRepos,
 		};
 	});
 	const { error: repositoryError } = props;
@@ -66,6 +71,7 @@ export function RepositoryAssociator(props: {
 	const [selected, setSelected] = React.useState<any>(undefined);
 	const [multiRemoteRepository, setMultiRemoteRepository] = React.useState(false);
 	const [isLoading, setIsLoading] = React.useState(false);
+	const [hasFetchedRepos, setHasFetchedRepos] = React.useState(false);
 
 	const fetchRepos = () => {
 		HostApi.instance
@@ -99,15 +105,38 @@ export function RepositoryAssociator(props: {
 						}
 					}
 				}
-
-				setOpenRepositories(results);
+				//take repos in users IDE, and filter them with a list of
+				//related repos to service entity the error originates from
+				const filteredResults = results.filter(_ => {
+					return derivedState.relatedRepos?.some(repo => {
+						return repo.name === _.name;
+					});
+				});
+				if (filteredResults.length === 1) {
+					setSelected(filteredResults[0]);
+					handleOnSubmitWithOneItemInDropdown(filteredResults[0]);
+				} else {
+					setOpenRepositories(filteredResults);
+				}
+				if (props.isLoadingCallback) {
+					props.isLoadingCallback(false);
+				}
 			})
 			.catch(e => {
+				if (props.isLoadingCallback) {
+					props.isLoadingCallback(false);
+				}
 				logWarning(`could not get repos: ${e.message}`);
+			})
+			.finally(() => {
+				setHasFetchedRepos(true);
 			});
 	};
 
 	useDidMount(() => {
+		if (props.isLoadingCallback) {
+			props.isLoadingCallback(true);
+		}
 		if (!repositoryError) return;
 
 		const disposable = HostApi.instance.on(DidChangeDataNotificationType, (e: any) => {
@@ -115,6 +144,7 @@ export function RepositoryAssociator(props: {
 				fetchRepos();
 			}
 		});
+
 		fetchRepos();
 
 		return () => {
@@ -141,65 +171,86 @@ export function RepositoryAssociator(props: {
 		);
 	}
 
-	return (
-		<Dismissable
-			title={repositoryError.title}
-			buttons={[
-				{
-					text: props.buttonText || "Associate",
-					loading: isLoading,
-					onClick: async e => {
-						setIsLoading(true);
-						e.preventDefault();
+	const handleOnSubmitWithOneItemInDropdown = async repo => {
+		setIsLoading(true);
 
-						await props.onSubmit(selected);
-						if (!props.disableEmitDidChangeObservabilityDataNotification) {
-							HostApi.instance.emit(DidChangeObservabilityDataNotificationType.method, {
-								type: "RepositoryAssociation",
-							});
+		await props.onSubmit(repo);
+		if (!props.disableEmitDidChangeObservabilityDataNotification) {
+			HostApi.instance.emit(DidChangeObservabilityDataNotificationType.method, {
+				type: "RepositoryAssociation",
+			});
+		}
+		setIsLoading(false);
+	};
+
+	if (hasFetchedRepos && !props.isLoadingParent) {
+		return (
+			<Dismissable
+				title={repositoryError.title}
+				buttons={[
+					{
+						text: props.buttonText || "Associate",
+						loading: isLoading,
+						onClick: async e => {
+							setIsLoading(true);
+							e.preventDefault();
+
+							await props.onSubmit(selected);
+							if (!props.disableEmitDidChangeObservabilityDataNotification) {
+								HostApi.instance.emit(DidChangeObservabilityDataNotificationType.method, {
+									type: "RepositoryAssociation",
+								});
+							}
+							setIsLoading(false);
+						},
+						disabled: !selected,
+					},
+					{
+						text: "Cancel",
+						isSecondary: true,
+						onClick: e => {
+							e.preventDefault();
+							props.onCancelled(e);
+						},
+					},
+				]}
+			>
+				<p>{repositoryError.description}</p>
+				{multiRemoteRepository && (
+					<p>If this is a forked repository, please select the upstream remote.</p>
+				)}
+				<Ellipsize>
+					<DropdownButton
+						items={
+							openRepositories
+								?.sort((a, b) => a.label.localeCompare(b.label))
+								.map(remote => {
+									return {
+										key: remote.key,
+										label: remote.label,
+										action: () => {
+											setSelected(remote);
+											props.onSelected && props.onSelected(remote);
+										},
+									};
+								}) || []
 						}
-						setIsLoading(false);
-					},
-					disabled: !selected,
-				},
-				{
-					text: "Cancel",
-					isSecondary: true,
-					onClick: e => {
-						e.preventDefault();
-						props.onCancelled(e);
-					},
-				},
-			]}
-		>
-			<p>{repositoryError.description}</p>
-			{multiRemoteRepository && (
-				<p>If this is a forked repository, please select the upstream remote.</p>
-			)}
-			<Ellipsize>
-				<DropdownButton
-					items={
-						openRepositories
-							?.sort((a, b) => a.label.localeCompare(b.label))
-							.map(remote => {
-								return {
-									key: remote.key,
-									label: remote.label,
-									action: () => {
-										setSelected(remote);
-										props.onSelected && props.onSelected(remote);
-									},
-								};
-							}) || []
-					}
-					selectedKey={selected ? selected.id : null}
-					variant={selected ? "secondary" : "primary"}
-					size="compact"
-					wrap
-				>
-					{selected ? selected.name : "select a repository"}
-				</DropdownButton>
-			</Ellipsize>
-		</Dismissable>
-	);
+						selectedKey={selected ? selected.id : null}
+						variant={selected ? "secondary" : "primary"}
+						wrap
+					>
+						{selected ? selected.name : "Select a Repository"}
+					</DropdownButton>
+				</Ellipsize>
+			</Dismissable>
+		);
+	} else {
+		return (
+			<DelayedRender>
+				<div style={{ display: "flex", height: "100vh", alignItems: "center" }}>
+					<LoadingMessage>Loading Error Group...</LoadingMessage>
+				</div>
+			</DelayedRender>
+		);
+	}
 }

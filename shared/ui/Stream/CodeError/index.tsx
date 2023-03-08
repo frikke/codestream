@@ -71,6 +71,7 @@ import { SharingModal } from "../SharingModal";
 import Timestamp from "../Timestamp";
 import Tooltip from "../Tooltip";
 import { ConditionalNewRelic } from "./ConditionalComponent";
+import { isFeatureEnabled } from "../../store/apiVersioning/reducer";
 
 interface SimpleError {
 	/**
@@ -269,6 +270,7 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 			teamMembers: getTeamMembers(state),
 			emailAddress: state.session.userId ? state.users[state.session.userId]?.email : "",
 			hideCodeErrorInstructions: state.preferences.hideCodeErrorInstructions,
+			isPDIdev: isFeatureEnabled(state, "PDIdev"),
 		};
 	});
 
@@ -713,86 +715,93 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 
 					<div style={{ marginLeft: "auto", alignItems: "center", whiteSpace: "nowrap" }}>
 						<>
-							<DropdownButton
-								title="Assignee"
-								items={items}
-								preventStopPropagation={!derivedState.isConnectedToNewRelic}
-								// onChevronClick={e =>
-								// 	!derivedState.isConnectedToNewRelic ? setOpenConnectionModal(true) : undefined
-								// }
-								variant="secondary"
-								size="compact"
-								noChevronDown={!errorGroupHasNoAssignee()}
-							>
-								<div
-									style={{
-										display: "inline-block",
-										opacity: derivedState.hideCodeErrorInstructions ? "1" : ".25",
-									}}
+							{derivedState.isPDIdev && (
+								<>
+									{props.errorGroup && (
+										<>
+											{errorGroupHasNoAssignee() ? (
+												<Icon name="person" />
+											) : (
+												<Headshot
+													size={16}
+													display="inline-block"
+													className="no-right-margin"
+													person={{
+														fullName: props.errorGroup.assignee?.name,
+														email: props.errorGroup.assignee?.email,
+													}}
+												/>
+											)}
+										</>
+									)}
+								</>
+							)}
+
+							{!derivedState.isPDIdev && (
+								<DropdownButton
+									title="Assignee"
+									items={items}
+									preventStopPropagation={!derivedState.isConnectedToNewRelic}
+									// onChevronClick={e =>
+									// 	!derivedState.isConnectedToNewRelic ? setOpenConnectionModal(true) : undefined
+									// }
+									variant="secondary"
+									size="compact"
+									noChevronDown={!errorGroupHasNoAssignee()}
 								>
-									<ConditionalNewRelic
-										connected={
-											<>
-												{props.errorGroup && (
-													<>
-														{isAssigneeChanging ? (
-															<Icon name="sync" className="spin" />
-														) : (
-															<>
-																{errorGroupHasNoAssignee() ? (
-																	<Icon name="person" />
-																) : (
-																	<Headshot
-																		size={16}
-																		display="inline-block"
-																		className="no-right-margin"
-																		person={{
-																			fullName: props.errorGroup.assignee?.name,
-																			email: props.errorGroup.assignee?.email,
-																		}}
-																	/>
-																)}
-															</>
-														)}
-													</>
-												)}
-											</>
-										}
-										disconnected={
-											<Icon
-												style={{ cursor: "pointer" }}
-												name="person"
-												onClick={e => {
-													setOpenConnectionModal(true);
-												}}
-											/>
-										}
-									/>
-								</div>
-							</DropdownButton>
+									<div
+										style={{
+											display: "inline-block",
+											opacity: derivedState.hideCodeErrorInstructions ? "1" : ".25",
+										}}
+									>
+										<ConditionalNewRelic
+											connected={
+												<>
+													{props.errorGroup && (
+														<>
+															{isAssigneeChanging ? (
+																<Icon name="sync" className="spin" />
+															) : (
+																<>
+																	{errorGroupHasNoAssignee() ? (
+																		<Icon name="person" />
+																	) : (
+																		<Headshot
+																			size={16}
+																			display="inline-block"
+																			className="no-right-margin"
+																			person={{
+																				fullName: props.errorGroup.assignee?.name,
+																				email: props.errorGroup.assignee?.email,
+																			}}
+																		/>
+																	)}
+																</>
+															)}
+														</>
+													)}
+												</>
+											}
+											disconnected={
+												<Icon
+													style={{ cursor: "pointer" }}
+													name="person"
+													onClick={e => {
+														setOpenConnectionModal(true);
+													}}
+												/>
+											}
+										/>
+									</div>
+								</DropdownButton>
+							)}
 						</>
 
 						{states && (
 							<>
 								<div style={{ display: "inline-block", width: "5px" }} />
-								<DropdownButton
-									items={states}
-									selectedKey={props.errorGroup?.state || "UNKNOWN"}
-									isLoading={isStateChanging}
-									variant="secondary"
-									size="compact"
-									preventStopPropagation={!derivedState.isConnectedToNewRelic}
-									onButtonClicked={
-										derivedState.isConnectedToNewRelic
-											? undefined
-											: e => {
-													e.preventDefault();
-													e.stopPropagation();
-													setOpenConnectionModal(true);
-											  }
-									}
-									wrap
-								>
+								{derivedState.isPDIdev && (
 									<div
 										style={{
 											display: "inline-block",
@@ -801,7 +810,37 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 									>
 										{STATES_TO_DISPLAY_STRINGS[props.errorGroup?.state || "UNKNOWN"]}
 									</div>
-								</DropdownButton>
+								)}
+
+								{!derivedState.isPDIdev && (
+									<DropdownButton
+										items={states}
+										selectedKey={props.errorGroup?.state || "UNKNOWN"}
+										isLoading={isStateChanging}
+										variant="secondary"
+										size="compact"
+										preventStopPropagation={!derivedState.isConnectedToNewRelic}
+										onButtonClicked={
+											derivedState.isConnectedToNewRelic
+												? undefined
+												: e => {
+														e.preventDefault();
+														e.stopPropagation();
+														setOpenConnectionModal(true);
+												  }
+										}
+										wrap
+									>
+										<div
+											style={{
+												display: "inline-block",
+												opacity: resolutionDropdownOptionsWrapperOpacity(),
+											}}
+										>
+											{STATES_TO_DISPLAY_STRINGS[props.errorGroup?.state || "UNKNOWN"]}
+										</div>
+									</DropdownButton>
+								)}
 							</>
 						)}
 
@@ -1509,6 +1548,7 @@ const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 			replies: props.collapsed
 				? emptyArray
 				: getThreadPosts(state, codeError.streamId, codeError.postId),
+			isPDIdev: isFeatureEnabled(state, "PDIdev"),
 		};
 	});
 
@@ -1547,7 +1587,7 @@ const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 						</>
 					)}
 
-					{InputContainer && (
+					{InputContainer && !derivedState.isPDIdev && (
 						<InputContainer>
 							<ReplyInput codeError={codeError} />
 						</InputContainer>

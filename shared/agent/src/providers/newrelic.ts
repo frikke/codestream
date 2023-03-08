@@ -621,11 +621,11 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 			const metricResponse = await this.getMetricData(request.errorGroupGuid);
 			if (!metricResponse) return undefined;
 
-			const mappedEntity = await this.findMappedRemoteByEntity(metricResponse?.entityGuid);
+			const mappedRepoEntities = await this.findMappedRemoteByEntity(metricResponse?.entityGuid);
 			return {
 				entityId: metricResponse?.entityGuid,
 				occurrenceId: metricResponse?.traceId,
-				remote: mappedEntity?.url,
+				relatedRepos: mappedRepoEntities || [],
 			} as GetObservabilityErrorGroupMetadataResponse;
 		} catch (ex) {
 			ContextLogger.error(ex, "getErrorGroupMetadata", {
@@ -1387,22 +1387,11 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 					};
 				}
 
-				const builtFromResult = this.findBuiltFrom(
+				const relatedRepos = this.findRelatedReposFromServiceEntity(
 					errorGroupFullResponse.actor.entity.relatedEntities.results
 				);
-				if (errorGroup.entity && builtFromResult) {
-					if (builtFromResult.error) {
-						errorGroup.entity.relationship = {
-							error: builtFromResult.error,
-						};
-					} else {
-						errorGroup.entity = {
-							repo: {
-								name: builtFromResult.name!,
-								urls: [builtFromResult.url!],
-							},
-						};
-					}
+				if (errorGroup.entity && relatedRepos) {
+					errorGroup.entity.relatedRepos;
 				}
 
 				ContextLogger.log("ErrorGroup found", {
@@ -3529,23 +3518,18 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		return undefined;
 	}
 
-	private async findMappedRemoteByEntity(entityGuid: string): Promise<
-		| {
-				url: string;
-				name: string;
-		  }
-		| undefined
-	> {
+	private async findMappedRemoteByEntity(
+		entityGuid: string
+	): Promise<BuiltFromResult[] | undefined> {
 		if (!entityGuid) return undefined;
 
 		const relatedEntityResponse = await this.findRelatedEntityByRepositoryGuid(entityGuid);
 		if (relatedEntityResponse) {
-			const result = this.findBuiltFrom(relatedEntityResponse.actor.entity.relatedEntities.results);
-			if (result?.name && result.url) {
-				return {
-					name: result.name,
-					url: result.url,
-				};
+			const remotes = this.findRelatedReposFromServiceEntity(
+				relatedEntityResponse.actor.entity.relatedEntities.results
+			);
+			if (!_isEmpty(remotes)) {
+				return remotes;
 			}
 		}
 		return undefined;
@@ -3641,54 +3625,33 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 		return `${this.productUrl}/redirect/entity/${entityGuid}`;
 	}
 
-	private findBuiltFrom(relatedEntities: RelatedEntity[]): BuiltFromResult | undefined {
+	private findRelatedReposFromServiceEntity(
+		relatedEntities: RelatedEntity[]
+	): BuiltFromResult[] | undefined {
 		if (!relatedEntities || !relatedEntities.length) return undefined;
 
-		const builtFrom = relatedEntities.find(_ => _.type === "BUILT_FROM");
-		if (!builtFrom) return undefined;
-
-		const targetEntity = builtFrom.target?.entity;
-		if (targetEntity) {
-			const targetEntityTags = targetEntity.tags;
-			if (targetEntityTags) {
-				const targetEntityTagsValues = targetEntityTags.find((_: any) => _.key === "url");
-				if (targetEntityTagsValues) {
-					// why would there ever be more than 1??
-					if (
-						targetEntityTagsValues &&
-						targetEntityTagsValues.values &&
-						targetEntityTagsValues.values.length
-					) {
-						return {
+		const relatedRepoData = relatedEntities.flatMap(_ => {
+			if (_.type !== "BUILT_FROM") return [];
+			const tags = _.target?.entity?.tags;
+			if (tags) {
+				const targetEntityTagsValues = tags.find((_: any) => _.key === "url");
+				if (
+					targetEntityTagsValues &&
+					targetEntityTagsValues.values &&
+					targetEntityTagsValues.values.length
+				) {
+					return [
+						{
 							url: targetEntityTagsValues.values[0],
-							name: builtFrom.target.entity.name,
-						};
-					} else {
-						ContextLogger.warn("findBuiltFrom missing tags with url[s]", {
-							relatedEntities: relatedEntities,
-						});
-						return {
-							error: {
-								message:
-									"Could not find a repository relationship. Please check your setup and try again.",
-							},
-						};
-					}
+							name: _.target?.entity?.name,
+						},
+					];
 				}
-			} else {
-				ContextLogger.warn("findBuiltFrom missing tags", {
-					relatedEntities: relatedEntities,
-				});
-				return {
-					error: {
-						message:
-							"Could not find a repository relationship. Please check your setup and try again.",
-					},
-				};
 			}
-		}
+			return [];
+		});
 
-		return undefined;
+		return _isEmpty(relatedRepoData) ? undefined : relatedRepoData;
 	}
 
 	public static parseId(idLike: string): NewRelicId | undefined {

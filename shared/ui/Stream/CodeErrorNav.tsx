@@ -440,8 +440,8 @@ export function CodeErrorNav(props: Props) {
 					return;
 				}
 
-				if (errorGroupResult?.errorGroup?.entity?.repo?.urls != null) {
-					targetRemote = errorGroupResult?.errorGroup?.entity?.repo?.urls[0]!;
+				if (errorGroupResult?.errorGroup?.entity?.relatedRepos?.length === 1 && !multipleRepos) {
+					targetRemote = errorGroupResult?.errorGroup?.entity?.relatedRepos[0]?.url!;
 				} else if (codeError?.objectInfo?.remote) {
 					targetRemote = codeError?.objectInfo?.remote;
 				}
@@ -795,6 +795,8 @@ export function CodeErrorNav(props: Props) {
 				onCancelled={e => {
 					exit();
 				}}
+				isLoadingCallback={setIsLoading}
+				isLoadingParent={isLoading}
 				onSubmit={r => {
 					setIsLoading(true);
 					return new Promise((resolve, reject) => {
@@ -819,6 +821,8 @@ export function CodeErrorNav(props: Props) {
 				onCancelled={e => {
 					exit();
 				}}
+				isLoadingCallback={setIsLoading}
+				isLoadingParent={isLoading}
 				onSubmit={r => {
 					return new Promise((resolve, reject) => {
 						const payload = {
@@ -843,7 +847,8 @@ export function CodeErrorNav(props: Props) {
 
 								onConnected(
 									undefined,
-									_.directives.find(_ => _.type === "assignRepository").data.repo.urls[0]
+									_.directives.find(_ => _.type === "assignRepository").data.repo.relatedRepos[0]
+										.url
 								);
 							} else {
 								console.log("Could not find directive", {

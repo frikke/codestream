@@ -703,7 +703,7 @@ export const Observability = React.memo((props: Props) => {
 				entityGuid: entityGuid,
 			});
 
-			if (isNRErrorResponse(response.error)) {
+			if (isNRErrorResponse(response?.error)) {
 				setServiceLevelObjectiveError(response.error.error.message ?? response.error.error.type);
 			} else {
 				setServiceLevelObjectiveError(undefined);

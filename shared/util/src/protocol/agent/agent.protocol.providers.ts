@@ -1049,6 +1049,7 @@ export interface NewRelicErrorGroup {
 			name: string;
 			urls: string[];
 		};
+		relatedRepos?: RelatedRepository[];
 		relationship?: {
 			error?: { message?: string };
 		};
@@ -1332,6 +1333,7 @@ export interface GetObservabilityErrorGroupMetadataResponse {
 	occurrenceId?: string;
 	entityId?: string;
 	remote?: string;
+	relatedRepos: RelatedRepository;
 }
 
 export const GetObservabilityErrorGroupMetadataRequestType = new RequestType<
@@ -1600,6 +1602,7 @@ export interface ErrorGroupResponse {
 			relatedEntities: {
 				results: any[];
 			};
+			relatedRepos: RelatedRepository[];
 		};
 		errorsInbox: {
 			errorGroupStateTypes?: ErrorGroupStateType[];
@@ -1713,6 +1716,12 @@ export interface BuiltFromResult {
 	error?: {
 		message?: string;
 	};
+}
+
+export interface RelatedRepository {
+	length: number;
+	url?: string;
+	name?: string;
 }
 
 export interface ErrorGroup {

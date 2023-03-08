@@ -67,6 +67,7 @@ import {
 	RegisterUserRequestType,
 	ReportingMessageType,
 	SetServerUrlRequest,
+	SetServerUrlRequestType,
 	ThirdPartyProviders,
 	TokenLoginRequest,
 	TokenLoginRequestType,
@@ -454,7 +455,7 @@ export class CodeStreamSession {
 		this.agent.registerHandler(ApiRequestType, (e, cancellationToken: CancellationToken) =>
 			this.api.fetch(e.url, e.init, e.token)
 		);
-		this.agent.registerHandler(DeclineInviteRequestType, e => this.declineInvite(e));
+		this.agent.registerHandler(SetServerUrlRequestType, e => this.setServerUrl(e));
 		this.agent.registerHandler(PollForMaintenanceModeRequestType, () =>
 			this.pollForMaintenanceMode()
 		);
