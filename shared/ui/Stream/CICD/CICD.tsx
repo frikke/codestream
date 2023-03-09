@@ -60,7 +60,7 @@ export const CICD = (props: Props) => {
 			providers,
 			currentRepo,
 			currentBranch: editorContext.scmInfo?.scm?.branch,
-			totalConfiguredProviders: userConfiguredProviders.length ?? 0,
+			totalConfiguredProviders: userConfiguredProviders?.length ?? 0,
 			userConfiguredProviders: userConfiguredProviders,
 		};
 	}, shallowEqual);
@@ -207,7 +207,6 @@ export const CICD = (props: Props) => {
 						)}
 
 					{derivedState.bootstrapped &&
-						projects.circleci &&
 						derivedState.userConfiguredProviders.includes("circleci*com") && (
 							<CircleCIBuilds
 								projects={projects.circleci}
