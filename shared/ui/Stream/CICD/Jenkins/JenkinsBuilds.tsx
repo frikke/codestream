@@ -1,36 +1,31 @@
-import { ThirdPartyBuild } from "@codestream/protocols/agent";
-import React, { Reducer, useReducer } from "react";
+import { FetchThirdPartyBuildsRequestType } from "@codestream/protocols/agent";
+import React from "react";
 import { useSelector } from "react-redux";
 
-import {
-	NoContent,
-	PaneNode,
-	PaneNodeName,
-} from "@codestream/webview/src/components/Pane";
-import { BuildStatus } from "../BuildStatus";
+import { PaneNode, PaneNodeName } from "@codestream/webview/src/components/Pane";
 import { setUserPreference } from "@codestream/webview/Stream/actions";
 import { useAppDispatch } from "@codestream/webview/utilities/hooks";
 import { getPreferences } from "@codestream/webview/store/users/reducer";
 import { CodeStreamState } from "@codestream/webview/store";
+import { getUserProviderInfoFromState } from "@codestream/webview/store/providers/utils";
+import { HostApi } from "@codestream/webview/webview-api";
 
 interface Props {
-	jenkinsBaseUrl: string;
-	projects: {
-		[key: string]: ThirdPartyBuild[];
-	};
-
 	totalConfiguredProviders: number;
 }
 
 export const JenkinsBuilds = (props: Props) => {
 	const derivedState = useSelector((state: CodeStreamState) => {
 		const preferences = getPreferences(state);
+		const providerInfo = getUserProviderInfoFromState("jenkins", state);
 
-		const jobs = preferences[`jenkins:${props.jenkinsBaseUrl}`];
+		const jenkinsBaseUrl = providerInfo!["data"]!["baseUrl"];
+		const jobs = preferences[`jenkins:${jenkinsBaseUrl}`];
 
 		return {
 			jobs,
 			totalConfiguredProviders: props.totalConfiguredProviders,
+			jenkinsBaseUrl: jenkinsBaseUrl,
 		};
 	});
 
@@ -39,74 +34,25 @@ export const JenkinsBuilds = (props: Props) => {
 	const addJobAsPreference = (jobName: string) => {
 		dispatch(
 			setUserPreference({
-				prefPath: [`jenkins:${props.jenkinsBaseUrl}`][jobName],
+				prefPath: [`jenkins:${derivedState.jenkinsBaseUrl}`][jobName],
 				value: { urlSlug: jobName },
 			})
 		);
 	};
 
-	const [projectsCollapsed, toggleProjectCollapsed] = useReducer<
-		Reducer<{ [key: string]: boolean }, string>
-	>(
-		(state, project) => ({
-			...state,
-			[project]: !state[project],
-		}),
-		{}
-	);
-
-	const renderProjects = () => {
-		return (
-			<>
-				{props.projects &&
-					Object.entries(props.projects).map(([name, workflows]) => (
-						<PaneNode key={`${name}`}>
-							<PaneNodeName
-								onClick={() => toggleProjectCollapsed(name)}
-								title={name}
-								collapsed={projectsCollapsed[name]}
-							></PaneNodeName>
-							<div style={{ padding: "0 20px 0 40px" }}>
-								{!projectsCollapsed[name] &&
-									workflows.map(workflow => {
-										const data = {
-											...workflow,
-											title: workflow.id,
-										};
-										return <BuildStatus {...data} providerName="Jenkins" />;
-									})}
-							</div>
-						</PaneNode>
-					))}
-			</>
-		);
+	const fetchBuilds = async () => {
+		const result = await HostApi.instance.send(FetchThirdPartyBuildsRequestType, {
+			providerId: "jenkins",
+		});
 	};
 
 	return (
 		<>
-			{derivedState.totalConfiguredProviders > 1 &&
-				derivedState.jobs.length === 0 &&
-				Object.keys(props.projects).length === 0 && (
-					<NoContent>No projects have been selected [settings].</NoContent>
-				)}
+			<PaneNode key={"jenkins"}>
+				<PaneNodeName title={"Jenkins"} collapsed={false}></PaneNodeName>
 
-			{derivedState.totalConfiguredProviders > 1 &&
-				derivedState.jobs.length > 0 &&
-				Object.keys(props.projects).length === 0 && (
-					<NoContent>No builds found for selected projects.</NoContent>
-				)}
-
-			{derivedState.totalConfiguredProviders > 1 && (
-				<PaneNode key={"jenkins"}>
-					<PaneNodeName title={"Jenkins"} collapsed={false}></PaneNodeName>
-
-					{renderProjects()}
-				</PaneNode>
-			)}
-
-			{derivedState.totalConfiguredProviders === 1 && <h1>Jenkins</h1> && renderProjects()}
-
-			{derivedState.jobs && derivedState.jobs.map(j => <span>{`${j.name} - ${j.slug}`}</span>)}
+				{derivedState.jobs && derivedState.jobs.map(j => <span>{`${j.name} - ${j.slug}`}</span>)}
+			</PaneNode>
 
 			{
 				<input

@@ -216,11 +216,7 @@ export const CICD = (props: Props) => {
 
 					{derivedState.bootstrapped &&
 						derivedState.userConfiguredProviders.includes("jenkins") && (
-							<JenkinsBuilds
-								projects={projects.jenkins}
-								jenkinsBaseUrl={derivedState.providerInfo!.jenkins!["data"]["baseUrl"]}
-								totalConfiguredProviders={derivedState.totalConfiguredProviders}
-							/>
+							<JenkinsBuilds totalConfiguredProviders={derivedState.totalConfiguredProviders} />
 						)}
 				</PaneBody>
 			)}

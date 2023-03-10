@@ -1,11 +1,17 @@
+"use strict";
+
 import { log, lspProvider } from "../system";
 import { ThirdPartyBuildProviderBase } from "./thirdPartyBuildProviderBase";
-import { CSJenkinsProviderInfo } from "../protocol/api.protocol.models";
+import { CSJenkinsProviderInfo } from "@codestream/protocols/api";
 import {
 	FetchThirdPartyBuildsRequest,
 	FetchThirdPartyBuildsResponse,
 	ProviderConfigurationData,
-} from "../protocol/agent.protocol.providers";
+	ThirdPartyBuild,
+	ThirdPartyBuildStatus,
+} from "@codestream/protocols/agent";
+import { SessionContainer } from "../container";
+import { JenkinsJobResponse } from "./jenkins.types";
 
 @lspProvider("jenkins")
 export class JenkinsCIProvider extends ThirdPartyBuildProviderBase<CSJenkinsProviderInfo> {
@@ -60,12 +66,35 @@ export class JenkinsCIProvider extends ThirdPartyBuildProviderBase<CSJenkinsProv
 
 	@log()
 	async fetchBuilds(request: FetchThirdPartyBuildsRequest): Promise<FetchThirdPartyBuildsResponse> {
-		// not ready to fulfill this yet, since its going to depend on job preferences configured in the UI
+		await this.ensureConnected();
+
+		const { users } = SessionContainer.instance();
+		const me = await users.getMe();
+		const jobs = me!.preferences![`jenkins:${this.baseUrl}`];
+
+		const projects: { [key: string]: ThirdPartyBuild[] } = {};
+
+		for (const j of jobs) {
+			const jobSlug = j.slug;
+
+			const response = await this.get<JenkinsJobResponse>(`/job/${jobSlug}/api/json`, this.headers);
+
+			const lastFiveBuilds = response.body.builds.slice(0, 5);
+
+			for (const b in lastFiveBuilds) {
+				projects[jobSlug].push({
+					id: jobSlug,
+					status: ThirdPartyBuildStatus.Unknown,
+					message: "",
+					duration: "",
+					builds: [],
+					url: `${this.baseUrl}/job/${jobSlug}`,
+				});
+			}
+		}
 
 		return {
-			projects: {
-				"": [],
-			},
+			projects,
 			dashboardUrl: "",
 		};
 	}

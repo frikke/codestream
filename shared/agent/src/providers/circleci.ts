@@ -375,12 +375,12 @@ export class CircleCIProvider extends ThirdPartyBuildProviderBase<CSCircleCIProv
 
 	@log()
 	async fetchBuilds(request: FetchThirdPartyBuildsRequest): Promise<FetchThirdPartyBuildsResponse> {
-		const slug = this.getSlug(request.remote);
+		const slug = this.getSlug(request.remote!);
 		if (!slug) {
 			return { projects: {} };
 		}
-		const projects = await this.getPipelineWorkflows(slug, request.branch);
-		const dashboardUrl = this.getDashboardUrl(slug, request.branch);
+		const projects = await this.getPipelineWorkflows(slug, request.branch!);
+		const dashboardUrl = this.getDashboardUrl(slug, request.branch!);
 		return {
 			projects,
 			dashboardUrl,

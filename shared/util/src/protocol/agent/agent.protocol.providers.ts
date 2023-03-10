@@ -464,11 +464,11 @@ export interface ThirdPartyBuild {
 
 export interface FetchThirdPartyBuildsRequest {
 	providerId: string;
-	remote: {
+	remote?: {
 		domain: string;
 		path: string;
 	};
-	branch: string;
+	branch?: string;
 }
 
 export interface FetchThirdPartyBuildsResponse {
