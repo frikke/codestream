@@ -1,5 +1,11 @@
 # Change Log
 
+## [14.16.1] - 2023-3-10
+
+### Fixed
+
+-  Fixes an issue with file watchers where the agent process would crash if it encountered a file it didn't have permission to read and decreased the number of files watched
+
 ## [14.16.0] - 2023-3-8
 
 ### Added
