@@ -304,8 +304,8 @@ export class CircleCIProvider extends ThirdPartyBuildProviderBase<CSCircleCIProv
 					message = status;
 				}
 				const duration = workflow.stoppedAt
-					? this.formatDuration(workflow.createdAt, workflow.stoppedAt)
-					: this.formatDuration(workflow.createdAt, new Date());
+					? this.formatDurationFromDates(workflow.createdAt, workflow.stoppedAt)
+					: this.formatDurationFromDates(workflow.createdAt, new Date());
 				const finished = workflow.stoppedAt;
 				const finishedRelative = workflow.stoppedAt
 					? toFormatter(workflow.stoppedAt).fromNow()
@@ -346,8 +346,8 @@ export class CircleCIProvider extends ThirdPartyBuildProviderBase<CSCircleCIProv
 			message = `Job "${job.name}" has unknown status`;
 		}
 		const duration = job.stoppedAt
-			? this.formatDuration(job.createdAt, job.stoppedAt)
-			: this.formatDuration(job.createdAt, new Date());
+			? this.formatDurationFromDates(job.createdAt, job.stoppedAt)
+			: this.formatDurationFromDates(job.createdAt, new Date());
 		const finished = job.stoppedAt;
 		const finishedRelative = job.stoppedAt ? toFormatter(job.stoppedAt).fromNow() : undefined;
 		return {
@@ -385,20 +385,6 @@ export class CircleCIProvider extends ThirdPartyBuildProviderBase<CSCircleCIProv
 			projects,
 			dashboardUrl,
 		};
-	}
-
-	formatDuration(from: Date, to: Date): string {
-		const totalSeconds = Math.floor((+to - +from) / 1000);
-		const hours = Math.floor(totalSeconds / 3600);
-		const minutes = Math.floor((totalSeconds - hours * 3600) / 60);
-		const seconds = totalSeconds - hours * 3600 - minutes * 60;
-		return [
-			hours > 0 ? `${hours}h` : undefined,
-			minutes > 0 ? `${minutes}m` : undefined,
-			seconds > 0 ? `${seconds}s` : undefined,
-		]
-			.filter(Boolean)
-			.join(" ");
 	}
 
 	protected async get<R extends object>(
