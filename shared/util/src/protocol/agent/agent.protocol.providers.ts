@@ -451,12 +451,12 @@ export enum ThirdPartyBuildStatus {
 
 export interface ThirdPartyBuild {
 	id: string;
-	status: ThirdPartyBuildStatus;
+	status?: ThirdPartyBuildStatus;
 	message: string;
-	duration: string;
+	duration?: string;
 	finished?: Date;
 	finishedRelative?: string;
-	builds: ThirdPartyBuild[];
+	builds?: ThirdPartyBuild[];
 	url?: string;
 	artifactsUrl?: string;
 	logsUrl?: string;

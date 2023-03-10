@@ -93,14 +93,14 @@ export const BuildStatus = (props: Props) => {
 	// TODO: add telemetry events for icon clicks
 	return (
 		<BuildStatusWrapper
-			className={props.builds.length > 0 ? "" : "no-hover"}
+			className={props.builds && props.builds.length > 0 ? "" : "no-hover"}
 			onClick={e => {
 				e.preventDefault();
 				e.stopPropagation();
 				toggleCollapsed();
 			}}
 		>
-			{props.builds.length > 0 && (
+			{props.builds && props.builds.length > 0 && (
 				<Icon name={collapsed ? "chevron-right-thin" : "chevron-down-thin"} />
 			)}
 			<div>
@@ -175,11 +175,14 @@ export const BuildStatus = (props: Props) => {
 						)}
 					</div>
 				</BuildStatusRow>
-				<BuildStatusDropdown className={collapsed ? "collapsed" : ""}>
-					{props.builds.map(build => (
-						<BuildStatus key={build.id} providerName={props.providerName} {...build} />
-					))}
-				</BuildStatusDropdown>
+
+				{props.builds && (
+					<BuildStatusDropdown className={collapsed ? "collapsed" : ""}>
+						{props.builds.map(build => (
+							<BuildStatus key={build.id} providerName={props.providerName} {...build} />
+						))}
+					</BuildStatusDropdown>
+				)}
 			</div>
 		</BuildStatusWrapper>
 	);

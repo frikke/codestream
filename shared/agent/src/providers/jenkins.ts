@@ -11,7 +11,7 @@ import {
 	ThirdPartyBuildStatus,
 } from "@codestream/protocols/agent";
 import { SessionContainer } from "../container";
-import { JenkinsJobResponse } from "./jenkins.types";
+import { JenkinsJobResponse, JenkinsBuildResponse } from "./jenkins.types";
 
 @lspProvider("jenkins")
 export class JenkinsCIProvider extends ThirdPartyBuildProviderBase<CSJenkinsProviderInfo> {
@@ -70,31 +70,59 @@ export class JenkinsCIProvider extends ThirdPartyBuildProviderBase<CSJenkinsProv
 
 		const { users } = SessionContainer.instance();
 		const me = await users.getMe();
-		const jobs = me!.preferences![`jenkins:${this.baseUrl}`];
+		const jobSlugs = me!.preferences![`jenkins`];
 
-		const projects: { [key: string]: ThirdPartyBuild[] } = {};
+		const jobs: { [key: string]: ThirdPartyBuild[] } = {};
 
-		for (const j of jobs) {
-			const jobSlug = j.slug;
+		for (const jobSlug of jobSlugs) {
+			const jobResponse = await this.get<JenkinsJobResponse>(
+				`/job/${jobSlug}/api/json`,
+				this.headers
+			);
+			const job = jobResponse.body;
+			const lastFiveBuildsMeta = job.builds.slice(0, 5).sort((b1, b2) => {
+				return b1.number - b2.number;
+			});
 
-			const response = await this.get<JenkinsJobResponse>(`/job/${jobSlug}/api/json`, this.headers);
+			const lastFiveBuilds = await Promise.all(
+				lastFiveBuildsMeta.map(async (buildMeta, index) => {
+					const buildResponse = await this.get<JenkinsBuildResponse>(
+						`/job/${jobSlug}/${buildMeta.number}/api/json`,
+						this.headers
+					);
+					const build = buildResponse.body;
+					const jobStatus = ThirdPartyBuildStatus.Success;
 
-			const lastFiveBuilds = response.body.builds.slice(0, 5);
+					//this seems to work okay for the ACTUAL builds, mapping into the original CircleCI type of 'ThirdPartyBuild
+					//though there are some things here omitted, as I dont have a match.
+					return {
+						id: `${jobSlug}|${build.number}`,
+						status: jobStatus,
+						message: `${build.fullDisplayName} / ${build.description}`,
+						duration: this.formatDurationFromMilliseconds(build.duration),
+						finished: new Date(build.timestamp),
+						url: `${this.baseUrl}/job/${jobSlug}/${buildMeta.number}`,
+						logsUrl: `${this.baseUrl}/job/${jobSlug}/${buildMeta.number}/console`,
+					};
+				})
+			);
 
-			for (const b in lastFiveBuilds) {
-				projects[jobSlug].push({
-					id: jobSlug,
-					status: ThirdPartyBuildStatus.Unknown,
-					message: "",
-					duration: "",
-					builds: [],
-					url: `${this.baseUrl}/job/${jobSlug}`,
-				});
-			}
+			// calling these jobs, but you'll see they get added to the result as 'projects'
+			// a lot of these don't make a TON of sense, hence why so many are omitted.
+			// A big example of some discrepancy is the 'Status' and 'Message' here...
+			// There really isn't one of these for Jenkins jobs, so we'll need to revisit (probably)
+			jobs[jobSlug] = [];
+			jobs[jobSlug].push({
+				id: `${jobSlug}`,
+				status: ThirdPartyBuildStatus.Unknown,
+				message: jobResponse.body.healthReport[0].description,
+				builds: lastFiveBuilds,
+				url: `${this.baseUrl}/job/${jobSlug}`,
+			});
 		}
 
 		return {
-			projects,
+			projects: jobs,
 			dashboardUrl: "",
 		};
 	}
