@@ -62,7 +62,6 @@ import {
 	ThirdPartyProviderSupportsPullRequests,
 } from "./provider";
 import { QueryLogger, RateLimit } from "./queryLogger";
-import { WAITING_ON_REVIEW } from "./registry";
 import { ThirdPartyIssueProviderBase } from "./thirdPartyIssueProviderBase";
 import { ProviderVersion } from "./types";
 
@@ -3167,27 +3166,27 @@ export class GitHubProvider
 					.map(_ => _.node)
 					.filter(_ => _.id)
 					.filter(pullRequest => {
-						if (queries[index].name === WAITING_ON_REVIEW) {
-							const isDefaultQuery =
-								queries[index].query ===
-								defaultQueries[providerId].find(_ => _.name === WAITING_ON_REVIEW)?.query;
-							const isReviewer =
-								pullRequest.viewerLatestReviewRequest?.requestedReviewer?.login === githubLogin;
-							const hasReviewed: boolean = !_isEmpty(pullRequest.reviews.nodes);
-							const lastDecision = pullRequest.reviews.nodes
-								.reverse()
-								.find(review => review.state !== "COMMENTED")?.state;
+						// if (queries[index].name === WAITING_ON_REVIEW) {
+						// 	const isDefaultQuery =
+						// 		queries[index].query ===
+						// 		defaultQueries[providerId].find(_ => _.name === WAITING_ON_REVIEW)?.query;
+						// 	const isReviewer =
+						// 		pullRequest.viewerLatestReviewRequest?.requestedReviewer?.login === githubLogin;
+						// 	const hasReviewed: boolean = !_isEmpty(pullRequest.reviews.nodes);
+						// 	const lastDecision = pullRequest.reviews.nodes
+						// 		.reverse()
+						// 		.find(review => review.state !== "COMMENTED")?.state;
 
-							if (!isDefaultQuery || pullRequest.closed || pullRequest.viewerDidAuthor) {
-								return false;
-							}
+						// 	if (!isDefaultQuery || pullRequest.closed || pullRequest.viewerDidAuthor) {
+						// 		return false;
+						// 	}
 
-							if (isReviewer) {
-								return true;
-							}
+						// 	if (isReviewer) {
+						// 		return true;
+						// 	}
 
-							return hasReviewed && lastDecision !== "APPROVED";
-						}
+						// 	return hasReviewed && lastDecision !== "APPROVED";
+						// }
 						return true;
 					})
 					.map(pr => ({

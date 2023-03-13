@@ -1744,7 +1744,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 				if (provider === "github*com" || provider === "github/enterprise") {
 					if (
 						query.name === "Waiting on my Review" &&
-						query.query === "is:pr is:open review-requested:@me"
+						query.query === "is:pr is:open involves:@me"
 					) {
 						const replacementQuery = defaultQueries[provider].find(
 							_ => _.name === "Waiting on my Review"
