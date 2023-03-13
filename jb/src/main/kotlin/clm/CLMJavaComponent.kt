@@ -31,6 +31,18 @@ class CLMJavaComponent(project: Project) :
         }
         return filteredNamespaces
     }
+
+    override fun findSymbol(className: String?, functionName: String?): NavigatablePsiElement? {
+        if (className == null || functionName == null) return null
+        val projectScope = GlobalSearchScope.projectScope(project)
+        val psiFacade = JavaPsiFacade.getInstance(project)
+        val clazz = psiFacade.findClass(className, projectScope)
+        if (clazz != null) {
+            val methods = clazz.findMethodsByName(functionName, true)
+            return methods.firstOrNull()
+        }
+        return null
+    }
 }
 
 class CLMJavaEditorManager(editor: Editor) : CLMEditorManager(editor, "java", true) {
