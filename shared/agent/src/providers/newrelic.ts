@@ -1084,7 +1084,7 @@ export class NewRelicProvider
 			const { entityGuid } = request;
 			const { accountId } = NewRelicProvider.parseId(entityGuid)!;
 			const anomalyDetector = new AnomalyDetector(entityGuid, accountId, this.runNrql.bind(this));
-			const result = await anomalyDetector.execute(true);
+			const result = await anomalyDetector.execute(false);
 
 			return result;
 		} catch (ex) {
@@ -1891,34 +1891,42 @@ export class NewRelicProvider
 	async getMethodLevelTelemetry(
 		request: GetMethodLevelTelemetryRequest
 	): Promise<GetMethodLevelTelemetryResponse | undefined> {
-		const observabilityRepo = await this.getObservabilityEntityRepos(request.repoId);
-		if (!observabilityRepo || !observabilityRepo.entityAccounts) {
-			return undefined;
-		}
+		let entity: EntityAccount | undefined;
+		let entityAccounts: EntityAccount[] = [];
 
-		const entity = observabilityRepo.entityAccounts.find(
-			_ => _.entityGuid === request.newRelicEntityGuid
-		);
-		if (!entity) {
-			ContextLogger.warn("Missing entity", {
-				entityId: request.newRelicEntityGuid,
-			});
-			return undefined;
+		if (request.repoId) {
+			const observabilityRepo = await this.getObservabilityEntityRepos(request.repoId);
+			if (!observabilityRepo || !observabilityRepo.entityAccounts) {
+				return undefined;
+			}
+			entityAccounts = observabilityRepo.entityAccounts;
+
+			entity = observabilityRepo.entityAccounts.find(
+				_ => _.entityGuid === request.newRelicEntityGuid
+			);
+			if (!entity) {
+				ContextLogger.warn("Missing entity", {
+					entityId: request.newRelicEntityGuid,
+				});
+				return undefined;
+			}
 		}
 
 		try {
 			const goldenMetrics = await this.getMethodLevelGoldenMetrics(
-				entity.entityGuid!,
-				request.metricTimesliceNameMapping
+				request.newRelicEntityGuid || entity!.entityGuid!,
+				request.metricTimesliceNameMapping,
+				request.since
 			);
 
+			const entityGuid = entity?.entityGuid || request.newRelicEntityGuid;
 			return {
 				goldenMetrics: goldenMetrics,
-				newRelicEntityAccounts: observabilityRepo.entityAccounts,
-				newRelicAlertSeverity: entity.alertSeverity,
-				newRelicEntityName: entity.entityName!,
-				newRelicEntityGuid: entity.entityGuid!,
-				newRelicUrl: `${this.productUrl}/redirect/entity/${entity.entityGuid}`,
+				newRelicEntityAccounts: entityAccounts,
+				newRelicAlertSeverity: entity?.alertSeverity,
+				newRelicEntityName: entity?.entityName || "",
+				newRelicEntityGuid: entityGuid,
+				newRelicUrl: `${this.productUrl}/redirect/entity/${entityGuid}`,
 			};
 		} catch (ex) {
 			Logger.error(ex, "getMethodLevelTelemetry", {
@@ -2161,7 +2169,7 @@ export class NewRelicProvider
                                FROM Span
                                WHERE entity.guid IN ('${entityGuid}')
                                  AND name = '${metricTimesliceNameMapping["errorRate"]}'
-                                 AND \`error.group.guid\` IS NOT NULL FACET name EXTRAPOLATE TIMESERIES`,
+                                 AND \`error.group.guid\` IS NOT NULL FACET name TIMESERIES`,
 					title: "Error rate",
 					name: "errorRate",
 				},
@@ -2184,7 +2192,8 @@ export class NewRelicProvider
 
 	async getMethodLevelGoldenMetrics(
 		entityGuid: string,
-		metricTimesliceNames?: MetricTimesliceNameMapping
+		metricTimesliceNames?: MetricTimesliceNameMapping,
+		since?: string
 	): Promise<MethodGoldenMetrics[] | undefined> {
 		const queries = await this.getMethodLevelGoldenMetricQueries(entityGuid, metricTimesliceNames);
 
@@ -2210,6 +2219,10 @@ export class NewRelicProvider
 				// if no metricTimesliceNames, then we don't need TIMESERIES in query
 				if (!metricTimesliceNames) {
 					_query = _query?.replace(/TIMESERIES/, "");
+				}
+
+				if (since) {
+					_query = `${_query} SINCE ${since}`;
 				}
 
 				const q = `query getMetric($accountId: Int!) {
@@ -2245,6 +2258,7 @@ export class NewRelicProvider
 						? element["errorsPerMinute"].toFixed(2)
 						: null;
 				});
+				``;
 			}
 			return {
 				..._,
