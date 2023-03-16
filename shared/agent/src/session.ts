@@ -1594,10 +1594,8 @@ export class CodeStreamSession {
 			props["Company ID"] = team.companyId;
 			props["Team Created Date"] = new Date(team.createdAt!).toISOString();
 			props["Team Name"] = team.name;
-			if (team.memberIds != null) {
-				props["Team Size"] = team.memberIds.length;
-			}
 			if (company) {
+				props["Team Size"] = company.memberCount || team.memberIds.length;
 				props["Plan"] = company.plan;
 				props["Reporting Group"] = company.reportingGroup;
 				props["Company Name"] = company.name;

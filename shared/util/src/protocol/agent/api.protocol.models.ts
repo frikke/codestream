@@ -483,6 +483,7 @@ export interface CSCompany extends CSEntity {
 	isNRConnected?: boolean;
 	host?: EnvironmentHost;
 	switchToServerUrl?: string;
+	memberCount?: number;
 }
 
 export interface CSTeam extends CSEntity {
