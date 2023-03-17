@@ -1083,8 +1083,8 @@ export class NewRelicProvider
 		try {
 			const { entityGuid } = request;
 			const { accountId } = NewRelicProvider.parseId(entityGuid)!;
-			const anomalyDetector = new AnomalyDetector(entityGuid, accountId, this.runNrql.bind(this));
-			const result = await anomalyDetector.execute(request);
+			const anomalyDetector = new AnomalyDetector(request, this.runNrql.bind(this));
+			const result = await anomalyDetector.execute();
 
 			return result;
 		} catch (ex) {

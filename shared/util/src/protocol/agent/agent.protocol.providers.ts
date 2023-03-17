@@ -1222,6 +1222,8 @@ export const GetObservabilityErrorsRequestType = new RequestType<
 
 export interface GetObservabilityAnomaliesRequest {
 	entityGuid: string;
+	sinceDaysAgo: number;
+	baselineDays: number;
 	includeSpans?: Boolean,
 	minimumErrorRate?: number,
 	minimumResponseTime?: number,
