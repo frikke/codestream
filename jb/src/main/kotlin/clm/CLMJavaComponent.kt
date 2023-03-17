@@ -64,10 +64,8 @@ class CLMJavaEditorManager(editor: Editor) : CLMEditorManager(editor, "java", tr
     ): NavigatablePsiElement? {
         if (psiFile !is PsiJavaFileImpl) return null
         val clazz = psiFile.classes.find { it.qualifiedName == className }
-        val methods = clazz?.findMethodsByName(functionName, false)
-        return if (methods?.size == 0) {
-            null
-        } else methods?.get(0)
+        val result = clazz?.findMethodsByName(functionName, false)?.firstOrNull()
+        return result
     }
 
     override fun findTopLevelFunction(psiFile: PsiFile, functionName: String): NavigatablePsiElement? {
