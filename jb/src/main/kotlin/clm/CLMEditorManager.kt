@@ -6,11 +6,15 @@ import com.codestream.codeStream
 import com.codestream.extensions.file
 import com.codestream.extensions.lspPosition
 import com.codestream.extensions.uri
+import com.codestream.protocols.agent.CSLocation
+import com.codestream.protocols.agent.CSReferenceLocation
+import com.codestream.protocols.agent.ComputeCurrentLocationsRequest
 import com.codestream.protocols.agent.FileLevelTelemetryOptions
 import com.codestream.protocols.agent.FileLevelTelemetryParams
 import com.codestream.protocols.agent.FileLevelTelemetryResult
 import com.codestream.protocols.agent.FileLevelTelemetryResultError
 import com.codestream.protocols.agent.FunctionLocator
+import com.codestream.protocols.agent.Markerish
 import com.codestream.protocols.agent.MethodLevelTelemetryAverageDuration
 import com.codestream.protocols.agent.MethodLevelTelemetryErrorRate
 import com.codestream.protocols.agent.MethodLevelTelemetrySampleSize
@@ -248,6 +252,30 @@ abstract class CLMEditorManager(
                     lastResult?.averageDuration?.forEach { averageDuration ->
                         val metrics = updatedMetrics.getOrPut(averageDuration.symbolIdentifier) { Metrics() }
                         metrics.averageDuration = averageDuration
+                            if (averageDuration.column != null && averageDuration.lineno != null && averageDuration.commit != null) {
+                                val currentLocations = project.agentService?.computeCurrentLocations(
+                                    ComputeCurrentLocationsRequest(
+                                        uri,
+                                        averageDuration.commit,
+                                        arrayOf(
+                                            Markerish(
+                                                "blah",
+                                                arrayOf(
+                                                    CSReferenceLocation(
+                                                        averageDuration.commit,
+                                                        CSLocation(
+                                                            arrayOf(averageDuration.lineno,
+                                                                averageDuration.column,
+                                                                0,
+                                                                0), null)
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                                logger.info("got some currentLocations $currentLocations")
+                            }
                     }
                     lastResult?.sampleSize?.forEach { sampleSize ->
                         val metrics = updatedMetrics.getOrPut(sampleSize.symbolIdentifier) { Metrics() }
