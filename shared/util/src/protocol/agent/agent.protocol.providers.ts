@@ -1718,7 +1718,7 @@ export interface BuiltFromResult {
 	};
 }
 
-export interface RelatedRepoData {
+export interface RelatedRepoWithRemotes {
 	name?: string;
 	url?: string;
 	remotes?: any[];

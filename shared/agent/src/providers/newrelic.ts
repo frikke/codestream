@@ -4,7 +4,7 @@ import { sep } from "path";
 
 import {
 	BuiltFromResult,
-	RelatedRepoData,
+	RelatedRepoWithRemotes,
 	CrashOrException,
 	Entity,
 	EntityAccount,
@@ -3520,7 +3520,7 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 
 	private async findMappedRemoteByEntity(
 		entityGuid: string
-	): Promise<RelatedRepoData[] | undefined> {
+	): Promise<RelatedRepoWithRemotes[] | undefined> {
 		if (!entityGuid) return undefined;
 
 		const relatedEntityResponse = await this.findRelatedEntityByRepositoryGuid(entityGuid);

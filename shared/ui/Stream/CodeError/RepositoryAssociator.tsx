@@ -112,7 +112,6 @@ export function RepositoryAssociator(props: {
 				if (!_isEmpty(derivedState.relatedRepos)) {
 					filteredResults = results.filter(_ => {
 						return derivedState.relatedRepos?.some(repo => {
-							// return repo.url === _.remote;
 							return repo.remotes.includes(_.remote);
 						});
 					});
@@ -123,6 +122,7 @@ export function RepositoryAssociator(props: {
 				}
 				if (filteredResults.length === 1) {
 					setSelected(filteredResults[0]);
+					//no dropdown required, just go to error and auto select the single result
 					handleOnSubmitWithOneItemInDropdown(filteredResults[0]);
 				} else {
 					setOpenRepositories(filteredResults);
