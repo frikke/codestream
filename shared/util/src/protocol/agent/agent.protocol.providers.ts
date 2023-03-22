@@ -1721,7 +1721,7 @@ export interface BuiltFromResult {
 export interface RelatedRepoWithRemotes {
 	name?: string;
 	url?: string;
-	remotes?: any[];
+	remotes?: string[];
 	error?: {
 		message?: string;
 	};
