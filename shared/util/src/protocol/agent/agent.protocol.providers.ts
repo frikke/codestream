@@ -1718,6 +1718,15 @@ export interface BuiltFromResult {
 	};
 }
 
+export interface RelatedRepoData {
+	name?: string;
+	url?: string;
+	remotes?: any[];
+	error?: {
+		message?: string;
+	};
+}
+
 export interface RelatedRepository {
 	length: number;
 	url?: string;

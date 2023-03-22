@@ -4,6 +4,7 @@ import { sep } from "path";
 
 import {
 	BuiltFromResult,
+	RelatedRepoData,
 	CrashOrException,
 	Entity,
 	EntityAccount,
@@ -3519,18 +3520,41 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 
 	private async findMappedRemoteByEntity(
 		entityGuid: string
-	): Promise<BuiltFromResult[] | undefined> {
+	): Promise<RelatedRepoData[] | undefined> {
 		if (!entityGuid) return undefined;
 
 		const relatedEntityResponse = await this.findRelatedEntityByRepositoryGuid(entityGuid);
 		if (relatedEntityResponse) {
-			const remotes = this.findRelatedReposFromServiceEntity(
+			let relatedRepoData = this.findRelatedReposFromServiceEntity(
 				relatedEntityResponse.actor.entity.relatedEntities.results
 			);
-			if (!_isEmpty(remotes)) {
-				return remotes;
+
+			let relatedRepoDataWithRemotes;
+
+			if (relatedRepoData) {
+				relatedRepoDataWithRemotes = await Promise.all(
+					relatedRepoData.map(
+						async (
+							_
+						): Promise<{ url?: string; remotes?: string[]; error?: any; name?: string }> => {
+							let remotes = await this._memoizedBuildRepoRemoteVariants([_.url]);
+							if (!_isEmpty(remotes)) {
+								return { ..._, remotes };
+							}
+							return { ..._ };
+						}
+					)
+				);
+			}
+			Logger.log("findMappedRemoteByEntity", { entityGuid, relatedRepoDataWithRemotes });
+			if (!_isEmpty(relatedRepoDataWithRemotes)) {
+				return relatedRepoDataWithRemotes;
 			}
 		}
+		Logger.warn(
+			"findMappedRemoteByEntity: no response data from findRelatedEntityByRepositoryGuid",
+			entityGuid
+		);
 		return undefined;
 	}
 
