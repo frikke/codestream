@@ -639,7 +639,7 @@ function listenForEvents(store) {
 								...definedQuery.query,
 								// cache the sessionStart here in case the IDE is restarted
 								sessionStart: state.context.sessionStart,
-								relatedRepos: response.relatedRepos,
+								relatedRepos: response?.relatedRepos,
 								pendingEntityId: definedQuery.query.entityId,
 								pendingErrorGroupGuid: definedQuery.query.errorGroupGuid,
 								pendingRequiresConnection: !isConnected(state, {
