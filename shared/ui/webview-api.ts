@@ -24,6 +24,7 @@ import {
 } from "@codestream/webview/ipc/webview.protocol.common";
 import { HistoryCounter } from "@codestream/utils/system/historyCounter";
 import { logError } from "@codestream/webview/logger";
+import { roundDownExponentially } from "@codestream/utils/system/math";
 
 type NotificationParamsOf<NT> = NT extends NotificationType<infer N, any> ? N : never;
 export type RequestParamsOf<RT> = RT extends RequestType<infer R, any, any, any> ? R : never;
@@ -150,7 +151,7 @@ type WebviewApiRequest = {
 
 export class RequestApiManager {
 	private pendingRequests = new Map<string, WebviewApiRequest>();
-	private historyCounter = new HistoryCounter(15, 25, console.debug, true);
+	private historyCounter = new HistoryCounter("webview", 15, 25, console.debug, true);
 
 	constructor(enableStaleReport = true) {
 		if (enableStaleReport) {
@@ -160,27 +161,41 @@ export class RequestApiManager {
 
 	private reportStaleRequests() {
 		const report = this.collectStaleRequests();
-		for (const item in report) {
+		for (const item of report) {
 			logError(item);
 		}
 	}
 
 	public collectStaleRequests(): Array<string> {
 		const now = Date.now();
-		const staleRequests = new Array<string>();
+		const staleRequests = new Map<string, { count: number; oldestDate: number }>();
 		for (const [key, value] of this.pendingRequests) {
 			const parts = key.split(":");
 			if (parts.length < 3) {
 				continue;
 			}
 			const timestamp = parseInt(parts[3]);
-			const theDate = new Date(timestamp);
 			const timeAgo = (now - timestamp) / 1000;
 			if (timeAgo > STALE_THRESHOLD) {
-				staleRequests.push(`Found stale request ${value.method} at ${theDate.toISOString()}`);
+				const existing = staleRequests.get(value.method);
+				if (!existing) {
+					staleRequests.set(value.method, { count: 1, oldestDate: timestamp });
+				} else if (existing) {
+					existing.count = existing.count + 1;
+					if (timestamp < existing.oldestDate) {
+						existing.oldestDate = timestamp;
+					}
+				}
 			}
 		}
-		return staleRequests;
+		const stales = new Array<string>();
+		for (const [key, value] of staleRequests) {
+			const theDate = new Date(value.oldestDate);
+			stales.push(
+				`Found ${value.count} stale requests for ${key} with oldest at ${theDate.toISOString()}`
+			);
+		}
+		return stales;
 	}
 
 	public get(key: string): WebviewApiRequest | undefined {
@@ -194,8 +209,10 @@ export class RequestApiManager {
 	public set(key: string, value: WebviewApiRequest): Map<string, WebviewApiRequest> {
 		const identifier = value.providerId ? `${value.method}:${value.providerId}` : value.method;
 		const count = this.historyCounter.countAndGet(identifier);
-		if (count > ALERT_THRESHOLD) {
-			logError(new Error(`${count} calls pending for ${identifier}`));
+		// A rounded error allows the count to stay the same and the duplicate error suppression to work in the agent
+		const rounded = roundDownExponentially(count, ALERT_THRESHOLD);
+		if (count > ALERT_THRESHOLD && identifier != "codestream/reporting/message") {
+			logError(new Error(`More than ${rounded} calls pending for ${identifier}`));
 		}
 		return this.pendingRequests.set(key, value);
 	}

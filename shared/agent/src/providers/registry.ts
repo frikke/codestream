@@ -774,7 +774,7 @@ export class ThirdPartyProviderRegistry {
 				{
 					providerId: "github*com",
 					name: WAITING_ON_REVIEW,
-					query: `is:pr is:open involves:@me`,
+					query: `is:pr is:open review-requested:@me`,
 					hidden: false,
 				},
 				{
@@ -800,7 +800,7 @@ export class ThirdPartyProviderRegistry {
 				{
 					providerId: "github/enterprise",
 					name: WAITING_ON_REVIEW,
-					query: `is:pr is:open involves:@me`,
+					query: `is:pr is:open review-requested:@me`,
 					hidden: false,
 				},
 				{

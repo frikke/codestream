@@ -18,6 +18,7 @@ import Dismissable from "../Dismissable";
 import { DropdownButton } from "../DropdownButton";
 import { DelayedRender } from "../../Container/DelayedRender";
 import { LoadingMessage } from "../../src/components/LoadingMessage";
+import { isEmpty as _isEmpty } from "lodash-es";
 
 const Ellipsize = styled.div`
 	button {
@@ -107,13 +108,21 @@ export function RepositoryAssociator(props: {
 				}
 				//take repos in users IDE, and filter them with a list of
 				//related repos to service entity the error originates from
-				const filteredResults = results.filter(_ => {
-					return derivedState.relatedRepos?.some(repo => {
-						return repo.name === _.name;
+				let filteredResults;
+				if (!_isEmpty(derivedState.relatedRepos)) {
+					filteredResults = results.filter(_ => {
+						return derivedState.relatedRepos?.some(repo => {
+							return repo.remotes.includes(_.remote);
+						});
 					});
-				});
+				} else {
+					// no related repo data for whatever reason, just show repos
+					// instead of "repo not found" error
+					filteredResults = results;
+				}
 				if (filteredResults.length === 1) {
 					setSelected(filteredResults[0]);
+					//no dropdown required, just go to error and auto select the single result
 					handleOnSubmitWithOneItemInDropdown(filteredResults[0]);
 				} else {
 					setOpenRepositories(filteredResults);

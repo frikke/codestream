@@ -4,6 +4,7 @@ import { sep } from "path";
 
 import {
 	BuiltFromResult,
+	RelatedRepoWithRemotes,
 	CrashOrException,
 	Entity,
 	EntityAccount,
@@ -3465,6 +3466,16 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 				(errorGroupResponse.lastSeenAt || now) + 100000
 			} ORDER BY timestamp DESC LIMIT 1`;
 
+			const graphQuery = `query getErrorTrace($accountId: Int!) {
+				actor {
+				  account(id: $accountId) {
+					nrql(query: "${escapeNrql(errorTraceQuery)}", timeout: 60) {
+					  results
+					}
+				  }
+				}
+			  }`;
+
 			const errorTraceResponse = await this.query<{
 				actor: {
 					account: {
@@ -3476,20 +3487,9 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 						};
 					};
 				};
-			}>(
-				`query getErrorTrace($accountId: Int!) {
-						actor {
-						  account(id: $accountId) {
-							nrql(query: "${errorTraceQuery}", timeout: 60) {
-							  results
-							}
-						  }
-						}
-					  }`,
-				{
-					accountId: accountId,
-				}
-			);
+			}>(graphQuery, {
+				accountId: accountId,
+			});
 
 			if (errorTraceResponse) {
 				const errorTraceResult = errorTraceResponse.actor.account.nrql.results[0];
@@ -3520,18 +3520,41 @@ export class NewRelicProvider extends ThirdPartyIssueProviderBase<CSNewRelicProv
 
 	private async findMappedRemoteByEntity(
 		entityGuid: string
-	): Promise<BuiltFromResult[] | undefined> {
+	): Promise<RelatedRepoWithRemotes[] | undefined> {
 		if (!entityGuid) return undefined;
 
 		const relatedEntityResponse = await this.findRelatedEntityByRepositoryGuid(entityGuid);
 		if (relatedEntityResponse) {
-			const remotes = this.findRelatedReposFromServiceEntity(
+			let relatedRepoData = this.findRelatedReposFromServiceEntity(
 				relatedEntityResponse.actor.entity.relatedEntities.results
 			);
-			if (!_isEmpty(remotes)) {
-				return remotes;
+
+			let relatedRepoDataWithRemotes;
+
+			if (relatedRepoData) {
+				relatedRepoDataWithRemotes = await Promise.all(
+					relatedRepoData.map(
+						async (
+							_
+						): Promise<{ url?: string; remotes?: string[]; error?: any; name?: string }> => {
+							let remotes = await this._memoizedBuildRepoRemoteVariants([_.url]);
+							if (!_isEmpty(remotes)) {
+								return { ..._, remotes };
+							}
+							return { ..._ };
+						}
+					)
+				);
+			}
+			Logger.log("findMappedRemoteByEntity", { entityGuid, relatedRepoDataWithRemotes });
+			if (!_isEmpty(relatedRepoDataWithRemotes)) {
+				return relatedRepoDataWithRemotes;
 			}
 		}
+		Logger.warn(
+			"findMappedRemoteByEntity: no response data from findRelatedEntityByRepositoryGuid",
+			entityGuid
+		);
 		return undefined;
 	}
 

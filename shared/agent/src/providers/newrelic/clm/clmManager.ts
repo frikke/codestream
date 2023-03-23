@@ -1,4 +1,8 @@
 "use strict";
+// keep this as the first import
+// tslint:disable-next-line:ordered-imports
+// eslint-disable-next-line import/order
+import * as NewRelic from "newrelic";
 
 import {
 	CodeStreamDiffUriData,
@@ -76,6 +80,14 @@ export class ClmManager {
 		this._sessionServiceContainer = value;
 	}
 
+	private addCustomAttribute(key: string, value: string) {
+		try {
+			NewRelic.addCustomAttribute(key, value);
+		} catch (ex) {
+			Logger.warn("addCustomAttribute failed", { error: ex?.message });
+		}
+	}
+
 	async getFileLevelTelemetry(
 		request: GetFileLevelTelemetryRequest
 	): Promise<GetFileLevelTelemetryResponse | NRErrorResponse | undefined> {
@@ -83,6 +95,8 @@ export class ClmManager {
 		const languageId: LanguageId | undefined = isSupportedLanguage(request.languageId)
 			? request.languageId
 			: undefined;
+
+		this.addCustomAttribute("languageId", request.languageId);
 		if (!languageId) {
 			ContextLogger.warn("getFileLevelTelemetry: languageId not supported");
 			return undefined;
@@ -1024,7 +1038,7 @@ const supportedLanguages = [
 	"typescriptreact",
 ] as const;
 
-export type LanguageId = typeof supportedLanguages[number];
+export type LanguageId = (typeof supportedLanguages)[number];
 
 export type EnhancedMetricTimeslice = MetricTimeslice & {
 	className?: string;

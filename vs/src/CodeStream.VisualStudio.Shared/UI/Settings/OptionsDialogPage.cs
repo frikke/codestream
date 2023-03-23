@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Runtime.CompilerServices;
 using CodeStream.VisualStudio.Core.Extensions;
@@ -17,13 +18,9 @@ namespace CodeStream.VisualStudio.Shared.UI.Settings {
 		private bool _autoSignIn = true;
 
 		private bool _autoHideMarkers;
-		//// not supported yet
-		//private bool _showMarkerCodeLens = false;
 		private bool _showMarkerGlyphs = true;
 		private bool _showAvatars = true;
 		private TraceLevel _traceLevel = TraceLevel.Info;
-		 
-		
 		
 #if DEBUG
 		private string _serverUrl = "https://codestream-pd.staging-service.nr-ops.net";
@@ -33,8 +30,9 @@ namespace CodeStream.VisualStudio.Shared.UI.Settings {
 		private bool _disableStrictSsl;
 		private bool _proxyStrictSsl;
 		private string _extraCertificates;
-
 		private ProxySupport _proxySupport;
+
+		private bool _showContextMenuCommands = true;
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
@@ -125,7 +123,9 @@ namespace CodeStream.VisualStudio.Shared.UI.Settings {
 		[Description("Specifies the url to use to connect to the CodeStream service")]
 		public string ServerUrl {
 			get => _serverUrl;
-			set {
+			set
+			{
+				value = value?.TrimEnd('/');
 				if (_serverUrl != value) {
 					_serverUrl = value;
 					NotifyPropertyChanged();
@@ -224,6 +224,22 @@ namespace CodeStream.VisualStudio.Shared.UI.Settings {
 			set {
 				if (_showAvatars != value) {
 					_showAvatars = value;
+					NotifyPropertyChanged();
+				}
+			}
+		}
+
+		[Category("UI")]
+		[DisplayName("Show Context Menu Commands")]
+		[Description("Specifies whether to show commands on the right-click context-menu")]
+		public bool ShowContextMenuCommands
+		{
+			get => _showContextMenuCommands;
+			set
+			{
+				if (_showContextMenuCommands != value)
+				{
+					_showContextMenuCommands = value;
 					NotifyPropertyChanged();
 				}
 			}

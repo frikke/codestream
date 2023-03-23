@@ -23,6 +23,8 @@ import {
 	PollForMaintenanceModeRequestType,
 	VersionCompatibility,
 	VerifyConnectivityResponse,
+	GetObservabilityErrorGroupMetadataRequestType,
+	GetObservabilityErrorGroupMetadataResponse,
 } from "@codestream/protocols/agent";
 import { CodemarkType, CSApiCapabilities, CSCodeError, CSMe } from "@codestream/protocols/api";
 import React from "react";
@@ -117,7 +119,6 @@ import { confirmPopup } from "./Stream/Confirm";
 import translations from "./translations/en";
 import { parseProtocol } from "./utilities/urls";
 import { HostApi } from "./webview-api";
-
 // import translationsEs from "./translations/es";
 
 export function setupCommunication(host: { postMessage: (message: any) => void }) {
@@ -628,11 +629,17 @@ function listenForEvents(store) {
 						}
 						const state = store.getState();
 
+						const response = (await HostApi.instance.send(
+							GetObservabilityErrorGroupMetadataRequestType,
+							{ errorGroupGuid: definedQuery.query.errorGroupGuid }
+						)) as GetObservabilityErrorGroupMetadataResponse;
+
 						store.dispatch(
 							openErrorGroup(definedQuery.query.errorGroupGuid, definedQuery.query.occurrenceId, {
 								...definedQuery.query,
 								// cache the sessionStart here in case the IDE is restarted
 								sessionStart: state.context.sessionStart,
+								relatedRepos: response?.relatedRepos,
 								pendingEntityId: definedQuery.query.entityId,
 								pendingErrorGroupGuid: definedQuery.query.errorGroupGuid,
 								pendingRequiresConnection: !isConnected(state, {

@@ -1352,6 +1352,10 @@ export class CodeStreamAgentConnection implements Disposable {
 				} = {};
 
 				for (const path of e.paths) {
+					if (!path) {
+						resolvedPaths.push(undefined);
+						continue;
+					}
 					const parts = Strings.normalizePath(path || "", isWindows).split("/");
 					const discardedParts: string[] = [];
 					let found = false;

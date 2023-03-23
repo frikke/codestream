@@ -98,8 +98,8 @@ namespace CodeStream.VisualStudio.Shared.Services {
 		}
 
 		public string ServerUrl {
-			get => DialogPage.ServerUrl.IsNullOrWhiteSpace() ? DialogPage.ServerUrl : DialogPage.ServerUrl.TrimEnd('/');
-			set => DialogPage.ServerUrl = value.IsNullOrWhiteSpace() ? value : value.TrimEnd('/');
+			get => DialogPage.ServerUrl;
+			set => DialogPage.ServerUrl = value;
 		}
 
 		public bool ShowMarkerGlyphs {
@@ -142,6 +142,12 @@ namespace CodeStream.VisualStudio.Shared.Services {
 		public string ExtraCertificates {
 			get => DialogPage.ExtraCertificates;
 			set => DialogPage.ExtraCertificates = value;
+		}
+
+		public bool ShowContextMenuCommands
+		{
+			get => DialogPage.ShowContextMenuCommands; 
+			set => DialogPage.ShowContextMenuCommands = value;
 		}
 
 		public Ide GetIdeInfo() 

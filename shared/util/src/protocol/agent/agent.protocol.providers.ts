@@ -1508,7 +1508,7 @@ export interface GetServiceLevelObjectivesResponse {
 export interface GetMethodLevelTelemetryResponse {
 	newRelicEntityGuid: string;
 	newRelicUrl?: string;
-	goldenMetrics?: any;
+	goldenMetrics?: MethodGoldenMetrics[];
 	newRelicAlertSeverity?: string;
 	newRelicEntityAccounts: EntityAccount[];
 	newRelicEntityName: string;
@@ -1713,6 +1713,15 @@ export interface EntitySearchResponse {
 export interface BuiltFromResult {
 	name?: string;
 	url?: string;
+	error?: {
+		message?: string;
+	};
+}
+
+export interface RelatedRepoWithRemotes {
+	name?: string;
+	url?: string;
+	remotes?: string[];
 	error?: {
 		message?: string;
 	};

@@ -504,6 +504,9 @@ export class GitRepositories {
 						depth: 2,
 						ignored: path => path.includes("node_modules"),
 					})
+					.on("error", error => {
+						Logger.log("add git dir watch error", error);
+					})
 					.on("addDir", async gitPath => {
 						Logger.debug(`add git dir watch: addDir gitPath: ${gitPath}`);
 						const normalizedGitPath = Strings.normalizePath(gitPath, isWindows);
@@ -679,10 +682,10 @@ export class GitRepositories {
 								// skip if we already have the local branch AND
 								// there isn't a remote OR there is, and it's already tracked
 								if (
-									dynamicRefs.indexOf(".git/refs/heads/" + currentGitBranch) > -1 &&
+									dynamicRefs.includes(".git/refs/heads/" + currentGitBranch) &&
 									(!currentGitBranchRemote ||
 										(currentGitBranchRemote &&
-											dynamicRefs.indexOf(".git/refs/remotes/" + currentGitBranchRemote))) > -1
+											dynamicRefs.includes(".git/refs/remotes/" + currentGitBranchRemote)))
 								) {
 									return;
 								}
