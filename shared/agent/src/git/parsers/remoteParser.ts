@@ -144,6 +144,11 @@ export class GitRemoteParser {
 				if (httpOrSshEndpoint.indexOf(".git") > -1) {
 					results.push({ type: "https", value: httpOrSshEndpoint.replace(".git", "") });
 				}
+				// Account for .git-less http remotes, as remotes that come from NR can sometimes not have .git
+				// https://github.com/TeamCodeStream/telco-microservices -> https://github.com/TeamCodeStream/telco-microservices.git
+				if (httpOrSshEndpoint.indexOf(".git") === -1) {
+					results.push({ type: "https", value: httpOrSshEndpoint + ".git" });
+				}
 				// support for github.repositoryUrl context https://docs.github.com/en/actions/learn-github-actions/contexts#github-context
 				results.push({ type: "git", value: `git://${parsed[1]}/${parsed[2]}.git` });
 				results.push({ type: "ssh", value: `git@${parsed[1]}:${parsed[2]}.git` });
