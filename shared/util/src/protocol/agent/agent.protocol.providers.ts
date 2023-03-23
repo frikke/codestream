@@ -578,6 +578,8 @@ export interface FetchThirdPartyPullRequestPullRequest {
 	};
 	comments?: any[]; //TODO: Fix this!
 	description: string; //this is for bitbucket
+	additions: number; //bitbucket
+	deletions: number; //bitbucket
 	files: {
 		pageInfo: {
 			endCursor?: string;
