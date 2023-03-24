@@ -3057,7 +3057,7 @@ export class NewRelicProvider
 		entityGuid: string,
 		timestamp?: number
 	): Promise<ErrorGroupResponse> {
-		const timestampRange = this.generateTimestampRange(timestamp);
+		const timestampRange = undefined;
 		const q = `query getErrorGroup($accountId: Int!, $errorGroupGuids: [ID!], $entityGuid: EntityGuid!) {
 			actor {
 			  account(id: $accountId) {
@@ -3096,11 +3096,7 @@ export class NewRelicProvider
 				errorGroupStateTypes {
 				  type
 				}
-				errorGroups(filter: {ids: $errorGroupGuids} ${
-					timestampRange
-						? `, timeWindow: {startTime: ${timestampRange.startTime}, endTime: ${timestampRange.endTime}}`
-						: ""
-				}) {
+				errorGroups(filter: {ids: $errorGroupGuids} ${timestampRange ? "" : ""}) {
 				  results {
 					url
 					id
