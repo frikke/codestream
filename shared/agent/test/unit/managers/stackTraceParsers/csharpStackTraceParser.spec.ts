@@ -96,5 +96,54 @@ describe("csharpStackTraceParser", () => {
 				column: undefined,
 			});
 		});
+
+		it("dotnet without file or line", () => {
+			const str = `Object reference not set to an instance of an object.
+			System.NullReferenceException: Object reference not set to an instance of an object.
+			at Company.Public.Web.Controllers.Components.Controller.SomeMethodInTheStack()
+			at lambda_method(Closure , ControllerBase , Object[] )
+			at System.Web.Mvc.ControllerActionInvoker.InvokeActionMethod(ControllerContext controllerContext, ActionDescriptor actionDescriptor, IDictionary\`2 parameters)
+			at System.Web.Mvc.ControllerActionInvoker.<>c__DisplayClass24_0.<InvokeActionMethodWithFilters>b__0()
+			at System.Web.Mvc.ControllerActionInvoker.InvokeActionMethodFilter(IActionFilter filter, ActionExecutingContext preContext, Func\`1 continuation)
+			at System.Web.Mvc.ControllerActionInvoker.InvokeActionMethodFilter(IActionFilter filter, ActionExecutingContext preContext, Func\`1 continuation)
+			at System.Web.Mvc.ControllerActionInvoker.InvokeAction(ControllerContext controllerContext, String actionName)`;
+
+			const result = Parser(str);
+			expect(result.header).toEqual("System.NullReferenceException: Object reference not set to an instance of an object.");
+			expect(result.error).toEqual("Object reference not set to an instance of an object.");
+			expect(result.lines?.length).toBeGreaterThanOrEqual(6);
+
+			expect(result.lines[0]).toEqual({
+				arguments: undefined,
+				fileFullPath: undefined,
+				method: "SomeMethodInTheStack",
+				line: NaN,
+				column: undefined,
+			});
+
+			expect(result.lines[1]).toEqual({
+				arguments: ["Closure", "ControllerBase", "Object[]"],
+				fileFullPath: undefined,
+				method: "lambda_method",
+				line: NaN,
+				column: undefined,
+			});
+
+			expect(result.lines[2]).toEqual({
+				arguments: ["ControllerContext controllerContext", "ActionDescriptor actionDescriptor", "IDictionary\`2 parameters"],
+				fileFullPath: undefined,
+				method: "InvokeActionMethod",
+				line: NaN,
+				column: undefined,
+			});
+
+			expect(result.lines[3]).toEqual({
+				arguments: undefined,
+				fileFullPath: undefined,
+				method: "<InvokeActionMethodWithFilters>b__0",
+				line: NaN,
+				column: undefined,
+			});
+		});
 	});
 });

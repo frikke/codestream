@@ -107,7 +107,7 @@ class NewCodemarkGutterIconRenderer(
         return NewCodemarkGutterIconRendererDraggableObject(editor, this.line, onStopDrag)
     }
 
-    override fun getAlignment() = Alignment.LEFT
+    override fun getAlignment() = Alignment.RIGHT
 }
 
 class PullRequestCommentAction(

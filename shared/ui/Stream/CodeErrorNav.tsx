@@ -845,11 +845,17 @@ export function CodeErrorNav(props: Props) {
 									"Error Group ID": payload.errorGroupGuid,
 								});
 
-								onConnected(
-									undefined,
-									_.directives.find(_ => _.type === "assignRepository").data.repo.relatedRepos[0]
-										.url
-								);
+								let remoteForOnConnected;
+								let repoFromAssignDirective = _.directives.find(
+									_ => _.type === "assignRepository"
+								).data;
+								if (repoFromAssignDirective.repo?.relatedRepos?.length > 0) {
+									remoteForOnConnected = repoFromAssignDirective.repo?.relatedRepos[0]?.url;
+								} else {
+									remoteForOnConnected = repoFromAssignDirective?.repo?.urls[0];
+								}
+
+								onConnected(undefined, remoteForOnConnected);
 							} else {
 								console.log("Could not find directive", {
 									payload: payload,

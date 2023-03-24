@@ -18,14 +18,13 @@ export function Parser(stack: string): CSStackTraceInfo {
 				^
 				[\s\t]*
 				\w+
-				[\s\t]+([^\s\t]+)\. //type
-				([^\s\t]+?[\s\t]*) //method
-				\((.+)?\) //params
+				[\s\t]+([^\s\t]+) 		//Namespace + Method
+				\((.+)?\) 				//params
 				([\s\t]+\w+[\s\t]+
 				(
-					([a-z]\:|\/).+?) //file
+					([a-z]\:|\/).+?) 	//file
 					\:\w+[\s\t]+
-					([0-9]+\p?) //line
+					([0-9]+\p?) 		//line
 				)?
 				\s*
 				$`;
@@ -34,13 +33,27 @@ export function Parser(stack: string): CSStackTraceInfo {
 	let m;
 	const split = stack.split("\n");
 	const firstLine = split[0];
-	const match = firstLine.match(/Exception: (.*)$/);
+	const firstLineMatch = firstLine.match(/Exception: (.*)$/);
 
-	if (match && match[1]) {
+	if (firstLineMatch && firstLineMatch[1]) {
 		info.header = firstLine;
-		info.error = match[1];
+		info.error = firstLineMatch[1];
 		split.shift();
 		stack = split.join("\n");
+	}
+
+	// first line didn't contain Exception information. Try second.
+	if(!firstLineMatch){
+		const secondLine = split[1];
+		const secondLineMatch = secondLine.match(/Exception: (.*)$/);
+
+		if (secondLineMatch && secondLineMatch[1]) {
+			info.header = secondLine.trim();
+			info.error = secondLineMatch[1].trim();
+			split.shift();
+			split.shift();
+			stack = split.join("\n");
+		}
 	}
 
 	while ((m = regex.exec(stack)) !== null) {
@@ -51,13 +64,16 @@ export function Parser(stack: string): CSStackTraceInfo {
 
 		// The result can be accessed through the `m`-variable.
 		// m.forEach((match, groupIndex) => {
-		// 	console.log(`Found match(${count}), group ${groupIndex}: ${match}`);
+		// 	console.log(`Found match(${m.length}), group ${groupIndex}: ${match}`);
 		// });
+
+		let nameParts = m[1].split(".");
+
 		info.lines.push({
-			method: m[2],
-			arguments: m[3] != null ? m[3].split(",").map(_ => _.trimStart()) : undefined,
-			fileFullPath: m[5],
-			line: parseInt(m[7], 10),
+			method: nameParts[nameParts.length - 1],
+			arguments: m[2] != null ? m[2].split(",").map(_ => _.trim()) : undefined,
+			fileFullPath: m[4],
+			line: parseInt(m[6], 10),
 			column: undefined,
 		});
 	}
