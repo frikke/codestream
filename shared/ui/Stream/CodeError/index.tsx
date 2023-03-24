@@ -73,6 +73,7 @@ import Timestamp from "../Timestamp";
 import Tooltip from "../Tooltip";
 import { ConditionalNewRelic } from "./ConditionalComponent";
 import { isFeatureEnabled } from "../../store/apiVersioning/reducer";
+import { isEmpty } from "lodash-es";
 
 interface SimpleError {
 	/**
@@ -84,6 +85,8 @@ interface SimpleError {
 	 */
 	type?: string;
 }
+
+type SubmitType = "normal" | "analyze" | "chat";
 
 export interface BaseCodeErrorProps extends CardProps {
 	codeError: CSCodeError;
@@ -1249,7 +1252,7 @@ const BaseCodeError = (props: BaseCodeErrorProps) => {
 			return (
 				<MetaSection>
 					<Meta id="stack-trace" className={props.stackTraceTip ? "pulse" : ""}>
-						<MetaLabel>Stack Trace</MetaLabel>
+						<MetaLabel>Stack Trace One</MetaLabel>
 						<TourTip title={props.stackTraceTip} placement="bottom">
 							<ClickLines tabIndex={0} onKeyDown={handleKeyDown} className="code">
 								{(stackTrace || []).map((line, i) => {
@@ -1288,6 +1291,7 @@ const BaseCodeError = (props: BaseCodeErrorProps) => {
 								})}
 							</ClickLines>
 						</TourTip>
+						<Link>Analyze with ChatGPT</Link>
 					</Meta>
 					{props.post && (
 						<div style={{ marginBottom: "10px" }}>
@@ -1303,7 +1307,7 @@ const BaseCodeError = (props: BaseCodeErrorProps) => {
 			return (
 				<MetaSection>
 					<Meta id="stack-trace">
-						<MetaLabel>Stack Trace</MetaLabel>
+						<MetaLabel>Stack Trace Two</MetaLabel>
 						<TourTip title={props.stackTraceTip} placement="bottom">
 							<ClickLines id="stack-trace" className="code" tabIndex={0}>
 								{stackTraceText.split("\n").map((line: string, i) => {
@@ -1471,9 +1475,20 @@ const ReplyInput = (props: { codeError: CSCodeError }) => {
 	const [isLoading, setIsLoading] = React.useState(false);
 	const teamMates = useSelector((state: CodeStreamState) => getTeamMates(state));
 
-	const submit = async () => {
+	const getStackTraceText = (): string => {
+		if (isEmpty(props.codeError.stackTraces)) {
+			return "";
+		}
+		const error = props.codeError.stackTraces[0];
+		return error.text ?? "";
+	};
+
+	const submit = async (submitType: SubmitType = "normal") => {
 		// don't create empty replies
-		if (text.length === 0) return;
+		const theText = submitType === "analyze" ? getStackTraceText() : text;
+		if (theText.length === 0) return;
+
+		const isChat = submitType === "analyze" || submitType === "chat";
 
 		setIsLoading(true);
 
@@ -1488,12 +1503,14 @@ const ReplyInput = (props: { codeError: CSCodeError }) => {
 			createPost(
 				actualCodeError.codeError.streamId,
 				actualCodeError.codeError.postId,
-				replaceHtml(text)!,
+				replaceHtml(theText)!,
 				null,
-				findMentionedUserIds(teamMates, text),
+				isChat ? undefined : findMentionedUserIds(teamMates, text),
 				{
 					entryPoint: "Code Error",
 					files: attachments,
+					analyzeStacktrace: submitType === "analyze",
+					chat: submitType === "chat",
 				}
 			)
 		);
@@ -1528,9 +1545,18 @@ const ReplyInput = (props: { codeError: CSCodeError }) => {
 					placement="bottomRight"
 					delay={1}
 				>
-					<Button disabled={text.length === 0} onClick={submit} isLoading={isLoading}>
-						Comment
-					</Button>
+					<div>
+						<Button
+							disabled={text.length === 0}
+							onClick={() => submit("chat")}
+							isLoading={isLoading}
+						>
+							Ask ChatGPT
+						</Button>
+						<Button disabled={text.length === 0} onClick={() => submit()} isLoading={isLoading}>
+							Comment
+						</Button>
+					</div>
 				</Tooltip>
 			</ButtonRow>
 		</>
