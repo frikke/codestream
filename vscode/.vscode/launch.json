@@ -4,10 +4,7 @@
 		{
 			"name": "Agent Unit Tests",
 			"request": "launch",
-			"runtimeArgs": [
-				"run-script",
-				"agent:test"
-			],
+			"runtimeArgs": ["run-script", "agent:test"],
 			"runtimeExecutable": "npm",
 			"type": "node",
 			"console": "integratedTerminal"
@@ -15,10 +12,7 @@
 		{
 			"name": "UI Unit Tests",
 			"request": "launch",
-			"runtimeArgs": [
-				"run-script",
-				"webview:test"
-			],
+			"runtimeArgs": ["run-script", "webview:test"],
 			"runtimeExecutable": "npm",
 			"type": "node",
 			"console": "integratedTerminal"
@@ -28,7 +22,7 @@
 			"type": "extensionHost",
 			"request": "launch",
 			"runtimeExecutable": "${execPath}",
-			"args": ["--extensionDevelopmentPath=${workspaceFolder}"],
+			"args": ["--extensionDevelopmentPath=${workspaceFolder}", "--profile CodestreamDev"],
 			"env": {
 				"VSCODE_DEBUGGING_EXTENSION": "codestream",
 				"CODESTREAM_AGENT_BREAK_ON_START": "false"

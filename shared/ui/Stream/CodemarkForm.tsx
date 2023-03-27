@@ -762,7 +762,10 @@ class CodemarkForm extends React.Component<Props, State> {
 		}
 	};
 
-	handleClickSubmit = async (event?: React.SyntheticEvent) => {
+	handleClickSubmit = async (
+		event?: React.SyntheticEvent,
+		mode: "analyze" | "normal" = "normal"
+	) => {
 		event && event.preventDefault();
 		if (this.state.isLoading || this.state.isReviewLoading) return;
 		if (this.isFormInvalid()) return;
@@ -909,6 +912,7 @@ class CodemarkForm extends React.Component<Props, State> {
 				isChangeRequest: this.state.isChangeRequest,
 				addedUsers: keyFilter(this.state.emailAuthors),
 				isProviderReview: this.state.isProviderReview,
+				analyze: mode === "analyze",
 			};
 			if (this.props.teamProvider === "codestream") {
 				const retVal = await this.props.onSubmit({
@@ -1369,7 +1373,7 @@ class CodemarkForm extends React.Component<Props, State> {
 
 						return (
 							<div key={key} className="related-codemark">
-								{icon}&nbsp;{title}&nbsp;&nbsp;<span className="codemark-file">{file}</span>
+								{icon}&nbsp;{title}&nbsp;&nbsp;<span className="codemark-file">eee {file}</span>
 								<span style={{ marginLeft: 5 }}>
 									<Icon name="x" onClick={() => this.handleToggleCodemark(codemark)} />
 								</span>
@@ -1857,7 +1861,7 @@ class CodemarkForm extends React.Component<Props, State> {
 					{file && (
 						<>
 							<span className="monospace" style={{ paddingRight: "20px" }}>
-								<Icon name="file" /> {file}
+								<Icon name="file" /> ccc {file}
 							</span>{" "}
 						</>
 					)}
@@ -2248,6 +2252,7 @@ class CodemarkForm extends React.Component<Props, State> {
 	renderCodemarkForm() {
 		const { editingCodemark, currentUser } = this.props;
 		const commentType = this.getCommentType();
+		const { codeBlocks } = this.state;
 
 		const titlePlaceholder =
 			commentType === "issue"
@@ -2585,6 +2590,29 @@ class CodemarkForm extends React.Component<Props, State> {
 										: "Submit"}
 								</Button>
 							</Tooltip>
+							{codeBlocks?.length > 0 && (
+								<Button
+									key="analyze-submit"
+									style={{
+										paddingLeft: "10px",
+										paddingRight: "10px",
+										// fixed width to handle the isLoading case
+										width:
+											this.props.currentReviewId ||
+											this.props.textEditorUriHasPullRequestContext ||
+											this.props.currentCodeErrorId
+												? "auto"
+												: "80px",
+										marginRight: 0,
+									}}
+									className="control-button"
+									type="submit"
+									loading={this.state.isLoading}
+									onClick={e => this.handleClickSubmit(e, "analyze")}
+								>
+									Ask ChatGPT
+								</Button>
+							)}
 							{displayAddReviewButton && (
 								<Tooltip title={hasError ? null : reviewTooltip} placement="bottom" delay={1}>
 									<Button
