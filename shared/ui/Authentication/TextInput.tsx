@@ -13,6 +13,7 @@ interface TextInputProps extends Pick<React.HTMLAttributes<HTMLInputElement>, "o
 	nativeProps?: AnyObject;
 	autoFocus?: boolean;
 	hasError?: boolean;
+	disabled?: boolean;
 }
 
 export const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(function (
@@ -45,6 +46,7 @@ export const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(func
 
 	return (
 		<input
+			disabled={props?.disabled}
 			ref={ref}
 			className={"input-text" + (props.hasError ? " has-error" : "")}
 			type={props.type}
