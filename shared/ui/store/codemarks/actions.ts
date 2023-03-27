@@ -30,6 +30,7 @@ export interface BaseNewCodemarkAttributes {
 		[index: number]: boolean;
 	};
 	files?: Attachment[];
+	analyze?: boolean;
 }
 
 interface BaseSharingAttributes {

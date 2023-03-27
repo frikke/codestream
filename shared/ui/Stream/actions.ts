@@ -259,6 +259,7 @@ export const createPostAndCodemark =
 				)
 			);
 		} else {
+			console.log(`*** a here i am with analyze boolean: ${attributes.analyze}`);
 			return dispatch(
 				createCodemark({
 					...attributes,

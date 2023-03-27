@@ -74,6 +74,7 @@ export const CreateCodemarkRequestType = new RequestType<
 export interface ShareableCodemarkAttributes extends Omit<CreateCodemarkRequest, "markers"> {
 	codeBlocks: GetRangeScmInfoResponse[];
 	crossPostIssueValues?: CrossPostIssueValues;
+	analyze?: boolean;
 }
 
 export interface CreateShareableCodemarkRequest {

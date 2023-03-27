@@ -1285,6 +1285,15 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 			stream = await SessionContainer.instance().streams.getTeamStream();
 		}
 
+		const codeBlock = request.attributes.codeBlocks[0];
+		let chatResponsePromise: Promise<string> | undefined = undefined;
+		if (request.attributes.analyze && codeBlock.contents) {
+			chatResponsePromise = getChatResponse(
+				stream.id,
+				`Explain this code to me:\n${codeBlock.contents}`
+			);
+		}
+
 		const response = await this.session.api.createPost({
 			codemark: codemarkRequest,
 			text: codemarkRequest.text!,
@@ -1297,6 +1306,15 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 		});
 		const { markers } = response!;
 		codemark = response.codemark!;
+
+		if (chatResponsePromise) {
+			const chatResponse = await chatResponsePromise;
+			const chatGptPostResponse = await this.session.api.createPost({
+				text: chatResponse,
+				streamId: stream.id,
+				parentPostId: response.post.id,
+			});
+		}
 
 		if (request.attributes.crossPostIssueValues) {
 			const cardResponse = await SessionContainer.instance().posts.createProviderCard(
