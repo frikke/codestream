@@ -5,9 +5,10 @@ New Relic CodeStream is a developer collaboration platform that integrates all o
 ## Integrations
 
 - **Code Hosts:** Bitbucket, Bitbucket Server, GitHub, GitHub Enterprise, GitLab, GitLab Self-Managed
-- **Issue Trackers:** Asana, Azure DevOps, Bitbucket, Clubhouse, GitHub, GitHub Enterprise, GitLab, GitLab Self-Managed, Jira, Linear, Trello, YouTrack
+- **Issue Trackers:** Asana, Azure DevOps, Bitbucket, GitHub, GitHub Enterprise, GitLab, GitLab Self-Managed, Jira, Linear, Shortcut, Trello, YouTrack
 - **Observability:** New Relic, Pixie
 - **Messaging Services:** Slack, Microsoft Teams
+- **CI/CD:** CircleCI
 
 ## Requirements
 

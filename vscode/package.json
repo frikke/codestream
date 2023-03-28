@@ -1,7 +1,7 @@
 {
 	"name": "codestream",
-	"displayName": "New Relic CodeStream: GitHub, GitLab, Bitbucket PRs and Code Review",
-	"description": "GitHub pull requests, GitLab merge requests, and code reviews in your IDE. Eliminate context-switching. Integrates with New Relic observability, Bitbucket, Slack, MS Teams, Jira, Trello and more.",
+	"displayName": "New Relic CodeStream",
+	"description": "Simplify your workflow by bringing performance data from New Relic, pull requests from GitHub, and issues from Jira together in your IDE. Also integrates with Slack, Teams, GitLab, Bitbucket and more.",
 	"version": "14.17.1",
 	"author": "CodeStream",
 	"publisher": "CodeStream",
