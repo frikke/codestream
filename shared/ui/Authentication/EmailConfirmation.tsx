@@ -104,6 +104,7 @@ export const EmailConfirmation = (connect() as any)((props: Props) => {
 
 		if (props.confirmationType === "login") {
 			try {
+				setIsLoading(true);
 				await props.dispatch(authenticate({ code, email: props.email }));
 			} catch (error) {
 				setError(error);
@@ -191,6 +192,59 @@ export const EmailConfirmation = (connect() as any)((props: Props) => {
 		maxLength: "1",
 	};
 
+	const handleChange = (value, digit, index) => {
+		setError(undefined);
+
+		let newDigit: string;
+		if (value.match(/^\d\d\d\d\d\d$/)) {
+			setValues(value.split(""));
+			onSubmit();
+			return;
+		}
+
+		// probably a backspace
+		if (value === "") {
+			newDigit = value;
+		}
+		// don't change the value
+		else if (Number.isNaN(Number(value))) {
+			newDigit = digit;
+		}
+		// make sure to take the last character in case of changing a value
+		else {
+			newDigit = value.charAt(value.length - 1);
+		}
+
+		const newDigits = digits.slice();
+		newDigits.splice(index, 1, newDigit);
+		setValues(newDigits);
+		if (value === "") {
+			return;
+		}
+
+		const nextInput = inputs.current[index + 1];
+		if (nextInput) {
+			nextInput.focus();
+		} else {
+			onSubmit();
+		}
+	};
+
+	const handlePaste = event => {
+		event.preventDefault();
+		const string = event.clipboardData.getData("text").trim();
+
+		if (string === "" || Number.isNaN(parseInt(string, 10))) {
+			return;
+		}
+		if (string.length !== defaultArrayLength) {
+			return;
+		}
+
+		setValues(string.split(""));
+		setPastedAt(new Date().getTime());
+	};
+
 	return (
 		<div className="onboarding-page">
 			<form className="standard-form" onSubmit={onSubmit}>
@@ -231,44 +285,15 @@ export const EmailConfirmation = (connect() as any)((props: Props) => {
 								<div className="confirmation-code">
 									{digits.map((digit, index) => (
 										<TextInput
+											disabled={isLoading}
 											autoFocus={index === 0}
 											ref={element => (inputs.current[index] = element)}
 											key={index}
 											value={digit}
 											type="number"
 											nativeProps={nativeProps}
-											onPaste={event => {
-												event.preventDefault();
-												const string = event.clipboardData.getData("text").trim();
-												if (string === "" || Number.isNaN(parseInt(string, 10))) return;
-												if (string.length !== defaultArrayLength) return;
-
-												setValues(string.split(""));
-												setPastedAt(new Date().getTime());
-											}}
-											onChange={value => {
-												setError(undefined);
-												let newDigit: string;
-												if (value.match(/^\d\d\d\d\d\d$/)) {
-													setValues(value.split(""));
-													onSubmit();
-													return;
-												}
-												// probably a backspace
-												if (value === "") newDigit = value;
-												// don't change the value
-												else if (Number.isNaN(Number(value))) newDigit = digit;
-												// make sure to take the last character in case of changing a value
-												else newDigit = value.charAt(value.length - 1);
-
-												const newDigits = digits.slice();
-												newDigits.splice(index, 1, newDigit);
-												setValues(newDigits);
-												if (value === "") return;
-												const nextInput = inputs.current[index + 1];
-												if (nextInput) nextInput.focus();
-												else onSubmit();
-											}}
+											onPaste={event => handlePaste(event)}
+											onChange={value => handleChange(value, digit, index)}
 										/>
 									))}
 								</div>
