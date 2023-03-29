@@ -224,7 +224,7 @@ export const PullRequestReviewButton = (props: Props) => {
 	const currentUser = props.pullRequest.viewer.id;
 	if (props.pullRequest.participants.nodes.length !== 0) {
 		const currentUserInfo = props.pullRequest.participants.nodes.find(
-			_ => _.user?.account_id === currentUser
+			_ => _.user.account_id === currentUser
 		);
 		if (currentUserInfo?.approved) {
 			approvalStatus = mapping["approve"];

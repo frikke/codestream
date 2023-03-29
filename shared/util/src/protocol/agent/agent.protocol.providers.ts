@@ -699,7 +699,7 @@ export interface FetchThirdPartyPullRequestPullRequest {
 			avatarUrl: string;
 			//bitbucket
 			type?: string;
-			user?: {
+			user: {
 				display_name?: string;
 				links?: {
 					avatar?: {
@@ -716,24 +716,26 @@ export interface FetchThirdPartyPullRequestPullRequest {
 			state?: "changes_requested" | "approve" | "null";
 			participated_on?: string;
 		}[];
-		reviewers?: {
-			type?: string;
-			user?: {
-				display_name?: string;
-				links?: {
-					avatar?: {
-						href?: string;
+	};
+	reviewers?: {
+		nodes: {
+			type: string;
+			user: {
+				display_name: string;
+				links: {
+					avatar: {
+						href: string;
 					};
 				};
-				type?: string;
-				uuid?: string;
-				account_id?: string;
-				nickname?: string;
+				type: string;
+				uuid: string;
+				account_id: string;
+				nickname: string;
 			};
-			role?: string;
-			approved?: boolean;
-			state?: string;
-			participated_on?: string;
+			role: string;
+			approved: boolean;
+			state: string;
+			participated_on: string;
 		}[];
 	};
 	//bitbucket

@@ -427,7 +427,7 @@ interface BitbucketRepoFull extends BitbucketRepo {
 	author: BitbucketAuthor;
 	participants: {
 		type?: string;
-		user?: {
+		user: {
 			display_name?: string;
 			links?: {
 				avatar?: {
@@ -445,23 +445,23 @@ interface BitbucketRepoFull extends BitbucketRepo {
 		participated_on?: string;
 	}[];
 	reviewers?: {
-		type?: string;
-		user?: {
-			display_name?: string;
-			links?: {
-				avatar?: {
-					href?: string;
+		type: string;
+		user: {
+			display_name: string;
+			links: {
+				avatar: {
+					href: string;
 				};
 			};
-			type?: string;
-			uuid?: string;
-			account_id?: string;
-			nickname?: string;
+			type: string;
+			uuid: string;
+			account_id: string;
+			nickname: string;
 		};
-		role?: string;
-		approved?: boolean;
-		state?: string;
-		participated_on?: string;
+		role: string;
+		approved: boolean;
+		state: string;
+		participated_on: string;
 	}[];
 }
 
@@ -770,23 +770,23 @@ interface BitbucketPullRequest {
 		participated_on: string;
 	}[];
 	reviewers?: {
-		type?: string;
-		user?: {
-			display_name?: string;
-			links?: {
-				avatar?: {
-					href?: string;
+		type: string;
+		user: {
+			display_name: string;
+			links: {
+				avatar: {
+					href: string;
 				};
 			};
-			type?: string;
-			uuid?: string;
-			account_id?: string;
-			nickname?: string;
+			type: string;
+			uuid: string;
+			account_id: string;
+			nickname: string;
 		};
-		role?: string;
-		approved?: boolean;
-		state?: string;
-		participated_on?: string;
+		role: string;
+		approved: boolean;
+		state: string;
+		participated_on: string;
 	}[];
 }
 
@@ -1515,6 +1515,103 @@ export class BitbucketProvider
 		});
 		return response;
 	}
+
+	async removeReviewerFromPullRequest(request: {
+		reviewerId: string;
+		pullRequestId: string;
+		fullname: string;
+	}): Promise<Directives> {
+		const pr = await this.get<BitbucketPullRequest>(
+			`/repositories/${request.fullname}/pullrequests/${request.pullRequestId}`
+		);
+
+		let newReviewers: any[] = [];
+
+		if (pr.body.reviewers?.length === 1) {
+			newReviewers = [];
+		} else {
+			//remove that reviewer
+			pr.body.reviewers?.forEach(_ => {
+				//@ts-ignore
+				if (_.account_id !== request.reviewerId) {
+					newReviewers.push(_);
+				}
+			});
+		}
+
+		const payload: any = {
+			reviewers: newReviewers,
+		};
+		Logger.log(`commenting:removeRequestedReviewer`, {
+			request: request,
+			payload: payload,
+		});
+
+		const response = await this.put<any, BitbucketPullRequest>(
+			`/repositories/${request.fullname}/pullrequests/${request.pullRequestId}`,
+			payload
+		);
+
+		const directives: Directive[] = [
+			{
+				type: "updatePullRequest",
+				data: {
+					updatedAt: Dates.toUtcIsoNow(),
+				},
+			},
+			{
+				type: "removeRequestedReviewer",
+				data: {
+					participants: response.body.participants,
+				},
+			},
+		];
+		return {
+			directives: directives,
+		};
+	}
+
+	// async addReviewer(request: {
+	// 	reviewerIdOrName: string;
+	// 	pullRequestId: string;
+	// }): Promise<Directives> {
+	// 	const payload: any = {
+	// 		target_username: request.reviewerIdOrName, //TODO: check this
+	// 	};
+	// 	Logger.log(`commenting:addReviewer`, {
+	// 		request: request,
+	// 		payload: payload,
+	// 	});
+
+	// 	const { pullRequestId, repoWithOwner } = this.parseId(request.pullRequestId);
+
+	// 	const response = await this.put<BitbucketDefaultReviewer>(
+	// 		`/repositories/${repoWithOwner}/default-reviewers/${request.reviewerIdOrName}`
+	// 	);
+	// 	//bitbucket doesn't return anything on this delete
+	// 	const directives: Directive[] = [
+	// 		{
+	// 			type: "updatePullRequest",
+	// 			data: {
+	// 				updatedAt: Dates.toUtcIsoNow(),
+	// 			},
+	// 		},
+	// 		{
+	// 			type: "updateReviewers", //add a requested reviewer
+	// 			data: {
+	// 				user: {
+	// 					account_id: request.reviewerIdOrName,
+	// 				},
+	// 				state: "null",
+	// 				participated_on: toUtcIsoNow(),
+	// 				approved: false,
+	// 			},
+	// 		},
+	// 	];
+	// 	return {
+	// 		directives: directives,
+	// 	};
+	// }
 
 	//since bb doesn't have a concept of review, this is bb version of submitReview (approve/unapprove, request-changes)
 	async submitReview(request: {

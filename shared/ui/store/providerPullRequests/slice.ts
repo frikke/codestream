@@ -912,6 +912,12 @@ const providerPullRequestsSlice = createSlice({
 								//There is no else; if the user isn't found, this is an error because to unrequest something they must already be in the participant array
 								console.log("Error: a not found user cannot unrequest changes"); //TODO: fix this
 							}
+						} else if (directive.type === "removeRequestedReviewer") {
+							//TODO:
+							// for (const key in directive.data) {
+							// 	pr[key] = directive.data[key];
+							// }
+						} else if (directive.type === "updateReviewers") {
 						} else if (directive.type === "addNode") {
 							pr.comments = pr.comments || [];
 							pr.comments.push(directive.data);

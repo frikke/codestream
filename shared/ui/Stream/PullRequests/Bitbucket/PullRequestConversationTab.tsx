@@ -268,7 +268,7 @@ export const PullRequestConversationTab = (props: {
 	const [defaultQueries, setDefaultQueries] = React.useState({});
 	const [bottomCommentText, setBottomCommentText] = useState("");
 	const [isOpen, setIsOpen] = useState(false);
-	const [isAddOrRemove, setIsAddOrRemove] = useState("");
+	const [isAddReviewer, setIsAddReviewer] = useState(false);
 
 	const __onDidRender = functions => {
 		insertText = functions.insertTextAtCursor;
@@ -1485,7 +1485,7 @@ export const PullRequestConversationTab = (props: {
 						{isOpen ? (
 							<BitbucketParticipantEditScreen
 								pr={pr}
-								addOrRemove={isAddOrRemove}
+								isAddReviewer={isAddReviewer}
 								onClose={() => {
 									setIsOpen(false);
 								}}
@@ -1495,7 +1495,7 @@ export const PullRequestConversationTab = (props: {
 								<Button
 									onClick={() => {
 										setIsOpen(true);
-										setIsAddOrRemove("add");
+										setIsAddReviewer(true);
 									}}
 								>
 									Add
@@ -1503,7 +1503,7 @@ export const PullRequestConversationTab = (props: {
 								<Button
 									onClick={() => {
 										setIsOpen(true);
-										setIsAddOrRemove("remove");
+										setIsAddReviewer(false);
 									}}
 								>
 									Remove
