@@ -70,6 +70,7 @@ export const BitbucketParticipantEditScreen = (props: Props) => {
 				},
 			})
 		)) as any;
+		return props.onClose();
 	};
 
 	const addReviewer = async () => {
@@ -83,6 +84,7 @@ export const BitbucketParticipantEditScreen = (props: Props) => {
 				},
 			})
 		)) as any;
+		return props.onClose();
 	};
 
 	return (

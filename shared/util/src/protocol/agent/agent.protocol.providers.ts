@@ -717,9 +717,9 @@ export interface FetchThirdPartyPullRequestPullRequest {
 			participated_on?: string;
 		}[];
 	};
-	reviewers?: {
+	reviewers: {
 		nodes: {
-			type: string;
+			type?: string;
 			user: {
 				display_name: string;
 				links: {
@@ -732,10 +732,10 @@ export interface FetchThirdPartyPullRequestPullRequest {
 				account_id: string;
 				nickname: string;
 			};
-			role: string;
-			approved: boolean;
-			state: string;
-			participated_on: string;
+			role?: string;
+			approved?: boolean;
+			state?: string;
+			participated_on?: string;
 		}[];
 	};
 	members: {

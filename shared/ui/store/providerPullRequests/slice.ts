@@ -913,11 +913,31 @@ const providerPullRequestsSlice = createSlice({
 								console.log("Error: a not found user cannot unrequest changes"); //TODO: fix this
 							}
 						} else if (directive.type === "removeRequestedReviewer") {
-							//TODO:
-							// for (const key in directive.data) {
-							// 	pr[key] = directive.data[key];
-							// }
+							const nonReviewers = directive.data.participants.filter(
+								(_: { role: string }) => _.role !== "REVIEWER"
+							);
+							const filteredParticipants = nonReviewers.filter(
+								(_: { state: string }) => _.state !== null
+							);
+							const reviewers = directive.data.participants.filter(
+								(_: { role: string }) => _.role !== "PARTICIPANT"
+							);
+							//update participants with filteredParticipants & update reviewers with reviewers
+							pr.participants.nodes = filteredParticipants;
+							pr.reviewers.nodes = reviewers;
 						} else if (directive.type === "updateReviewers") {
+							const nonReviewers = directive.data.participants.filter(
+								(_: { role: string }) => _.role !== "REVIEWER"
+							);
+							const filteredParticipants = nonReviewers.filter(
+								(_: { state: string }) => _.state !== null
+							);
+							const reviewers = directive.data.participants.filter(
+								(_: { role: string }) => _.role !== "PARTICIPANT"
+							);
+							//update participants with filteredParticipants & update reviewers with reviewers
+							pr.participants.nodes = filteredParticipants;
+							pr.reviewers.nodes = reviewers;
 						} else if (directive.type === "addNode") {
 							pr.comments = pr.comments || [];
 							pr.comments.push(directive.data);
