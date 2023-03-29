@@ -697,6 +697,51 @@ interface BitbucketUser {
 	username: string;
 }
 
+interface BitbucketWorkspaceMembers {
+	type?: string;
+	user: {
+		display_name: string;
+		links: {
+			self: {
+				href: string;
+			};
+			avatar: {
+				href: string;
+			};
+			html: {
+				href: string;
+			};
+		};
+		type: string;
+		uuid: string;
+		account_id: string;
+		nickname: string;
+	};
+	workspace?: {
+		type: string;
+		uuid: string;
+		name: string;
+		slug: string;
+		links: {
+			avatar: {
+				href: string;
+			};
+			html: {
+				href: string;
+			};
+			self: {
+				href: string;
+			};
+		};
+	};
+	links?: {
+		self: {
+			href: string;
+		};
+	};
+}
+[];
+
 interface BitbucketPullRequest {
 	isApproved?: boolean;
 	isRequested?: boolean;
@@ -1150,6 +1195,8 @@ export class BitbucketProvider
 		let response: FetchThirdPartyPullRequestResponse;
 		try {
 			const { pullRequestId, repoWithOwner } = this.parseId(request.pullRequestId);
+			const repoSplit = repoWithOwner.split("/");
+			const workspace = repoSplit[0];
 
 			const pr = await this.get<BitbucketPullRequest>(
 				`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}`
@@ -1169,6 +1216,10 @@ export class BitbucketProvider
 
 			const diffstat = await this.get<BitbucketValues<BitbucketDiffStat[]>>(
 				`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}/diffstat`
+			);
+
+			const members = await this.get<BitbucketValues<BitbucketWorkspaceMembers[]>>(
+				`/workspaces/${workspace}/members`
 			);
 
 			//get all users who have a permission of greater than read
@@ -1328,6 +1379,9 @@ export class BitbucketProvider
 						},
 						reviewers: {
 							nodes: newReviewersArray,
+						},
+						members: {
+							nodes: members.body.values,
 						},
 						url: pr.body.links.html.href,
 						viewer: viewer,
@@ -1571,47 +1625,65 @@ export class BitbucketProvider
 		};
 	}
 
-	// async addReviewer(request: {
-	// 	reviewerIdOrName: string;
-	// 	pullRequestId: string;
-	// }): Promise<Directives> {
-	// 	const payload: any = {
-	// 		target_username: request.reviewerIdOrName, //TODO: check this
-	// 	};
-	// 	Logger.log(`commenting:addReviewer`, {
-	// 		request: request,
-	// 		payload: payload,
-	// 	});
+	async addReviewerToPullRequest(request: {
+		reviewerId: string;
+		pullRequestId: string;
+		fullname: string;
+	}): Promise<Directives> {
+		const pr = await this.get<BitbucketPullRequest>(
+			`/repositories/${request.fullname}/pullrequests/${request.pullRequestId}`
+		);
 
-	// 	const { pullRequestId, repoWithOwner } = this.parseId(request.pullRequestId);
+		const repoSplit = request.fullname.split("/");
+		const workspace = repoSplit[0];
 
-	// 	const response = await this.put<BitbucketDefaultReviewer>(
-	// 		`/repositories/${repoWithOwner}/default-reviewers/${request.reviewerIdOrName}`
-	// 	);
-	// 	//bitbucket doesn't return anything on this delete
-	// 	const directives: Directive[] = [
-	// 		{
-	// 			type: "updatePullRequest",
-	// 			data: {
-	// 				updatedAt: Dates.toUtcIsoNow(),
-	// 			},
-	// 		},
-	// 		{
-	// 			type: "updateReviewers", //add a requested reviewer
-	// 			data: {
-	// 				user: {
-	// 					account_id: request.reviewerIdOrName,
-	// 				},
-	// 				state: "null",
-	// 				participated_on: toUtcIsoNow(),
-	// 				approved: false,
-	// 			},
-	// 		},
-	// 	];
-	// 	return {
-	// 		directives: directives,
-	// 	};
-	// }
+		const members = await this.get<BitbucketValues<BitbucketWorkspaceMembers[]>>(
+			`/workspaces/${workspace}/members`
+		);
+
+		//get user info from members
+		let userInfo = pr.body.reviewers;
+		const selectedUser = request.reviewerId;
+		members.body.values.forEach(_ => {
+			if (_.user.account_id === selectedUser) {
+				//@ts-ignore
+				userInfo.push(_.user);
+			}
+		});
+
+		const newReviewers = userInfo;
+
+		const payload: any = {
+			reviewers: newReviewers,
+		};
+		Logger.log(`commenting:addRequestedReviewer`, {
+			request: request,
+			payload: payload,
+		});
+
+		const response = await this.put<any, BitbucketPullRequest>(
+			`/repositories/${request.fullname}/pullrequests/${request.pullRequestId}`,
+			payload
+		);
+
+		const directives: Directive[] = [
+			{
+				type: "updatePullRequest",
+				data: {
+					updatedAt: Dates.toUtcIsoNow(),
+				},
+			},
+			{
+				type: "updateReviewers",
+				data: {
+					participants: response.body.participants,
+				},
+			},
+		];
+		return {
+			directives: directives,
+		};
+	}
 
 	//since bb doesn't have a concept of review, this is bb version of submitReview (approve/unapprove, request-changes)
 	async submitReview(request: {

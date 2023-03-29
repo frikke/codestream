@@ -738,6 +738,51 @@ export interface FetchThirdPartyPullRequestPullRequest {
 			participated_on: string;
 		}[];
 	};
+	members: {
+		nodes: {
+			type: string;
+			user: {
+				display_name: string;
+				links: {
+					self: {
+						href: string;
+					};
+					avatar: {
+						href: string;
+					};
+					html: {
+						href: string;
+					};
+				};
+				type: string;
+				uuid: string;
+				account_id: string;
+				nickname: string;
+			};
+			workspace: {
+				type: string;
+				uuid: string;
+				name: string;
+				slug: string;
+				links: {
+					avatar: {
+						href: string;
+					};
+					html: {
+						href: string;
+					};
+					self: {
+						href: string;
+					};
+				};
+			};
+			links: {
+				self: {
+					href: string;
+				};
+			};
+		}[];
+	};
 	//bitbucket
 	isApproved: boolean;
 	// isRequested: boolean;
