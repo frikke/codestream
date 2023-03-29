@@ -37,16 +37,23 @@ export const ObservabilityAnomaliesGroup = React.memo((props: Props) => {
 		const factor = Math.pow(10, 2);
 		const roundedPercentage = Math.floor(percentage * factor) / factor;
 		let roundedPercentageText =
-			roundedPercentage > 0 ? `+${roundedPercentage}%` : `${roundedPercentage}%`;
+			roundedPercentage > 0 ? `${roundedPercentage}%` : `${roundedPercentage}%`;
 
 		return (
-			<div style={{ overflow: "visible", marginLeft: "auto", flexGrow: 0 }}>
+			<div
+				style={{
+					overflow: "visible",
+					marginLeft: "auto",
+					textAlign: "right",
+					paddingLeft: "2.5px",
+					direction: "rtl",
+					width: "10%",
+				}}
+			>
 				<span
 					style={{
 						color:
 							roundedPercentage > derivedState.clmSettings.minimumChangeValue ? "red" : "default",
-						width: "10%",
-						textAlign: "right",
 					}}
 				>
 					{roundedPercentageText}
@@ -98,9 +105,9 @@ export const ObservabilityAnomaliesGroup = React.memo((props: Props) => {
 									>
 										<div
 											style={{
-												width: "85%",
+												width: "80%",
 												textAlign: "left",
-												marginRight: "5px",
+												marginRight: "auto",
 												direction: "rtl",
 											}}
 										>
@@ -116,7 +123,7 @@ export const ObservabilityAnomaliesGroup = React.memo((props: Props) => {
 						<>
 							{!showMoreExpanded && (
 								<div
-									style={{ padding: "0px 10px 0px 58px", cursor: "pointer" }}
+									style={{ padding: "0px 10px 0px 50px", cursor: "pointer" }}
 									onClick={() => setShowMoreExpanded(true)}
 								>
 									Show More
@@ -143,9 +150,9 @@ export const ObservabilityAnomaliesGroup = React.memo((props: Props) => {
 											>
 												<div
 													style={{
-														width: "85%",
+														width: "80%",
 														textAlign: "left",
-														marginRight: "5px",
+														marginRight: "auto",
 														direction: "rtl",
 													}}
 												>

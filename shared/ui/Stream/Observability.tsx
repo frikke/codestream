@@ -382,6 +382,9 @@ export const Observability = React.memo((props: Props) => {
 		}
 
 		await getObservabilityErrors();
+		if (expandedEntity && currentRepoId) {
+			fetchAnomalies(expandedEntity!, currentRepoId);
+		}
 	};
 
 	const getObservabilityErrors = async () => {
