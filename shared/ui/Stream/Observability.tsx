@@ -810,6 +810,7 @@ export const Observability = React.memo((props: Props) => {
 			fetchServiceLevelObjectives(expandedEntity);
 			fetchObservabilityErrors(expandedEntity, currentRepoId);
 			fetchAnomalies(expandedEntity, currentRepoId);
+			handleClickCLMBroadcast(expandedEntity);
 		}
 	}, [expandedEntity]);
 
@@ -874,21 +875,6 @@ export const Observability = React.memo((props: Props) => {
 
 			if (currentRepo) {
 				setCurrentObsRepo(currentRepo);
-			}
-
-			// Show CLM broadcast icon if needed
-			if (!isNRErrorResponse(currentRepo?.hasCodeLevelMetricSpanData)) {
-				// Only change status of broadcast icon if response wasn't an error
-				if (
-					currentRepo &&
-					currentRepo.hasCodeLevelMetricSpanData &&
-					currentRepo.entityAccounts &&
-					currentRepo.entityAccounts.length > 1
-				) {
-					setShowCodeLevelMetricsBroadcastIcon(true);
-				} else {
-					setShowCodeLevelMetricsBroadcastIcon(false);
-				}
 			}
 		}
 	}, [currentRepoId, observabilityRepos, loadingEntities, derivedState.textEditorUri]);
@@ -1105,53 +1091,6 @@ export const Observability = React.memo((props: Props) => {
 																						HostApi.instance.send(OpenUrlRequestType, {
 																							url: ea.url!,
 																						});
-																					}}
-																				/>
-																			)}
-																			{showCodeLevelMetricsBroadcastIcon && (
-																				<Icon
-																					style={{
-																						display: "inlineBlock",
-																						color: isSelectedCLM
-																							? "var(--text-color-highlight)"
-																							: "inherit",
-																						opacity: isSelectedCLM ? "1" : "inherit",
-																					}}
-																					name="broadcast"
-																					className={cx("clickable", {
-																						"icon-override-actions-visible": !isSelectedCLM,
-																					})}
-																					title={
-																						isSelectedCLM ? (
-																							<span>
-																								Displaying{" "}
-																								<Link
-																									useStopPropagation={true}
-																									href="https://docs.newrelic.com/docs/codestream/how-use-codestream/performance-monitoring#code-level"
-																								>
-																									code level metrics
-																								</Link>{" "}
-																								for this service
-																							</span>
-																						) : (
-																							<span>
-																								View{" "}
-																								<Link
-																									useStopPropagation={true}
-																									href="https://docs.newrelic.com/docs/codestream/how-use-codestream/performance-monitoring#code-level"
-																								>
-																									code level metrics
-																								</Link>{" "}
-																								for this service
-																							</span>
-																						)
-																					}
-																					placement="bottomLeft"
-																					delay={1}
-																					onClick={e => {
-																						e.preventDefault();
-																						e.stopPropagation();
-																						handleClickCLMBroadcast(ea.entityGuid, e);
 																					}}
 																				/>
 																			)}
