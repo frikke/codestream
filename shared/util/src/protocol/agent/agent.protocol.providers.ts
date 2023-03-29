@@ -1383,6 +1383,7 @@ export interface GetMethodLevelTelemetryRequest {
 	metricTimesliceNameMapping?: MetricTimesliceNameMapping;
 	since?: string;
 	timeseriesGroup?: string;
+	includeDeployments?: boolean;
 }
 
 export interface GetEntityCountRequest {
