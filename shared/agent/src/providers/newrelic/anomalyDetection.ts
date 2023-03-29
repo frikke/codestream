@@ -45,10 +45,7 @@ export class AnomalyDetector {
 
 		const sampleRatesMetricLookup =
 			"(metricTimesliceName LIKE 'Java/%' OR metricTimesliceName LIKE 'Custom/%')";
-		const sampleRatesMetric = await this.getSampleRateMetric(
-			this._dataTimeFrame,
-			sampleRatesMetricLookup
-		);
+		const sampleRatesMetric = await this.getSampleRateMetric(sampleRatesMetricLookup);
 		const metricRoots = this.getCommonRoots(sampleRatesMetric.map(_ => _.name));
 		const metricLookup = metricRoots.length
 			? metricRoots.map(_ => `\`metricTimesliceName\` LIKE '%${_}%'`).join(" OR ")
@@ -58,7 +55,7 @@ export class AnomalyDetector {
 		let spanLookup = "1 != 1";
 		if (includeSpans) {
 			const sampleRatesSpanLookup = "(name LIKE 'Java/%' OR name LIKE 'Custom/%')";
-			sampleRatesSpan = await this.getSampleRateSpan(this._dataTimeFrame, sampleRatesSpanLookup);
+			sampleRatesSpan = await this.getSampleRateSpan(sampleRatesSpanLookup);
 			const spanRoots = this.getCommonRoots(sampleRatesSpan.map(_ => _.name));
 			spanLookup = spanRoots.length
 				? spanRoots.map(_ => `name LIKE '${_}%'`).join(" OR ")
@@ -384,7 +381,8 @@ export class AnomalyDetector {
 		return this.runNrql(query);
 	}
 
-	private async getSampleRateSpan(timeFrame: string, lookup: string): Promise<NameValue[]> {
+	private async getSampleRateSpan(lookup: string): Promise<NameValue[]> {
+		const timeFrame = "SINCE 30 minutes ago";
 		const query =
 			`SELECT rate(count(*), 1 minute) AS 'value' ` +
 			`FROM Span WHERE \`entity.guid\` = '${this._request.entityGuid}' AND (${lookup}) FACET name ` +
@@ -410,7 +408,8 @@ export class AnomalyDetector {
 		return filteredSampleRates;
 	}
 
-	private async getSampleRateMetric(timeFrame: string, lookup: string): Promise<NameValue[]> {
+	private async getSampleRateMetric(lookup: string): Promise<NameValue[]> {
+		const timeFrame = "SINCE 30 minutes ago";
 		const query =
 			`SELECT rate(count(newrelic.timeslice.value), 1 minute) AS 'value' ` +
 			`FROM Metric WHERE \`entity.guid\` = '${this._request.entityGuid}' AND (${lookup}) FACET metricTimesliceName AS name ` +
@@ -438,7 +437,7 @@ export class AnomalyDetector {
 	}
 
 	private runNrql<T>(nrql: string): Promise<T[]> {
-		return this._runNrql(this._accountId, nrql, 200);
+		return this._runNrql(this._accountId, nrql, 400);
 	}
 
 	private comparisonToAnomaly(comparison: {

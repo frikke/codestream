@@ -74,6 +74,7 @@ export const ObservabilityAnomalyPanel = () => {
 			observabilityRepoEntities:
 				(state.users[state.session.userId!].preferences || {}).observabilityRepoEntities ||
 				EMPTY_ARRAY,
+			clmSettings: state.preferences.clmSettings || {},
 		};
 	});
 
@@ -99,6 +100,10 @@ export const ObservabilityAnomalyPanel = () => {
 			// }
 
 			const anomaly = derivedState.currentObservabilityAnomaly;
+			derivedState.clmSettings.sin;
+			const sinceDaysAgo = parseInt(derivedState?.clmSettings?.compareDataLastValue) || 2;
+			const baselineDays = parseInt(derivedState?.clmSettings?.againstDataPrecedingValue) || 5;
+			const since = `${sinceDaysAgo + baselineDays} days ago`;
 			const response = await HostApi.instance.send(GetMethodLevelTelemetryRequestType, {
 				newRelicEntityGuid: newRelicEntityGuid,
 				metricTimesliceNameMapping: {
@@ -107,7 +112,7 @@ export const ObservabilityAnomalyPanel = () => {
 					errorRate: anomaly.name,
 					sampleSize: anomaly.name,
 				},
-				since: "7 days ago",
+				since,
 				timeseriesGroup: "1 day",
 			});
 			setTelemetryResponse(response);

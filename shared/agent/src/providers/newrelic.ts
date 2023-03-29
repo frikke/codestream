@@ -858,16 +858,16 @@ export class NewRelicProvider
 						}
 					}
 				}
-				const hasCodeLevelMetricSpanData = await this.checkHasCodeLevelMetricSpanData(
-					hasRepoAssociation === true,
-					uniqueEntities
-				);
+				// const hasCodeLevelMetricSpanData = await this.checkHasCodeLevelMetricSpanData(
+				// 	hasRepoAssociation === true,
+				// 	uniqueEntities
+				// );
 				response.repos?.push({
 					repoId: repo.id!,
 					repoName: folderName,
 					repoRemote: remote,
 					hasRepoAssociation,
-					hasCodeLevelMetricSpanData,
+					hasCodeLevelMetricSpanData: true,
 					entityAccounts: uniqueEntities
 						.map(entity => {
 							return {
@@ -1935,6 +1935,14 @@ export class NewRelicProvider
 				request.since,
 				request.timeseriesGroup
 			);
+
+			let deployments;
+			if (request.includeDeployments && request.since) {
+				deployments = await this.getDeployments(
+					request.newRelicEntityGuid || entity!.entityGuid!,
+					request.since
+				);
+			}
 
 			const entityGuid = entity?.entityGuid || request.newRelicEntityGuid;
 			return {
@@ -3826,6 +3834,8 @@ export class NewRelicProvider
 		}
 		return <NRErrorResponse>{ error: { type: "NR_UNKNOWN", message: ex.message, stack: ex.stack } };
 	}
+
+	private async getDeployments(entityGuid: string, since: string) {}
 }
 
 export class ContextLogger {
