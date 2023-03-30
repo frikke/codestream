@@ -5,9 +5,11 @@ import Icon from "./Icon";
 import { Link } from "./Link";
 import { ObservabilityAnomaliesGroup } from "./ObservabilityAnomaliesGroup";
 import { ErrorRow } from "@codestream/webview/Stream/Observability";
-import { useAppDispatch } from "../utilities/hooks";
+import { useAppDispatch, useAppSelector } from "../utilities/hooks";
 import { openModal } from "../store/context/actions";
 import { WebviewModals } from "../ipc/webview.protocol.common";
+import { shallowEqual } from "react-redux";
+import { CodeStreamState } from "../store";
 
 interface Props {
 	observabilityAnomalies: GetObservabilityAnomaliesResponse;
@@ -19,14 +21,46 @@ interface Props {
 }
 
 export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
+	const derivedState = useAppSelector((state: CodeStreamState) => {
+		const clmSettings = state.preferences.clmSettings || {};
+		return {
+			clmSettings,
+		};
+	}, shallowEqual);
+
 	const [expanded, setExpanded] = useState<boolean>(true);
+
 	const dispatch = useAppDispatch();
+
+	const getRoundedPercentage = ratio => {
+		const percentage = (ratio - 1) * 100;
+		const factor = Math.pow(10, 2);
+		return Math.floor(percentage * factor) / factor;
+	};
+
+	const filteredErrorRateAnomalies = props.observabilityAnomalies?.errorRate?.filter(_ => {
+		const roundedPercentage = getRoundedPercentage(_.ratio);
+		return roundedPercentage > derivedState.clmSettings.minimumChangeValue;
+	});
+
+	const filteredResponseTimeAnomalies = props.observabilityAnomalies?.responseTime?.filter(_ => {
+		const roundedPercentage = getRoundedPercentage(_.ratio);
+		return roundedPercentage > derivedState.clmSettings.minimumChangeValue;
+	});
+
+	const totalAnomalyArray = filteredErrorRateAnomalies.concat(filteredResponseTimeAnomalies);
+
+	const showWarningIcon = totalAnomalyArray?.length > 0;
+	const warningTooltip =
+		showWarningIcon && totalAnomalyArray?.length === 1
+			? "1 Anomaly"
+			: `${totalAnomalyArray?.length} Anomalies`;
 
 	return (
 		<>
 			<Row
 				style={{
-					padding: "2px 10px 2px 30px",
+					padding: "0px 10px 0px 30px",
 				}}
 				className={"pr-row"}
 				onClick={() => setExpanded(!expanded)}
@@ -36,7 +70,16 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 					{!expanded && <Icon name="chevron-right-thin" />}
 				</span>
 				<div className="label">
-					<span style={{ marginLeft: "2px" }}>Code-Level Metrics</span>
+					<span style={{ margin: "0px 5px 0px 2px" }}>Code-Level Metrics</span>
+					{showWarningIcon && (
+						<Icon
+							name="alert"
+							style={{ color: "rgb(188,20,24)" }}
+							className="alert"
+							title={warningTooltip}
+							delay={1}
+						/>
+					)}
 				</div>
 
 				<div className="icons">
@@ -57,7 +100,6 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 					</span>
 				</div>
 			</Row>
-
 			{expanded && props.observabilityAnomalies.error && !props.calculatingAnomalies && (
 				<>
 					<ErrorRow
@@ -105,16 +147,16 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 						{!props.calculatingAnomalies && (
 							<>
 								<ObservabilityAnomaliesGroup
-									observabilityAnomalies={props.observabilityAnomalies.responseTime}
-									observabilityRepo={props.observabilityRepo}
-									entityGuid={props.entityGuid}
-									title="Response Time"
-								/>
-								<ObservabilityAnomaliesGroup
-									observabilityAnomalies={props.observabilityAnomalies.errorRate}
+									observabilityAnomalies={filteredErrorRateAnomalies}
 									observabilityRepo={props.observabilityRepo}
 									entityGuid={props.entityGuid}
 									title="Error Rate"
+								/>
+								<ObservabilityAnomaliesGroup
+									observabilityAnomalies={filteredResponseTimeAnomalies}
+									observabilityRepo={props.observabilityRepo}
+									entityGuid={props.entityGuid}
+									title="Average Duration"
 								/>
 							</>
 						)}

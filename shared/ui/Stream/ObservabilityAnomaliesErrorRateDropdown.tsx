@@ -65,7 +65,7 @@ export const ObservabilityAnomaliesErrorRateDropdown = React.memo((props: Props)
 				<>
 					{props.observabilityAnomalies.length == 0 ? (
 						<>
-							<ErrorRow customPadding={"0 10px 0 50px"} title={"No anomalies to display"} />
+							<ErrorRow customPadding={"0 10px 0 50px"} title={"No anomalies found"} />
 						</>
 					) : (
 						<>

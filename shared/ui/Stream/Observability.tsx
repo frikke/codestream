@@ -1116,28 +1116,20 @@ export const Observability = React.memo((props: Props) => {
 																								}
 																							/>
 																							{hasServiceLevelObjectives && (
-																								<>
-																									<ObservabilityServiceLevelObjectives
-																										serviceLevelObjectives={serviceLevelObjectives}
-																										errorMsg={serviceLevelObjectiveError}
-																									/>
-																								</>
-																							)}
-																							{currentRepoId && (
-																								<SecurityIssuesWrapper
-																									currentRepoId={currentRepoId}
-																									entityGuid={ea.entityGuid}
-																									accountId={ea.accountId}
+																								<ObservabilityServiceLevelObjectives
+																									serviceLevelObjectives={serviceLevelObjectives}
+																									errorMsg={serviceLevelObjectiveError}
 																								/>
 																							)}
-																							{currentRepoId && (
-																								<>
-																									<ObservabilityRelatedWrapper
-																										currentRepoId={currentRepoId}
-																										entityGuid={ea.entityGuid}
-																									/>
-																								</>
-																							)}
+
+																							<ObservabilityAnomaliesWrapper
+																								observabilityAnomalies={observabilityAnomalies}
+																								observabilityRepo={_observabilityRepo}
+																								entityGuid={ea.entityGuid}
+																								noAccess={noErrorsAccess}
+																								calculatingAnomalies={calculatingAnomalies}
+																							/>
+
 																							{ea.domain === "APM" && (
 																								<>
 																									{observabilityErrors?.find(
@@ -1158,13 +1150,19 @@ export const Observability = React.memo((props: Props) => {
 																									)}
 																								</>
 																							)}
-																							<ObservabilityAnomaliesWrapper
-																								observabilityAnomalies={observabilityAnomalies}
-																								observabilityRepo={_observabilityRepo}
-																								entityGuid={ea.entityGuid}
-																								noAccess={noErrorsAccess}
-																								calculatingAnomalies={calculatingAnomalies}
-																							/>
+																							{currentRepoId && (
+																								<SecurityIssuesWrapper
+																									currentRepoId={currentRepoId}
+																									entityGuid={ea.entityGuid}
+																									accountId={ea.accountId}
+																								/>
+																							)}
+																							{currentRepoId && (
+																								<ObservabilityRelatedWrapper
+																									currentRepoId={currentRepoId}
+																									entityGuid={ea.entityGuid}
+																								/>
+																							)}
 																						</>
 																					</>
 																				)}

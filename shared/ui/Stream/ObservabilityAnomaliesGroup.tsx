@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { shallowEqual } from "react-redux";
-
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import { CodeStreamState } from "../store";
 import { ErrorRow } from "./Observability";
@@ -13,6 +12,8 @@ import {
 	openPanel,
 	setCurrentObservabilityAnomaly,
 } from "@codestream/webview/store/context/actions";
+import Tooltip from "./Tooltip";
+
 interface Props {
 	observabilityAnomalies?: any;
 	observabilityRepo?: any;
@@ -29,15 +30,17 @@ export const ObservabilityAnomaliesGroup = React.memo((props: Props) => {
 	}, shallowEqual);
 	const [expanded, setExpanded] = useState<boolean>(true);
 	const [showMoreExpanded, setShowMoreExpanded] = useState<boolean>(false);
-	const primaryAnomalies = props.observabilityAnomalies?.slice(0, 5);
-	const secondaryAnomalies = props.observabilityAnomalies?.slice(5, 10);
 
-	const getRoundedPercentageOutput = ratio => {
+	const getRoundedPercentage = ratio => {
 		const percentage = (ratio - 1) * 100;
 		const factor = Math.pow(10, 2);
-		const roundedPercentage = Math.floor(percentage * factor) / factor;
+		return Math.floor(percentage * factor) / factor;
+	};
+
+	const getRoundedPercentageOutput = ratio => {
+		const roundedPercentage = getRoundedPercentage(ratio);
 		let roundedPercentageText =
-			roundedPercentage > 0 ? `${roundedPercentage}%` : `${roundedPercentage}%`;
+			roundedPercentage > 0 ? `${roundedPercentage}%+` : `${roundedPercentage}%+`;
 
 		return (
 			<div
@@ -62,6 +65,9 @@ export const ObservabilityAnomaliesGroup = React.memo((props: Props) => {
 		);
 	};
 
+	const primaryAnomalies = props.observabilityAnomalies?.slice(0, 5);
+	const secondaryAnomalies = props.observabilityAnomalies?.slice(5, 10);
+
 	return (
 		<>
 			<Row
@@ -78,12 +84,11 @@ export const ObservabilityAnomaliesGroup = React.memo((props: Props) => {
 			{expanded && (
 				<>
 					{primaryAnomalies.length == 0 ? (
-						<>
-							<ErrorRow
-								customPadding={"0 10px 0 50px"}
-								title={"No anomalies to display"}
-							></ErrorRow>
-						</>
+						<ErrorRow
+							customPadding={"0 10px 0 50px"}
+							title={"No anomalies found"}
+							icon="thumbsup"
+						/>
 					) : (
 						<>
 							{primaryAnomalies.map(anomaly => {
@@ -103,16 +108,23 @@ export const ObservabilityAnomaliesGroup = React.memo((props: Props) => {
 											dispatch(openPanel(WebviewPanels.ObservabilityAnomaly));
 										}}
 									>
-										<div
-											style={{
-												width: "80%",
-												textAlign: "left",
-												marginRight: "auto",
-												direction: "rtl",
-											}}
+										<Tooltip
+											title={<div style={{ overflowWrap: "break-word" }}>{anomaly.text}</div>}
+											placement="topRight"
+											delay={1}
 										>
-											<span>{anomaly.text}</span>
-										</div>
+											<div
+												style={{
+													width: "75%",
+													textAlign: "left",
+													marginRight: "auto",
+													direction: "rtl",
+												}}
+											>
+												<span>{anomaly.text}</span>
+											</div>
+										</Tooltip>
+
 										{getRoundedPercentageOutput(anomaly.ratio)}
 									</Row>
 								);
@@ -148,16 +160,22 @@ export const ObservabilityAnomaliesGroup = React.memo((props: Props) => {
 													dispatch(openPanel(WebviewPanels.ObservabilityAnomaly));
 												}}
 											>
-												<div
-													style={{
-														width: "80%",
-														textAlign: "left",
-														marginRight: "auto",
-														direction: "rtl",
-													}}
+												<Tooltip
+													title={<div style={{ overflowWrap: "break-word" }}>{anomaly.text}</div>}
+													placement="topRight"
+													delay={1}
 												>
-													<span>{anomaly.text}</span>
-												</div>
+													<div
+														style={{
+															width: "75%",
+															textAlign: "left",
+															marginRight: "auto",
+															direction: "rtl",
+														}}
+													>
+														<span>{anomaly.text}</span>
+													</div>
+												</Tooltip>
 												{getRoundedPercentageOutput(anomaly.ratio)}
 											</Row>
 										);
