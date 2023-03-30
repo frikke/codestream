@@ -9,7 +9,11 @@ import {
 	UpdateCodeErrorRequestType,
 } from "@codestream/protocols/agent";
 import { CSCodeError, CSStackTraceLine } from "@codestream/protocols/api";
-import { EditorRevealRangeRequestType } from "@codestream/protocols/webview";
+import {
+	EditorCopySymbolType,
+	EditorReplaceSymbolType,
+	EditorRevealRangeRequestType,
+} from "@codestream/protocols/webview";
 import { logError } from "@codestream/webview/logger";
 import { CodeStreamState } from "@codestream/webview/store";
 import {
@@ -26,6 +30,7 @@ import {
 	_isLoadingErrorGroup,
 	_setErrorGroup,
 	_updateCodeErrors,
+	setFunctionToEdit,
 } from "@codestream/webview/store/codeErrors/actions";
 import { getCodeError } from "@codestream/webview/store/codeErrors/reducer";
 import { setCurrentCodeError } from "@codestream/webview/store/context/actions";
@@ -459,6 +464,17 @@ export const api =
 		}
 	};
 
+export const replaceSymbol =
+	(uri: string, symbol: string, codeBlock: string) =>
+	async (dispatch, getState: () => CodeStreamState) => {
+		const state = getState();
+		const symbolDetails = await HostApi.instance.send(EditorReplaceSymbolType, {
+			uri,
+			symbolName: "collectStreetAddresses",
+			codeBlock,
+		});
+	};
+
 export const jumpToStackLine =
 	(lineIndex: number, stackLine: CSStackTraceLine, ref: string, repoId: string) =>
 	async (dispatch, getState: () => CodeStreamState) => {
@@ -512,6 +528,22 @@ export const jumpToStackLine =
 				ref,
 			});
 		}
+
+		const symbolDetails = await HostApi.instance.send(EditorCopySymbolType, {
+			uri: path!,
+			symbolName: "collectStreetAddresses", // TODO no hardcode
+		});
+
+		if (symbolDetails.success && symbolDetails.range && symbolDetails.text) {
+			dispatch(
+				setFunctionToEdit({
+					codeBlock: symbolDetails.text,
+					symbol: "collectStreetAddresses", // TODO no hardcode
+					uri: path!,
+				})
+			);
+		}
+		return symbolDetails;
 	};
 
 export const updateCodeError = request => async dispatch => {

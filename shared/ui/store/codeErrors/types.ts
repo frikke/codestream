@@ -4,6 +4,7 @@ import { Index } from "@codestream/utils/types";
 export enum CodeErrorsActionsTypes {
 	AddCodeErrors = "ADD_CODEERRORS",
 	SaveCodeErrors = "@codeErrors/SaveCodeErrors",
+	SetFunctionToEdit = "@codeErrors/SetFunctionToEdit",
 	UpdateCodeErrors = "@codeErrors/UpdateCodeErrors",
 	Delete = "@codeErrors/Delete",
 	Bootstrap = "@codeErrors/Bootstrap",
@@ -13,6 +14,12 @@ export enum CodeErrorsActionsTypes {
 	SetErrorGroup = "@codeError/SetErrorGroup",
 	IsLoadingErrorGroup = "@codeError/IsLoadingErrorGroup",
 }
+
+export type FunctionToEdit = {
+	codeBlock: string;
+	symbol: string;
+	uri: string;
+};
 
 export type CodeErrorsState = {
 	bootstrapped: boolean;
@@ -35,4 +42,5 @@ export type CodeErrorsState = {
 			};
 		};
 	}>;
+	functionToEdit?: FunctionToEdit;
 };
