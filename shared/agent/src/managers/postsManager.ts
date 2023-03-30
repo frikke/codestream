@@ -1290,7 +1290,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 		if (request.attributes.analyze && codeBlock.contents) {
 			chatResponsePromise = getChatResponse(
 				stream.id,
-				`Explain this code to me:\n${codeBlock.contents}`
+				`${codemarkRequest.text!}\n${codeBlock.contents}`
 			);
 		}
 
@@ -1945,10 +1945,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				postMessages.push({ ...request, chat: false });
 			}
 			if (request.analyzeStacktrace || request.chat) {
-				const chatResponse = await getChatResponse(
-					request.streamId,
-					request.analyzeStacktrace ? `What does this error mean?\n${request.text}` : request.text
-				);
+				const chatResponse = await getChatResponse(request.streamId, request.text);
 				// Second message is ChatGPT response
 				postMessages.push({ ...request, text: chatResponse });
 			}

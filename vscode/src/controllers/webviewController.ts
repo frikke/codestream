@@ -88,6 +88,8 @@ import {
 	WebviewIpcRequestMessage,
 	WebviewPanels,
 	EditorRevealSymbolRequestType,
+	EditorCopySymbolType,
+	EditorReplaceSymbolType,
 	ViewAnomalyNotificationType,
 	ViewAnomalyNotification
 } from "@codestream/protocols/webview";
@@ -108,7 +110,7 @@ import {
 	env,
 	Selection
 } from "vscode";
-import { NotificationType, RequestType } from "vscode-languageclient";
+import { CancellationTokenSource, NotificationType, RequestType } from "vscode-languageclient";
 
 import { gate } from "../system/decorators/gate";
 import { Strings, Functions, log } from "../system";
@@ -130,6 +132,7 @@ import { Logger } from "../logger";
 import { BuiltInCommands } from "../constants";
 import * as csUri from "../system/uri";
 import * as TokenManager from "../api/tokenManager";
+import { SymbolLocator } from "providers/symbolLocator";
 
 const emptyObj = {};
 
@@ -989,6 +992,61 @@ export class WebviewController implements Disposable {
 					return { success: success };
 				});
 
+				break;
+			}
+			case EditorCopySymbolType.method: {
+				webview.onIpcRequest(EditorCopySymbolType, e, async (_type, params) => {
+					const editor = await Editor.findOrOpenEditor(Uri.parse(params.uri));
+					const symbolLocator = new SymbolLocator();
+					if (!editor?.document) {
+						return { success: false };
+					}
+					const symbols = await symbolLocator.locate(
+						editor?.document,
+						new CancellationTokenSource().token
+					);
+					for (const symbol of symbols.allSymbols) {
+						if (symbol.name === params.symbolName) {
+							// Logger.warn(`Found symbol ${JSON.stringify(symbol)}`);
+							const theText = editor.document.getText(symbol.range);
+							return {
+								success: true,
+								text: theText,
+								range: symbol.range
+							};
+						}
+					}
+					return {
+						success: false
+					};
+				});
+				break;
+			}
+			case EditorReplaceSymbolType.method: {
+				webview.onIpcRequest(EditorReplaceSymbolType, e, async (_type, params) => {
+					const editor = await Editor.findOrOpenEditor(Uri.parse(params.uri));
+					const symbolLocator = new SymbolLocator();
+					if (!editor?.document) {
+						return { success: false };
+					}
+					const symbols = await symbolLocator.locate(
+						editor?.document,
+						new CancellationTokenSource().token
+					);
+					for (const symbol of symbols.allSymbols) {
+						if (symbol.name === params.symbolName) {
+							await editor.edit(builder => {
+								builder.replace(symbol.range, params.codeBlock);
+							});
+							return {
+								success: true
+							};
+						}
+					}
+					return {
+						success: false
+					};
+				});
 				break;
 			}
 			case EditorSelectRangeRequestType.method: {

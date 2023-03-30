@@ -3,10 +3,7 @@ import { memoize } from "lodash-es";
 import path from "path";
 import fs from "fs";
 import { ResponseError } from "vscode-jsonrpc/lib/messages";
-import {
-	ERROR_CHATGPT_INVALID_RESPONSE,
-	ERROR_CHATGPT_LICENSE,
-} from "@codestream/protocols/agent";
+import { ERROR_CHATGPT_INVALID_RESPONSE, ERROR_CHATGPT_LICENSE } from "@codestream/protocols/agent";
 import os from "os";
 import {
 	ChatApiResponse,
@@ -86,8 +83,33 @@ export async function getChatResponse(
 // 	"timestamp\n" +
 // 	"Mar 23 7:24 PM\n";
 
+// const prompt = `Analyze this stack trace:
+
+// \`\`\`
+// TypeError: Cannot read properties of undefined (reading 'street')
+//     at /app/src/dataSource.js:21:57
+//     at Array.map ()
+//     at collectStreetAddresses (/app/src/dataSource.js:21:32)
+//     at namedMiddlweare (/app/src/index.js:34:16)
+//     at runInContextCb (/app/node_modules/newrelic/lib/shim/shim.js:1315:22)
+//     at LegacyContextManager.runInContext (/app/node_modules/newrelic/lib/context-manager/legacy-context-manager.js:59:23)
+//     at WebFrameworkShim.applySegment (/app/node_modules/newrelic/lib/shim/shim.js:1305:25)
+//     at _applyRecorderSegment (/app/node_modules/newrelic/lib/shim/shim.js:936:20)
+//     at _doRecord (/app/node_modules/newrelic/lib/shim/shim.js:909:17)
+//     at namedMiddlweare (/app/node_modules/newrelic/lib/shim/shim.js:869:24)
+// \`\`\`
+
+// And tell me how to fix this code:
+
+// \`\`\`function collectStreetAddresses() {
+//     const addresses = userData.map(data => data.address.street)
+//     return addresses
+// }
+// \`\`\`
+// `
+
 // // Example usage
-// getChatResponse("1234", `What is the cause of this error?\n${error}`).then(response => {
+// getChatResponse("1234", prompt).then(response => {
 // 	console.log(response);
 // 	process.exit(0);
 // });

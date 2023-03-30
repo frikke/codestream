@@ -19,6 +19,18 @@ interface Props {
 	entityGuid?: string;
 }
 
+const nestedJavaErrorRegex = /; nested exception is (.*?):/;
+
+function extractNestedErrorClass(err: any): string {
+	if (err.errorClass === "org.springframework.web.util.NestedServletException") {
+		const match = nestedJavaErrorRegex.exec(err.message);
+		const nestedErrorClass = match?.[1];
+		return nestedErrorClass ?? err.errorClass;
+	} else {
+		return err.errorClass;
+	}
+}
+
 export const ObservabilityErrorDropdown = React.memo((props: Props) => {
 	const dispatch = useAppDispatch();
 	const derivedState = useAppSelector((state: CodeStreamState) => {
@@ -75,9 +87,10 @@ export const ObservabilityErrorDropdown = React.memo((props: Props) => {
 							{filteredErrors.map(fe => {
 								return fe.map((err, index) => {
 									const indexedErrorGroupGuid = `${err.errorGroupGuid}_${index}`;
+									const title = extractNestedErrorClass(err);
 									return (
 										<ErrorRow
-											title={`${err.errorClass} (${err.count})`}
+											title={`${title} (${err.count})`}
 											tooltip={err.message}
 											subtle={err.message}
 											timestamp={err.lastOccurrence}

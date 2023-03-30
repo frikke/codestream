@@ -1293,9 +1293,7 @@ const BaseCodeError = (props: BaseCodeErrorProps) => {
 								})}
 							</ClickLines>
 						</TourTip>
-						{!props.analyzeStackTrace && (
-							<Link onClick={props.analyzeClick}>Analyze with ChatGPT</Link>
-						)}
+						{!props.analyzeStackTrace && <Link onClick={props.analyzeClick}>Fix with ChatGPT</Link>}
 					</Meta>
 					{props.post && (
 						<div style={{ marginBottom: "10px" }}>
@@ -1477,14 +1475,19 @@ const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: boolean 
 	const [text, setText] = React.useState("");
 	const [attachments, setAttachments] = React.useState<AttachmentField[]>([]);
 	const [isLoading, setIsLoading] = React.useState<"post" | "chat" | undefined>(undefined);
-	const teamMates = useSelector((state: CodeStreamState) => getTeamMates(state));
+	const teamMates = useAppSelector((state: CodeStreamState) => getTeamMates(state));
+	const functionToEdit = useAppSelector(state => state.codeErrors.functionToEdit);
 
 	const getStackTraceText = (): string => {
 		if (isEmpty(props.codeError.stackTraces)) {
 			return "";
 		}
 		const error = props.codeError.stackTraces[0];
-		return error.text ?? "";
+		const codeBlock = "```";
+		if (error && error.text && functionToEdit) {
+			return `Analyze this stack trace: \n\n${codeBlock}${error.text}\n${codeBlock}\n\nAnd tell me how to fix this code:\n\n\${codeBlock}${functionToEdit.codeBlock}\n${codeBlock}\n`;
+		}
+		return "";
 	};
 
 	useEffect(() => {
@@ -1607,7 +1610,7 @@ export type CodeErrorProps = PropsWithId | PropsWithCodeError;
 
 const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 	const { codeError, ...baseProps } = props;
-	const derivedState = useSelector((state: CodeStreamState) => {
+	const derivedState = useAppSelector((state: CodeStreamState) => {
 		const post =
 			codeError && codeError.postId
 				? getPost(state.posts, codeError!.streamId, codeError.postId)

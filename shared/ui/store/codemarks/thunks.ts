@@ -46,7 +46,6 @@ type EditableAttributes = Partial<
 export const createCodemark =
 	(attributes: SharingNewCodemarkAttributes) =>
 	async (dispatch, getState: () => CodeStreamState) => {
-		console.info(`*** Here we go with createCodemark`);
 		const { accessMemberIds, ...rest } = attributes;
 		const state = getState();
 

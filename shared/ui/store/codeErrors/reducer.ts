@@ -15,7 +15,12 @@ import { NewRelicErrorGroup } from "@codestream/protocols/agent";
 type CodeErrorsActions = ActionType<typeof actions>;
 type ActiveIntegrationsActions = ActionType<typeof activeIntegrationsActions>;
 
-const initialState: CodeErrorsState = { bootstrapped: false, codeErrors: {}, errorGroups: {} };
+const initialState: CodeErrorsState = {
+	bootstrapped: false,
+	codeErrors: {},
+	errorGroups: {},
+	functionToEdit: undefined,
+};
 
 export function reduceCodeErrors(
 	state = initialState,
@@ -33,6 +38,7 @@ export function reduceCodeErrors(
 						action.payload.filter(_ => !_.deactivated)
 					),
 				},
+				functionToEdit: state.functionToEdit,
 			};
 		case CodeErrorsActionsTypes.AddCodeErrors: {
 			const newCodeErrors = toMapBy(
@@ -50,6 +56,7 @@ export function reduceCodeErrors(
 				bootstrapped: state.bootstrapped,
 				errorGroups: state.errorGroups,
 				codeErrors: { ...state.codeErrors, ...newCodeErrors },
+				functionToEdit: state.functionToEdit,
 			};
 		}
 		case CodeErrorsActionsTypes.UpdateCodeErrors:
@@ -58,7 +65,11 @@ export function reduceCodeErrors(
 				bootstrapped: state.bootstrapped,
 				errorGroups: state.errorGroups,
 				codeErrors: { ...state.codeErrors, ...toMapBy("id", action.payload) },
+				functionToEdit: state.functionToEdit,
 			};
+		}
+		case CodeErrorsActionsTypes.SetFunctionToEdit: {
+			return { ...state, functionToEdit: action.payload };
 		}
 		case CodeErrorsActionsTypes.Delete: {
 			const nextCodeErrors = { ...state.codeErrors };
@@ -67,6 +78,7 @@ export function reduceCodeErrors(
 				bootstrapped: state.bootstrapped,
 				codeErrors: nextCodeErrors,
 				errorGroups: state.errorGroups,
+				functionToEdit: state.functionToEdit,
 			};
 		}
 		case CodeErrorsActionsTypes.SetErrorGroup: {

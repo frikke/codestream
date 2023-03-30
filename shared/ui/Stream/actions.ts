@@ -29,6 +29,7 @@ import {
 	MarkStreamReadRequestType,
 	MuteStreamRequestType,
 	OpenStreamRequestType,
+	PostPlus,
 	ReactToPostRequestType,
 	RenameStreamRequestType,
 	SetCodemarkPinnedRequestType,
@@ -53,7 +54,7 @@ import {
 import { pick } from "lodash-es";
 import React from "react";
 
-import { createCodeError } from "@codestream/webview/store/codeErrors/thunks";
+import { createCodeError, replaceSymbol } from "@codestream/webview/store/codeErrors/thunks";
 import { createCodemark } from "@codestream/webview/store/codemarks/thunks";
 import { createAppAsyncThunk } from "@codestream/webview/store/helper";
 import { createReview } from "@codestream/webview/store/reviews/thunks";
@@ -259,7 +260,6 @@ export const createPostAndCodemark =
 				)
 			);
 		} else {
-			console.log(`*** a here i am with analyze boolean: ${attributes.analyze}`);
 			return dispatch(
 				createCodemark({
 					...attributes,
@@ -322,7 +322,7 @@ export const createPost =
 		extra: PostExtra = {}
 	) =>
 	async (dispatch, getState: () => CodeStreamState) => {
-		const { session, context, posts } = getState();
+		const { session, context, posts, codeErrors } = getState();
 		const pendingId = uuid();
 
 		// no need for pending post when creating a codemark
@@ -480,6 +480,13 @@ export const createPost =
 			}
 			response.streams &&
 				response.streams.forEach(stream => dispatch(streamActions.updateStream(stream)));
+			if (extra.analyzeStacktrace) {
+				const solution = extractCodeSolution(response.post);
+				if (solution && codeErrors.functionToEdit) {
+					const func = codeErrors.functionToEdit;
+					dispatch(replaceSymbol(func.uri, func.symbol, solution));
+				}
+			}
 			return dispatch(postsActions.resolvePendingPost(pendingId, response.post));
 		} catch (error) {
 			if ((error.message as string).includes("No document could be found for Uri")) {
@@ -1199,3 +1206,9 @@ export const updateTeamTag =
 			logError(error, { ...attributes, detail: `There was an error updating a tag` });
 		}
 	};
+
+function extractCodeSolution(post: PostPlus): string | undefined {
+	const match = /```(.*?)```/gms.exec(post.text);
+	const solution = match?.[1];
+	return solution;
+}

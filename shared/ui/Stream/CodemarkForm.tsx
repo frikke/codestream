@@ -250,6 +250,8 @@ function merge(defaults: Partial<State>, codemark: CSCodemark): State {
 	}, Object.create(null));
 }
 
+type SubmitMode = "analyze" | "normal";
+
 class CodemarkForm extends React.Component<Props, State> {
 	static defaultProps = {
 		commentType: "comment",
@@ -762,13 +764,10 @@ class CodemarkForm extends React.Component<Props, State> {
 		}
 	};
 
-	handleClickSubmit = async (
-		event?: React.SyntheticEvent,
-		mode: "analyze" | "normal" = "normal"
-	) => {
+	handleClickSubmit = async (event?: React.SyntheticEvent, mode: SubmitMode = "normal") => {
 		event && event.preventDefault();
 		if (this.state.isLoading || this.state.isReviewLoading) return;
-		if (this.isFormInvalid()) return;
+		if (this.isFormInvalid(mode)) return;
 
 		const {
 			codeBlocks,
@@ -895,11 +894,13 @@ class CodemarkForm extends React.Component<Props, State> {
 			}
 		}
 
+		const analyzeText = mode === "analyze" ? event?.currentTarget.textContent : undefined;
+
 		try {
 			const baseAttributes = {
 				codeBlocks,
 				deleteMarkerLocations,
-				text: replaceHtml(text)!,
+				text: analyzeText ?? replaceHtml(text)!,
 				type: type as CodemarkType,
 				assignees: csAssignees,
 				title,
@@ -1003,7 +1004,7 @@ class CodemarkForm extends React.Component<Props, State> {
 		});
 	};
 
-	isFormInvalid = () => {
+	isFormInvalid = (mode: SubmitMode) => {
 		const { codeBlocks } = this.state;
 		const { text, title, assignees, crossPostIssueValues, type } = this.state;
 
@@ -1039,7 +1040,7 @@ class CodemarkForm extends React.Component<Props, State> {
 				invalid = validationState.assigneesInvalid = true;
 			}
 		}
-		if (type === "comment" || type === "trap") {
+		if ((type === "comment" || type === "trap") && mode != "analyze") {
 			if (text.length === 0) {
 				validationState.textInvalid = true;
 				invalid = true;
@@ -1861,7 +1862,7 @@ class CodemarkForm extends React.Component<Props, State> {
 					{file && (
 						<>
 							<span className="monospace" style={{ paddingRight: "20px" }}>
-								<Icon name="file" /> ccc {file}
+								<Icon name="file" /> {file}
 							</span>{" "}
 						</>
 					)}
@@ -2516,6 +2517,26 @@ class CodemarkForm extends React.Component<Props, State> {
 					{commentType !== "link" && this.renderEmailAuthors()}
 					{commentType !== "link" && this.renderSharingControls()}
 					{this.props.currentReviewId && this.renderRequireChange()}
+					{codeBlocks?.length > 0 && (
+						<div style={{ clear: "both", marginTop: 45 }}>
+							<div>ChatGPT</div>
+							<div>
+								<Link onClick={e => this.handleClickSubmit(e, "analyze")}>
+									How do I fix this code?
+								</Link>
+							</div>
+							<div>
+								<Link onClick={e => this.handleClickSubmit(e, "analyze")}>
+									What does this code do?
+								</Link>
+							</div>
+							<div>
+								<Link onClick={e => this.handleClickSubmit(e, "analyze")}>
+									Write a test for this code
+								</Link>
+							</div>
+						</div>
+					)}
 					{!this.state.isPreviewing && (
 						<div key="buttons" className="button-group float-wrap">
 							<CancelButton
@@ -2590,29 +2611,6 @@ class CodemarkForm extends React.Component<Props, State> {
 										: "Submit"}
 								</Button>
 							</Tooltip>
-							{codeBlocks?.length > 0 && (
-								<Button
-									key="analyze-submit"
-									style={{
-										paddingLeft: "10px",
-										paddingRight: "10px",
-										// fixed width to handle the isLoading case
-										width:
-											this.props.currentReviewId ||
-											this.props.textEditorUriHasPullRequestContext ||
-											this.props.currentCodeErrorId
-												? "auto"
-												: "80px",
-										marginRight: 0,
-									}}
-									className="control-button"
-									type="submit"
-									loading={this.state.isLoading}
-									onClick={e => this.handleClickSubmit(e, "analyze")}
-								>
-									Ask ChatGPT
-								</Button>
-							)}
 							{displayAddReviewButton && (
 								<Tooltip title={hasError ? null : reviewTooltip} placement="bottom" delay={1}>
 									<Button

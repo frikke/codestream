@@ -653,7 +653,11 @@ export function CodeErrorNav(props: Props) {
 		if (repoError) {
 			items.push({ message: repoError });
 		}
-		if (repoWarning) {
+		if (
+			repoWarning &&
+			!repoWarning.message.includes("Associate a build sha") &&
+			!repoWarning.message.includes("Your version of the code may")
+		) {
 			items.push(repoWarning);
 		}
 
