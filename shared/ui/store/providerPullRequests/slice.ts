@@ -845,15 +845,20 @@ const providerPullRequestsSlice = createSlice({
 							//this is for approve
 							// go through the array of participants, match the uuid, then do update
 							const uuid = directive.data.user.account_id;
-							const foundUser = pr.participants.nodes.findIndex(_ => _.user?.account_id === uuid);
+							const foundUser = pr.participantsUnfiltered.nodes.findIndex(
+								_ => _.user?.account_id === uuid
+							);
 							if (foundUser != -1) {
-								pr.participants.nodes[foundUser].state = directive.data.state;
-								pr.participants.nodes[foundUser].approved = directive.data.approved;
-								pr.participants.nodes[foundUser].participated_on = directive.data.participated_on;
+								pr.participantsUnfiltered.nodes[foundUser].state = directive.data.state;
+								pr.participantsUnfiltered.nodes[foundUser].approved = directive.data.approved;
+								pr.participantsUnfiltered.nodes[foundUser].participated_on =
+									directive.data.participated_on;
 							} else {
-								pr.participants.nodes.push({
+								pr.participantsUnfiltered.nodes.push({
 									user: {
 										account_id: uuid,
+										nickname: directive.data.user.nickname,
+										display_name: directive.data.user.display_name,
 										links: {
 											avatar: {
 												href: directive.data.user.links.avatar.href,
@@ -863,32 +868,58 @@ const providerPullRequestsSlice = createSlice({
 									state: directive.data.state,
 									approved: directive.data.approved,
 									participated_on: directive.data.participated_on,
+									role: directive.data.role,
 								} as any); // TODO
 							}
+							const nonReviewers = pr.participantsUnfiltered.nodes.filter(
+								_ => _.role !== "REVIEWER"
+							);
+							const filteredParticipants = nonReviewers.filter(_ => _.state !== null);
+							const reviewers = pr.participantsUnfiltered.nodes.filter(
+								_ => _.role !== "PARTICIPANT"
+							);
+							//update participants with filteredParticipants & update reviewers with reviewers
+							pr.participants.nodes = filteredParticipants;
+							pr.reviewers.nodes = reviewers;
 						} else if (directive.type === "removeApprovedBy") {
 							//this is for unapprove
 							const uuid = directive.data.user.account_id;
-							const foundUser = pr.participants.nodes.findIndex(_ => _.user?.account_id === uuid);
+							const foundUser = pr.participantsUnfiltered.nodes.findIndex(
+								_ => _.user?.account_id === uuid
+							);
 							if (foundUser != -1) {
-								pr.participants.nodes[foundUser].state = directive.data.state;
-								pr.participants.nodes[foundUser].approved = directive.data.approved;
-								pr.participants.nodes[foundUser].participated_on = directive.data.participated_on;
-							} else {
-								//There is no else; if the user isn't found, this is an error because to unapprove something they must already be in the participant array
-								console.log("Error: a not found user cannot unapprove"); //TODO: fix this
+								pr.participantsUnfiltered.nodes[foundUser].state = directive.data.state;
+								pr.participantsUnfiltered.nodes[foundUser].approved = directive.data.approved;
+								pr.participantsUnfiltered.nodes[foundUser].participated_on =
+									directive.data.participated_on;
 							}
+							const nonReviewers = pr.participantsUnfiltered.nodes.filter(
+								_ => _.role !== "REVIEWER"
+							);
+							const filteredParticipants = nonReviewers.filter(_ => _.state !== null);
+							const reviewers = pr.participantsUnfiltered.nodes.filter(
+								_ => _.role !== "PARTICIPANT"
+							);
+							//update participants with filteredParticipants & update reviewers with reviewers
+							pr.participants.nodes = filteredParticipants;
+							pr.reviewers.nodes = reviewers;
 						} else if (directive.type === "addRequestChanges") {
 							//This is for request changes
 							const uuid = directive.data.user.account_id;
-							const foundUser = pr.participants.nodes.findIndex(_ => _.user?.account_id === uuid);
+							const foundUser = pr.participantsUnfiltered.nodes.findIndex(
+								_ => _.user?.account_id === uuid
+							);
 							if (foundUser !== -1) {
-								pr.participants.nodes[foundUser].state = directive.data.state;
-								pr.participants.nodes[foundUser].approved = directive.data.approved;
-								pr.participants.nodes[foundUser].participated_on = directive.data.participated_on;
+								pr.participantsUnfiltered.nodes[foundUser].state = directive.data.state;
+								pr.participantsUnfiltered.nodes[foundUser].approved = directive.data.approved;
+								pr.participantsUnfiltered.nodes[foundUser].participated_on =
+									directive.data.participated_on;
 							} else {
-								pr.participants.nodes.push({
+								pr.participantsUnfiltered.nodes.push({
 									user: {
 										account_id: uuid,
+										nickname: directive.data.user.nickname,
+										display_name: directive.data.user.display_name,
 										links: {
 											avatar: {
 												href: directive.data.user.links.avatar.href,
@@ -898,20 +929,41 @@ const providerPullRequestsSlice = createSlice({
 									state: directive.data.state,
 									approved: directive.data.approved,
 									participated_on: directive.data.participated_on,
+									role: directive.data.role,
 								} as any); // TODO
+								const nonReviewers = pr.participantsUnfiltered.nodes.filter(
+									_ => _.role !== "REVIEWER"
+								);
+								const filteredParticipants = nonReviewers.filter(_ => _.state !== null);
+								const reviewers = pr.participantsUnfiltered.nodes.filter(
+									_ => _.role !== "PARTICIPANT"
+								);
+								//update participants with filteredParticipants & update reviewers with reviewers
+								pr.participants.nodes = filteredParticipants;
+								pr.reviewers.nodes = reviewers;
 							}
 						} else if (directive.type === "removePendingReview") {
 							//removing the requested changes
 							const uuid = directive.data.user.account_id;
-							const foundUser = pr.participants.nodes.findIndex(_ => _.user?.account_id === uuid);
+							const foundUser = pr.participantsUnfiltered.nodes.findIndex(
+								_ => _.user?.account_id === uuid
+							);
 							if (foundUser !== -1) {
-								pr.participants.nodes[foundUser].state = directive.data.state;
-								pr.participants.nodes[foundUser].approved = directive.data.approved;
-								pr.participants.nodes[foundUser].participated_on = directive.data.participated_on;
-							} else {
-								//There is no else; if the user isn't found, this is an error because to unrequest something they must already be in the participant array
-								console.log("Error: a not found user cannot unrequest changes"); //TODO: fix this
+								pr.participantsUnfiltered.nodes[foundUser].state = directive.data.state;
+								pr.participantsUnfiltered.nodes[foundUser].approved = directive.data.approved;
+								pr.participantsUnfiltered.nodes[foundUser].participated_on =
+									directive.data.participated_on;
 							}
+							const nonReviewers = pr.participantsUnfiltered.nodes.filter(
+								_ => _.role !== "REVIEWER"
+							);
+							const filteredParticipants = nonReviewers.filter(_ => _.state !== null);
+							const reviewers = pr.participantsUnfiltered.nodes.filter(
+								_ => _.role !== "PARTICIPANT"
+							);
+							//update participants with filteredParticipants & update reviewers with reviewers
+							pr.participants.nodes = filteredParticipants;
+							pr.reviewers.nodes = reviewers;
 						} else if (directive.type === "removeRequestedReviewer") {
 							const nonReviewers = directive.data.participants.filter(
 								(_: { role: string }) => _.role !== "REVIEWER"

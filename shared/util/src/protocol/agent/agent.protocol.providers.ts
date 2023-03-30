@@ -696,25 +696,46 @@ export interface FetchThirdPartyPullRequestPullRequest {
 	participants: {
 		nodes: {
 			//gitlab
-			avatarUrl: string;
+			avatarUrl?: string;
 			//bitbucket
 			type?: string;
 			user: {
-				display_name?: string;
-				links?: {
-					avatar?: {
-						href?: string;
+				display_name: string;
+				links: {
+					avatar: {
+						href: string;
 					};
 				};
 				type?: string;
 				uuid?: string;
-				account_id?: string;
-				nickname?: string;
+				account_id: string;
+				nickname: string;
 			};
-			role?: string;
-			approved?: boolean;
-			state?: "changes_requested" | "approve" | "null";
-			participated_on?: string;
+			role: string;
+			approved: boolean;
+			state: "changes_requested" | "approve" | "null";
+			participated_on: string;
+		}[];
+	};
+	participantsUnfiltered: {
+		nodes: {
+			type?: string;
+			user: {
+				display_name: string;
+				links: {
+					avatar: {
+						href: string;
+					};
+				};
+				type?: string;
+				uuid?: string;
+				account_id: string;
+				nickname: string;
+			};
+			role: string;
+			approved: boolean;
+			state: "changes_requested" | "approve" | "null";
+			participated_on: string;
 		}[];
 	};
 	reviewers: {
@@ -727,15 +748,15 @@ export interface FetchThirdPartyPullRequestPullRequest {
 						href: string;
 					};
 				};
-				type: string;
-				uuid: string;
+				type?: string;
+				uuid?: string;
 				account_id: string;
 				nickname: string;
 			};
-			role?: string;
-			approved?: boolean;
-			state?: string;
-			participated_on?: string;
+			role: string;
+			approved: boolean;
+			state: string;
+			participated_on: string;
 		}[];
 	};
 	members: {

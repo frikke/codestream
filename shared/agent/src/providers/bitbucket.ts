@@ -1377,6 +1377,9 @@ export class BitbucketProvider
 						participants: {
 							nodes: newParticipantsArray,
 						},
+						participantsUnfiltered: {
+							nodes: pr.body.participants,
+						},
 						reviewers: {
 							nodes: newReviewersArray,
 						},
@@ -1694,6 +1697,7 @@ export class BitbucketProvider
 		pullRequestReviewId?: string;
 		userId: string;
 		participants: any[];
+		repoWithOwner: string;
 	}): Promise<Directives> {
 		const payload: any = {
 			type: request.eventType,
@@ -1703,15 +1707,13 @@ export class BitbucketProvider
 			payload: payload,
 		});
 
-		const { pullRequestId, repoWithOwner } = this.parseId(request.pullRequestId);
-
 		let response: any = {}; //TODO: fix this any!
 
 		//TODO: try-catch on the delete
 		if (request.eventType === "changes-requested") {
 			//to un-request changes you have to run a delete
 			response = await this.delete<BitbucketSubmitReviewRequest>(
-				`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}/request-changes`
+				`/repositories/${request.repoWithOwner}/pullrequests/${request.pullRequestId}/request-changes`
 			);
 			//bitbucket doesn't return anything on this delete
 			return this.handleResponse(request.pullRequestId, {
@@ -1741,7 +1743,7 @@ export class BitbucketProvider
 				BitbucketSubmitReviewRequest,
 				BitbucketSubmitReviewRequestResponse
 			>(
-				`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}/${request.eventType}`,
+				`/repositories/${request.repoWithOwner}/pullrequests/${request.pullRequestId}/${request.eventType}`,
 				payload
 			);
 
@@ -1757,7 +1759,9 @@ export class BitbucketProvider
 						type: "addRequestChanges",
 						data: {
 							user: {
+								display_name: response.body.user.display_name,
 								account_id: response.body.user.account_id,
+								nickname: response.body.user.nickname,
 								links: {
 									avatar: {
 										href: response.body.user.links.avatar.href,
@@ -1767,6 +1771,7 @@ export class BitbucketProvider
 							approved: response.body.approved,
 							state: response.body.state,
 							participated_on: response.body.participated_on,
+							role: response.body.role,
 						},
 					},
 				],
@@ -1775,7 +1780,7 @@ export class BitbucketProvider
 		if (request.eventType === "unapprove") {
 			//to unapprove you have to run a delete
 			response = await this.delete<BitbucketSubmitReviewRequest>(
-				`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}/approve`
+				`/repositories/${request.repoWithOwner}/pullrequests/${request.pullRequestId}/approve`
 			);
 			//bitbucket doesn't return anything on this delete
 			return this.handleResponse(request.pullRequestId, {
@@ -1805,7 +1810,7 @@ export class BitbucketProvider
 				BitbucketSubmitReviewRequest,
 				BitbucketSubmitReviewRequestResponse
 			>(
-				`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}/${request.eventType}`,
+				`/repositories/${request.repoWithOwner}/pullrequests/${request.pullRequestId}/${request.eventType}`,
 				payload
 			);
 
@@ -1821,7 +1826,9 @@ export class BitbucketProvider
 						type: "addApprovedBy",
 						data: {
 							user: {
+								display_name: response.body.user.display_name,
 								account_id: response.body.user.account_id,
+								nickname: response.body.user.nickname,
 								links: {
 									avatar: {
 										href: response.body.user.links.avatar.href,
@@ -1831,6 +1838,7 @@ export class BitbucketProvider
 							approved: response.body.approved,
 							state: response.body.state,
 							participated_on: response.body.participated_on,
+							role: response.body.role,
 						},
 					},
 				],
@@ -2525,6 +2533,32 @@ export class BitbucketProvider
 					//There is no else; if the user isn't found, this is an error because to unrequest something they must already be in the participant array
 					console.log("Error: a not found user cannot unrequest changes"); //TODO: fix this
 				}
+			} else if (directive.type === "removeRequestedReviewer") {
+				const nonReviewers = directive.data.participants.filter(
+					(_: { role: string }) => _.role !== "REVIEWER"
+				);
+				const filteredParticipants = nonReviewers.filter(
+					(_: { state: string }) => _.state !== null
+				);
+				const reviewers = directive.data.participants.filter(
+					(_: { role: string }) => _.role !== "PARTICIPANT"
+				);
+				//update participants with filteredParticipants & update reviewers with reviewers
+				pr.participants.nodes = filteredParticipants;
+				pr.reviewers.nodes = reviewers;
+			} else if (directive.type === "updateReviewers") {
+				const nonReviewers = directive.data.participants.filter(
+					(_: { role: string }) => _.role !== "REVIEWER"
+				);
+				const filteredParticipants = nonReviewers.filter(
+					(_: { state: string }) => _.state !== null
+				);
+				const reviewers = directive.data.participants.filter(
+					(_: { role: string }) => _.role !== "PARTICIPANT"
+				);
+				//update participants with filteredParticipants & update reviewers with reviewers
+				pr.participants.nodes = filteredParticipants;
+				pr.reviewers.nodes = reviewers;
 			} else if (directive.type === "addNode") {
 				pr.comments = pr.comments || [];
 				pr.comments.push(directive.data);
