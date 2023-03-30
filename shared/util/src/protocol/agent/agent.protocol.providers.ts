@@ -1520,6 +1520,10 @@ export interface GetMethodLevelTelemetryResponse {
 	newRelicEntityGuid: string;
 	newRelicUrl?: string;
 	goldenMetrics?: MethodGoldenMetrics[];
+	deployments?: {
+		seconds: number,
+		version: string
+	}[];
 	newRelicAlertSeverity?: string;
 	newRelicEntityAccounts: EntityAccount[];
 	newRelicEntityName: string;

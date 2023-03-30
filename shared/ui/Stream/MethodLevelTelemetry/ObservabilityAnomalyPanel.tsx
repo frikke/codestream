@@ -5,6 +5,7 @@ import {
 	Legend,
 	Line,
 	LineChart,
+	ReferenceLine,
 	ResponsiveContainer,
 	Tooltip as ReTooltip,
 	XAxis,
@@ -113,7 +114,20 @@ export const ObservabilityAnomalyPanel = () => {
 					sampleSize: anomaly.name,
 				},
 				since,
+				includeDeployments: true,
 				timeseriesGroup: "1 day",
+			});
+			response.goldenMetrics.forEach(gm => {
+				gm.result.forEach(r => {
+					const midnight = new Date(r.endTimeSeconds * 1000);
+					midnight.setHours(0, 0, 0, 0);
+					r.endTimeSeconds = Math.ceil(midnight.getTime() / 1000);
+				});
+			});
+			response.deployments?.forEach(d => {
+				const midnight = new Date(d.seconds * 1000);
+				midnight.setHours(0, 0, 0, 0);
+				d.seconds = Math.ceil(midnight.getTime() / 1000);
 			});
 			setTelemetryResponse(response);
 		} catch (ex) {
@@ -402,11 +416,13 @@ export const ObservabilityAnomalyPanel = () => {
 															>
 																<CartesianGrid strokeDasharray="3 3" />
 																<XAxis
-																	dataKey="endDate"
+																	dataKey="endTimeSeconds"
 																	tick={{ fontSize: 12 }}
-																	tickFormatter={label => new Date(label).toLocaleDateString()}
+																	tickFormatter={label =>
+																		new Date(label * 1000).toLocaleDateString()
+																	}
 																/>
-																<YAxis dataKey={_.title} tick={{ fontSize: 12 }} />
+																<YAxis tick={{ fontSize: 12 }} />
 																<ReTooltip
 																	contentStyle={{ color: "#8884d8", textAlign: "center" }}
 																/>
@@ -419,6 +435,9 @@ export const ObservabilityAnomalyPanel = () => {
 																	connectNulls={true}
 																	name={title}
 																/>
+																{telemetryResponse.deployments?.map(_ => {
+																	return <ReferenceLine x={_.seconds} />;
+																})}
 															</LineChart>
 														</ResponsiveContainer>
 													</div>
