@@ -1,4 +1,4 @@
-import { isEmpty } from "lodash";
+import { isEmpty, memoize } from "lodash";
 import fetch, { Request, RequestInfo, RequestInit, Response } from "node-fetch";
 import { Logger } from "../logger";
 import { Functions } from "./function";
@@ -6,6 +6,8 @@ import { handleLimit, InternalRateError } from "../rateLimits";
 import os from "os";
 import path from "path";
 import fs from "fs";
+import httpCachedBase from "./staging-api.newrelic.com.json";
+import stringSimilarity from "string-similarity";
 
 const noLogRetries = ["reason: connect ECONNREFUSED", "reason: getaddrinfo ENOTFOUND"];
 
@@ -66,14 +68,71 @@ function exportRequestResponse() {
 	}
 }
 
+const cachable = [
+	"fetchErrorsInboxFacetedData",
+	"getErrorGroupGuid",
+	"getAssignments",
+	"errorGroupById",
+	"getErrorTrace",
+	"getErrorGroup",
+	"getStackTrace",
+	"TransactionError",
+];
+
+function resolveCached(url: RequestInfo, init?: RequestInit): string | undefined {
+	const origin = urlOrigin(url);
+	if (!origin.includes("staging-api.newrelic.com")) {
+		return undefined;
+	}
+
+	const requestBody = typeof init?.body === "string" ? init?.body : undefined;
+	if (!requestBody) {
+		return undefined;
+	}
+	// Is it something we should return cached version of?
+	const found = cachable.find(fragment => requestBody.includes(fragment));
+	if (!found) {
+		return undefined;
+	}
+	// Yeah, find best match
+	const httpTransaction = findCached(requestBody);
+	return httpTransaction;
+}
+
+const findCached = memoize(_findCached);
+
+function _findCached(requestBody: string): string | undefined {
+	const httpCached: RequestHistory[] = httpCachedBase;
+	const httpTransaction = httpCached.find(
+		item => stringSimilarity.compareTwoStrings(item.requestBody!, requestBody) > 0.98
+	);
+	return httpTransaction?.response ?? undefined;
+}
+
 export async function customFetch(url: RequestInfo, init?: RequestInit): Promise<Response> {
+	const cached = resolveCached(url, init);
+	if (cached) {
+		const response = new Response(cached, {
+			status: 200,
+			size: 0,
+			timeout: 0,
+			url: url as string,
+			headers: {
+				"content-type": "application/json; charset=utf-8",
+			},
+		});
+		Logger.log(`*** returning http cached for ${url}`);
+		return response;
+	}
 	const responses = await fetchCore(0, url, init);
 	const response = responses[0];
 	// await recordRequestResponse(url, response, init);
 	return response;
 }
 
-function requestInfoToUrl(requestInfo: RequestInfo): URL | undefined {
+const requestInfoToUrl = memoize(_requestInfoToUrl);
+
+function _requestInfoToUrl(requestInfo: RequestInfo): URL | undefined {
 	const urlString =
 		typeof requestInfo === "string"
 			? requestInfo
@@ -89,7 +148,9 @@ function requestInfoToUrl(requestInfo: RequestInfo): URL | undefined {
 	return undefined;
 }
 
-function urlOrigin(requestInfo: RequestInfo): string {
+const urlOrigin = memoize(_urlOrigin);
+
+function _urlOrigin(requestInfo: RequestInfo): string {
 	try {
 		if (!requestInfo) {
 			return "<unknown>";
