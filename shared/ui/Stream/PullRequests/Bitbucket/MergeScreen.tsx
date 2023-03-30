@@ -71,12 +71,13 @@ export const MergeScreen = (props: Props) => {
 						<div id="controls">
 							{mergeError && <WarningBox items={[{ message: mergeError }]}></WarningBox>}
 							<small title="Source">Destination: {props.pr.headRefName} </small>
-							<br></br>
+							<br style={{ marginBottom: "10px 0 10px 0" }}></br>
 							<small title="Desitnation">Source: {props.pr.baseRefName} </small>
 							<div style={{ margin: "20px 0" }}>
-								<div className="controls">
-									<label>Commit message</label>
+								<div className="controls" style={{ marginBottom: "10px" }}>
+									<label style={{ marginBottom: "10px" }}>Commit message</label>
 									<input
+										style={{ marginBottom: "10px" }}
 										autoFocus
 										placeholder="your commit message"
 										className="input-text control"
@@ -117,14 +118,18 @@ export const MergeScreen = (props: Props) => {
 									</InlineMenu>
 									<div style={{ height: "10px" }} />
 								</div>
-								<div>
+								<div style={{ marginBottom: "10px" }}>
 									<label>
 										<input type="checkbox" checked={isChecked} onChange={handleChange} />
 										Close source branch
 									</label>
 								</div>
 							</div>
-							<Button onClick={mergePullRequest}>Merge</Button>
+							<div>
+								<Button style={{ padding: "0 5px 0 5px" }} onClick={mergePullRequest}>
+									Merge
+								</Button>
+							</div>
 						</div>
 					</fieldset>
 				</div>
