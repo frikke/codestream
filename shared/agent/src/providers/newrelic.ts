@@ -1947,6 +1947,7 @@ export class NewRelicProvider
 			const entityGuid = entity?.entityGuid || request.newRelicEntityGuid;
 			return {
 				goldenMetrics: goldenMetrics,
+				deployments,
 				newRelicEntityAccounts: entityAccounts,
 				newRelicAlertSeverity: entity?.alertSeverity,
 				newRelicEntityName: entity?.entityName || "",
@@ -3835,7 +3836,27 @@ export class NewRelicProvider
 		return <NRErrorResponse>{ error: { type: "NR_UNKNOWN", message: ex.message, stack: ex.stack } };
 	}
 
-	private async getDeployments(entityGuid: string, since: string) {}
+	private async getDeployments(
+		entityGuid: string,
+		since: string
+	): Promise<
+		{
+			seconds: number;
+			version: string;
+		}[]
+	> {
+		const parsedId = NewRelicProvider.parseId(entityGuid)!;
+		const query = `SELECT timestamp, version FROM Deployment WHERE entity.guid = '${entityGuid}' SINCE ${since} ORDER BY timestamp`;
+		const result = await this.runNrql<{
+			timestamp: number;
+			version: string;
+		}>(parsedId.accountId, query);
+
+		return result.map(_ => ({
+			seconds: _.timestamp / 1000,
+			version: _.version,
+		}));
+	}
 }
 
 export class ContextLogger {
