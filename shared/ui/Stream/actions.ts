@@ -1210,5 +1210,5 @@ export const updateTeamTag =
 function extractCodeSolution(post: PostPlus): string | undefined {
 	const match = /```(.*?)```/gms.exec(post.text);
 	const solution = match?.[1];
-	return solution;
+	return solution?.trim();
 }
