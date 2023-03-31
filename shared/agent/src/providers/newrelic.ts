@@ -171,6 +171,7 @@ export interface INewRelicProvider {
 		observabilityRepo: ObservabilityRepo
 	) => EntityAccount;
 	errorLogIfNotIgnored: (ex: Error, message: string, ...params: any[]) => void;
+	getDeployments(request: GetDeploymentsRequest): Promise<GetDeploymentsResponse>;
 }
 
 @lspProvider("newrelic")
@@ -1095,7 +1096,7 @@ export class NewRelicProvider
 			try {
 				const { entityGuid } = request;
 				const { accountId } = NewRelicProvider.parseId(entityGuid)!;
-				const anomalyDetector = new AnomalyDetector(request, this.runNrql.bind(this));
+				const anomalyDetector = new AnomalyDetector(request, this);
 				const result = await anomalyDetector.execute();
 				this._observabilityAnomaliesTimedCache.put(request, result);
 				return true;

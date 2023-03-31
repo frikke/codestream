@@ -1224,6 +1224,7 @@ export interface GetObservabilityAnomaliesRequest {
 	entityGuid: string;
 	sinceDaysAgo: number;
 	baselineDays: number;
+	sinceReleaseAtLeastDaysAgo?: number;
 	includeSpans?: Boolean,
 	minimumErrorRate?: number,
 	minimumResponseTime?: number,
@@ -1239,6 +1240,7 @@ export interface ObservabilityAnomaly {
 	newValue: number;
 	ratio: number;
 	text: string;
+	totalDays: number;
 }
 
 export interface GetObservabilityAnomaliesResponse {

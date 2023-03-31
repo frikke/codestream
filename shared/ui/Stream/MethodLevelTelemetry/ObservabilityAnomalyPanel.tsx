@@ -101,10 +101,7 @@ export const ObservabilityAnomalyPanel = () => {
 			// }
 
 			const anomaly = derivedState.currentObservabilityAnomaly;
-			derivedState.clmSettings.sin;
-			const sinceDaysAgo = parseInt(derivedState?.clmSettings?.compareDataLastValue) || 2;
-			const baselineDays = parseInt(derivedState?.clmSettings?.againstDataPrecedingValue) || 5;
-			const since = `${sinceDaysAgo + baselineDays} days ago`;
+			const since = `${anomaly.totalDays} days ago`;
 			const response = await HostApi.instance.send(GetMethodLevelTelemetryRequestType, {
 				newRelicEntityGuid: newRelicEntityGuid,
 				metricTimesliceNameMapping: {
@@ -129,6 +126,19 @@ export const ObservabilityAnomalyPanel = () => {
 				midnight.setHours(0, 0, 0, 0);
 				d.seconds = Math.ceil(midnight.getTime() / 1000);
 			});
+			if (!response.deployments) {
+				const date = new Date();
+				date.setHours(0, 0, 0, 0);
+				const nDaysAgo = derivedState?.clmSettings?.compareDataLastValue;
+				date.setDate(date.getDate() - nDaysAgo);
+				response.deployments = [
+					{
+						seconds: Math.floor(date.getTime() / 1000),
+						version: `${nDaysAgo} days ago`,
+					},
+				];
+			}
+
 			setTelemetryResponse(response);
 		} catch (ex) {
 			setWarningOrErrors([{ message: ex.toString() }]);
