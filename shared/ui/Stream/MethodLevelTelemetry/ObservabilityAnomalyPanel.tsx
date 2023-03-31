@@ -396,6 +396,7 @@ export const ObservabilityAnomalyPanel = () => {
 												// hide charts with no data.
 												if (!_?.result || _.result?.length === 0) return null;
 												const title = _.title + (_.extrapolated ? " (extrapolated)" : "");
+												const maxY = Math.ceil(Math.max(..._.result.map(o => o[_.title])));
 												return (
 													<div
 														key={"chart-" + index}
@@ -422,7 +423,7 @@ export const ObservabilityAnomalyPanel = () => {
 																		new Date(label * 1000).toLocaleDateString()
 																	}
 																/>
-																<YAxis tick={{ fontSize: 12 }} />
+																<YAxis tick={{ fontSize: 12 }} domain={[0, maxY]} />
 																<ReTooltip
 																	contentStyle={{ color: "#8884d8", textAlign: "center" }}
 																/>
