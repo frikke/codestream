@@ -86,7 +86,8 @@ import {
 	WebviewIpcMessage,
 	WebviewIpcNotificationMessage,
 	WebviewIpcRequestMessage,
-	WebviewPanels
+	WebviewPanels,
+	EditorRevealSymbolRequestType
 } from "@codestream/protocols/webview";
 import {
 	authentication,
@@ -94,6 +95,7 @@ import {
 	ConfigurationChangeEvent,
 	ConfigurationTarget,
 	Disposable,
+	Range,
 	TextEditor,
 	TextEditorSelectionChangeEvent,
 	TextEditorVisibleRangesChangeEvent,
@@ -101,7 +103,8 @@ import {
 	ViewColumn,
 	window,
 	workspace,
-	env
+	env,
+	Selection
 } from "vscode";
 import { NotificationType, RequestType } from "vscode-languageclient";
 
@@ -853,6 +856,38 @@ export class WebviewController implements Disposable {
 		}
 	}
 
+	private async goToClassMethodDefinition(className: string, methodName: string) {
+		// Convert the fully qualified class name to a relative file path.
+		const relativeFilePath = className.replace(/\./g, "/") + ".java";
+
+		// Find the file in the workspace.
+		const fileUri = await workspace.findFiles(`**/${relativeFilePath}`, null, 1);
+
+		if (fileUri.length === 0) {
+			Logger.warn(`Java class ${className} not found.`);
+			return;
+		}
+
+		// Open the file in the editor.
+		const document = await workspace.openTextDocument(fileUri[0]);
+		const editor = await window.showTextDocument(document);
+
+		// Find method definition within the class
+		const methodPattern = new RegExp(
+			`\\b(?:public|private|protected)?\\s+(?:static\\s+)?(?:[\\w<>\\[\\]]+\\s+)?${methodName}\\s*\\(`
+		);
+		const text = document.getText();
+		const match = methodPattern.exec(text);
+
+		if (match) {
+			const position = document.positionAt(match.index);
+			editor.selection = new Selection(position, position);
+			editor.revealRange(new Range(position, position));
+		} else {
+			Logger.warn(`Method ${methodName} not found in class ${className}.`);
+		}
+	}
+
 	@gate()
 	private ensureSignedInOrOut() {
 		if (
@@ -1176,6 +1211,10 @@ export class WebviewController implements Disposable {
 						success: true
 					};
 				});
+				break;
+			}
+			case EditorRevealSymbolRequestType.method: {
+				void this.goToClassMethodDefinition(e.params.className, e.params.functionName);
 				break;
 			}
 			default: {
