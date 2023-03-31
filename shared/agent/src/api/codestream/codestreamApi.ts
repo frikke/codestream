@@ -11,7 +11,6 @@ import { isEmpty, isEqual } from "lodash";
 import { Headers, RequestInit, Response } from "node-fetch";
 import sanitize from "sanitize-filename";
 import FormData from "form-data";
-import AbortController from "abort-controller";
 import { Emitter, Event } from "vscode-languageserver";
 import {
 	AccessToken,
@@ -328,6 +327,8 @@ import {
 import { CodeStreamPreferences } from "../preferences";
 import { BroadcasterEvents } from "./events";
 import { CodeStreamUnreads } from "./unreads";
+
+const AbortController = globalThis.AbortController;
 
 @lsp
 export class CodeStreamApiProvider implements ApiProvider {
@@ -2875,7 +2876,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 
 			const resp = await customFetch(this.baseUrl + "/no-auth/capabilities", {
 				agent: this._httpsAgent,
-				signal: controller.signal,
+				signal: controller.signal as any,
 			});
 
 			Logger.log(`API server status: ${resp.status}`);
@@ -2929,7 +2930,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 				this.baseUrl + "/no-auth/capabilities",
 				{
 					agent: this._httpsAgent,
-					signal: controller.signal,
+					signal: controller.signal as any,
 				}
 			);
 

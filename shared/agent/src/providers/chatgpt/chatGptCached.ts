@@ -11,7 +11,7 @@ import {
 import { isEmpty } from "lodash";
 import cachedHttpBase from "./api.openai.com.json";
 import stringSimilarity from "string-similarity";
-import { Functions } from "system";
+import { Functions } from "../../system/function";
 
 const conversationCache = new Map<string, Array<ChatGptMessage>>();
 

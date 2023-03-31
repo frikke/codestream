@@ -1,5 +1,5 @@
 import { isEmpty, memoize } from "lodash";
-import fetch, { RequestInfo, RequestInit, Response } from "node-fetch";
+import fetch, { Request, RequestInfo, RequestInit, Response } from "node-fetch";
 import { Logger } from "../logger";
 import { Functions } from "./function";
 import { handleLimit, InternalRateError } from "../rateLimits";
@@ -41,7 +41,12 @@ async function recordRequestResponse(
 	const cloned = response.clone();
 	const responseBody = await cloned.text();
 
-	const urlString = typeof requestInfo === "string" ? requestInfo : requestInfo.url;
+	const urlString =
+		typeof requestInfo === "string"
+			? requestInfo
+			: requestInfo instanceof Request
+			? requestInfo.url
+			: requestInfo.href;
 	const key = requestInfoToUrl(requestInfo)?.host ?? "<unknown>";
 	const requestHist: RequestHistory = {
 		timestamp: new Date().toISOString(),
@@ -132,7 +137,12 @@ export async function customFetch(url: RequestInfo, init?: RequestInit): Promise
 const requestInfoToUrl = memoize(_requestInfoToUrl);
 
 function _requestInfoToUrl(requestInfo: RequestInfo): URL | undefined {
-	const urlString = typeof requestInfo === "string" ? requestInfo : requestInfo.url;
+	const urlString =
+		typeof requestInfo === "string"
+			? requestInfo
+			: requestInfo instanceof Request
+			? requestInfo.url
+			: requestInfo.href;
 	if (isEmpty(urlString)) {
 		undefined;
 	}
