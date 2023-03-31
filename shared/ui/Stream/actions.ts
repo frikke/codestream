@@ -54,13 +54,13 @@ import {
 import { pick } from "lodash-es";
 import React from "react";
 
-import { createCodeError, replaceSymbol } from "@codestream/webview/store/codeErrors/thunks";
+import { createCodeError } from "@codestream/webview/store/codeErrors/thunks";
 import { createCodemark } from "@codestream/webview/store/codemarks/thunks";
 import { createAppAsyncThunk } from "@codestream/webview/store/helper";
 import { createReview } from "@codestream/webview/store/reviews/thunks";
 import { logError } from "../logger";
 import { CodeStreamState } from "../store";
-import { NewCodeErrorAttributes } from "../store/codeErrors/actions";
+import { NewCodeErrorAttributes, setCodeSolution } from "../store/codeErrors/actions";
 import {
 	isLegacyNewCodemarkAttributes,
 	NewCodemarkAttributes,
@@ -482,10 +482,7 @@ export const createPost =
 				response.streams.forEach(stream => dispatch(streamActions.updateStream(stream)));
 			if (extra.analyzeStacktrace) {
 				const solution = extractCodeSolution(response.post);
-				if (solution && codeErrors.functionToEdit) {
-					const func = codeErrors.functionToEdit;
-					dispatch(replaceSymbol(func.uri, func.symbol, solution));
-				}
+				dispatch(setCodeSolution(solution));
 			}
 			return dispatch(postsActions.resolvePendingPost(pendingId, response.post));
 		} catch (error) {

@@ -15,8 +15,6 @@ import { Functions } from "system";
 
 const conversationCache = new Map<string, Array<ChatGptMessage>>();
 
-// const cachedHttp: RequestHistory[] = JSON.parse(fs.readFileSync("./api.openai.com.json", "utf8"));
-
 export async function getChatResponseCached(
 	id: string,
 	prompt: string,

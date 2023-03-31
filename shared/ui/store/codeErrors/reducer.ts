@@ -20,6 +20,7 @@ const initialState: CodeErrorsState = {
 	codeErrors: {},
 	errorGroups: {},
 	functionToEdit: undefined,
+	codeSolution: undefined,
 };
 
 export function reduceCodeErrors(
@@ -33,6 +34,7 @@ export function reduceCodeErrors(
 				errorGroups: state.errorGroups,
 				codeErrors: { ...state.codeErrors, ...toMapBy("id", action.payload) },
 				functionToEdit: state.functionToEdit,
+				codeSolution: state.codeSolution,
 			};
 		case CodeErrorsActionsTypes.AddCodeErrors:
 			const newCodeErrors = toMapBy("id", action.payload);
@@ -48,6 +50,7 @@ export function reduceCodeErrors(
 				errorGroups: state.errorGroups,
 				codeErrors: { ...state.codeErrors, ...newCodeErrors },
 				functionToEdit: state.functionToEdit,
+				codeSolution: state.codeSolution,
 			};
 		case CodeErrorsActionsTypes.UpdateCodeErrors:
 		case CodeErrorsActionsTypes.SaveCodeErrors: {
@@ -56,10 +59,14 @@ export function reduceCodeErrors(
 				errorGroups: state.errorGroups,
 				codeErrors: { ...state.codeErrors, ...toMapBy("id", action.payload) },
 				functionToEdit: state.functionToEdit,
+				codeSolution: state.codeSolution,
 			};
 		}
 		case CodeErrorsActionsTypes.SetFunctionToEdit: {
 			return { ...state, functionToEdit: action.payload };
+		}
+		case CodeErrorsActionsTypes.SetCodeSolution: {
+			return { ...state, codeSolution: action.payload };
 		}
 		case CodeErrorsActionsTypes.Delete: {
 			const nextCodeErrors = { ...state.codeErrors };
@@ -69,6 +76,7 @@ export function reduceCodeErrors(
 				codeErrors: nextCodeErrors,
 				errorGroups: state.errorGroups,
 				functionToEdit: state.functionToEdit,
+				codeSolution: state.codeSolution,
 			};
 		}
 		case CodeErrorsActionsTypes.SetErrorGroup: {

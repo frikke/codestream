@@ -27,6 +27,7 @@ import {
 	api,
 	fetchErrorGroup,
 	jumpToStackLine,
+	replaceSymbol,
 	upgradePendingCodeError,
 } from "@codestream/webview/store/codeErrors/thunks";
 import { getThreadPosts } from "@codestream/webview/store/posts/reducer";
@@ -61,7 +62,7 @@ import { DropdownButton, DropdownButtonItems } from "../DropdownButton";
 import Icon from "../Icon";
 import { Link } from "../Link";
 import Menu from "../Menu";
-import MessageInput, { AttachmentField } from "../MessageInput";
+import { AttachmentField } from "../MessageInput";
 import { Modal } from "../Modal";
 import { RepliesToPost } from "../Posts/RepliesToPost";
 import { AddReactionIcon, Reactions } from "../Reactions";
@@ -1257,7 +1258,9 @@ const BaseCodeError = (props: BaseCodeErrorProps) => {
 								})}
 							</ClickLines>
 						</TourTip>
-						{!props.analyzeStackTrace && <Link onClick={props.analyzeClick}>Fix with ChatGPT</Link>}
+						{!props.analyzeStackTrace && (
+							<Link onClick={props.analyzeClick}>Analyze with ChatGPT</Link>
+						)}
 					</Meta>
 					{props.post && (
 						<div style={{ marginBottom: "10px" }}>
@@ -1440,7 +1443,19 @@ const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: boolean 
 	const [attachments, setAttachments] = React.useState<AttachmentField[]>([]);
 	const [isLoading, setIsLoading] = React.useState<"post" | "chat" | undefined>(undefined);
 	const teamMates = useAppSelector((state: CodeStreamState) => getTeamMates(state));
+	const [fixApplied, setFixApplied] = React.useState(false);
 	const functionToEdit = useAppSelector(state => state.codeErrors.functionToEdit);
+	const codeSolution = useAppSelector(state => state.codeErrors.codeSolution);
+	const butttonRow = React.useRef<HTMLDivElement>(null);
+
+	const scrollToNew = () => {
+		const row = butttonRow.current;
+		if (row) {
+			row.scrollIntoView({ behavior: "smooth" });
+		} else {
+			console.log("*** no row");
+		}
+	};
 
 	const getStackTraceText = (): string => {
 		if (isEmpty(props.codeError.stackTraces)) {
@@ -1459,6 +1474,13 @@ const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: boolean 
 			submit("analyze");
 		}
 	}, [props.analyzeStacktrace]);
+
+	const applyFix = async (event: SyntheticEvent) => {
+		if (codeSolution && functionToEdit) {
+			await dispatch(replaceSymbol(functionToEdit.uri, functionToEdit.symbol, codeSolution));
+			setFixApplied(true);
+		}
+	};
 
 	const submit = async (submitType: SubmitType = "normal") => {
 		// don't create empty replies
@@ -1495,11 +1517,12 @@ const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: boolean 
 		setIsLoading(undefined);
 		setText("");
 		setAttachments([]);
+		setTimeout(scrollToNew, 500);
 	};
 
 	return (
 		<>
-			<MessageInput
+			{/* <MessageInput
 				multiCompose
 				text={text}
 				placeholder="Add a comment..."
@@ -1508,37 +1531,15 @@ const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: boolean 
 				attachments={attachments}
 				attachmentContainerType="reply"
 				setAttachments={setAttachments}
-			/>
-			<ButtonRow style={{ marginTop: 0 }}>
-				<Tooltip
-					title={
-						<span>
-							Submit Comment
-							<span className="keybinding extra-pad">
-								{navigator.appVersion.includes("Macintosh") ? "⌘" : "Ctrl"} ENTER
-							</span>
-						</span>
-					}
-					placement="bottomRight"
-					delay={1}
-				>
+			/> */}
+			<ButtonRow ref={butttonRow} style={{ marginTop: 0 }}>
+				{codeSolution && !fixApplied && (
 					<div>
-						<Button
-							disabled={text.length === 0}
-							onClick={() => submit("chat")}
-							isLoading={isLoading === "chat"}
-						>
-							Ask ChatGPT
-						</Button>
-						<Button
-							disabled={text.length === 0}
-							onClick={() => submit()}
-							isLoading={isLoading === "post"}
-						>
-							Comment
+						<Button onClick={applyFix} isLoading={isLoading === "chat"}>
+							Apply Fix
 						</Button>
 					</div>
-				</Tooltip>
+				)}
 			</ButtonRow>
 		</>
 	);
