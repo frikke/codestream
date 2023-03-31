@@ -1,4 +1,4 @@
-import { RequestHistory } from "../../system/fetchCore";
+import { HttpTransaction } from "../../system/fetchCore";
 import { ResponseError } from "vscode-jsonrpc/lib/messages";
 import { ERROR_CHATGPT_INVALID_RESPONSE } from "@codestream/protocols/agent";
 import {
@@ -27,7 +27,7 @@ export async function getChatResponseCached(
 	}
 	conversation.push({ role, content: prompt });
 
-	const cachedHttp: RequestHistory[] = cachedHttpBase;
+	const cachedHttp: HttpTransaction[] = cachedHttpBase;
 
 	const request: ChatGptRequest = {
 		model: "gpt-3.5-turbo",
