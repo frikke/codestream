@@ -7,7 +7,7 @@ import os from "os";
 import path from "path";
 import fs from "fs";
 import httpCachedBase from "./staging-api.newrelic.com.json";
-import stringSimilarity from "string-similarity";
+import { compareTwoStrings } from "string-similarity";
 
 const RECORD_MODE = false;
 const CACHE_MODE = true;
@@ -51,7 +51,7 @@ async function recordRequestResponse(
 	const httpTransaction: HttpTransaction = {
 		timestamp: new Date().toISOString(),
 		url: urlString,
-		method: init?.method!,
+		method: init?.method ?? "GET",
 		requestBody: typeof init?.body === "string" ? init?.body : undefined,
 		response: responseBody,
 	};
@@ -107,7 +107,7 @@ const findCached = memoize(_findCached);
 function _findCached(requestBody: string): string | undefined {
 	const httpCached: HttpTransaction[] = httpCachedBase;
 	const httpTransaction = httpCached.find(
-		item => stringSimilarity.compareTwoStrings(item.requestBody!, requestBody) > 0.98
+		item => compareTwoStrings(item.requestBody ?? "", requestBody) > 0.98
 	);
 	return httpTransaction?.response ?? undefined;
 }
