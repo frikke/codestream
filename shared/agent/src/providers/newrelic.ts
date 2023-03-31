@@ -29,6 +29,8 @@ import {
 	ErrorGroupStateType,
 	GetAlertViolationsQueryResult,
 	GetAlertViolationsResponse,
+	GetDeploymentsRequest,
+	GetDeploymentsResponse,
 	GetEntityCountRequest,
 	GetEntityCountRequestType,
 	GetEntityCountResponse,
@@ -1938,10 +1940,12 @@ export class NewRelicProvider
 
 			let deployments;
 			if (request.includeDeployments && request.since) {
-				deployments = await this.getDeployments(
-					request.newRelicEntityGuid || entity!.entityGuid!,
-					request.since
-				);
+				deployments = (
+					await this.getDeployments({
+						entityGuid: request.newRelicEntityGuid || entity!.entityGuid!,
+						since: request.since,
+					})
+				).deployments;
 			}
 
 			const entityGuid = entity?.entityGuid || request.newRelicEntityGuid;
@@ -3836,15 +3840,12 @@ export class NewRelicProvider
 		return <NRErrorResponse>{ error: { type: "NR_UNKNOWN", message: ex.message, stack: ex.stack } };
 	}
 
-	private async getDeployments(
-		entityGuid: string,
-		since: string
-	): Promise<
-		{
-			seconds: number;
-			version: string;
-		}[]
-	> {
+	@lspHandler(GetFileLevelTelemetryRequestType)
+	public async getDeployments(request: GetDeploymentsRequest): Promise<GetDeploymentsResponse> {
+		const { entityGuid, since } = {
+			since: "30 days ago",
+			...request,
+		};
 		const parsedId = NewRelicProvider.parseId(entityGuid)!;
 		const query = `SELECT timestamp, version FROM Deployment WHERE entity.guid = '${entityGuid}' SINCE ${since} ORDER BY timestamp`;
 		const result = await this.runNrql<{
@@ -3852,10 +3853,13 @@ export class NewRelicProvider
 			version: string;
 		}>(parsedId.accountId, query);
 
-		return result.map(_ => ({
+		const deployments = result.map(_ => ({
 			seconds: _.timestamp / 1000,
 			version: _.version,
 		}));
+		return {
+			deployments,
+		};
 	}
 }
 

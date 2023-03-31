@@ -1520,10 +1520,7 @@ export interface GetMethodLevelTelemetryResponse {
 	newRelicEntityGuid: string;
 	newRelicUrl?: string;
 	goldenMetrics?: MethodGoldenMetrics[];
-	deployments?: {
-		seconds: number,
-		version: string
-	}[];
+	deployments?: Deployment[];
 	newRelicAlertSeverity?: string;
 	newRelicEntityAccounts: EntityAccount[];
 	newRelicEntityName: string;
@@ -1544,6 +1541,27 @@ export interface GetAlertViolationsResponse {
 	guid?: string;
 	recentAlertViolations?: RecentAlertViolation[];
 }
+
+export interface Deployment {
+	seconds: number,
+	version: string
+}
+
+export interface GetDeploymentsRequest {
+	entityGuid: string;
+	since?: string;
+}
+
+export interface GetDeploymentsResponse {
+	deployments: Deployment[];
+}
+
+export const GetDeploymentsRequestType = new RequestType<
+	GetDeploymentsRequest,
+	GetDeploymentsResponse,
+	void,
+	void
+>("codestream/newrelic/deployments");
 
 export const GetFileLevelTelemetryRequestType = new RequestType<
 	GetFileLevelTelemetryRequest,
