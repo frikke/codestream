@@ -4,7 +4,7 @@ import {
 	GetObservabilityAnomaliesRequest,
 	ObservabilityAnomaly,
 } from "@codestream/protocols/agent";
-import { NewRelicProvider } from "../newrelic";
+import { INewRelicProvider, NewRelicProvider } from "../newrelic";
 
 interface NameValue {
 	name: string;
@@ -21,7 +21,7 @@ interface Anomaly {
 export class AnomalyDetector {
 	constructor(
 		private _request: GetObservabilityAnomaliesRequest,
-		private _runNrql: <T>(accountId: number, nrql: string, timeout: number) => Promise<T[]>
+		private _provider: INewRelicProvider
 	) {
 		this._dataTimeFrame = `SINCE ${_request.sinceDaysAgo} days AGO`;
 		this._baselineTimeFrame = `SINCE ${
@@ -30,14 +30,35 @@ export class AnomalyDetector {
 		this._accountId = NewRelicProvider.parseId(_request.entityGuid)!.accountId;
 	}
 
-	private readonly _dataTimeFrame;
+	private _dataTimeFrame;
 	private readonly _baselineTimeFrame;
 	private readonly _accountId;
+	private _totalDays = 0;
 
 	async execute(): Promise<{
 		responseTime: ObservabilityAnomaly[];
 		errorRate: ObservabilityAnomaly[];
 	}> {
+		this._totalDays =
+			parseInt(this._request.sinceDaysAgo as any) + parseInt(this._request.baselineDays as any);
+		if (this._request.sinceReleaseAtLeastDaysAgo) {
+			const deployments = (
+				await this._provider.getDeployments({
+					entityGuid: this._request.entityGuid,
+					since: `60 days ago UNTIL ${this._request.sinceReleaseAtLeastDaysAgo} days ago`,
+				})
+			).deployments;
+			const deployment = deployments[deployments.length - 1];
+			if (deployment) {
+				const deploymentDate = new Date(deployment.seconds * 1000);
+				const now = new Date();
+				const timeDifference = now.getTime() - deploymentDate.getTime();
+				const daysDifference = timeDifference / (1000 * 60 * 60 * 24);
+				this._dataTimeFrame = `SINCE ${daysDifference} days AGO`;
+				this._totalDays = daysDifference + parseInt(this._request.baselineDays as any);
+			}
+		}
+
 		const includeSpans = this._request.includeSpans || true;
 		const minimumErrorRate = this._request.minimumErrorRate || 0.001;
 		const minimumResponseTime = this._request.minimumResponseTime || 1;
@@ -437,7 +458,7 @@ export class AnomalyDetector {
 	}
 
 	private runNrql<T>(nrql: string): Promise<T[]> {
-		return this._runNrql(this._accountId, nrql, 400);
+		return this._provider.runNrql(this._accountId, nrql, 400);
 	}
 
 	private comparisonToAnomaly(comparison: {
@@ -452,6 +473,7 @@ export class AnomalyDetector {
 			...comparison,
 			...symbol,
 			text: this.formatAnomaly(comparison),
+			totalDays: this._totalDays,
 		};
 	}
 }
