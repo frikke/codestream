@@ -9,6 +9,9 @@ import fs from "fs";
 import httpCachedBase from "./staging-api.newrelic.com.json";
 import stringSimilarity from "string-similarity";
 
+const RECORD_MODE = false;
+const CACHE_MODE = true;
+
 const noLogRetries = ["reason: connect ECONNREFUSED", "reason: getaddrinfo ENOTFOUND"];
 
 function shouldLogRetry(errorMsg: string): boolean {
@@ -110,23 +113,27 @@ function _findCached(requestBody: string): string | undefined {
 }
 
 export async function customFetch(url: RequestInfo, init?: RequestInit): Promise<Response> {
-	const cached = resolveCached(url, init);
-	if (cached) {
-		const response = new Response(cached, {
-			status: 200,
-			size: 0,
-			timeout: 0,
-			url: url as string,
-			headers: {
-				"content-type": "application/json; charset=utf-8",
-			},
-		});
-		Logger.log(`*** returning http cached for ${url}`);
-		return response;
+	if (CACHE_MODE) {
+		const cached = resolveCached(url, init);
+		if (cached) {
+			const response = new Response(cached, {
+				status: 200,
+				size: 0,
+				timeout: 0,
+				url: url as string,
+				headers: {
+					"content-type": "application/json; charset=utf-8",
+				},
+			});
+			Logger.log(`*** returning http cached for ${url}`);
+			return response;
+		}
 	}
 	const responses = await fetchCore(0, url, init);
 	const response = responses[0];
-	// await recordRequestResponse(url, response, init);
+	if (RECORD_MODE) {
+		await recordRequestResponse(url, response, init);
+	}
 	return response;
 }
 

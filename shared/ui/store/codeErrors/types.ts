@@ -6,6 +6,7 @@ export enum CodeErrorsActionsTypes {
 	AddCodeErrors = "ADD_CODEERRORS",
 	SaveCodeErrors = "@codeErrors/SaveCodeErrors",
 	SetFunctionToEdit = "@codeErrors/SetFunctionToEdit",
+	SetCodeSolution = "@codeErrors/SetCodeSolution",
 	UpdateCodeErrors = "@codeErrors/UpdateCodeErrors",
 	Delete = "@codeErrors/Delete",
 	Bootstrap = "@codeErrors/Bootstrap",
@@ -32,4 +33,5 @@ export type CodeErrorsState = {
 		errorGroup: NewRelicErrorGroup;
 	}>;
 	functionToEdit?: FunctionToEdit;
+	codeSolution?: string;
 };

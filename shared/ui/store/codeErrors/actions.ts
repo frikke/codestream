@@ -35,6 +35,9 @@ export const _updateCodeErrors = (codeErrors: CSCodeError[]) =>
 export const setFunctionToEdit = (functionToEdit: FunctionToEdit | undefined) =>
 	action(CodeErrorsActionsTypes.SetFunctionToEdit, functionToEdit);
 
+export const setCodeSolution = (codeSolution: string | undefined) =>
+	action(CodeErrorsActionsTypes.SetCodeSolution, codeSolution);
+
 export interface NewCodeErrorAttributes {
 	accountId?: number;
 	objectId?: string;
