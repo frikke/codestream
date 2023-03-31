@@ -2765,7 +2765,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		let data;
 		if (response.status >= 400 && response.status < 500) {
 			try {
-				data = await response.json();
+				data = (await response.json()) as any;
 				if (data.code) {
 					message += `(${data.code})`;
 				}
@@ -2886,7 +2886,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 					maintenanceMode: !!resp.headers.get("x-cs-api-maintenance-mode"),
 				};
 			} else {
-				const json = await resp.json();
+				const json = (await resp.json()) as any;
 				response.capabilities = json.capabilities;
 				response.environment = json.environment;
 				response.isOnPrem = json.isOnPrem;
