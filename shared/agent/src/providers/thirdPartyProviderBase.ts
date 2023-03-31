@@ -428,9 +428,9 @@ export abstract class ThirdPartyProviderBase<
 
 			method = (init && init.method) || "GET";
 			absoluteUrl = options.absoluteUrl ? url : `${this.baseUrl}${url}`;
-			if (options.timeout != null) {
-				init.timeout = options.timeout;
-			}
+			// if (options.timeout != null) {
+			// 	init.timeout = options.timeout;
+			// }
 
 			let json: Promise<R> | undefined;
 			let resp: Response | undefined;
@@ -494,7 +494,7 @@ export abstract class ThirdPartyProviderBase<
 		}
 		if (response.status >= 400 && response.status < 500) {
 			try {
-				data = await response.json();
+				data = (await response.json()) as any;
 				if (this.isUnauthorizedError(response, data)) {
 					return new InternalError(ReportSuppressedMessages.Unauthorized);
 				}
