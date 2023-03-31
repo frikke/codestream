@@ -22,7 +22,7 @@ function shouldLogRetry(errorMsg: string): boolean {
 const codeStreamDirectory = path.join(os.homedir(), ".codestream");
 const exportDir = path.join(codeStreamDirectory, "export");
 
-export type RequestHistory = {
+export type HttpTransaction = {
 	timestamp: string;
 	url: string;
 	method: string;
@@ -30,7 +30,7 @@ export type RequestHistory = {
 	response: string;
 };
 
-const requestMap = new Map<string, RequestHistory[]>();
+const requestMap = new Map<string, HttpTransaction[]>();
 
 async function recordRequestResponse(
 	requestInfo: RequestInfo,
@@ -48,15 +48,15 @@ async function recordRequestResponse(
 			? requestInfo.url
 			: requestInfo.href;
 	const key = requestInfoToUrl(requestInfo)?.host ?? "<unknown>";
-	const requestHist: RequestHistory = {
+	const httpTransaction: HttpTransaction = {
 		timestamp: new Date().toISOString(),
 		url: urlString,
 		method: init?.method!,
 		requestBody: typeof init?.body === "string" ? init?.body : undefined,
 		response: responseBody,
 	};
-	const requesetList = requestMap.get(key) ?? new Array<RequestHistory>();
-	requesetList.push(requestHist);
+	const requesetList = requestMap.get(key) ?? new Array<HttpTransaction>();
+	requesetList.push(httpTransaction);
 	requestMap.set(key, requesetList);
 	exportRequestResponse();
 }
@@ -105,7 +105,7 @@ function resolveCached(url: RequestInfo, init?: RequestInit): string | undefined
 const findCached = memoize(_findCached);
 
 function _findCached(requestBody: string): string | undefined {
-	const httpCached: RequestHistory[] = httpCachedBase;
+	const httpCached: HttpTransaction[] = httpCachedBase;
 	const httpTransaction = httpCached.find(
 		item => stringSimilarity.compareTwoStrings(item.requestBody!, requestBody) > 0.98
 	);
