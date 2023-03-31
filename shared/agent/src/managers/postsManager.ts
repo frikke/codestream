@@ -115,7 +115,7 @@ import { EntityManagerBase, Id } from "./entityManager";
 import { MarkersBuilder } from "./markersBuilder";
 
 import getProviderDisplayName = Marker.getProviderDisplayName;
-import { getChatResponseCached } from "providers/chatgpt/chatGptCached";
+import { getChatResponseCached } from "../providers/chatgpt/chatGptCached";
 
 export type FetchPostsFn = (request: FetchPostsRequest) => Promise<FetchPostsResponse>;
 
