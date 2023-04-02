@@ -30,6 +30,7 @@ import {
 	MuteStreamRequestType,
 	OpenStreamRequestType,
 	PostPlus,
+	PostSubmitType,
 	ReactToPostRequestType,
 	RenameStreamRequestType,
 	SetCodemarkPinnedRequestType,
@@ -308,8 +309,7 @@ export type PostExtra = {
 	entryPoint?: string;
 	reviewCheckpoint?: number;
 	crossPostIssueValues?: CrossPostIssueValues;
-	analyzeStacktrace?: boolean;
-	chat?: boolean;
+	submitType?: PostSubmitType;
 };
 
 export const createPost =
@@ -404,8 +404,7 @@ export const createPost =
 					entryPoint: extra.entryPoint,
 					reviewCheckpoint: extra.reviewCheckpoint,
 					files: extra.files,
-					analyzeStacktrace: extra.analyzeStacktrace,
-					chat: extra.chat,
+					submitType: extra.submitType,
 				});
 			}
 			const response = await responsePromise;
@@ -480,7 +479,7 @@ export const createPost =
 			}
 			response.streams &&
 				response.streams.forEach(stream => dispatch(streamActions.updateStream(stream)));
-			if (extra.analyzeStacktrace) {
+			if (extra.submitType === "analyze") {
 				const solution = extractCodeSolution(response.post);
 				dispatch(setCodeSolution(solution));
 			}

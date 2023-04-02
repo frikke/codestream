@@ -253,7 +253,7 @@ export const Reply = (props: ReplyProps) => {
 	const numNestedReplies = props.nestedReplies ? props.nestedReplies.length : 0;
 	const hasNestedReplies = numNestedReplies > 0;
 
-	const postText = codemark != null ? codemark.text : props.post.text.replace("#chatgpt#", "");
+	const postText = codemark != null ? codemark.text : props.post.text.replace(/#chatgpt#/g, "");
 	const escapedPostText = escapeHtml(postText);
 	const [newReplyText, setNewReplyText] = React.useState(escapedPostText);
 

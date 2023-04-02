@@ -5,6 +5,7 @@ export enum CodeErrorsActionsTypes {
 	AddCodeErrors = "ADD_CODEERRORS",
 	SaveCodeErrors = "@codeErrors/SaveCodeErrors",
 	SetFunctionToEdit = "@codeErrors/SetFunctionToEdit",
+	SetIsLoading = "@codeErrors/SetIsLoading",
 	SetCodeSolution = "@codeErrors/SetCodeSolution",
 	UpdateCodeErrors = "@codeErrors/UpdateCodeErrors",
 	DidResolveStackTraceLines = "@codeErrors/DidResolveStackTraceLines",
@@ -47,4 +48,5 @@ export type CodeErrorsState = {
 	functionToEdit?: FunctionToEdit;
 	codeSolution?: string;
 	didResolveStackTraceLines: boolean;
+	isLoading: "chat" | "post" | undefined;
 };
