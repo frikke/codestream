@@ -31,6 +31,7 @@ import {
 	_setErrorGroup,
 	_updateCodeErrors,
 	setFunctionToEdit,
+	_didResolveStackTraceLines,
 } from "@codestream/webview/store/codeErrors/actions";
 import { getCodeError } from "@codestream/webview/store/codeErrors/reducer";
 import { setCurrentCodeError } from "@codestream/webview/store/context/actions";
@@ -52,6 +53,7 @@ export const updateCodeErrors =
 		}));
 		dispatch(_updateCodeErrors(codeErrors));
 	};
+
 export const resolveStackTraceLine =
 	(notification: DidResolveStackTraceLineNotification) =>
 	async (dispatch, getState: () => CodeStreamState) => {
@@ -83,6 +85,7 @@ export const resolveStackTraceLine =
 			stackTraces: updatedStackTraces,
 		};
 		dispatch(_updateCodeErrors([updatedCodeError]));
+		dispatch(_didResolveStackTraceLines(true));
 	};
 
 export interface CreateCodeErrorError {
@@ -467,16 +470,21 @@ export const api =
 export const replaceSymbol =
 	(uri: string, symbol: string, codeBlock: string) =>
 	async (dispatch, getState: () => CodeStreamState) => {
-		const state = getState();
-		const symbolDetails = await HostApi.instance.send(EditorReplaceSymbolType, {
+		await HostApi.instance.send(EditorReplaceSymbolType, {
 			uri,
-			symbolName: "collectStreetAddresses",
+			symbolName: symbol,
 			codeBlock,
 		});
 	};
 
 export const jumpToStackLine =
-	(lineIndex: number, stackLine: CSStackTraceLine, ref: string, repoId: string) =>
+	(
+		lineIndex: number,
+		stackLine: CSStackTraceLine,
+		ref: string,
+		repoId: string,
+		symbolName?: string
+	) =>
 	async (dispatch, getState: () => CodeStreamState) => {
 		const state = getState();
 		dispatch(
@@ -529,21 +537,22 @@ export const jumpToStackLine =
 			});
 		}
 
-		const symbolDetails = await HostApi.instance.send(EditorCopySymbolType, {
-			uri: path!,
-			symbolName: "collectStreetAddresses", // TODO no hardcode
-		});
+		if (symbolName) {
+			const symbolDetails = await HostApi.instance.send(EditorCopySymbolType, {
+				uri: path!,
+				symbolName,
+			});
 
-		if (symbolDetails.success && symbolDetails.range && symbolDetails.text) {
-			dispatch(
-				setFunctionToEdit({
-					codeBlock: symbolDetails.text,
-					symbol: "collectStreetAddresses", // TODO no hardcode
-					uri: path!,
-				})
-			);
+			if (symbolDetails.success && symbolDetails.range && symbolDetails.text) {
+				dispatch(
+					setFunctionToEdit({
+						codeBlock: symbolDetails.text,
+						symbol: symbolName, // TODO no hardcode
+						uri: path!,
+					})
+				);
+			}
 		}
-		return symbolDetails;
 	};
 
 export const updateCodeError = request => async dispatch => {

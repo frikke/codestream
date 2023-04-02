@@ -32,6 +32,9 @@ export const saveCodeErrors = (codeErrors: CSCodeError[]) =>
 export const _updateCodeErrors = (codeErrors: CSCodeError[]) =>
 	action(CodeErrorsActionsTypes.UpdateCodeErrors, codeErrors);
 
+export const _didResolveStackTraceLines = (did: boolean) =>
+	action(CodeErrorsActionsTypes.DidResolveStackTraceLines, did);
+
 export const setFunctionToEdit = (functionToEdit: FunctionToEdit | undefined) =>
 	action(CodeErrorsActionsTypes.SetFunctionToEdit, functionToEdit);
 

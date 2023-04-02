@@ -335,7 +335,10 @@ export class NRManager {
 						);
 					} else {
 						const resolvedPath = resolveStackTracePathsResponse.resolvedPaths[i];
-						if (resolvedPath) {
+						const isLibrary = line.fileFullPath
+							? libraryMatchers[parsedStackInfo.language]?.(line.fileFullPath)
+							: false;
+						if (resolvedPath && !isLibrary) {
 							const pathExists = await this.resolvePathAtRef(resolvedPath, ref);
 							if (pathExists) {
 								resolvedLine = {
@@ -354,6 +357,7 @@ export class NRManager {
 						} else {
 							resolvedLine = {
 								error: `Unable to find matching file for path ${line.fileFullPath}`,
+								resolved: false,
 							};
 						}
 

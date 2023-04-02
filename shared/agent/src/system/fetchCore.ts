@@ -6,7 +6,8 @@ import { handleLimit, InternalRateError } from "../rateLimits";
 import os from "os";
 import path from "path";
 import fs from "fs";
-import httpCachedBase from "./staging-api.newrelic.com.json";
+import nrStagingApiCachedBase from "./staging-api.newrelic.com.json";
+import openaiCachedBase from "./api.openai.com.json";
 import { compareTwoStrings } from "string-similarity";
 
 const RECORD_MODE = false;
@@ -55,9 +56,9 @@ async function recordRequestResponse(
 		requestBody: typeof init?.body === "string" ? init?.body : undefined,
 		response: responseBody,
 	};
-	const requesetList = requestMap.get(key) ?? new Array<HttpTransaction>();
-	requesetList.push(httpTransaction);
-	requestMap.set(key, requesetList);
+	const requestList = requestMap.get(key) ?? new Array<HttpTransaction>();
+	requestList.push(httpTransaction);
+	requestMap.set(key, requestList);
 	exportRequestResponse();
 }
 
@@ -80,11 +81,12 @@ const cachable = [
 	"getErrorGroup",
 	"getStackTrace",
 	"TransactionError",
+	"gpt-3.5-turbo",
 ];
 
-function resolveCached(url: RequestInfo, init?: RequestInit): string | undefined {
+async function resolveCached(url: RequestInfo, init?: RequestInit): Promise<string | undefined> {
 	const origin = urlOrigin(url);
-	if (!origin.includes("staging-api.newrelic.com")) {
+	if (!origin.includes("staging-api.newrelic.com") && !origin.includes("api.openai.com")) {
 		return undefined;
 	}
 
@@ -98,23 +100,35 @@ function resolveCached(url: RequestInfo, init?: RequestInit): string | undefined
 		return undefined;
 	}
 	// Yeah, find best match
-	const httpTransaction = findCached(requestBody);
-	return httpTransaction;
+	const host = requestInfoToUrl(url)?.host;
+	if (host) {
+		const cachedResponse = findCached({ host, requestBody });
+		// Don't be too fast
+		await Functions.wait(500);
+		return cachedResponse;
+	}
+	return undefined;
 }
 
 const findCached = memoize(_findCached);
 
-function _findCached(requestBody: string): string | undefined {
-	const httpCached: HttpTransaction[] = httpCachedBase;
+function _findCached(params: { host: string; requestBody: string }): string | undefined {
+	const { host, requestBody } = params;
+	const httpCached: HttpTransaction[] =
+		host === "api.openai.com" ? openaiCachedBase : nrStagingApiCachedBase;
+	const exactMatch = httpCached.find(item => item.requestBody === requestBody);
+	if (exactMatch) {
+		return exactMatch.response;
+	}
 	const httpTransaction = httpCached.find(
-		item => compareTwoStrings(item.requestBody ?? "", requestBody) > 0.98
+		item => compareTwoStrings(item.requestBody ?? "", requestBody) > 0.95
 	);
 	return httpTransaction?.response ?? undefined;
 }
 
 export async function customFetch(url: RequestInfo, init?: RequestInit): Promise<Response> {
 	if (CACHE_MODE) {
-		const cached = resolveCached(url, init);
+		const cached = await resolveCached(url, init);
 		if (cached) {
 			const response = new Response(cached, {
 				status: 200,

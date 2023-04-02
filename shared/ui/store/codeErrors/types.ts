@@ -7,6 +7,7 @@ export enum CodeErrorsActionsTypes {
 	SetFunctionToEdit = "@codeErrors/SetFunctionToEdit",
 	SetCodeSolution = "@codeErrors/SetCodeSolution",
 	UpdateCodeErrors = "@codeErrors/UpdateCodeErrors",
+	DidResolveStackTraceLines = "@codeErrors/DidResolveStackTraceLines",
 	Delete = "@codeErrors/Delete",
 	Bootstrap = "@codeErrors/Bootstrap",
 	HandleDirectives = "@codeErrors/HandleDirectives",
@@ -45,4 +46,5 @@ export type CodeErrorsState = {
 	}>;
 	functionToEdit?: FunctionToEdit;
 	codeSolution?: string;
+	didResolveStackTraceLines: boolean;
 };
