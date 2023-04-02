@@ -13,6 +13,7 @@ import {
 	isChatGptErrorResponse,
 } from "./types";
 import { isEmpty } from "lodash";
+import { Logger } from "../../logger";
 
 const apiUrl = "https://api.openai.com/v1/chat/completions";
 
@@ -75,5 +76,8 @@ export async function getChatResponse(
 	}
 	const responseMessage = `${message.content}`;
 	conversation.push(message);
+	Logger.log(`*** ChatGPT prompt ${prompt}`);
+	Logger.log(`*** ChatGPT response ${message}`);
+
 	return `#chatgpt#${responseMessage}`;
 }
