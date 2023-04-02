@@ -1916,6 +1916,9 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 		let streamId;
 		let requiresUpdate;
 		let codemarkId;
+
+		const submitType = request.submitType || "normal";
+
 		if (this.session.api.providerType !== ProviderType.CodeStream) {
 			if (request.codemark) {
 				codemarkResponse = await this.session.api.createCodemark({
@@ -1940,14 +1943,18 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 		} else {
 			// is CS team -- this createPost will create a Post and a Codemark
 			const postMessages = new Array<CreatePostRequest>();
-			if (!request.analyzeStacktrace) {
+			if (submitType !== "analyze" && submitType !== "fix_applied") {
 				// First message is from user
-				postMessages.push({ ...request, chat: false });
+				postMessages.push({ ...request });
 			}
-			if (request.analyzeStacktrace || request.chat) {
+			if (submitType !== "normal") {
 				const chatResponse = await getChatResponse(request.streamId, request.text);
+				const resolvedChatResponse =
+					submitType === "fix_applied"
+						? `#chatgpt#Code fix applied. A good commit message would be:\n\n ${chatResponse}`
+						: chatResponse;
 				// Second message is ChatGPT response
-				postMessages.push({ ...request, text: chatResponse });
+				postMessages.push({ ...request, text: resolvedChatResponse });
 			}
 			for (const finalRequest of postMessages) {
 				response = await this.session.api.createPost(finalRequest);

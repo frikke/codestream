@@ -71,6 +71,8 @@ export interface DeleteSharedExternalPostResponse {
 	ts?: string;
 }
 
+export type PostSubmitType = "normal" | "analyze" | "chat" | "fix_applied";
+
 export interface CreatePostRequest {
 	streamId: string;
 	text: string;
@@ -96,8 +98,7 @@ export interface CreatePostRequest {
 	isPseudoCodemark?: boolean;
 	reviewCheckpoint?: number;
 	files?: Attachment[];
-	analyzeStacktrace?: boolean;
-	chat?: boolean;
+	submitType?: PostSubmitType;
 }
 
 export interface CrossPostIssueValues {

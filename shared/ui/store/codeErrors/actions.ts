@@ -38,6 +38,9 @@ export const _didResolveStackTraceLines = (did: boolean) =>
 export const setFunctionToEdit = (functionToEdit: FunctionToEdit | undefined) =>
 	action(CodeErrorsActionsTypes.SetFunctionToEdit, functionToEdit);
 
+export const setIsLoading = (status: "chat" | "post" | undefined) =>
+	action(CodeErrorsActionsTypes.SetIsLoading, status);
+
 export const setCodeSolution = (codeSolution: string | undefined) =>
 	action(CodeErrorsActionsTypes.SetCodeSolution, codeSolution);
 

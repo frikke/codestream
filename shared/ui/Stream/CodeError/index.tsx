@@ -2,6 +2,7 @@ import {
 	DidChangeObservabilityDataNotificationType,
 	GetNewRelicAssigneesRequestType,
 	NewRelicErrorGroup,
+	PostSubmitType,
 	ResolveStackTraceResponse,
 } from "@codestream/protocols/agent";
 import { CSCodeError, CSPost, CSStackTraceLine, CSUser } from "@codestream/protocols/api";
@@ -22,6 +23,7 @@ import { CodeStreamState } from "@codestream/webview/store";
 import {
 	fetchCodeError,
 	PENDING_CODE_ERROR_ID_PREFIX,
+	setIsLoading,
 } from "@codestream/webview/store/codeErrors/actions";
 import { getCodeError, getCodeErrorCreator } from "@codestream/webview/store/codeErrors/reducer";
 import {
@@ -87,11 +89,9 @@ interface SimpleError {
 	type?: string;
 }
 
-type SubmitType = "normal" | "analyze" | "chat";
-
 export interface BaseCodeErrorProps extends CardProps {
 	analyzeClick: (event: SyntheticEvent) => void;
-	analyzeStackTrace: boolean;
+	analyzeStackTrace: number;
 	codeError: CSCodeError;
 	errorGroup?: NewRelicErrorGroup;
 	parsedStack?: ResolveStackTraceResponse;
@@ -1161,6 +1161,7 @@ const BaseCodeError = (props: BaseCodeErrorProps) => {
 			currentCodeErrorData: state.context.currentCodeErrorData,
 			hideCodeErrorInstructions: state.preferences.hideCodeErrorInstructions,
 			didResolveStackTraceLines: state.codeErrors.didResolveStackTraceLines,
+			isLoading: state.codeErrors.isLoading,
 		};
 	}, shallowEqual);
 	const renderedFooter = props.renderFooter && props.renderFooter(CardFooter, ComposeWrapper);
@@ -1318,8 +1319,10 @@ const BaseCodeError = (props: BaseCodeErrorProps) => {
 								})}
 							</ClickLines>
 						</TourTip>
-						{!props.analyzeStackTrace && (
-							<Link onClick={props.analyzeClick}>Analyze with ChatGPT</Link>
+						{props.codeError.numReplies === 0 && (
+							<Button onClick={props.analyzeClick} isLoading={!!derivedState.isLoading}>
+								Analyze with ChatGPT
+							</Button>
 						)}
 					</Meta>
 					{props.post && (
@@ -1497,16 +1500,16 @@ const renderMetaSectionCollapsed = (props: BaseCodeErrorProps) => {
 	);
 };
 
-const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: boolean }) => {
+const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: number }) => {
 	const dispatch = useAppDispatch();
 	const [text, setText] = React.useState("");
 	const [attachments, setAttachments] = React.useState<AttachmentField[]>([]);
-	const [isLoading, setIsLoading] = React.useState<"post" | "chat" | undefined>(undefined);
 	const teamMates = useAppSelector((state: CodeStreamState) => getTeamMates(state));
 	const [fixApplied, setFixApplied] = React.useState(false);
 	const functionToEdit = useAppSelector(state => state.codeErrors.functionToEdit);
 	const codeSolution = useAppSelector(state => state.codeErrors.codeSolution);
 	const butttonRow = React.useRef<HTMLDivElement>(null);
+	const isLoading = useAppSelector(state => state.codeErrors.isLoading);
 
 	const scrollToNew = () => {
 		const row = butttonRow.current;
@@ -1530,7 +1533,13 @@ const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: boolean 
 	};
 
 	useEffect(() => {
-		if (props.analyzeStacktrace === true) {
+		if (props.codeError.numReplies === 0) {
+			setFixApplied(false);
+		}
+	}, [props.codeError]);
+
+	useEffect(() => {
+		if (props.analyzeStacktrace > 0) {
 			submit("analyze");
 		}
 	}, [props.analyzeStacktrace]);
@@ -1538,18 +1547,31 @@ const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: boolean 
 	const applyFix = async (event: SyntheticEvent) => {
 		if (codeSolution && functionToEdit) {
 			await dispatch(replaceSymbol(functionToEdit.uri, functionToEdit.symbol, codeSolution));
+			submit("fix_applied");
 			setFixApplied(true);
 		}
 	};
 
-	const submit = async (submitType: SubmitType = "normal") => {
+	const getSubmitText = (submitType: PostSubmitType): string => {
+		switch (submitType) {
+			case "analyze":
+				return getStackTraceText();
+			case "fix_applied": {
+				return "What is a good commit message for this change?";
+			}
+			default:
+				return text;
+		}
+	};
+
+	const submit = async (submitType: PostSubmitType = "normal") => {
 		// don't create empty replies
-		const theText = submitType === "analyze" ? getStackTraceText() : text;
+		const theText = getSubmitText(submitType);
 		if (theText.length === 0) return;
 
-		const isChat = submitType === "analyze" || submitType === "chat";
+		const isChat = submitType !== "normal";
 
-		setIsLoading(isChat ? "chat" : "post");
+		dispatch(setIsLoading(isChat ? "chat" : "post"));
 
 		const actualCodeError = (await dispatch(
 			upgradePendingCodeError(props.codeError.id, "Comment")
@@ -1568,13 +1590,12 @@ const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: boolean 
 				{
 					entryPoint: "Code Error",
 					files: attachments,
-					analyzeStacktrace: submitType === "analyze",
-					chat: submitType === "chat",
+					submitType: submitType,
 				}
 			)
 		);
 
-		setIsLoading(undefined);
+		dispatch(setIsLoading(undefined));
 		setText("");
 		setAttachments([]);
 		setTimeout(scrollToNew, 500);
@@ -1593,7 +1614,7 @@ const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: boolean 
 				setAttachments={setAttachments}
 			/> */}
 			<ButtonRow ref={butttonRow} style={{ marginTop: 0 }}>
-				{codeSolution && !fixApplied && (
+				{codeSolution && !fixApplied && props.codeError.numReplies > 0 && (
 					<div>
 						<Button onClick={applyFix} isLoading={isLoading === "chat"}>
 							Apply Fix
@@ -1661,7 +1682,7 @@ const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 	});
 	const [isEditing, setIsEditing] = React.useState(false);
 	const [shareModalOpen, setShareModalOpen] = React.useState(false);
-	const [isAnalyzeStackTrace, setAnalyzeStackTrace] = React.useState(false);
+	const [analyzeStackTrace, setAnalyzeStackTrace] = React.useState(0);
 
 	useDidMount(() => {
 		if (!props.collapsed) {
@@ -1673,7 +1694,7 @@ const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 	});
 
 	const analyzeSubmit = (e: SyntheticEvent) => {
-		setAnalyzeStackTrace(true);
+		setAnalyzeStackTrace(analyzeStackTrace + 1);
 	};
 
 	const renderFooter =
@@ -1685,7 +1706,7 @@ const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 				<Footer className="replies-to-review" style={{ borderTop: "none", marginTop: 0 }}>
 					{props.codeError.postId && (
 						<>
-							{derivedState.replies?.length > 0 && <MetaLabel>Activity</MetaLabel>}
+							{props.codeError.numReplies > 0 && <MetaLabel>Activity</MetaLabel>}
 							<RepliesToPost
 								streamId={props.codeError.streamId}
 								parentPostId={props.codeError.postId}
@@ -1697,7 +1718,7 @@ const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 
 					{InputContainer && !derivedState.isPDIdev && (
 						<InputContainer>
-							<ReplyInput analyzeStacktrace={isAnalyzeStackTrace} codeError={codeError} />
+							<ReplyInput analyzeStacktrace={analyzeStackTrace} codeError={codeError} />
 						</InputContainer>
 					)}
 				</Footer>
@@ -1730,7 +1751,7 @@ const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 			<BaseCodeError
 				{...baseProps}
 				analyzeClick={analyzeSubmit}
-				analyzeStackTrace={isAnalyzeStackTrace}
+				analyzeStackTrace={analyzeStackTrace}
 				parsedStack={props.parsedStack}
 				codeError={props.codeError}
 				post={derivedState.post}
