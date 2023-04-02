@@ -1127,6 +1127,7 @@ const BaseCodeError = (props: BaseCodeErrorProps) => {
 			hideCodeErrorInstructions: state.preferences.hideCodeErrorInstructions,
 			didResolveStackTraceLines: state.codeErrors.didResolveStackTraceLines,
 			isLoading: state.codeErrors.isLoading,
+			replies: getThreadPosts(state, codeError.streamId, codeError.postId),
 		};
 	}, shallowEqual);
 	const renderedFooter = props.renderFooter && props.renderFooter(CardFooter, ComposeWrapper);
@@ -1284,7 +1285,7 @@ const BaseCodeError = (props: BaseCodeErrorProps) => {
 								})}
 							</ClickLines>
 						</TourTip>
-						{props.codeError.numReplies === 0 && (
+						{derivedState.replies.length === 0 && (
 							<Button onClick={props.analyzeClick} isLoading={!!derivedState.isLoading}>
 								Analyze with ChatGPT
 							</Button>
@@ -1475,6 +1476,9 @@ const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: number }
 	const codeSolution = useAppSelector(state => state.codeErrors.codeSolution);
 	const butttonRow = React.useRef<HTMLDivElement>(null);
 	const isLoading = useAppSelector(state => state.codeErrors.isLoading);
+	const replies = useAppSelector(state =>
+		getThreadPosts(state, props.codeError.streamId, props.codeError.postId)
+	);
 
 	const scrollToNew = () => {
 		const row = butttonRow.current;
@@ -1498,7 +1502,7 @@ const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: number }
 	};
 
 	useEffect(() => {
-		if (props.codeError.numReplies === 0) {
+		if (replies.length === 0) {
 			setFixApplied(false);
 		}
 	}, [props.codeError]);
@@ -1579,7 +1583,7 @@ const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: number }
 				setAttachments={setAttachments}
 			/> */}
 			<ButtonRow ref={butttonRow} style={{ marginTop: 0 }}>
-				{codeSolution && !fixApplied && props.codeError.numReplies > 0 && (
+				{codeSolution && !fixApplied && replies.length > 0 && (
 					<div>
 						<Button onClick={applyFix} isLoading={isLoading === "chat"}>
 							Apply Fix
@@ -1671,12 +1675,12 @@ const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 				<Footer className="replies-to-review" style={{ borderTop: "none", marginTop: 0 }}>
 					{props.codeError.postId && (
 						<>
-							{props.codeError.numReplies > 0 && <MetaLabel>Activity</MetaLabel>}
+							{derivedState.replies.length > 0 && <MetaLabel>Activity</MetaLabel>}
 							<RepliesToPost
 								streamId={props.codeError.streamId}
 								parentPostId={props.codeError.postId}
 								itemId={props.codeError.id}
-								numReplies={props.codeError.numReplies}
+								numReplies={derivedState.replies.length}
 							/>
 						</>
 					)}
