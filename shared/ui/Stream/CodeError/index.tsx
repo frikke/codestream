@@ -4,7 +4,7 @@ import {
 	NewRelicErrorGroup,
 	ResolveStackTraceResponse,
 } from "@codestream/protocols/agent";
-import { CSCodeError, CSPost, CSUser } from "@codestream/protocols/api";
+import { CSCodeError, CSPost, CSStackTraceLine, CSUser } from "@codestream/protocols/api";
 import React, { PropsWithChildren, SyntheticEvent, useEffect } from "react";
 import { shallowEqual, useSelector } from "react-redux";
 import styled from "styled-components";
@@ -138,6 +138,7 @@ const ComposeWrapper = styled.div.attrs(() => ({
 	&&& {
 		padding: 0 !important;
 	}
+
 	.message-input#input-div {
 		max-width: none !important;
 	}
@@ -155,12 +156,14 @@ export const Description = styled.div`
 
 const ClickLines = styled.div`
 	padding: 1px !important;
+
 	&:focus {
 		border: none;
 		outline: none;
 	}
+
 	,
-	&.pulse {
+	& . pulse {
 		opacity: 1;
 		background: var(--app-background-color-hover);
 	}
@@ -184,6 +187,7 @@ const ClickLine = styled.div`
 	direction: rtl;
 	text-overflow: ellipsis;
 	overflow: hidden;
+
 	:hover {
 		color: var(--text-color-highlight);
 		background: var(--app-background-color-hover);
@@ -207,15 +211,18 @@ const ApmServiceTitle = styled.span`
 		color: var(--text-color-highlight);
 		text-decoration: none;
 	}
+
 	.open-external {
 		margin-left: 5px;
 		font-size: 12px;
 		visibility: hidden;
 		color: var(--text-color-highlight);
 	}
+
 	&:hover .open-external {
 		visibility: visible;
 	}
+
 	padding-left: 5px;
 `;
 
@@ -1153,8 +1160,9 @@ const BaseCodeError = (props: BaseCodeErrorProps) => {
 			errorGroupIsLoading: (state.codeErrors.errorGroups[codeError.objectId] as any)?.isLoading,
 			currentCodeErrorData: state.context.currentCodeErrorData,
 			hideCodeErrorInstructions: state.preferences.hideCodeErrorInstructions,
+			didResolveStackTraceLines: state.codeErrors.didResolveStackTraceLines,
 		};
-	});
+	}, shallowEqual);
 	const renderedFooter = props.renderFooter && props.renderFooter(CardFooter, ComposeWrapper);
 	const { codeError, errorGroup } = derivedState;
 
@@ -1180,11 +1188,26 @@ const BaseCodeError = (props: BaseCodeErrorProps) => {
 	const stackTrace = stackTraces && stackTraces[0] && stackTraces[0].lines;
 	const stackTraceText = stackTraces && stackTraces[0] && stackTraces[0].text;
 
+	function extractMethodName(lines: CSStackTraceLine[]): string | undefined {
+		for (const line of lines) {
+			if (line.method && line.method !== "<unknown>" && line.fileFullPath !== "<anonymous>") {
+				return line.method;
+			}
+		}
+		return undefined;
+	}
+
 	useEffect(() => {
-		if (!props.collapsed && !didJumpToFirstAvailableLine) {
+		if (
+			!props.collapsed &&
+			!didJumpToFirstAvailableLine &&
+			derivedState.didResolveStackTraceLines
+		) {
+			// Pause so DidResolveStackTraceLineNotification has time to finish
 			const { stackTraces } = codeError;
 			const stackInfo = (stackTraces && stackTraces[0]) || codeError.stackInfo;
 			if (stackInfo?.lines) {
+				const methodName = extractMethodName(stackInfo.lines);
 				let lineIndex = currentSelectedLine;
 				const len = stackInfo.lines.length;
 				while (
@@ -1204,7 +1227,8 @@ const BaseCodeError = (props: BaseCodeErrorProps) => {
 								lineIndex,
 								stackInfo.lines[lineIndex],
 								stackInfo.sha,
-								stackInfo.repoId!
+								stackInfo.repoId!,
+								methodName
 							)
 						);
 					} catch (ex) {
@@ -1213,7 +1237,7 @@ const BaseCodeError = (props: BaseCodeErrorProps) => {
 				}
 			}
 		}
-	}, [codeError]);
+	}, [codeError, derivedState.didResolveStackTraceLines]);
 
 	const handleKeyDown = event => {
 		if (

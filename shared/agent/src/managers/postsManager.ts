@@ -115,7 +115,7 @@ import { EntityManagerBase, Id } from "./entityManager";
 import { MarkersBuilder } from "./markersBuilder";
 
 import getProviderDisplayName = Marker.getProviderDisplayName;
-import { getChatResponseCached } from "../providers/chatgpt/chatGptCached";
+import { getChatResponse } from "../providers/chatgpt/chatGpt";
 
 export type FetchPostsFn = (request: FetchPostsRequest) => Promise<FetchPostsResponse>;
 
@@ -1288,7 +1288,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 		const codeBlock = request.attributes.codeBlocks[0];
 		let chatResponsePromise: Promise<string> | undefined = undefined;
 		if (request.attributes.analyze && codeBlock.contents) {
-			chatResponsePromise = getChatResponseCached(
+			chatResponsePromise = getChatResponse(
 				stream.id,
 				`${codemarkRequest.text!}\n${codeBlock.contents}`
 			);
@@ -1945,7 +1945,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				postMessages.push({ ...request, chat: false });
 			}
 			if (request.analyzeStacktrace || request.chat) {
-				const chatResponse = await getChatResponseCached(request.streamId, request.text);
+				const chatResponse = await getChatResponse(request.streamId, request.text);
 				// Second message is ChatGPT response
 				postMessages.push({ ...request, text: chatResponse });
 			}

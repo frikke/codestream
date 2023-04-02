@@ -61,7 +61,7 @@ export async function replaceSymbol(
 		editor?.document,
 		new CancellationTokenSource().token
 	);
-	const updatedTargetSymbol = symbols.allSymbols.find(s => s.name === params.symbolName);
+	const updatedTargetSymbol = updatedSymbols.allSymbols.find(s => s.name === params.symbolName);
 	if (!updatedTargetSymbol) {
 		// we still win but not formatted?
 		return {
@@ -73,7 +73,9 @@ export async function replaceSymbol(
 	});
 	await commands.executeCommand(BuiltInCommands.IndentSelection);
 	await commands.executeCommand(BuiltInCommands.FormatSelection);
+	// Undo the highlight done by the stack trace error jump
 	await Editor.highlightRange(uri, updatedTargetSymbol.range, undefined, true);
+	await editor.document.save();
 	return {
 		success: true
 	};
