@@ -94,31 +94,29 @@ export const RepliesToPost = (props: {
 		const menuItems: any[] = [];
 
 		menuItems.push({ label: "Reply", key: "reply", action: () => setReplyingToPostId(reply.id) });
-		if (reply.creatorId === currentUserId) {
-			menuItems.push({ label: "Edit", key: "edit", action: () => setEditingPostId(reply.id) });
-			menuItems.push({
-				label: "Delete",
-				key: "delete",
-				action: () => {
-					confirmPopup({
-						title: "Are you sure?",
-						message: "Deleting a post cannot be undone.",
-						centered: true,
-						buttons: [
-							{ label: "Go Back", className: "control-button" },
-							{
-								label: "Delete Post",
-								className: "delete",
-								wait: true,
-								action: () => {
-									dispatch(deletePost(reply.streamId, reply.id, reply.sharedTo));
-								},
+		menuItems.push({ label: "Edit", key: "edit", action: () => setEditingPostId(reply.id) });
+		menuItems.push({
+			label: "Delete",
+			key: "delete",
+			action: () => {
+				confirmPopup({
+					title: "Are you sure?",
+					message: "Deleting a post cannot be undone.",
+					centered: true,
+					buttons: [
+						{ label: "Go Back", className: "control-button" },
+						{
+							label: "Delete Post",
+							className: "delete",
+							wait: true,
+							action: () => {
+								dispatch(deletePost(reply.streamId, reply.id, reply.sharedTo));
 							},
-						],
-					});
-				},
-			});
-		}
+						},
+					],
+				});
+			},
+		});
 
 		return menuItems;
 	};
