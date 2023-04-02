@@ -326,21 +326,21 @@ export const createPost =
 		const pendingId = uuid();
 
 		// no need for pending post when creating a codemark
-		if (!codemark) {
-			dispatch(
-				postsActions.addPendingPost({
-					id: pendingId,
-					streamId,
-					parentPostId,
-					text,
-					codemark,
-					creatorId: session.userId!,
-					createdAt: new Date().getTime(),
-					pending: true,
-					files: extra.files,
-				})
-			);
-		}
+		// if (!codemark) {
+		// 	dispatch(
+		// 		postsActions.addPendingPost({
+		// 			id: pendingId,
+		// 			streamId,
+		// 			parentPostId,
+		// 			text,
+		// 			codemark,
+		// 			creatorId: session.userId!,
+		// 			createdAt: new Date().getTime(),
+		// 			pending: true,
+		// 			files: extra.files,
+		// 		})
+		// 	);
+		// }
 
 		const filteredPosts: any = [];
 		const injectedMiddleware = middlewareInjector.inject(

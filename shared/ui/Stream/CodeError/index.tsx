@@ -1666,6 +1666,8 @@ const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 		setAnalyzeStackTrace(analyzeStackTrace + 1);
 	};
 
+	console.warn(`*** replies ${JSON.stringify(derivedState.replies)}`);
+
 	const renderFooter =
 		props.renderFooter ||
 		((Footer, InputContainer) => {
