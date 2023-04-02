@@ -1531,7 +1531,7 @@ const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: number }
 		const error = props.codeError.stackTraces[0];
 		const codeBlock = "```";
 		if (error && error.text && functionToEdit) {
-			return `Analyze this stack trace: \n\n${codeBlock}${error.text}\n${codeBlock}\n\nAnd tell me how to fix this code:\n\n\${codeBlock}${functionToEdit.codeBlock}\n${codeBlock}\n`;
+			return `Analyze this stack trace: \n\n${codeBlock}${error.text}\n${codeBlock}\n\nAnd tell me how to fix this code:\n\n${codeBlock}${functionToEdit.codeBlock}\n${codeBlock}\n`;
 		}
 		return "";
 	};
