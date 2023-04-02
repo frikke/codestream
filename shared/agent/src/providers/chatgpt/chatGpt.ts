@@ -3,7 +3,7 @@ import { memoize } from "lodash-es";
 import path from "path";
 import fs from "fs";
 import { ResponseError } from "vscode-jsonrpc/lib/messages";
-import { ERROR_CHATGPT_INVALID_RESPONSE, ERROR_CHATGPT_LICENSE } from "@codestream/protocols/agent";
+import { ERROR_CHATGPT_INVALID_RESPONSE } from "@codestream/protocols/agent";
 import os from "os";
 import {
 	ChatApiResponse,
@@ -43,7 +43,7 @@ export async function getChatResponse(
 	conversation.push({ role, content: prompt });
 	const apiKey = getApiKey();
 	if (!apiKey) {
-		throw new ResponseError(ERROR_CHATGPT_LICENSE, "Could not find chatgpt license");
+		Logger.warn("Could not find chatgpt license");
 	}
 
 	const request: ChatGptRequest = {
