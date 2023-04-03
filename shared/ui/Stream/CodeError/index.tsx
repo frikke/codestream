@@ -1507,6 +1507,7 @@ const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: number }
 	const [attachments, setAttachments] = React.useState<AttachmentField[]>([]);
 	const teamMates = useAppSelector((state: CodeStreamState) => getTeamMates(state));
 	const [fixApplied, setFixApplied] = React.useState(false);
+	const [changesComitted, setChangesComitted] = React.useState(false);
 	const functionToEdit = useAppSelector(state => state.codeErrors.functionToEdit);
 	const codeSolution = useAppSelector(state => state.codeErrors.codeSolution);
 	const butttonRow = React.useRef<HTMLDivElement>(null);
@@ -1539,6 +1540,7 @@ const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: number }
 	useEffect(() => {
 		if (replies.length === 0) {
 			setFixApplied(false);
+			setChangesComitted(false);
 		}
 	}, [props.codeError]);
 
@@ -1547,6 +1549,13 @@ const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: number }
 			submit("analyze");
 		}
 	}, [props.analyzeStacktrace]);
+
+	const commitChanges = async (event: SyntheticEvent) => {
+		if (!changesComitted) {
+			submit("commit_changes");
+			setChangesComitted(true);
+		}
+	};
 
 	const applyFix = async (event: SyntheticEvent) => {
 		if (codeSolution && functionToEdit) {
@@ -1562,6 +1571,9 @@ const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: number }
 				return getStackTraceText();
 			case "fix_applied": {
 				return "What is a good commit message for this change?";
+			}
+			case "commit_changes": {
+				return "#chatgpt#Changes Committed";
 			}
 			default:
 				return text;
@@ -1594,7 +1606,7 @@ const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: number }
 				{
 					entryPoint: "Code Error",
 					files: attachments,
-					submitType: submitType,
+					submitType: submitType === "commit_changes" ? "normal" : submitType,
 				}
 			)
 		);
@@ -1622,6 +1634,13 @@ const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: number }
 					<div>
 						<Button onClick={applyFix} isLoading={isLoading === "chat"}>
 							Apply Fix
+						</Button>
+					</div>
+				)}
+				{codeSolution && fixApplied && !changesComitted && replies.length > 0 && (
+					<div>
+						<Button onClick={commitChanges} isLoading={!!isLoading}>
+							Commit changes
 						</Button>
 					</div>
 				)}
