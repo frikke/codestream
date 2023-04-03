@@ -2180,15 +2180,15 @@ export class NewRelicProvider
 			metricQueries: [
 				// duration
 				{
-					metricQuery: `SELECT average(newrelic.timeslice.value) * 1000 AS 'Response time (ms)'
+					metricQuery: `SELECT average(newrelic.timeslice.value) * 1000 AS 'Average duration (ms)'
 												FROM Metric
                   WHERE entity.guid IN ('${entityGuid}')
                     AND metricTimesliceName = '${metricTimesliceNameMapping["duration"]}' TIMESERIES`,
-					spanQuery: `SELECT average(duration) * 1000 AS 'Response time (ms)'
+					spanQuery: `SELECT average(duration) * 1000 AS 'Average duration (ms)'
                                FROM Span
                                WHERE entity.guid IN ('${entityGuid}')
                                  AND name = '${metricTimesliceNameMapping["duration"]}' FACET name TIMESERIES`,
-					title: "Response time (ms)",
+					title: "Average duration (ms)",
 					name: "responseTimeMs",
 				},
 				// error
@@ -2305,8 +2305,8 @@ export class NewRelicProvider
 
 					return {
 						...r,
-						["Response time (ms)"]: r["Response time (ms)"]
-							? r["Response time (ms)"].toFixed(2)
+						["Average duration (ms)"]: r["Average duration (ms)"]
+							? r["Average duration (ms)"].toFixed(2)
 							: null,
 						endDate: date,
 					};
