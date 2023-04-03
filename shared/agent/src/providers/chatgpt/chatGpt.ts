@@ -33,8 +33,12 @@ const getApiKey = memoize((): string | undefined => {
 export async function getChatResponse(
 	id: string,
 	prompt: string,
-	role = "user"
+	role = "user",
+	clear = false
 ): Promise<ChatApiResponse> {
+	if (clear) {
+		conversationCache.clear();
+	}
 	let conversation = conversationCache.get(id);
 	if (!conversation) {
 		conversation = new Array<ChatGptMessage>();

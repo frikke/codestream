@@ -1290,7 +1290,9 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 		if (request.attributes.analyze && codeBlock.contents) {
 			chatResponsePromise = getChatResponse(
 				stream.id,
-				`${codemarkRequest.text!}\n${codeBlock.contents}`
+				`${codemarkRequest.text!}\n${codeBlock.contents}`,
+				"user",
+				true
 			);
 		}
 
@@ -1948,7 +1950,12 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				postMessages.push({ ...request });
 			}
 			if (submitType !== "normal") {
-				const chatResponse = await getChatResponse(request.streamId, request.text);
+				const chatResponse = await getChatResponse(
+					request.streamId,
+					request.text,
+					"user",
+					submitType === "analyze"
+				);
 				const resolvedChatResponse =
 					submitType === "fix_applied"
 						? `#chatgpt#Code fix applied. A good commit message would be:\n\n ${chatResponse}`
