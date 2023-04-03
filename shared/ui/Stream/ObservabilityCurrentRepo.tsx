@@ -4,9 +4,9 @@ import {
 	ObservabilityRepo,
 } from "@codestream/protocols/agent";
 import React, { useEffect, useState } from "react";
-import { shallowEqual, useDispatch, useSelector } from "react-redux";
+import { shallowEqual, useSelector } from "react-redux";
 import styled from "styled-components";
-
+import { setUserPreference } from "./actions";
 import { CodeStreamState } from "../store";
 import { fetchDocumentMarkers } from "../store/documentMarkers/actions";
 import { setEditorContext } from "../store/editorContext/actions";
@@ -15,6 +15,7 @@ import { useDidMount } from "../utilities/hooks";
 import { isNotOnDisk } from "../utils";
 import { HostApi } from "../webview-api";
 import Icon from "./Icon";
+import { useAppDispatch } from "../utilities/hooks";
 
 interface Props {
 	currentRepoCallback: (repoId?: string) => void;
@@ -26,7 +27,7 @@ const CurrentRepoContainer = styled.span`
 `;
 
 export const ObservabilityCurrentRepo = React.memo((props: Props) => {
-	const dispatch = useDispatch();
+	const dispatch = useAppDispatch();
 	const derivedState = useSelector((state: CodeStreamState) => {
 		return {
 			sessionStart: state.context.sessionStart,
@@ -103,6 +104,12 @@ export const ObservabilityCurrentRepo = React.memo((props: Props) => {
 			await dispatch(setEditorContext({ scmInfo }));
 			setCurrentRepoName(repoName);
 			props.currentRepoCallback(currentRepo?.id || scmInfo?.scm?.repoId);
+			dispatch(
+				setUserPreference({
+					prefPath: ["currentO11yRepoId"],
+					value: currentRepo?.id || scmInfo?.scm?.repoId,
+				})
+			);
 		}
 
 		let scmError;
