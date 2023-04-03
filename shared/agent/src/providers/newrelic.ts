@@ -30,6 +30,7 @@ import {
 	GetAlertViolationsQueryResult,
 	GetAlertViolationsResponse,
 	GetDeploymentsRequest,
+	GetDeploymentsRequestType,
 	GetDeploymentsResponse,
 	GetEntityCountRequest,
 	GetEntityCountRequestType,
@@ -3841,7 +3842,7 @@ export class NewRelicProvider
 		return <NRErrorResponse>{ error: { type: "NR_UNKNOWN", message: ex.message, stack: ex.stack } };
 	}
 
-	@lspHandler(GetFileLevelTelemetryRequestType)
+	@lspHandler(GetDeploymentsRequestType)
 	public async getDeployments(request: GetDeploymentsRequest): Promise<GetDeploymentsResponse> {
 		const { entityGuid, since } = {
 			since: "30 days ago",
