@@ -650,7 +650,12 @@ export const Observability = React.memo((props: Props) => {
 				entityGuid,
 				sinceDaysAgo: derivedState?.clmSettings?.compareDataLastValue || 2,
 				baselineDays: derivedState?.clmSettings?.againstDataPrecedingValue || 5,
-				sinceReleaseAtLeastDaysAgo: derivedState?.clmSettings.compareDataLastReleaseValue,
+				sinceReleaseAtLeastDaysAgo: derivedState?.clmSettings?.compareDataLastReleaseValue,
+				minimumErrorRate: parseFloat(derivedState?.clmSettings?.minimumErrorRateValue || 0.1),
+				minimumResponseTime: parseFloat(
+					derivedState?.clmSettings?.minimumAverageDurationValue || 10
+				),
+				minimumSampleRate: parseFloat(derivedState?.clmSettings?.minimumBaselineValue || 30),
 			})
 			.then(response => {
 				setObservabilityAnomalies(response);
