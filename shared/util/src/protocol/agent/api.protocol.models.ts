@@ -780,6 +780,9 @@ export interface CSMePreferences {
 		[repoId: string]: string;
 	};
 
+	//current repo in o11y pane
+	currentO11yRepoId?: string;
+
 	// which icons to show in the editor gutters
 	codemarksHideReviews?: boolean;
 	codemarksHideResolved?: boolean;

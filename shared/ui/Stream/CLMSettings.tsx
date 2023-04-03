@@ -4,19 +4,25 @@ import { CodeStreamState } from "../store";
 import { closeModal } from "./actions";
 import ScrollBox from "./ScrollBox";
 import { Dialog } from "../src/components/Dialog";
-import { Dropdown } from "../Stream/Dropdown";
 import Button from "./Button";
 import { useDidMount } from "../utilities/hooks";
 import { RadioGroup, Radio } from "../src/components/RadioGroup";
 import { setUserPreference } from "../Stream/actions";
 import { setRefreshAnomalies } from "../store/context/actions";
+import { HostApi } from "../webview-api";
+import { isEmpty as _isEmpty } from "lodash-es";
+import { GetDeploymentsRequestType, GetDeploymentsResponse } from "@codestream/protocols/agent";
 
 export const CLMSettings = () => {
 	const dispatch = useAppDispatch();
 	const derivedState = useAppSelector((state: CodeStreamState) => {
 		const clmSettings = state.preferences.clmSettings || {};
+		const activeO11y = state.preferences.activeO11y;
+		const currentO11yRepoId = state.preferences.currentO11yRepoId;
 		return {
 			clmSettings,
+			activeO11y,
+			currentO11yRepoId,
 		};
 	});
 	const { clmSettings } = derivedState;
@@ -42,81 +48,35 @@ export const CLMSettings = () => {
 		clmSettings.minimumBaselineValue || "30"
 	);
 	const [minimumErrorRateValue, setMinimumErrorRateValue] = useState(
-		clmSettings.minimumErrorRateValue || "0.1"
+		clmSettings.minimumErrorRateValue || "1"
 	);
 	const [minimumAverageDurationValue, setMinimumAverageDurationValue] = useState(
 		clmSettings.minimumAverageDurationValue || "10"
 	);
-	const compareDataLastItems = [
-		{
-			label: "7",
-			key: "7",
-			action: () => setCompareDataLastValue("7"),
-		},
-		{
-			label: "14",
-			key: "14",
-			action: () => setCompareDataLastValue("14"),
-		},
-		{
-			label: "21",
-			key: "21",
-			action: () => setCompareDataLastValue("21"),
-		},
-		{
-			label: "28",
-			key: "28",
-			action: () => setCompareDataLastValue("28"),
-		},
-	];
-	const compareDataLastReleaseItems = [
-		{
-			label: "7",
-			key: "7",
-			action: () => setCompareDataLastReleaseValue("7"),
-		},
-		{
-			label: "14",
-			key: "14",
-			action: () => setCompareDataLastReleaseValue("14"),
-		},
-		{
-			label: "21",
-			key: "21",
-			action: () => setCompareDataLastReleaseValue("21"),
-		},
-		{
-			label: "28",
-			key: "28",
-			action: () => setCompareDataLastReleaseValue("28"),
-		},
-	];
-	const againstDataPrecedingItems = [
-		{
-			label: "21",
-			key: "21",
-			action: () => setAgainstDataPrecedingValue("21"),
-		},
-		{
-			label: "28",
-			key: "28",
-			action: () => setAgainstDataPrecedingValue("28"),
-		},
-		{
-			label: "35",
-			key: "35",
-			action: () => setAgainstDataPrecedingValue("35"),
-		},
-		{
-			label: "42",
-			key: "42",
-			action: () => setAgainstDataPrecedingValue("42"),
-		},
-	];
 
 	useDidMount(() => {
-		//@TODO: api call here to check and set change tracking boolean
-		setIsChangeTrackingEnabled(false);
+		const entityGuid = derivedState?.activeO11y?.[derivedState?.currentO11yRepoId || ""];
+
+		if (entityGuid) {
+			HostApi.instance
+				.send(GetDeploymentsRequestType, { entityGuid })
+				.then((_: GetDeploymentsResponse) => {
+					if (_isEmpty(_?.deployments)) {
+						setIsChangeTrackingEnabled(true);
+					} else {
+						setIsChangeTrackingEnabled(false);
+					}
+					setUserPreference({
+						prefPath: ["clmSettings"],
+						value: {
+							["isChangeTrackingEnabled"]: isChangeTrackingEnabled,
+						},
+					});
+				})
+				.catch(ex => {
+					console.error("ERROR: GetDeploymentsRequestType", ex);
+				});
+		}
 	});
 
 	const handleClickSubmit = () => {
@@ -155,6 +115,15 @@ export const CLMSettings = () => {
 			case "min-average-duration":
 				setMinimumAverageDurationValue(value);
 				break;
+			case "compare-last":
+				setCompareDataLastValue(value);
+				break;
+			case "compare-last-release":
+				setCompareDataLastReleaseValue(value);
+				break;
+			case "against-preceding":
+				setAgainstDataPrecedingValue(value);
+				break;
 			default:
 				throw new Error("Invalid input name");
 		}
@@ -171,10 +140,13 @@ export const CLMSettings = () => {
 									<div style={{ display: "flex", marginTop: "10px" }}>
 										<div>Compare data from the last:</div>
 										<div style={{ marginLeft: "auto" }}>
-											<Dropdown
-												selectedValue={compareDataLastValue}
-												items={compareDataLastItems}
-												noModal={true}
+											<input
+												name="compare-last"
+												type="number"
+												min="1"
+												max="100"
+												value={compareDataLastValue}
+												onChange={e => handleNumberChange(e)}
 											/>{" "}
 											days
 										</div>
@@ -182,10 +154,13 @@ export const CLMSettings = () => {
 									<div style={{ display: "flex", marginTop: "5px" }}>
 										<div>Against data from the preceding:</div>
 										<div style={{ marginLeft: "auto" }}>
-											<Dropdown
-												selectedValue={againstDataPrecedingValue}
-												items={againstDataPrecedingItems}
-												noModal={true}
+											<input
+												name="against-preceding"
+												type="number"
+												min="1"
+												max="100"
+												value={againstDataPrecedingValue}
+												onChange={e => handleNumberChange(e)}
 											/>{" "}
 											days
 										</div>
@@ -208,42 +183,51 @@ export const CLMSettings = () => {
 										onChange={value => setChangeTrackingRadioValue(value)}
 										name="change-tracking"
 									>
-										<div style={{ display: "flex", marginTop: "10px" }}>
+										<div style={{ display: "flex", margin: "10px 0 5px 0" }}>
 											<div style={{ width: "100%", marginRight: "5px" }}>
 												<Radio value="LATEST_RELEASE">
 													Compare data from the most recent release that is at least:
 												</Radio>
 											</div>
-											<div style={{ marginLeft: "auto", minWidth: "24px" }}>
-												<Dropdown
-													selectedValue={compareDataLastReleaseValue}
-													items={compareDataLastReleaseItems}
-													noModal={true}
-												/>
+											<div style={{ marginLeft: "auto", minWidth: "112px" }}>
+												<input
+													name="compare-last-release"
+													type="number"
+													min="1"
+													max="100"
+													value={compareDataLastReleaseValue}
+													onChange={e => handleNumberChange(e)}
+												/>{" "}
+												days ago
 											</div>
-											<div style={{ minWidth: "55px" }}>days ago</div>
 										</div>
 										<div style={{ display: "flex" }}>
 											<div style={{ width: "100%", marginRight: "5px" }}>
 												<Radio value="LATEST_DAYS">Compare data from the last: </Radio>
 											</div>
-											<div style={{ marginLeft: "auto", minWidth: "24px" }}>
-												<Dropdown
-													selectedValue={compareDataLastValue}
-													items={compareDataLastItems}
-													noModal={true}
+											<div style={{ marginLeft: "auto", minWidth: "86px" }}>
+												<input
+													name="compare-last"
+													type="number"
+													min="1"
+													max="100"
+													value={compareDataLastValue}
+													onChange={e => handleNumberChange(e)}
 												/>{" "}
+												days
 											</div>
-											<div>days</div>
 										</div>
 									</RadioGroup>
 									<div style={{ display: "flex" }}>
 										<div>Against data from the preceding:</div>
 										<div style={{ marginLeft: "auto" }}>
-											<Dropdown
-												selectedValue={againstDataPrecedingValue}
-												items={againstDataPrecedingItems}
-												noModal={true}
+											<input
+												name="against-preceding"
+												type="number"
+												min="1"
+												max="100"
+												value={againstDataPrecedingValue}
+												onChange={e => handleNumberChange(e)}
 											/>{" "}
 											days
 										</div>
@@ -284,7 +268,7 @@ export const CLMSettings = () => {
 									<input
 										name="min-error-rate"
 										type="number"
-										min="0"
+										min="1"
 										max="100"
 										value={minimumErrorRateValue}
 										onChange={e => handleNumberChange(e)}
