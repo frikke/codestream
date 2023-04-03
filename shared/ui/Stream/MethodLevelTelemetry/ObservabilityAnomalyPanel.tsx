@@ -124,10 +124,23 @@ export const ObservabilityAnomalyPanel = () => {
 					}
 				});
 			});
+			const maxReleaseDate = new Date();
+			maxReleaseDate.setHours(0, 0, 0, 0);
+			const nDaysAgoRelease = derivedState?.clmSettings?.compareDataLastReleaseValue;
+			maxReleaseDate.setDate(maxReleaseDate.getDate() - nDaysAgoRelease);
+			let comparisonReleaseSeconds = 0;
 			response.deployments?.forEach(d => {
 				const midnight = new Date(d.seconds * 1000);
 				midnight.setHours(0, 0, 0, 0);
 				d.seconds = Math.ceil(midnight.getTime() / 1000);
+				if (midnight.getTime() <= maxReleaseDate.getTime()) {
+					comparisonReleaseSeconds = d.seconds;
+				}
+			});
+			response.deployments?.forEach(d => {
+				if (d.seconds != comparisonReleaseSeconds) {
+					d.version = "";
+				}
 			});
 			if (!response.deployments || !response.deployments.length) {
 				const date = new Date();
@@ -451,10 +464,13 @@ export const ObservabilityAnomalyPanel = () => {
 																/>
 																{telemetryResponse.deployments?.map(_ => {
 																	return (
-																		<ReferenceLine x={_.seconds} stroke={"white"}>
+																		<ReferenceLine
+																			x={_.seconds}
+																			stroke={_.version.length ? "white" : "gray"}
+																		>
 																			<Label
 																				value={_.version}
-																				position="insideTop"
+																				position="middle"
 																				style={{ fill: "white", fontSize: 14 }} // Set the label color and other styles here
 																			/>
 																		</ReferenceLine>
