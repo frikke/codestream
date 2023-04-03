@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
 	CartesianGrid,
+	Label,
 	Legend,
 	Line,
 	LineChart,
@@ -114,11 +115,13 @@ export const ObservabilityAnomalyPanel = () => {
 				includeDeployments: true,
 				timeseriesGroup: "1 day",
 			});
-			response.goldenMetrics.forEach(gm => {
+			response.goldenMetrics?.forEach(gm => {
 				gm.result.forEach(r => {
-					const midnight = new Date(r.endTimeSeconds * 1000);
-					midnight.setHours(0, 0, 0, 0);
-					r.endTimeSeconds = Math.ceil(midnight.getTime() / 1000);
+					if (r.endTimeSeconds) {
+						const midnight = new Date(r.endTimeSeconds * 1000);
+						midnight.setHours(0, 0, 0, 0);
+						r.endTimeSeconds = Math.ceil(midnight.getTime() / 1000);
+					}
 				});
 			});
 			response.deployments?.forEach(d => {
@@ -126,7 +129,7 @@ export const ObservabilityAnomalyPanel = () => {
 				midnight.setHours(0, 0, 0, 0);
 				d.seconds = Math.ceil(midnight.getTime() / 1000);
 			});
-			if (!response.deployments) {
+			if (!response.deployments || !response.deployments.length) {
 				const date = new Date();
 				date.setHours(0, 0, 0, 0);
 				const nDaysAgo = derivedState?.clmSettings?.compareDataLastValue;
@@ -406,7 +409,7 @@ export const ObservabilityAnomalyPanel = () => {
 												// hide charts with no data.
 												if (!_?.result || _.result?.length === 0) return null;
 												const title = _.title + (_.extrapolated ? " (extrapolated)" : "");
-												const maxY = Math.ceil(Math.max(..._.result.map(o => o[_.title])));
+												const maxY = Math.ceil(Math.max(..._.result.map(o => o[_.title as any])));
 												return (
 													<div
 														key={"chart-" + index}
@@ -447,7 +450,15 @@ export const ObservabilityAnomalyPanel = () => {
 																	name={title}
 																/>
 																{telemetryResponse.deployments?.map(_ => {
-																	return <ReferenceLine x={_.seconds} />;
+																	return (
+																		<ReferenceLine x={_.seconds} stroke={"white"}>
+																			<Label
+																				value={_.version}
+																				position="insideTop"
+																				style={{ fill: "white", fontSize: 14 }} // Set the label color and other styles here
+																			/>
+																		</ReferenceLine>
+																	);
 																})}
 															</LineChart>
 														</ResponsiveContainer>
