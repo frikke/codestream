@@ -126,14 +126,12 @@ export const ObservabilityAnomalyPanel = () => {
 			});
 			const maxReleaseDate = new Date();
 			maxReleaseDate.setHours(0, 0, 0, 0);
-			const nDaysAgoRelease = derivedState?.clmSettings?.compareDataLastReleaseValue;
+			const nDaysAgoRelease = derivedState?.clmSettings?.compareDataLastReleaseValue || 7;
 			maxReleaseDate.setDate(maxReleaseDate.getDate() - nDaysAgoRelease);
 			let comparisonReleaseSeconds = 0;
 			response.deployments?.forEach(d => {
-				const midnight = new Date(d.seconds * 1000);
-				midnight.setHours(0, 0, 0, 0);
-				d.seconds = Math.ceil(midnight.getTime() / 1000);
-				if (midnight.getTime() <= maxReleaseDate.getTime()) {
+				const date = new Date(d.seconds * 1000);
+				if (date.getTime() <= maxReleaseDate.getTime()) {
 					comparisonReleaseSeconds = d.seconds;
 				}
 			});
@@ -141,6 +139,11 @@ export const ObservabilityAnomalyPanel = () => {
 				if (d.seconds != comparisonReleaseSeconds) {
 					d.version = "";
 				}
+			});
+			response.deployments?.forEach(d => {
+				const midnight = new Date(d.seconds * 1000);
+				midnight.setHours(0, 0, 0, 0);
+				d.seconds = Math.ceil(midnight.getTime() / 1000);
 			});
 			if (!response.deployments || !response.deployments.length) {
 				const date = new Date();
