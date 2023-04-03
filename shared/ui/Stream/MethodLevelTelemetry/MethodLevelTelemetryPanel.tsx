@@ -428,7 +428,7 @@ export const MethodLevelTelemetryPanel = () => {
 									{/* {telemetryResponse && telemetryResponse.newRelicUrl && (
 										<div>
 											<Link className="external-link" href={telemetryResponse.newRelicUrl}>
-												View service summary on New Relic <Icon name="link-external" />
+												View service details on New Relic <Icon name="link-external" />
 											</Link>
 										</div>
 									)} */}
