@@ -71,7 +71,7 @@ export interface DeleteSharedExternalPostResponse {
 	ts?: string;
 }
 
-export type PostSubmitType = "normal" | "analyze" | "chat" | "fix_applied";
+export type PostSubmitType = "normal" | "analyze" | "chat" | "fix_applied" | "commit_changes";
 
 export interface CreatePostRequest {
 	streamId: string;
