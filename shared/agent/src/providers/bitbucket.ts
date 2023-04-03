@@ -769,6 +769,9 @@ interface BitbucketPullRequest {
 		commit: {
 			hash: string;
 		};
+		repository: {
+			full_name: string;
+		};
 	};
 	id: number;
 	links: {
@@ -792,9 +795,9 @@ interface BitbucketPullRequest {
 	state: string;
 	title: string;
 	updated_on: string;
-	repository: {
-		full_name: string;
-	};
+	// repository?: {
+	// 	full_name: string;
+	// };
 	participants: {
 		type?: string;
 		user: {
@@ -2250,22 +2253,22 @@ export class BitbucketProvider
 				//find uniq list of repository.full_name from pullrequests as an array of strings
 				const newArray = [];
 				const uniqueFullNames = uniq(
-					pullrequests.body.values.map(pullrequest => pullrequest.repository.full_name)
+					pullrequests.body.values.map(pullrequest => pullrequest.destination.repository.full_name)
 				);
 				//if there is nothing, nothing to do
 				if (uniqueFullNames.length) {
 					//else, for each iterate over them and call get default reviewer using that workspace/slug
 					uniqueFullNames.forEach(async fullname => {
-						const defaultReviewers = await this.get<BitbucketDefaultReviewer[]>(
+						const defaultReviewers = await this.get<any>(
 							`/repositories/${fullname}/default-reviewers`
 						);
 						if (defaultReviewers.body.values.length) {
-							const foundSelf = defaultReviewers.body.find(
-								_ => _.account_id === usernameResponse.body.account_id
+							const foundSelf = defaultReviewers.body.values.find(
+								(_: { account_id: string }) => _.account_id === usernameResponse.body.account_id
 							);
 							if (foundSelf) {
 								//push into new array all PRs in pullreqeusts.body.values that have a matching full_name in uniqueFullNames
-								newArray.push(defaultReviewers);
+								newArray.push(foundSelf);
 							}
 						}
 					});

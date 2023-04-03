@@ -375,8 +375,11 @@ export const OpenPullRequests = React.memo((props: Props) => {
 					setPrError({ provider: connectedProvider.id });
 					// if (connectedProvider.id?.includes("bitbucket")) continue;
 
-					const queriesByProvider: PullRequestQuery[] =
-						theQueries[connectedProvider.id] || defaultQueries[connectedProvider.id];
+					const connectedProviderQueries = theQueries[connectedProvider.id];
+
+					const queriesByProvider: PullRequestQuery[] = connectedProviderQueries?.length
+						? connectedProviderQueries
+						: defaultQueries[connectedProvider.id];
 					if (!queriesByProvider) {
 						continue;
 					}
@@ -516,6 +519,18 @@ export const OpenPullRequests = React.memo((props: Props) => {
 				// Update default queries for users in a non-destructive way
 				if (derivedState.pullRequestQueries) {
 					patchQueries(defaultQueriesResponse, derivedState.pullRequestQueries, saveQueries);
+					let newObject = {};
+					//check if there is an empty array and if so, take it out
+					Object.keys(derivedState.pullRequestQueries).forEach(key => {
+						if (
+							derivedState.pullRequestQueries![key] &&
+							Array.isArray(derivedState.pullRequestQueries![key]) &&
+							derivedState.pullRequestQueries![key].length > 0
+						) {
+							newObject[key] = derivedState.pullRequestQueries![key];
+						}
+					});
+					derivedState.pullRequestQueries = newObject;
 				}
 
 				const queries = {

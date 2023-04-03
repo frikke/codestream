@@ -132,7 +132,7 @@ const PR_QUERIES: PRProviderQueries = {
 	// 	{
 	// 		providerId: "bitbucket*org",
 	// 		name: "is waiting on your review",
-	// 		query: `is:pr is:open review-requested:@me -author:@me`, //TODO: fix for bitbucket
+	// 		query: `with_default_reviewer=true&sort=updated_on&state=OPEN`,
 	// 	},
 	// ],
 };
@@ -878,12 +878,12 @@ export class ThirdPartyProviderRegistry {
 			],
 			"bitbucket*org": [
 				//https://api.bitbucket.org//2.0/
-				// {
-				// 	providerId: "bitbucket*org",
-				// 	name: "Waiting on my Review",
-				// 	query: `with_default_reviewer=true&sort=updated_on&state=OPEN`,
-				// 	hidden: false,
-				// },
+				{
+					providerId: "bitbucket*org",
+					name: "Waiting on my Review",
+					query: `with_default_reviewer=true&sort=updated_on&state=OPEN`,
+					hidden: false,
+				},
 				{
 					providerId: "bitbucket*org",
 					name: "Created by Me",

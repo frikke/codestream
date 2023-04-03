@@ -531,7 +531,7 @@ export const PullRequest = () => {
 	};
 
 	const isMergeable = () => {
-		if (pr?.viewerCanUpdate && pr?.isApproved && pr?.state !== "MERGED") {
+		if (pr?.viewerCanUpdate && pr?.state !== "MERGED") {
 			return true;
 		} else {
 			return false;
