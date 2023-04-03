@@ -145,7 +145,7 @@ export class AnomalyDetector {
 			metricComparison,
 			[]
 			// spanComparison
-		).filter(_ => _.ratio > 1);
+		).filter(_ => _.ratio > 1 && _.newValue > minimumResponseTime);
 
 		return consolidatedComparison.map(_ => this.comparisonToAnomaly(_));
 	}
