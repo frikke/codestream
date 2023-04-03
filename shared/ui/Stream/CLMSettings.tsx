@@ -61,7 +61,7 @@ export const CLMSettings = () => {
 			HostApi.instance
 				.send(GetDeploymentsRequestType, { entityGuid })
 				.then((_: GetDeploymentsResponse) => {
-					if (_isEmpty(_?.deployments)) {
+					if (!_isEmpty(_?.deployments)) {
 						setIsChangeTrackingEnabled(true);
 					} else {
 						setIsChangeTrackingEnabled(false);
