@@ -70,20 +70,26 @@ export class AnomalyDetector {
 		const metricRoots = this.getCommonRoots(sampleRatesMetric.map(_ => _.name));
 		const metricLookup = metricRoots.length
 			? metricRoots.map(_ => `\`metricTimesliceName\` LIKE '%${_}%'`).join(" OR ")
-			: "1 != 1";
+			: undefined;
 
 		let sampleRatesSpan: NameValue[] = [];
-		let spanLookup = "1 != 1";
+		let spanLookup = undefined;
 		if (includeSpans) {
 			const sampleRatesSpanLookup = "(name LIKE 'Java/%' OR name LIKE 'Custom/%')";
 			sampleRatesSpan = await this.getSampleRateSpan(sampleRatesSpanLookup);
 			const spanRoots = this.getCommonRoots(sampleRatesSpan.map(_ => _.name));
 			spanLookup = spanRoots.length
 				? spanRoots.map(_ => `name LIKE '${_}%'`).join(" OR ")
-				: "1 != 1";
+				: undefined;
 		}
 
 		const consolidatedSampleRates = this.consolidateSampleRates(sampleRatesMetric, sampleRatesSpan);
+		if (!metricLookup || !spanLookup) {
+			return {
+				responseTime: [],
+				errorRate: [],
+			};
+		}
 
 		const responseTimeAnomalies = await this.getResponseTimeAnomalies(
 			metricLookup,
