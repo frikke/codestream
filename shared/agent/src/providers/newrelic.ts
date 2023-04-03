@@ -3856,7 +3856,7 @@ export class NewRelicProvider
 		}>(parsedId.accountId, query);
 
 		const deployments = result.map(_ => ({
-			seconds: _.timestamp / 1000,
+			seconds: Math.round(_.timestamp / 1000),
 			version: _.version,
 		}));
 		return {

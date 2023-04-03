@@ -53,7 +53,7 @@ export class AnomalyDetector {
 				const deploymentDate = new Date(deployment.seconds * 1000);
 				const now = new Date();
 				const timeDifference = now.getTime() - deploymentDate.getTime();
-				const daysDifference = timeDifference / (1000 * 60 * 60 * 24);
+				const daysDifference = Math.round(timeDifference / (1000 * 60 * 60 * 24));
 				this._dataTimeFrame = `SINCE ${daysDifference} days AGO`;
 				this._totalDays = daysDifference + parseInt(this._request.baselineDays as any);
 			}
@@ -145,7 +145,7 @@ export class AnomalyDetector {
 			metricComparison,
 			[]
 			// spanComparison
-		).filter(_ => _.ratio > 1);
+		).filter(_ => _.ratio > 1 && _.newValue > minimumResponseTime);
 
 		return consolidatedComparison.map(_ => this.comparisonToAnomaly(_));
 	}
