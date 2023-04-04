@@ -26,32 +26,33 @@ export const CLMSettings = () => {
 		};
 	});
 	const { clmSettings } = derivedState;
-	const [isChangeTrackingEnabled, setIsChangeTrackingEnabled] = useState(
+	const [getDeploymentsError, setGetDeploymentsError] = useState<string | undefined>();
+	const [isChangeTrackingEnabled, setIsChangeTrackingEnabled] = useState<boolean>(
 		clmSettings.isChangeTrackingEnabled || false
 	);
-	const [changeTrackingRadioValue, setChangeTrackingRadioValue] = useState(
+	const [changeTrackingRadioValue, setChangeTrackingRadioValue] = useState<string>(
 		clmSettings.changeTrackingRadioValue || "LATEST_RELEASE"
 	);
-	const [compareDataLastValue, setCompareDataLastValue] = useState(
+	const [compareDataLastValue, setCompareDataLastValue] = useState<string>(
 		clmSettings.compareDataLastValue || "7"
 	);
-	const [compareDataLastReleaseValue, setCompareDataLastReleaseValue] = useState(
+	const [compareDataLastReleaseValue, setCompareDataLastReleaseValue] = useState<string>(
 		clmSettings.compareDataLastReleaseValue || "7"
 	);
-	const [againstDataPrecedingValue, setAgainstDataPrecedingValue] = useState(
+	const [againstDataPrecedingValue, setAgainstDataPrecedingValue] = useState<string>(
 		clmSettings.againstDataPrecedingValue || "21"
 	);
-	const [minimumChangeValue, setMinimumChangeValue] = useState(
+	const [minimumChangeValue, setMinimumChangeValue] = useState<string>(
 		clmSettings.minimumChangeValue || "10"
 	);
-	const [minimumBaselineValue, setMinimumBaselineValue] = useState(
+	const [minimumBaselineValue, setMinimumBaselineValue] = useState<string>(
 		clmSettings.minimumBaselineValue || "30"
 	);
-	const [minimumErrorRateValue, setMinimumErrorRateValue] = useState(
+	const [minimumErrorRateValue, setMinimumErrorRateValue] = useState<string>(
 		clmSettings.minimumErrorRateValue || "1"
 	);
-	const [minimumAverageDurationValue, setMinimumAverageDurationValue] = useState(
-		clmSettings.minimumAverageDurationValue || "10"
+	const [minimumAverageDurationValue, setMinimumAverageDurationValue] = useState<string>(
+		clmSettings.minimumAverageDurationValue || "0.1"
 	);
 
 	useDidMount(() => {
@@ -75,6 +76,7 @@ export const CLMSettings = () => {
 				})
 				.catch(ex => {
 					console.error("ERROR: GetDeploymentsRequestType", ex);
+					setGetDeploymentsError("ERROR: failed to find recent deployments for change tracking");
 				});
 		}
 	});
@@ -135,6 +137,9 @@ export const CLMSettings = () => {
 				<form className="standard-form vscroll">
 					<fieldset className="form-body">
 						<div id="controls">
+							{getDeploymentsError && (
+								<div style={{ marginTop: "10px" }}>{getDeploymentsError}</div>
+							)}
 							{!isChangeTrackingEnabled && (
 								<>
 									<div style={{ display: "flex", marginTop: "10px" }}>
@@ -240,7 +245,7 @@ export const CLMSettings = () => {
 									<input
 										name="min-change"
 										type="number"
-										min="1"
+										min="0"
 										max="100"
 										value={minimumChangeValue}
 										onChange={e => handleNumberChange(e)}
@@ -254,7 +259,7 @@ export const CLMSettings = () => {
 									<input
 										name="min-baseline"
 										type="number"
-										min="1"
+										min="0"
 										max="100"
 										value={minimumBaselineValue}
 										onChange={e => handleNumberChange(e)}
@@ -268,7 +273,7 @@ export const CLMSettings = () => {
 									<input
 										name="min-error-rate"
 										type="number"
-										min="1"
+										min="0"
 										max="100"
 										value={minimumErrorRateValue}
 										onChange={e => handleNumberChange(e)}
@@ -282,7 +287,7 @@ export const CLMSettings = () => {
 									<input
 										name="min-average-duration"
 										type="number"
-										min="1"
+										min="0"
 										max="100"
 										value={minimumAverageDurationValue}
 										onChange={e => handleNumberChange(e)}
