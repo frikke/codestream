@@ -6,9 +6,16 @@ import CancelButton from "../CancelButton";
 import { Link } from "../Link";
 const Root = styled.div``;
 
-const MissingExtensionBase: React.FC = props => {
+interface MissingExtensionBaseProps {
+	sidebarView?: boolean;
+}
+
+const MissingExtensionBase: React.FC<MissingExtensionBaseProps> = props => {
 	const dispatch = useDispatch();
 
+	if (props?.sidebarView) {
+		return <div>{props.children}</div>;
+	}
 	return (
 		<Root className="full-height-codemark-form">
 			<div
@@ -30,10 +37,10 @@ const MissingExtensionBase: React.FC = props => {
 	);
 };
 
-export function MissingRubyExtension() {
+export function MissingRubyExtension({ sidebarView = false }) {
 	return (
-		<MissingExtensionBase>
-			<h3>Code-Level Metrics</h3>
+		<MissingExtensionBase sidebarView={sidebarView}>
+			{!sidebarView && <h3>Code-Level Metrics</h3>}
 			<p style={{ marginTop: 0 }}>
 				To see code-level metrics you'll need to install one of the following extensions for VS Code
 				that allow CodeStream to identify the methods in your Ruby code.
@@ -52,10 +59,10 @@ export function MissingRubyExtension() {
 	);
 }
 
-export function RubyPluginLanguageServer() {
+export function RubyPluginLanguageServer({ sidebarView = false }) {
 	return (
-		<MissingExtensionBase>
-			<h3>Code-Level Metrics</h3>
+		<MissingExtensionBase sidebarView={sidebarView}>
+			{!sidebarView && <h3>Code-Level Metrics</h3>}
 			<p style={{ marginTop: 0 }}>
 				To see code-level metrics you'll need to enable the language server in your Ruby extension.
 			</p>
@@ -66,10 +73,10 @@ export function RubyPluginLanguageServer() {
 	);
 }
 
-export function MissingPythonExtension() {
+export function MissingPythonExtension({ sidebarView = false }) {
 	return (
-		<MissingExtensionBase>
-			<h3>Code-Level Metrics</h3>
+		<MissingExtensionBase sidebarView={sidebarView}>
+			{!sidebarView && <h3>Code-Level Metrics</h3>}
 			<p style={{ marginTop: 0 }}>
 				To see code-level metrics you'll need to install the{" "}
 				<Link href={"vscode:extension/ms-python.python"}>Python Extension</Link> for VS Code that
@@ -79,10 +86,10 @@ export function MissingPythonExtension() {
 	);
 }
 
-export function MissingJavaExtension() {
+export function MissingJavaExtension({ sidebarView = false }) {
 	return (
-		<MissingExtensionBase>
-			<h3>Code-Level Metrics</h3>
+		<MissingExtensionBase sidebarView={sidebarView}>
+			{!sidebarView && <h3>Code-Level Metrics</h3>}
 			<p style={{ marginTop: 0 }}>
 				To see code-level metrics you'll need to install the{" "}
 				<Link href={"vscode:extension/redhat.java"}>Language Support for Java(TM) by Red Hat</Link>{" "}
@@ -92,10 +99,10 @@ export function MissingJavaExtension() {
 	);
 }
 
-export function MissingCsharpExtension() {
+export function MissingCsharpExtension({ sidebarView = false }) {
 	return (
-		<MissingExtensionBase>
-			<h3>Code-Level Metrics</h3>
+		<MissingExtensionBase sidebarView={sidebarView}>
+			{!sidebarView && <h3>Code-Level Metrics</h3>}
 			<p style={{ marginTop: 0 }}>
 				To see code-level metrics you'll need to install the{" "}
 				<Link href={"vscode:extension/ms-dotnettools.csharp"}>C# Extension</Link> for VS Code that
@@ -105,10 +112,10 @@ export function MissingCsharpExtension() {
 	);
 }
 
-export function MissingGoExtension() {
+export function MissingGoExtension({ sidebarView = false }) {
 	return (
-		<MissingExtensionBase>
-			<h3>Code-Level Metrics</h3>
+		<MissingExtensionBase sidebarView={sidebarView}>
+			{!sidebarView && <h3>Code-Level Metrics</h3>}
 			<p style={{ marginTop: 0 }}>
 				To see code-level metrics you'll need to install the{" "}
 				<Link href={"vscode:extension/golang.go"}>Go Extension</Link> for VS Code that allows
@@ -118,10 +125,10 @@ export function MissingGoExtension() {
 	);
 }
 
-export function MissingPhpExtension() {
+export function MissingPhpExtension({ sidebarView = false }) {
 	return (
-		<MissingExtensionBase>
-			<h3>Code-Level Metrics</h3>
+		<MissingExtensionBase sidebarView={sidebarView}>
+			{!sidebarView && <h3>Code-Level Metrics</h3>}
 			<p style={{ marginTop: 0 }}>
 				To see code-level metrics you'll need to install the{" "}
 				<Link href={"vscode:extension/bmewburn.vscode-intelephense-client"}>PHP Extension</Link> for

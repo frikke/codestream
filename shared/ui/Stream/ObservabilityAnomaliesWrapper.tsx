@@ -10,7 +10,17 @@ import { openModal } from "../store/context/actions";
 import { WebviewModals } from "@codestream/protocols/webview";
 import { shallowEqual } from "react-redux";
 import { CodeStreamState } from "../store";
-
+import { CurrentMethodLevelTelemetry } from "@codestream/webview/store/context/types";
+import { isEmpty as _isEmpty } from "lodash-es";
+import {
+	MissingCsharpExtension,
+	MissingGoExtension,
+	MissingJavaExtension,
+	MissingPhpExtension,
+	MissingPythonExtension,
+	MissingRubyExtension,
+	RubyPluginLanguageServer,
+} from "./MethodLevelTelemetry/MissingExtension";
 interface Props {
 	observabilityAnomalies: GetObservabilityAnomaliesResponse;
 	observabilityRepo: any;
@@ -26,6 +36,8 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 		const clmSettings = state.preferences.clmSettings || {};
 		return {
 			clmSettings,
+			currentMethodLevelTelemetry: (state.context.currentMethodLevelTelemetry ||
+				{}) as CurrentMethodLevelTelemetry,
 		};
 	}, shallowEqual);
 
@@ -56,6 +68,33 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 		showWarningIcon && totalAnomalyArray?.length === 1
 			? "1 Anomaly"
 			: `${totalAnomalyArray?.length} Anomalies`;
+
+	let missingExtension;
+	if (!_isEmpty(derivedState.currentMethodLevelTelemetry?.error?.type)) {
+		switch (derivedState.currentMethodLevelTelemetry?.error?.type) {
+			case "NO_RUBY_VSCODE_EXTENSION":
+				missingExtension = <MissingRubyExtension sidebarView />;
+				break;
+			case "NO_JAVA_VSCODE_EXTENSION":
+				missingExtension = <MissingJavaExtension sidebarView />;
+				break;
+			case "NO_PYTHON_VSCODE_EXTENSION":
+				missingExtension = <MissingPythonExtension sidebarView />;
+				break;
+			case "NO_CSHARP_VSCODE_EXTENSION":
+				missingExtension = <MissingCsharpExtension sidebarView />;
+				break;
+			case "NO_GO_VSCODE_EXTENSION":
+				missingExtension = <MissingGoExtension sidebarView />;
+				break;
+			case "NO_PHP_VSCODE_EXTENSION":
+				missingExtension = <MissingPhpExtension sidebarView />;
+				break;
+			case "RUBY_PLUGIN_NO_LANGUAGE_SERVER":
+				missingExtension = <RubyPluginLanguageServer sidebarView />;
+				break;
+		}
+	}
 
 	return (
 		<>
@@ -120,6 +159,19 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 						for this service to see code-level metrics.
 					</span>
 				</Row>
+			)}
+
+			{expanded && missingExtension && !props.calculatingAnomalies && (
+				<>
+					<Row
+						style={{
+							padding: "2px 10px 2px 40px",
+						}}
+						className={"pr-row"}
+					>
+						<span style={{ marginLeft: "2px", whiteSpace: "normal" }}>{missingExtension}</span>
+					</Row>
+				</>
 			)}
 
 			{expanded &&
