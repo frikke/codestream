@@ -12,6 +12,7 @@ import { setRefreshAnomalies } from "../store/context/actions";
 import { HostApi } from "../webview-api";
 import { isEmpty as _isEmpty } from "lodash-es";
 import { GetDeploymentsRequestType, GetDeploymentsResponse } from "@codestream/protocols/agent";
+import styled from "styled-components";
 
 export const CLMSettings = () => {
 	const dispatch = useAppDispatch();
@@ -54,6 +55,13 @@ export const CLMSettings = () => {
 	const [minimumAverageDurationValue, setMinimumAverageDurationValue] = useState<string>(
 		clmSettings.minimumAverageDurationValue || "0.1"
 	);
+
+	const NumberInput = styled.input`
+		&::-webkit-outer-spin-button,
+		&::-webkit-inner-spin-button {
+			display: none;
+		}
+	`;
 
 	useDidMount(() => {
 		const entityGuid = derivedState?.activeO11y?.[derivedState?.currentO11yRepoId || ""];
@@ -145,7 +153,7 @@ export const CLMSettings = () => {
 									<div style={{ display: "flex", marginTop: "10px" }}>
 										<div>Compare data from the last:</div>
 										<div style={{ marginLeft: "auto" }}>
-											<input
+											<NumberInput
 												name="compare-last"
 												type="number"
 												min="1"
@@ -159,7 +167,7 @@ export const CLMSettings = () => {
 									<div style={{ display: "flex", marginTop: "5px" }}>
 										<div>Against data from the preceding:</div>
 										<div style={{ marginLeft: "auto" }}>
-											<input
+											<NumberInput
 												name="against-preceding"
 												type="number"
 												min="1"
@@ -195,7 +203,7 @@ export const CLMSettings = () => {
 												</Radio>
 											</div>
 											<div style={{ marginLeft: "auto", minWidth: "112px" }}>
-												<input
+												<NumberInput
 													name="compare-last-release"
 													type="number"
 													min="1"
@@ -211,7 +219,7 @@ export const CLMSettings = () => {
 												<Radio value="LATEST_DAYS">Compare data from the last: </Radio>
 											</div>
 											<div style={{ marginLeft: "auto", minWidth: "86px" }}>
-												<input
+												<NumberInput
 													name="compare-last"
 													type="number"
 													min="1"
@@ -226,7 +234,7 @@ export const CLMSettings = () => {
 									<div style={{ display: "flex" }}>
 										<div>Against data from the preceding:</div>
 										<div style={{ marginLeft: "auto" }}>
-											<input
+											<NumberInput
 												name="against-preceding"
 												type="number"
 												min="1"
@@ -242,7 +250,7 @@ export const CLMSettings = () => {
 							<div style={{ marginTop: "20px", display: "flex" }}>
 								<div>Minimum change to be anomalous:</div>
 								<div style={{ marginLeft: "auto" }}>
-									<input
+									<NumberInput
 										name="min-change"
 										type="number"
 										min="0"
@@ -256,7 +264,7 @@ export const CLMSettings = () => {
 							<div style={{ marginTop: "5px", display: "flex" }}>
 								<div>Minimum sample size:</div>
 								<div style={{ marginLeft: "auto" }}>
-									<input
+									<NumberInput
 										name="min-baseline"
 										type="number"
 										min="0"
@@ -270,7 +278,7 @@ export const CLMSettings = () => {
 							<div style={{ marginTop: "5px", display: "flex" }}>
 								<div>Minimum error rate:</div>
 								<div style={{ marginLeft: "auto" }}>
-									<input
+									<NumberInput
 										name="min-error-rate"
 										type="number"
 										min="0"
@@ -284,7 +292,7 @@ export const CLMSettings = () => {
 							<div style={{ marginTop: "5px", display: "flex" }}>
 								<div>Minimum average duration:</div>
 								<div style={{ marginLeft: "auto" }}>
-									<input
+									<NumberInput
 										name="min-average-duration"
 										type="number"
 										min="0"
