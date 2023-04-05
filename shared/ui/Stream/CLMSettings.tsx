@@ -10,7 +10,7 @@ import { RadioGroup, Radio } from "../src/components/RadioGroup";
 import { setUserPreference } from "../Stream/actions";
 import { setRefreshAnomalies } from "../store/context/actions";
 import { HostApi } from "../webview-api";
-import { isEmpty as _isEmpty } from "lodash-es";
+import { isEmpty as _isEmpty, isNil as _isNil } from "lodash-es";
 import { GetDeploymentsRequestType, GetDeploymentsResponse } from "@codestream/protocols/agent";
 import styled from "styled-components";
 
@@ -29,31 +29,35 @@ export const CLMSettings = () => {
 	const { clmSettings } = derivedState;
 	const [getDeploymentsError, setGetDeploymentsError] = useState<string | undefined>();
 	const [isChangeTrackingEnabled, setIsChangeTrackingEnabled] = useState<boolean>(
-		clmSettings.isChangeTrackingEnabled || false
+		!_isNil(clmSettings.isChangeTrackingEnabled) ? clmSettings.isChangeTrackingEnabled : false
 	);
 	const [changeTrackingRadioValue, setChangeTrackingRadioValue] = useState<string>(
-		clmSettings.changeTrackingRadioValue || "LATEST_RELEASE"
+		!_isNil(clmSettings.changeTrackingRadioValue)
+			? clmSettings.changeTrackingRadioValue
+			: "LATEST_RELEASE"
 	);
 	const [compareDataLastValue, setCompareDataLastValue] = useState<string>(
-		clmSettings.compareDataLastValue || "7"
+		!_isNil(clmSettings.compareDataLastValue) ? clmSettings.compareDataLastValue : "7"
 	);
 	const [compareDataLastReleaseValue, setCompareDataLastReleaseValue] = useState<string>(
-		clmSettings.compareDataLastReleaseValue || "7"
+		!_isNil(clmSettings.compareDataLastReleaseValue) ? clmSettings.compareDataLastReleaseValue : "7"
 	);
 	const [againstDataPrecedingValue, setAgainstDataPrecedingValue] = useState<string>(
-		clmSettings.againstDataPrecedingValue || "21"
+		!_isNil(clmSettings.againstDataPrecedingValue) ? clmSettings.againstDataPrecedingValue : "21"
 	);
 	const [minimumChangeValue, setMinimumChangeValue] = useState<string>(
-		clmSettings.minimumChangeValue || "10"
+		!_isNil(clmSettings.minimumChangeValue) ? clmSettings.minimumChangeValue : "10"
 	);
 	const [minimumBaselineValue, setMinimumBaselineValue] = useState<string>(
-		clmSettings.minimumBaselineValue || "30"
+		!_isNil(clmSettings.minimumBaselineValue) ? clmSettings.minimumBaselineValue : "30"
 	);
 	const [minimumErrorRateValue, setMinimumErrorRateValue] = useState<string>(
-		clmSettings.minimumErrorRateValue || "1"
+		!_isNil(clmSettings.minimumErrorRateValue) ? clmSettings.minimumErrorRateValue : "1"
 	);
 	const [minimumAverageDurationValue, setMinimumAverageDurationValue] = useState<string>(
-		clmSettings.minimumAverageDurationValue || "0.1"
+		!_isNil(clmSettings.minimumAverageDurationValue)
+			? clmSettings.minimumAverageDurationValue
+			: "0.1"
 	);
 
 	const NumberInput = styled.input`
@@ -95,6 +99,7 @@ export const CLMSettings = () => {
 				prefPath: ["clmSettings"],
 				value: {
 					["isChangeTrackingEnabled"]: isChangeTrackingEnabled,
+					["changeTrackingRadioValue"]: changeTrackingRadioValue,
 					["compareDataLastValue"]: compareDataLastValue,
 					["againstDataPrecedingValue"]: againstDataPrecedingValue,
 					["minimumChangeValue"]: minimumChangeValue,
@@ -247,6 +252,14 @@ export const CLMSettings = () => {
 									</div>
 								</>
 							)}
+
+							<div style={{ borderTop: "1px solid", marginTop: "20px", paddingTop: "20px" }}>
+								These settings control how CodeStream determines whether or not a method’s
+								performance is anomalous. If you’re not seeing anomalies, decrease the thresholds.
+								Particularly the “minimum change”. If you’re seeing too many false positives,
+								increase the thresholds.
+							</div>
+
 							<div style={{ marginTop: "20px", display: "flex" }}>
 								<div>Minimum change to be anomalous:</div>
 								<div style={{ marginLeft: "auto" }}>
