@@ -710,6 +710,7 @@ class NewRelicProviderStubBase extends NewRelicProvider {
 							values: ["cheese"],
 						},
 					],
+					distributedTracingEnabled: true,
 				},
 			],
 		};
@@ -1297,6 +1298,7 @@ class NewRelicProviderStub extends NewRelicProviderStubBase {
 							values: ["cheese"],
 						},
 					],
+					distributedTracingEnabled: true,
 				},
 			],
 		};

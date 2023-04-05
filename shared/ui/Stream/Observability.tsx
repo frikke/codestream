@@ -1158,7 +1158,6 @@ export const Observability = React.memo((props: Props) => {
 																									errorMsg={serviceLevelObjectiveError}
 																								/>
 																							)}
-
 																							{derivedState.showAnomalies && (
 																								<ObservabilityAnomaliesWrapper
 																									observabilityAnomalies={observabilityAnomalies}
@@ -1166,6 +1165,9 @@ export const Observability = React.memo((props: Props) => {
 																									entityGuid={ea.entityGuid}
 																									noAccess={noErrorsAccess}
 																									calculatingAnomalies={calculatingAnomalies}
+																									distributedTracingEnabled={
+																										ea?.distributedTracingEnabled
+																									}
 																								/>
 																							)}
 
