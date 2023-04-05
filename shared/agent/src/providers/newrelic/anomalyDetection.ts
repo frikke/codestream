@@ -67,7 +67,7 @@ export class AnomalyDetector {
 			this._request.minimumResponseTime != null ? this._request.minimumResponseTime : 0;
 		const minimumSampleRate =
 			this._request.minimumSampleRate != null ? this._request.minimumSampleRate : 0;
-		const benchmarkSampleRateTimeFrame = "SINCE 1 day ago";
+		const benchmarkSampleRateTimeFrame = "SINCE 30 minutes ago";
 
 		const benchmarkSampleSizessMetricLookup =
 			"(metricTimesliceName LIKE 'Java/%.%/%' OR metricTimesliceName LIKE 'Custom/%.%/%')";
