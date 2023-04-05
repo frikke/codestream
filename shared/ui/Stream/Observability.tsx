@@ -75,7 +75,6 @@ import Timestamp from "./Timestamp";
 import Tooltip from "./Tooltip";
 import { WarningBox } from "./WarningBox";
 import { ObservabilityAnomaliesWrapper } from "@codestream/webview/Stream/ObservabilityAnomaliesWrapper";
-import { isFeatureEnabled } from "@codestream/webview/store/apiVersioning/reducer";
 
 interface Props {
 	paneState: PaneState;
@@ -253,7 +252,7 @@ export const Observability = React.memo((props: Props) => {
 			scmInfo: state.editorContext.scmInfo,
 			anomaliesNeedRefresh: state.context.anomaliesNeedRefresh,
 			clmSettings,
-			showAnomalies: isFeatureEnabled(state, "showAnomalies"),
+			showAnomalies: true, // isFeatureEnabled(state, "showAnomalies"),
 		};
 	}, shallowEqual);
 
