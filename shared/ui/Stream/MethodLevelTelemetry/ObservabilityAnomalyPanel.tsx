@@ -429,7 +429,7 @@ export const ObservabilityAnomalyPanel = () => {
 												const sanitizedYValues = (yValues as (number | undefined)[]).map(_ =>
 													_ != undefined ? _ : 0
 												);
-												const maxY = Math.ceil(Math.max(...sanitizedYValues));
+												const maxY = Math.max(...sanitizedYValues);
 												return (
 													<div
 														key={"chart-" + index}
