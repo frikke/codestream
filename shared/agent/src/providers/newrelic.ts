@@ -3853,7 +3853,7 @@ export class NewRelicProvider
 		const result = await this.runNrql<{
 			timestamp: number;
 			version: string;
-		}>(parsedId.accountId, query);
+		}>(parsedId.accountId, query, 400);
 
 		const deployments = result.map(_ => ({
 			seconds: Math.round(_.timestamp / 1000),

@@ -165,7 +165,7 @@ export class AnomalyDetector {
 		const baselineFilter = this.getSampleRateFilterPredicate(baselineSampleRate, minimumSampleRate);
 		const baselineFiltered = baseline.filter(baselineFilter);
 
-		const allComparisons = this.compareData(data, baselineFiltered);
+		const allComparisons = this.compareData(data, baselineFiltered, false);
 
 		const filteredComparisons = this.filterComparisonsByBenchmarkSampleSizes(
 			benchmarkSampleSizes,
@@ -227,7 +227,7 @@ export class AnomalyDetector {
 		const baselineTransformer = this.getErrorRateTransformer(baselineSampleSize);
 		const baselineErrorRate = baselineErrorCount.filter(baselineFilter).map(baselineTransformer);
 
-		const allComparisons = this.compareData(dataErrorRate, baselineErrorRate);
+		const allComparisons = this.compareData(dataErrorRate, baselineErrorRate, true);
 
 		const filteredComparison = this.filterComparisonsByBenchmarkSampleSizes(
 			benchmarkSampleSizes,
@@ -368,8 +368,12 @@ export class AnomalyDetector {
 		return commonRoots;
 	}
 
-	private compareData(data: NameValue[], baseline: NameValue[]) {
-		const comparisonMap = this.comparisonMap(data, baseline);
+	private compareData(
+		data: NameValue[],
+		baseline: NameValue[],
+		assumeZeroForAbsentBaseline: boolean
+	) {
+		const comparisonMap = this.comparisonMap(data, baseline, assumeZeroForAbsentBaseline);
 		const comparisonArray: {
 			name: string;
 			oldValue: number;
@@ -377,7 +381,7 @@ export class AnomalyDetector {
 			ratio: number;
 		}[] = [];
 		comparisonMap.forEach((value, key) => {
-			if (value.oldValue && value.newValue && value.ratio) {
+			if (value.oldValue != null && value.newValue != null && value.ratio != null) {
 				comparisonArray.push({
 					name: key,
 					oldValue: value.oldValue,
@@ -390,7 +394,11 @@ export class AnomalyDetector {
 		return comparisonArray;
 	}
 
-	private comparisonMap(data: NameValue[], baseline: NameValue[]) {
+	private comparisonMap(
+		data: NameValue[],
+		baseline: NameValue[],
+		assumeZeroForAbsentBaseline: boolean
+	) {
 		const map = new Map<string, { oldValue?: number; newValue?: number; ratio?: number }>();
 		for (const d of data) {
 			map.set(d.name, { newValue: d.value });
@@ -400,6 +408,14 @@ export class AnomalyDetector {
 			if (comparison && comparison.newValue) {
 				comparison.oldValue = b.value;
 				comparison.ratio = comparison.newValue / comparison.oldValue;
+			}
+		}
+		if (assumeZeroForAbsentBaseline) {
+			for (const comparison of map.values()) {
+				if (comparison.oldValue == undefined) {
+					comparison.oldValue = 0;
+					comparison.ratio = 2;
+				}
 			}
 		}
 		return map;
