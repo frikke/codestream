@@ -252,7 +252,7 @@ export const Observability = React.memo((props: Props) => {
 			scmInfo: state.editorContext.scmInfo,
 			anomaliesNeedRefresh: state.context.anomaliesNeedRefresh,
 			clmSettings,
-			showAnomalies: true, // isFeatureEnabled(state, "showAnomalies"),
+			showAnomalies: isFeatureEnabled(state, "showAnomalies"),
 		};
 	}, shallowEqual);
 
@@ -650,6 +650,7 @@ export const Observability = React.memo((props: Props) => {
 	};
 
 	const fetchAnomalies = (entityGuid: string, repoId) => {
+		dispatch(setRefreshAnomalies(false));
 		if (!derivedState.showAnomalies) {
 			return;
 		}
@@ -658,30 +659,27 @@ export const Observability = React.memo((props: Props) => {
 		HostApi.instance
 			.send(GetObservabilityAnomaliesRequestType, {
 				entityGuid,
-				sinceDaysAgo:
-					derivedState?.clmSettings?.compareDataLastValue != null
-						? derivedState?.clmSettings?.compareDataLastValue
-						: 2,
-				baselineDays:
-					derivedState?.clmSettings?.againstDataPrecedingValue != null
-						? derivedState?.clmSettings?.againstDataPrecedingValue
-						: 7,
-				sinceReleaseAtLeastDaysAgo:
-					derivedState?.clmSettings?.compareDataLastReleaseValue != null
-						? derivedState?.clmSettings?.compareDataLastReleaseValue
-						: 7,
+				sinceDaysAgo: !_isNil(derivedState?.clmSettings?.compareDataLastValue)
+					? derivedState?.clmSettings?.compareDataLastValue
+					: 2,
+				baselineDays: !_isNil(derivedState?.clmSettings?.againstDataPrecedingValue)
+					? derivedState?.clmSettings?.againstDataPrecedingValue
+					: 7,
+				sinceReleaseAtLeastDaysAgo: !_isNil(derivedState?.clmSettings?.compareDataLastReleaseValue)
+					? derivedState?.clmSettings?.compareDataLastReleaseValue
+					: 7,
 				minimumErrorRate: parseFloat(
-					derivedState?.clmSettings?.minimumErrorRateValue != null
+					!_isNil(derivedState?.clmSettings?.minimumErrorRateValue)
 						? derivedState?.clmSettings?.minimumErrorRateValue
 						: 0
 				),
 				minimumResponseTime: parseFloat(
-					derivedState?.clmSettings?.minimumAverageDurationValue != null
+					!_isNil(derivedState?.clmSettings?.minimumAverageDurationValue)
 						? derivedState?.clmSettings?.minimumAverageDurationValue
 						: 0
 				),
 				minimumSampleRate: parseFloat(
-					derivedState?.clmSettings?.minimumBaselineValue != null
+					!_isNil(derivedState?.clmSettings?.minimumBaselineValue)
 						? derivedState?.clmSettings?.minimumBaselineValue
 						: 0
 				),
