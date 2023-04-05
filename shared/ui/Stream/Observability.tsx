@@ -75,7 +75,7 @@ import Timestamp from "./Timestamp";
 import Tooltip from "./Tooltip";
 import { WarningBox } from "./WarningBox";
 import { ObservabilityAnomaliesWrapper } from "@codestream/webview/Stream/ObservabilityAnomaliesWrapper";
-
+import { isFeatureEnabled } from "@codestream/webview/store/apiVersioning/reducer";
 interface Props {
 	paneState: PaneState;
 }
