@@ -1166,7 +1166,7 @@ export const Observability = React.memo((props: Props) => {
 																									noAccess={noErrorsAccess}
 																									calculatingAnomalies={calculatingAnomalies}
 																									distributedTracingEnabled={
-																										ea.distributedTracingEnabled
+																										ea?.distributedTracingEnabled
 																									}
 																								/>
 																							)}
