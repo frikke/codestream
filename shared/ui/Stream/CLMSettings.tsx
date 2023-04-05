@@ -262,7 +262,7 @@ export const CLMSettings = () => {
 								<div style={{ marginLeft: "5px", width: "24px", paddingTop: "2px" }}>%</div>
 							</div>
 							<div style={{ marginTop: "5px", display: "flex" }}>
-								<div>Minimum sample size:</div>
+								<div>Minimum baseline sample size:</div>
 								<div style={{ marginLeft: "auto" }}>
 									<NumberInput
 										name="min-baseline"
