@@ -18,6 +18,7 @@ interface Props {
 	entityGuid: string;
 	noAccess?: string;
 	calculatingAnomalies?: boolean;
+	distributedTracingEnabled?: boolean;
 }
 
 export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
@@ -102,11 +103,23 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 			</Row>
 			{expanded && props.observabilityAnomalies.error && !props.calculatingAnomalies && (
 				<>
-					<ErrorRow
-						customPadding={"0 10px 0 50px"}
-						title={props.observabilityAnomalies.error}
-					></ErrorRow>
+					<ErrorRow customPadding={"0 10px 0 50px"} title={props.observabilityAnomalies.error} />
 				</>
+			)}
+
+			{expanded && !props.distributedTracingEnabled && !props.calculatingAnomalies && (
+				<Row
+					style={{
+						padding: "2px 10px 2px 40px",
+					}}
+					className={"pr-row"}
+				>
+					<span style={{ marginLeft: "2px", whiteSpace: "normal" }}>
+						Enable{" "}
+						<Link href="https://newrelic.com/termsandconditions/privacy">distributed tracing</Link>{" "}
+						for this service to see code-level metrics.
+					</span>
+				</Row>
 			)}
 
 			{expanded &&

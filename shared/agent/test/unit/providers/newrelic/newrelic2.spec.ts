@@ -19,6 +19,7 @@ describe("newRelicProvider", () => {
 					entityGuid: "123",
 					entityName: "prod",
 					tags: [{ key: "env", values: ["production"] }],
+					distributedTracingEnabled: true,
 				},
 			],
 		});
@@ -39,12 +40,15 @@ describe("newRelicProvider", () => {
 					entityGuid: "123",
 					entityName: "dev",
 					tags: [{ key: "env", values: ["dev"] }],
+					distributedTracingEnabled: true,
 				},
 				{
 					accountId: 2,
 					accountName: "codestream",
 					entityGuid: "234",
 					entityName: "us-foo (prod)",
+					distributedTracingEnabled: true,
+
 					tags: [],
 				},
 			],
@@ -66,6 +70,7 @@ describe("newRelicProvider", () => {
 					entityGuid: "012",
 					entityName: "eu-foo",
 					tags: [],
+					distributedTracingEnabled: true,
 				},
 				{
 					accountId: 1,
@@ -73,6 +78,7 @@ describe("newRelicProvider", () => {
 					entityGuid: "123",
 					entityName: "dev",
 					tags: [{ key: "env", values: ["dev"] }],
+					distributedTracingEnabled: true,
 				},
 				{
 					accountId: 2,
@@ -80,6 +86,7 @@ describe("newRelicProvider", () => {
 					entityGuid: "234",
 					entityName: "us-foo (staging)",
 					tags: [],
+					distributedTracingEnabled: true,
 				},
 			],
 		});
@@ -134,6 +141,7 @@ describe("newRelicProvider", () => {
 						entityGuid: "123",
 						entityName: "prod",
 						tags: [{ key: "env", values: ["production"] }],
+						distributedTracingEnabled: true,
 					},
 					{
 						accountId: 2,
@@ -141,6 +149,7 @@ describe("newRelicProvider", () => {
 						entityGuid: "234",
 						entityName: "prod",
 						tags: [],
+						distributedTracingEnabled: true,
 					},
 				],
 			}

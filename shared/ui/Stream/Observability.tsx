@@ -1159,15 +1159,16 @@ export const Observability = React.memo((props: Props) => {
 																								/>
 																							)}
 
-																							{derivedState.showAnomalies && (
-																								<ObservabilityAnomaliesWrapper
-																									observabilityAnomalies={observabilityAnomalies}
-																									observabilityRepo={_observabilityRepo}
-																									entityGuid={ea.entityGuid}
-																									noAccess={noErrorsAccess}
-																									calculatingAnomalies={calculatingAnomalies}
-																								/>
-																							)}
+																							<ObservabilityAnomaliesWrapper
+																								observabilityAnomalies={observabilityAnomalies}
+																								observabilityRepo={_observabilityRepo}
+																								entityGuid={ea.entityGuid}
+																								noAccess={noErrorsAccess}
+																								calculatingAnomalies={calculatingAnomalies}
+																								distributedTracingEnabled={
+																									ea.distributedTracingEnabled
+																								}
+																							/>
 
 																							{ea.domain === "APM" && (
 																								<>

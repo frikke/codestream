@@ -1226,10 +1226,10 @@ export interface GetObservabilityAnomaliesRequest {
 	sinceDaysAgo: number;
 	baselineDays: number;
 	sinceReleaseAtLeastDaysAgo?: number;
-	includeSpans?: Boolean,
-	minimumErrorRate?: number,
-	minimumResponseTime?: number,
-	minimumSampleRate?: number,
+	includeSpans?: Boolean;
+	minimumErrorRate?: number;
+	minimumResponseTime?: number;
+	minimumSampleRate?: number;
 }
 
 export interface ObservabilityAnomaly {
@@ -1282,6 +1282,7 @@ export interface GetObservabilityReposRequest {
 }
 
 export interface EntityAccount {
+	distributedTracingEnabled?: boolean;
 	alertSeverity?: string;
 	accountId: number;
 	accountName: string;
@@ -1549,8 +1550,8 @@ export interface GetAlertViolationsResponse {
 }
 
 export interface Deployment {
-	seconds: number,
-	version: string
+	seconds: number;
+	version: string;
 }
 
 export interface GetDeploymentsRequest {

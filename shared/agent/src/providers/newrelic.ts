@@ -883,6 +883,7 @@ export class NewRelicProvider
 								domain: entity.domain,
 								alertSeverity: entity?.alertSeverity,
 								url: `${this.productUrl}/redirect/entity/${entity.guid}`,
+								distributedTracingEnabled: this.hasStandardOrInfiniteTracing(entity),
 							} as EntityAccount;
 						})
 						.filter(Boolean)
@@ -903,6 +904,20 @@ export class NewRelicProvider
 		this._observabilityReposCache.put(cacheKey, response);
 
 		return response;
+	}
+
+	private hasStandardOrInfiniteTracing(entity?: Entity): boolean {
+		const tags = entity?.tags || [];
+		const tracingTag = tags.find(tag => tag.key === "nr.tracing");
+
+		if (!tracingTag) {
+			return false;
+		}
+
+		const tracingValue = tracingTag.values[0];
+
+		// Values can be either 'standard' for head-based sampling or 'infinite' for tail-based sampling.
+		return tracingValue === "standard" || tracingValue === "infinite";
 	}
 
 	private async checkHasCodeLevelMetricSpanData(
@@ -3297,6 +3312,10 @@ export class NewRelicProvider
 						guid
 						type
 						entityType
+						tags {
+							key
+							values
+						}
 					  }
 					}
 					target {
