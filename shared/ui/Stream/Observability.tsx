@@ -1158,17 +1158,18 @@ export const Observability = React.memo((props: Props) => {
 																									errorMsg={serviceLevelObjectiveError}
 																								/>
 																							)}
-
-																							<ObservabilityAnomaliesWrapper
-																								observabilityAnomalies={observabilityAnomalies}
-																								observabilityRepo={_observabilityRepo}
-																								entityGuid={ea.entityGuid}
-																								noAccess={noErrorsAccess}
-																								calculatingAnomalies={calculatingAnomalies}
-																								distributedTracingEnabled={
-																									ea.distributedTracingEnabled
-																								}
-																							/>
+																							{derivedState.showAnomalies && (
+																								<ObservabilityAnomaliesWrapper
+																									observabilityAnomalies={observabilityAnomalies}
+																									observabilityRepo={_observabilityRepo}
+																									entityGuid={ea.entityGuid}
+																									noAccess={noErrorsAccess}
+																									calculatingAnomalies={calculatingAnomalies}
+																									distributedTracingEnabled={
+																										ea.distributedTracingEnabled
+																									}
+																								/>
+																							)}
 
 																							{ea.domain === "APM" && (
 																								<>
