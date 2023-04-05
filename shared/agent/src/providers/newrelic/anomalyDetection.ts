@@ -64,55 +64,56 @@ export class AnomalyDetector {
 		const minimumErrorRate = this._request.minimumErrorRate || 0.001;
 		const minimumResponseTime = this._request.minimumResponseTime || 1;
 		const minimumSampleRate = this._request.minimumSampleRate || 1;
+		const sampleRateTimeFrame = "SINCE 30 minutes ago";
 
 		const sampleRatesMetricLookup =
-			"(metricTimesliceName LIKE 'Java/%' OR metricTimesliceName LIKE 'Custom/%')";
-		const sampleRatesMetric = await this.getSampleRateMetric(sampleRatesMetricLookup);
-		const metricRoots = this.getCommonRoots(sampleRatesMetric.map(_ => _.name));
-		const metricLookup = metricRoots.length
-			? metricRoots.map(_ => `\`metricTimesliceName\` LIKE '%${_}%'`).join(" OR ")
-			: undefined;
+			"(metricTimesliceName LIKE 'Java/%.%/%' OR metricTimesliceName LIKE 'Custom/%.%/%')";
+		const sampleRatesMetric = await this.getSampleRateMetric(
+			sampleRatesMetricLookup,
+			sampleRateTimeFrame
+		);
+		const metricRoots = this.getCommonRoots(
+			sampleRatesMetric.map(_ => this.extractSymbolStr(_.name))
+		);
 
 		let totalSpans = 0;
 		let sampleRatesSpan: NameValue[] = [];
 		let spanLookup = undefined;
 		if (includeSpans) {
-			const sampleRatesSpanLookup = "(name LIKE 'Java/%' OR name LIKE 'Custom/%')";
-			sampleRatesSpan = await this.getSampleRateSpan(sampleRatesSpanLookup);
+			const sampleRatesSpanLookup = "(name LIKE 'Java/%.%/%' OR name LIKE 'Custom/%.%/%')";
+			sampleRatesSpan = await this.getSampleRateSpan(sampleRatesSpanLookup, sampleRateTimeFrame);
 			totalSpans = sampleRatesSpan.length;
-			const spanRoots = this.getCommonRoots(sampleRatesSpan.map(_ => _.name));
+			const spanRoots = this.getCommonRoots(
+				sampleRatesSpan.map(_ => this.extractSymbolStr(_.name))
+			);
 			spanLookup = spanRoots.length
-				? spanRoots.map(_ => `name LIKE '${_}%'`).join(" OR ")
+				? spanRoots.map(_ => `name LIKE '%${_}%'`).join(" OR ")
 				: undefined;
 		}
 
 		const consolidatedSampleRates = this.consolidateSampleRates(sampleRatesMetric, sampleRatesSpan);
-		if (!metricLookup || !spanLookup) {
+		if (!metricRoots || !metricRoots.length) {
 			return {
 				responseTime: [],
 				errorRate: [],
 			};
 		}
 
-		const responseTimeAnomalies = await this.getResponseTimeAnomalies(
-			metricLookup,
-			spanLookup,
-			sampleRatesMetric,
-			sampleRatesSpan,
-			consolidatedSampleRates,
-			minimumResponseTime,
-			minimumSampleRate
-		);
+		const { anomalies: responseTimeAnomalies, metricTimesliceNames } =
+			await this.getDurationAnomalies(
+				metricRoots,
+				consolidatedSampleRates,
+				minimumResponseTime,
+				minimumSampleRate
+			);
 
-		const errorRateAnomalies = await this.getErrorRateAnomalies(
-			metricLookup,
-			spanLookup,
-			sampleRatesMetric,
-			sampleRatesSpan,
-			consolidatedSampleRates,
-			minimumErrorRate,
-			minimumSampleRate
-		);
+		const { anomalies: errorRateAnomalies, metricTimesliceNames: errorMetricTimesliceNames } =
+			await this.getErrorRateAnomalies(
+				metricRoots,
+				consolidatedSampleRates,
+				minimumErrorRate,
+				minimumSampleRate
+			);
 
 		const telemetry = Container.instance().telemetry;
 
@@ -133,84 +134,125 @@ export class AnomalyDetector {
 		};
 	}
 
-	private async getResponseTimeAnomalies(
-		lookupMetric: string,
-		lookupSpan: string,
-		sampleRatesMetric: NameValue[],
-		sampleRatesSpan: NameValue[],
+	private async getDurationAnomalies(
+		metricRoots: string[],
 		consolidatedSampleRates: Map<string, { span?: NameValue; metric?: NameValue }>,
-		minimumResponseTime: number,
+		minimumDuration: number,
 		minimumSampleRate: number
-	): Promise<ObservabilityAnomaly[]> {
-		const metricData = await this.getResponseTimeMetric(lookupMetric, this._dataTimeFrame);
-		const metricBaseline = await this.getResponseTimeMetric(lookupMetric, this._baselineTimeFrame);
-		const metricFilter = this.getSampleRateFilterPredicate(sampleRatesMetric, minimumSampleRate);
-		const filteredMetricData = metricData.filter(metricFilter);
-		const filteredMetricBaseline = metricBaseline.filter(metricFilter);
-		const metricComparison = this.compareData(filteredMetricData, filteredMetricBaseline);
+	): Promise<{ anomalies: ObservabilityAnomaly[]; metricTimesliceNames: string[] }> {
+		if (!metricRoots.length) {
+			return {
+				anomalies: [],
+				metricTimesliceNames: [],
+			};
+		}
 
-		// const spanData = await this.getResponseTimeSpan(lookupSpan, this._dataTimeFrame);
-		// const spanBaseline = await this.getResponseTimeSpan(lookupSpan, this._baselineTimeFrame);
-		// const spanFilter = this.getSampleRateFilterPredicate(sampleRatesSpan, minimumSampleRate);
-		// const filteredSpanData = spanData.filter(spanFilter);
-		// const filteredSpanBaseline = spanBaseline.filter(spanFilter);
-		// const spanComparison = this.compareData(filteredSpanData, filteredSpanBaseline);
+		const lookup = metricRoots
+			.map(
+				_ => `metricTimesliceName LIKE 'Java/%${_}%' OR metricTimesliceName LIKE 'Custom/%${_}%'`
+			)
+			.join(" OR ");
 
-		const consolidatedComparison = this.consolidateComparisons(
+		const data = await this.getDurationMetric(lookup, this._dataTimeFrame);
+
+		const baseline = await this.getDurationMetric(lookup, this._baselineTimeFrame);
+		const baselineSampleRate = await this.getSampleRateMetric(lookup, this._baselineTimeFrame);
+		const baselineFilter = this.getSampleRateFilterPredicate(baselineSampleRate, minimumSampleRate);
+		const baselineFiltered = baseline.filter(baselineFilter);
+
+		const comparison = this.compareData(data, baselineFiltered);
+
+		const filteredComparison = this.filterComparisonsByConsolidatedSampleRates(
 			consolidatedSampleRates,
-			metricComparison,
-			[]
-			// spanComparison
-		).filter(_ => _.ratio > 1 && _.newValue > minimumResponseTime);
+			comparison
+		).filter(_ => _.ratio > 1 && _.newValue > minimumDuration);
 
-		return consolidatedComparison.map(_ => this.comparisonToAnomaly(_));
+		const anomalies = filteredComparison.map(_ => this.comparisonToAnomaly(_));
+
+		return {
+			anomalies,
+			metricTimesliceNames: baseline.map(_ => _.name),
+		};
 	}
 
 	private async getErrorRateAnomalies(
-		lookupMetric: string,
-		lookupSpan: string,
-		sampleRatesMetric: NameValue[],
-		sampleRatesSpan: NameValue[],
+		metricRoots: string[],
 		consolidatedSampleRates: Map<string, { span?: NameValue; metric?: NameValue }>,
 		minimumErrorRate: number,
 		minimumSampleRate: number
-	) {
-		const metricData = await this.getErrorRateMetric(lookupMetric, this._dataTimeFrame);
-		const metricBaseline = await this.getErrorRateMetric(lookupMetric, this._baselineTimeFrame);
-		const metricFilter = this.getSampleRateFilterPredicate(sampleRatesMetric, minimumSampleRate);
-		const metricTransformer = this.getErrorRateTransformer(sampleRatesMetric);
-		const filteredMetricData = metricData.filter(metricFilter).map(metricTransformer);
-		const filteredMetricBaseline = metricBaseline.filter(metricFilter).map(metricTransformer);
-		const metricComparison = this.compareData(filteredMetricData, filteredMetricBaseline);
+	): Promise<{
+		anomalies: ObservabilityAnomaly[];
+		metricTimesliceNames: string[];
+	}> {
+		if (!metricRoots.length) {
+			return {
+				anomalies: [],
+				metricTimesliceNames: [],
+			};
+		}
 
-		// const spanData = await this.getErrorRateSpan(lookupSpan, this._dataTimeFrame);
-		// const spanBaseline = await this.getErrorRateSpan(lookupSpan, this._baselineTimeFrame);
-		// const spanFilter = this.getSampleRateFilterPredicate(sampleRatesSpan, minimumSampleRate);
-		// const spanTransformer = this.getErrorRateTransformer(sampleRatesSpan);
-		// const filteredSpanData = spanData.filter(spanFilter).map(spanTransformer);
-		// const filteredSpanBaseline = spanBaseline.filter(spanFilter).map(spanTransformer);
-		// const spanComparison = this.compareData(filteredSpanData, filteredSpanBaseline);
+		const errorCountLookup = metricRoots
+			.map(_ => `metricTimesliceName LIKE 'Errors/%${_}%'`)
+			.join(" OR ");
+		const sampleLookup = metricRoots
+			.map(
+				_ => `metricTimesliceName LIKE 'Java/%${_}%' OR metricTimesliceName LIKE 'Custom/%${_}%'`
+			)
+			.join(" OR ");
 
-		const consolidatedComparisons = this.consolidateComparisons(
+		const dataErrorCount = await this.getErrorCountMetric(errorCountLookup, this._dataTimeFrame);
+		const dataSampleSize = await this.getSampleSizeMetric(sampleLookup, this._dataTimeFrame);
+		// const dataSampleRate = await this.getSampleRateMetric(lookup, this._dataTimeFrame);
+		// const dataFilter = this.getSampleRateFilterPredicate(dataSampleRate, minimumSampleRate);
+		const dataTransformer = this.getErrorRateTransformer(dataSampleSize);
+		// const dataErrorRate = dataErrorCount.filter(dataFilter).map(dataTransformer);
+		const dataErrorRate = dataErrorCount.map(dataTransformer);
+
+		const baselineErrorCount = await this.getErrorCountMetric(
+			errorCountLookup,
+			this._baselineTimeFrame
+		);
+		const baselineSampleSize = await this.getSampleSizeMetric(
+			sampleLookup,
+			this._baselineTimeFrame
+		);
+		const baselineSampleRate = await this.getSampleRateMetric(
+			sampleLookup,
+			this._baselineTimeFrame
+		);
+		const baselineFilter = this.getSampleRateFilterPredicate(baselineSampleRate, minimumSampleRate);
+		const baselineTransformer = this.getErrorRateTransformer(baselineSampleSize);
+		const baselineErrorRate = baselineErrorCount.filter(baselineFilter).map(baselineTransformer);
+
+		const comparison = this.compareData(dataErrorRate, baselineErrorRate);
+
+		const filteredComparison = this.filterComparisonsByConsolidatedSampleRates(
 			consolidatedSampleRates,
-			metricComparison,
-			[]
-			// spanComparison
+			comparison
 		).filter(_ => _.ratio > 1 && _.newValue > minimumErrorRate);
 
-		return consolidatedComparisons.map(_ => this.comparisonToAnomaly(_));
+		const anomalies = filteredComparison.map(_ => this.comparisonToAnomaly(_));
+
+		return {
+			anomalies,
+			metricTimesliceNames: baselineErrorCount.map(_ => _.name),
+		};
 	}
 
 	private getSampleRateFilterPredicate(sampleRates: NameValue[], minimumSampleRate: number) {
 		return (data: NameValue) => {
-			const sampleRate = sampleRates.find(sampleRate => data.name === sampleRate.name);
+			const sampleRate = sampleRates.find(
+				sampleRate => this.extractSymbolStr(data.name) === this.extractSymbolStr(sampleRate.name)
+			);
 			return sampleRate && sampleRate.value >= minimumSampleRate;
 		};
 	}
 
 	private getErrorRateTransformer(sampleRates: NameValue[]) {
 		return (data: NameValue) => {
-			const sampleRate = sampleRates.find(sampleRate => data.name === sampleRate.name);
+			const sampleRate = sampleRates.find(
+				sampleRate => this.extractSymbolStr(data.name) === this.extractSymbolStr(sampleRate.name)
+			);
 			return {
 				name: data.name,
 				value: data.value / (sampleRate?.value || 1),
@@ -218,7 +260,7 @@ export class AnomalyDetector {
 		};
 	}
 
-	private consolidateComparisons(
+	private filterComparisonsByConsolidatedSampleRates(
 		consolidatedSampleRates: Map<
 			string,
 			{
@@ -226,20 +268,14 @@ export class AnomalyDetector {
 				metric?: NameValue;
 			}
 		>,
-		metricComparisons: {
-			name: string;
-			oldValue: number;
-			newValue: number;
-			ratio: number;
-		}[],
-		spanComparisons: {
+		comparisons: {
 			name: string;
 			oldValue: number;
 			newValue: number;
 			ratio: number;
 		}[]
 	) {
-		const consolidatedComparisons: {
+		const filteredComparisons: {
 			name: string;
 			source: string;
 			oldValue: number;
@@ -253,34 +289,21 @@ export class AnomalyDetector {
 				(!consolidatedSampleRate.span ||
 					consolidatedSampleRate.metric.value / consolidatedSampleRate.span.value >= 0.8);
 			if (useMetric) {
-				const metricComparison = metricComparisons.find(_ => {
-					const symbol = this.extractSymbol(_.name);
-					const mySymbolStr = symbol.className + "/" + symbol.functionName;
+				const comparison = comparisons.find(_ => {
+					const mySymbolStr = this.extractSymbolStr(_.name);
 					return symbolStr === mySymbolStr;
 				});
-				if (metricComparison) {
-					consolidatedComparisons.push({
-						...metricComparison,
+				if (comparison) {
+					filteredComparisons.push({
+						...comparison,
 						source: "metric",
 					});
 				}
-			} else {
-				// const spanComparison = spanComparisons.find(_ => {
-				// 	const symbol = this.extractSymbol(_.name);
-				// 	const mySymbolStr = symbol.className + "/" + symbol.functionName;
-				// 	return symbolStr === mySymbolStr;
-				// });
-				// if (spanComparison) {
-				// 	consolidatedComparisons.push({
-				// 		...spanComparison,
-				// 		source: "span",
-				// 	});
-				// }
 			}
 		}
 
-		consolidatedComparisons.sort((a, b) => b.ratio - a.ratio);
-		return consolidatedComparisons;
+		filteredComparisons.sort((a, b) => b.ratio - a.ratio);
+		return filteredComparisons;
 	}
 
 	private consolidateSampleRates(sampleRatesMetric: NameValue[], sampleRatesSpan: NameValue[]) {
@@ -400,7 +423,7 @@ export class AnomalyDetector {
 		return this.runNrql(query);
 	}
 
-	getResponseTimeMetric(lookup: string, timeFrame: string): Promise<NameValue[]> {
+	getDurationMetric(lookup: string, timeFrame: string): Promise<NameValue[]> {
 		const query =
 			`SELECT average(newrelic.timeslice.value) * 1000 AS 'value' ` +
 			`FROM Metric WHERE \`entity.guid\` = '${this._request.entityGuid}' AND (${lookup}) FACET metricTimesliceName AS name ` +
@@ -408,24 +431,23 @@ export class AnomalyDetector {
 		return this.runNrql(query);
 	}
 
-	private getErrorRateSpan(lookup: string, timeFrame: string): Promise<NameValue[]> {
+	private getErrorCountSpan(lookup: string, timeFrame: string): Promise<NameValue[]> {
 		const query =
-			`SELECT rate(count(*), 1 minute) AS 'value' ` +
+			`SELECT count(*) AS 'value' ` +
 			`FROM Span WHERE \`entity.guid\` = '${this._request.entityGuid}' AND \`error.group.guid\` IS NOT NULL AND (${lookup}) FACET name ` +
 			`${timeFrame} LIMIT MAX`;
 		return this.runNrql(query);
 	}
 
-	private async getErrorRateMetric(lookup: string, timeFrame: string): Promise<NameValue[]> {
+	private async getErrorCountMetric(lookup: string, timeFrame: string): Promise<NameValue[]> {
 		const query =
-			`SELECT rate(count(apm.service.transaction.error.count), 1 minute) AS 'value' ` +
+			`SELECT count(apm.service.transaction.error.count) AS 'value' ` +
 			`FROM Metric WHERE \`entity.guid\` = '${this._request.entityGuid}' AND (${lookup}) FACET metricTimesliceName AS name ` +
 			`${timeFrame} LIMIT MAX`;
 		return this.runNrql(query);
 	}
 
-	private async getSampleRateSpan(lookup: string): Promise<NameValue[]> {
-		const timeFrame = "SINCE 30 minutes ago";
+	private async getSampleRateSpan(lookup: string, timeFrame: string): Promise<NameValue[]> {
 		const query =
 			`SELECT rate(count(*), 1 minute) AS 'value' ` +
 			`FROM Span WHERE \`entity.guid\` = '${this._request.entityGuid}' AND (${lookup}) FACET name ` +
@@ -451,8 +473,7 @@ export class AnomalyDetector {
 		return filteredSampleRates;
 	}
 
-	private async getSampleRateMetric(lookup: string): Promise<NameValue[]> {
-		const timeFrame = "SINCE 30 minutes ago";
+	private async getSampleRateMetric(lookup: string, timeFrame: string): Promise<NameValue[]> {
 		const query =
 			`SELECT rate(count(newrelic.timeslice.value), 1 minute) AS 'value' ` +
 			`FROM Metric WHERE \`entity.guid\` = '${this._request.entityGuid}' AND (${lookup}) FACET metricTimesliceName AS name ` +
@@ -460,6 +481,14 @@ export class AnomalyDetector {
 		const sampleRates = await this.runNrql<NameValue>(query);
 		const filteredSampleRates = await this.filterSampleRates(sampleRates);
 		return filteredSampleRates;
+	}
+
+	private async getSampleSizeMetric(lookup: string, timeFrame: string): Promise<NameValue[]> {
+		const query =
+			`SELECT count(newrelic.timeslice.value) AS 'value' ` +
+			`FROM Metric WHERE \`entity.guid\` = '${this._request.entityGuid}' AND (${lookup}) FACET metricTimesliceName AS name ` +
+			`${timeFrame} LIMIT MAX`;
+		return this.runNrql<NameValue>(query);
 	}
 
 	private async extractClassNames(rawNames: string[]) {
@@ -477,6 +506,11 @@ export class AnomalyDetector {
 			className,
 			functionName,
 		};
+	}
+
+	extractSymbolStr(rawName: string) {
+		const symbol = this.extractSymbol(rawName);
+		return symbol.className + "/" + symbol.functionName;
 	}
 
 	private runNrql<T>(nrql: string): Promise<T[]> {
