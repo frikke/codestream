@@ -425,7 +425,11 @@ export const ObservabilityAnomalyPanel = () => {
 												// hide charts with no data.
 												if (!_?.result || _.result?.length === 0) return null;
 												const title = _.title + (_.extrapolated ? " (extrapolated)" : "");
-												const maxY = Math.ceil(Math.max(..._.result.map(o => o[_.title as any])));
+												const yValues = _.result.map(o => o[_.title as any]);
+												const sanitizedYValues = (yValues as (number | undefined)[]).map(_ =>
+													_ != undefined ? _ : 0
+												);
+												const maxY = Math.ceil(Math.max(...sanitizedYValues));
 												return (
 													<div
 														key={"chart-" + index}
