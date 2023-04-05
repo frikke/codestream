@@ -1236,12 +1236,13 @@ export interface ObservabilityAnomaly {
 	name: string;
 	className: string;
 	functionName: string;
-	source: string;
 	oldValue: number;
 	newValue: number;
 	ratio: number;
 	text: string;
 	totalDays: number;
+	metricTimesliceName: string;
+	errorMetricTimesliceName: string;
 }
 
 export type DetectionMethod = "Release Based" | "Time Based";

@@ -654,14 +654,33 @@ export const Observability = React.memo((props: Props) => {
 		HostApi.instance
 			.send(GetObservabilityAnomaliesRequestType, {
 				entityGuid,
-				sinceDaysAgo: derivedState?.clmSettings?.compareDataLastValue || 2,
-				baselineDays: derivedState?.clmSettings?.againstDataPrecedingValue || 5,
-				sinceReleaseAtLeastDaysAgo: derivedState?.clmSettings?.compareDataLastReleaseValue || 7,
-				minimumErrorRate: parseFloat(derivedState?.clmSettings?.minimumErrorRateValue || 0.1),
-				minimumResponseTime: parseFloat(
-					derivedState?.clmSettings?.minimumAverageDurationValue || 10
+				sinceDaysAgo:
+					derivedState?.clmSettings?.compareDataLastValue != null
+						? derivedState?.clmSettings?.compareDataLastValue
+						: 2,
+				baselineDays:
+					derivedState?.clmSettings?.againstDataPrecedingValue != null
+						? derivedState?.clmSettings?.againstDataPrecedingValue
+						: 7,
+				sinceReleaseAtLeastDaysAgo:
+					derivedState?.clmSettings?.compareDataLastReleaseValue != null
+						? derivedState?.clmSettings?.compareDataLastReleaseValue
+						: 7,
+				minimumErrorRate: parseFloat(
+					derivedState?.clmSettings?.minimumErrorRateValue != null
+						? derivedState?.clmSettings?.minimumErrorRateValue
+						: 0
 				),
-				minimumSampleRate: parseFloat(derivedState?.clmSettings?.minimumBaselineValue || 30),
+				minimumResponseTime: parseFloat(
+					derivedState?.clmSettings?.minimumAverageDurationValue != null
+						? derivedState?.clmSettings?.minimumAverageDurationValue
+						: 0
+				),
+				minimumSampleRate: parseFloat(
+					derivedState?.clmSettings?.minimumBaselineValue != null
+						? derivedState?.clmSettings?.minimumBaselineValue
+						: 0
+				),
 			})
 			.then(response => {
 				setObservabilityAnomalies(response);

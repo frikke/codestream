@@ -106,10 +106,10 @@ export const ObservabilityAnomalyPanel = () => {
 			const response = await HostApi.instance.send(GetMethodLevelTelemetryRequestType, {
 				newRelicEntityGuid: newRelicEntityGuid,
 				metricTimesliceNameMapping: {
-					source: anomaly.source,
-					duration: anomaly.name,
-					errorRate: anomaly.name,
-					sampleSize: anomaly.name,
+					source: "metric",
+					duration: anomaly.metricTimesliceName,
+					errorRate: anomaly.errorMetricTimesliceName,
+					sampleSize: anomaly.metricTimesliceName,
 				},
 				since,
 				includeDeployments: true,

@@ -13,7 +13,7 @@ interface NameValue {
 	value: number;
 }
 
-interface Anomaly {
+interface Comparison {
 	name: string;
 	oldValue: number;
 	newValue: number;
@@ -61,37 +61,23 @@ export class AnomalyDetector {
 		}
 
 		const includeSpans = this._request.includeSpans || true;
-		const minimumErrorRate = this._request.minimumErrorRate || 0.001;
-		const minimumResponseTime = this._request.minimumResponseTime || 1;
-		const minimumSampleRate = this._request.minimumSampleRate || 1;
-		const sampleRateTimeFrame = "SINCE 30 minutes ago";
+		const minimumErrorRate =
+			this._request.minimumErrorRate != null ? this._request.minimumErrorRate : 0;
+		const minimumResponseTime =
+			this._request.minimumResponseTime != null ? this._request.minimumResponseTime : 0;
+		const minimumSampleRate =
+			this._request.minimumSampleRate != null ? this._request.minimumSampleRate : 0;
+		const benchmarkSampleRateTimeFrame = "SINCE 1 day ago";
 
-		const sampleRatesMetricLookup =
+		const benchmarkSampleSizessMetricLookup =
 			"(metricTimesliceName LIKE 'Java/%.%/%' OR metricTimesliceName LIKE 'Custom/%.%/%')";
-		const sampleRatesMetric = await this.getSampleRateMetric(
-			sampleRatesMetricLookup,
-			sampleRateTimeFrame
+		const benchmarkSampleSizesMetric = await this.getSampleSizeMetric(
+			benchmarkSampleSizessMetricLookup,
+			benchmarkSampleRateTimeFrame
 		);
 		const metricRoots = this.getCommonRoots(
-			sampleRatesMetric.map(_ => this.extractSymbolStr(_.name))
+			benchmarkSampleSizesMetric.map(_ => this.extractSymbolStr(_.name))
 		);
-
-		let totalSpans = 0;
-		let sampleRatesSpan: NameValue[] = [];
-		let spanLookup = undefined;
-		if (includeSpans) {
-			const sampleRatesSpanLookup = "(name LIKE 'Java/%.%/%' OR name LIKE 'Custom/%.%/%')";
-			sampleRatesSpan = await this.getSampleRateSpan(sampleRatesSpanLookup, sampleRateTimeFrame);
-			totalSpans = sampleRatesSpan.length;
-			const spanRoots = this.getCommonRoots(
-				sampleRatesSpan.map(_ => this.extractSymbolStr(_.name))
-			);
-			spanLookup = spanRoots.length
-				? spanRoots.map(_ => `name LIKE '%${_}%'`).join(" OR ")
-				: undefined;
-		}
-
-		const consolidatedSampleRates = this.consolidateSampleRates(sampleRatesMetric, sampleRatesSpan);
 		if (!metricRoots || !metricRoots.length) {
 			return {
 				responseTime: [],
@@ -99,27 +85,46 @@ export class AnomalyDetector {
 			};
 		}
 
-		const { anomalies: responseTimeAnomalies, metricTimesliceNames } =
-			await this.getDurationAnomalies(
+		const benchmarkSampleSizesSpanLookup = "(name LIKE 'Java/%.%/%' OR name LIKE 'Custom/%.%/%')";
+		const benchmarkSampleSizesSpan = await this.getSampleSizeSpan(
+			benchmarkSampleSizesSpanLookup,
+			benchmarkSampleRateTimeFrame
+		);
+		const totalSpans = benchmarkSampleSizesSpan.length;
+		// Used to determine metric validity
+		const benchmarkSampleSizes = this.consolidateBenchmarkSampleSizes(
+			benchmarkSampleSizesMetric,
+			benchmarkSampleSizesSpan
+		);
+
+		const { comparisons: durationComparisons, metricTimesliceNames } =
+			await this.getAnomalousDurationComparisons(
 				metricRoots,
-				consolidatedSampleRates,
+				benchmarkSampleSizes,
 				minimumResponseTime,
 				minimumSampleRate
 			);
 
-		const { anomalies: errorRateAnomalies, metricTimesliceNames: errorMetricTimesliceNames } =
+		const { comparisons: errorRateComparisons, metricTimesliceNames: errorMetricTimesliceNames } =
 			await this.getErrorRateAnomalies(
 				metricRoots,
-				consolidatedSampleRates,
+				benchmarkSampleSizes,
 				minimumErrorRate,
 				minimumSampleRate
 			);
+
+		const durationAnomalies = durationComparisons.map(_ =>
+			this.durationComparisonToAnomaly(_, errorMetricTimesliceNames)
+		);
+		const errorRateAnomalies = errorRateComparisons.map(_ =>
+			this.errorRateComparisonToAnomaly(_, metricTimesliceNames)
+		);
 
 		const telemetry = Container.instance().telemetry;
 
 		const event = {
 			"Total Methods": totalSpans,
-			"Anomalous Error Methods": responseTimeAnomalies.length,
+			"Anomalous Error Methods": durationAnomalies.length,
 			"Anomalous Duration Methods": errorRateAnomalies.length,
 		};
 		telemetry?.track({
@@ -128,21 +133,21 @@ export class AnomalyDetector {
 		});
 
 		return {
-			responseTime: responseTimeAnomalies,
+			responseTime: durationAnomalies,
 			errorRate: errorRateAnomalies,
 			detectionMethod,
 		};
 	}
 
-	private async getDurationAnomalies(
+	private async getAnomalousDurationComparisons(
 		metricRoots: string[],
-		consolidatedSampleRates: Map<string, { span?: NameValue; metric?: NameValue }>,
+		benchmarkSampleSizes: Map<string, { span?: NameValue; metric?: NameValue }>,
 		minimumDuration: number,
 		minimumSampleRate: number
-	): Promise<{ anomalies: ObservabilityAnomaly[]; metricTimesliceNames: string[] }> {
+	): Promise<{ comparisons: Comparison[]; metricTimesliceNames: string[] }> {
 		if (!metricRoots.length) {
 			return {
-				anomalies: [],
+				comparisons: [],
 				metricTimesliceNames: [],
 			};
 		}
@@ -160,33 +165,31 @@ export class AnomalyDetector {
 		const baselineFilter = this.getSampleRateFilterPredicate(baselineSampleRate, minimumSampleRate);
 		const baselineFiltered = baseline.filter(baselineFilter);
 
-		const comparison = this.compareData(data, baselineFiltered);
+		const allComparisons = this.compareData(data, baselineFiltered);
 
-		const filteredComparison = this.filterComparisonsByConsolidatedSampleRates(
-			consolidatedSampleRates,
-			comparison
+		const filteredComparisons = this.filterComparisonsByBenchmarkSampleSizes(
+			benchmarkSampleSizes,
+			allComparisons
 		).filter(_ => _.ratio > 1 && _.newValue > minimumDuration);
 
-		const anomalies = filteredComparison.map(_ => this.comparisonToAnomaly(_));
-
 		return {
-			anomalies,
+			comparisons: filteredComparisons,
 			metricTimesliceNames: baseline.map(_ => _.name),
 		};
 	}
 
 	private async getErrorRateAnomalies(
 		metricRoots: string[],
-		consolidatedSampleRates: Map<string, { span?: NameValue; metric?: NameValue }>,
+		benchmarkSampleSizes: Map<string, { span?: NameValue; metric?: NameValue }>,
 		minimumErrorRate: number,
 		minimumSampleRate: number
 	): Promise<{
-		anomalies: ObservabilityAnomaly[];
+		comparisons: Comparison[];
 		metricTimesliceNames: string[];
 	}> {
 		if (!metricRoots.length) {
 			return {
-				anomalies: [],
+				comparisons: [],
 				metricTimesliceNames: [],
 			};
 		}
@@ -224,17 +227,15 @@ export class AnomalyDetector {
 		const baselineTransformer = this.getErrorRateTransformer(baselineSampleSize);
 		const baselineErrorRate = baselineErrorCount.filter(baselineFilter).map(baselineTransformer);
 
-		const comparison = this.compareData(dataErrorRate, baselineErrorRate);
+		const allComparisons = this.compareData(dataErrorRate, baselineErrorRate);
 
-		const filteredComparison = this.filterComparisonsByConsolidatedSampleRates(
-			consolidatedSampleRates,
-			comparison
+		const filteredComparison = this.filterComparisonsByBenchmarkSampleSizes(
+			benchmarkSampleSizes,
+			allComparisons
 		).filter(_ => _.ratio > 1 && _.newValue > minimumErrorRate);
 
-		const anomalies = filteredComparison.map(_ => this.comparisonToAnomaly(_));
-
 		return {
-			anomalies,
+			comparisons: filteredComparison,
 			metricTimesliceNames: baselineErrorCount.map(_ => _.name),
 		};
 	}
@@ -260,7 +261,7 @@ export class AnomalyDetector {
 		};
 	}
 
-	private filterComparisonsByConsolidatedSampleRates(
+	private filterComparisonsByBenchmarkSampleSizes(
 		consolidatedSampleRates: Map<
 			string,
 			{
@@ -306,8 +307,11 @@ export class AnomalyDetector {
 		return filteredComparisons;
 	}
 
-	private consolidateSampleRates(sampleRatesMetric: NameValue[], sampleRatesSpan: NameValue[]) {
-		const consolidatedSampleRates = new Map<
+	private consolidateBenchmarkSampleSizes(
+		sampleSizesMetric: NameValue[],
+		sampleSizesSpan: NameValue[]
+	) {
+		const consolidatedSampleSizes = new Map<
 			string,
 			{
 				span?: NameValue;
@@ -315,26 +319,25 @@ export class AnomalyDetector {
 			}
 		>();
 
-		for (const sampleRate of sampleRatesMetric) {
-			if (sampleRate.value < 1) {
+		for (const sampleSize of sampleSizesMetric) {
+			if (sampleSize.value < 1) {
 				continue;
 			}
-			const symbol = this.extractSymbol(sampleRate.name);
-			const symbolStr = symbol.className + "/" + symbol.functionName;
-			consolidatedSampleRates.set(symbolStr, { metric: sampleRate });
+			const symbolStr = this.extractSymbolStr(sampleSize.name);
+			consolidatedSampleSizes.set(symbolStr, { metric: sampleSize });
 		}
 
-		for (const sampleRate of sampleRatesSpan) {
-			if (sampleRate.value < 1) {
+		for (const sampleSize of sampleSizesSpan) {
+			if (sampleSize.value < 1) {
 				continue;
 			}
-			const symbol = this.extractSymbol(sampleRate.name);
+			const symbol = this.extractSymbol(sampleSize.name);
 			const symbolStr = symbol.className + "/" + symbol.functionName;
-			const consolidatedSampleRate = consolidatedSampleRates.get(symbolStr) || {};
-			consolidatedSampleRate.span = sampleRate;
-			consolidatedSampleRates.set(symbolStr, consolidatedSampleRate);
+			const consolidatedSampleSize = consolidatedSampleSizes.get(symbolStr) || {};
+			consolidatedSampleSize.span = sampleSize;
+			consolidatedSampleSizes.set(symbolStr, consolidatedSampleSize);
 		}
-		return consolidatedSampleRates;
+		return consolidatedSampleSizes;
 	}
 
 	getCommonRoots(namespaces: string[]): string[] {
@@ -363,19 +366,6 @@ export class AnomalyDetector {
 		});
 
 		return commonRoots;
-	}
-
-	private formatAnomalies(anomalies: Anomaly[]) {
-		return anomalies.map(_ => this.formatAnomaly(_));
-	}
-
-	private formatAnomaly(anomaly: Anomaly) {
-		// const variation = (anomaly.ratio - 1) * 100;
-		// const formattedVariation = (Math.round(variation * 100) / 100).toFixed(2);
-		const formattedName = anomaly.name.replace(/(^Custom\/|Java\/)/gi, "");
-		// const text = formattedName + (variation > 0 ? " +" : " ") + formattedVariation + "%";
-		// return text;
-		return formattedName;
 	}
 
 	private compareData(data: NameValue[], baseline: NameValue[]) {
@@ -447,15 +437,13 @@ export class AnomalyDetector {
 		return this.runNrql(query);
 	}
 
-	private async getSampleRateSpan(lookup: string, timeFrame: string): Promise<NameValue[]> {
+	private async getSampleSizeSpan(lookup: string, timeFrame: string): Promise<NameValue[]> {
 		const query =
-			`SELECT rate(count(*), 1 minute) AS 'value' ` +
+			`SELECT count(*) AS 'value' ` +
 			`FROM Span WHERE \`entity.guid\` = '${this._request.entityGuid}' AND (${lookup}) FACET name ` +
 			`${timeFrame} LIMIT MAX`;
 
-		const sampleRates = await this.runNrql<NameValue>(query);
-		const filteredSampleRates = await this.filterSampleRates(sampleRates);
-		return filteredSampleRates;
+		return this.runNrql<NameValue>(query);
 	}
 
 	private async filterSampleRates(sampleRates: NameValue[]) {
@@ -517,19 +505,49 @@ export class AnomalyDetector {
 		return this._provider.runNrql(this._accountId, nrql, 400);
 	}
 
-	private comparisonToAnomaly(comparison: {
-		name: string;
-		source: string;
-		oldValue: number;
-		newValue: number;
-		ratio: number;
-	}): ObservabilityAnomaly {
+	private durationComparisonToAnomaly(
+		comparison: {
+			name: string;
+			oldValue: number;
+			newValue: number;
+			ratio: number;
+		},
+		errorMetricTimesliceNames: string[]
+	): ObservabilityAnomaly {
 		const symbol = this.extractSymbol(comparison.name);
 		return {
 			...comparison,
 			...symbol,
-			text: this.formatAnomaly(comparison),
+			text: this.extractSymbolStr(comparison.name),
 			totalDays: this._totalDays,
+			metricTimesliceName: comparison.name,
+			errorMetricTimesliceName:
+				errorMetricTimesliceNames.find(
+					_ => this.extractSymbolStr(_) === this.extractSymbolStr(comparison.name)
+				) || comparison.name,
+		};
+	}
+
+	private errorRateComparisonToAnomaly(
+		comparison: {
+			name: string;
+			oldValue: number;
+			newValue: number;
+			ratio: number;
+		},
+		metricTimesliceNames: string[]
+	): ObservabilityAnomaly {
+		const symbol = this.extractSymbol(comparison.name);
+		return {
+			...comparison,
+			...symbol,
+			text: this.extractSymbolStr(comparison.name),
+			totalDays: this._totalDays,
+			metricTimesliceName:
+				metricTimesliceNames.find(
+					_ => this.extractSymbolStr(_) === this.extractSymbolStr(comparison.name)
+				) || comparison.name,
+			errorMetricTimesliceName: comparison.name,
 		};
 	}
 }
