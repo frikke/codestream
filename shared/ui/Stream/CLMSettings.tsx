@@ -67,11 +67,6 @@ export const CLMSettings = () => {
 		}
 	`;
 
-	const explanatoryCopy = `These settings control how CodeStream determines whether or not a method’s
-	performance is anomalous. If you’re not seeing anomalies, decrease the thresholds.
-	Particularly the “minimum change”. If you’re seeing too many false positives,
-	increase the thresholds.`;
-
 	useDidMount(() => {
 		const entityGuid = derivedState?.activeO11y?.[derivedState?.currentO11yRepoId || ""];
 
