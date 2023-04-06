@@ -13,6 +13,13 @@ interface NameValue {
 	value: number;
 }
 
+export interface FLTNameInferenceSymbol {
+	namespace?: string;
+	className?: string;
+	functionName: string;
+	equals(symbol: FLTNameInferenceSymbol): boolean;
+}
+
 export abstract class FLTNameInferenceStrategy implements FLTStrategy {
 	constructor(
 		protected entityGuid: string,
@@ -24,22 +31,20 @@ export abstract class FLTNameInferenceStrategy implements FLTStrategy {
 
 	abstract getMetricLookup(): string;
 	abstract getSpanLookup(): string;
-	abstract extractSymbol(metricName: string): {
-		namespace?: string;
-		className?: string;
-		functionName: string;
-	};
+	abstract getMetricErrorLookup(): string;
+	abstract extractSymbol(metricName: string): FLTNameInferenceSymbol;
 
 	async execute() {
 		try {
 			const metricLookup = this.getMetricLookup();
 			const spanLookup = this.getSpanLookup();
+			const metricErrorLookup = this.getMetricErrorLookup();
 			const sampleSizesSpan = await this.getSampleSizeSpan(spanLookup);
 			const sampleSizesMetric = await this.getSampleSizeMetric(metricLookup);
 			const averageDurationsSpan = await this.getAverageDurationSpan(spanLookup);
 			const averageDurationsMetric = await this.getAverageDurationMetric(metricLookup);
 			const errorRatesSpan = await this.getErrorRateSpan(spanLookup, sampleSizesSpan);
-			const errorRatesMetric = await this.getErrorRateMetric(metricLookup, sampleSizesMetric);
+			const errorRatesMetric = await this.getErrorRateMetric(metricErrorLookup, sampleSizesMetric);
 
 			const classMethodNames = new Set<string>();
 			[...sampleSizesMetric, ...sampleSizesSpan].forEach(_ => {
@@ -167,7 +172,9 @@ export abstract class FLTNameInferenceStrategy implements FLTStrategy {
 		sampleSizes: FileLevelTelemetrySampleSize[]
 	): FileLevelTelemetryErrorRate {
 		const symbol = this.extractSymbol(record.name);
-		const sampleSize = sampleSizes.find(_ => _.metricTimesliceName === record.name);
+		const sampleSize = sampleSizes.find(_ =>
+			this.extractSymbol(_.metricTimesliceName).equals(symbol)
+		);
 		const errorRate = sampleSize ? record.value / sampleSize.sampleSize : 0;
 		return {
 			...symbol,
