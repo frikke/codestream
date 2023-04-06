@@ -2195,17 +2195,17 @@ export class NewRelicProvider
 			metricQueries: [
 				// error
 				{
-					metricQuery: `SELECT rate(count(apm.service.transaction.error.count), 1 minute) AS \`errorsPerMinute\`
+					metricQuery: `SELECT rate(count(apm.service.transaction.error.count), 1 minute) AS 'Errors (per minute)'
 												FROM Metric
                   WHERE \`entity.guid\` = '${entityGuid}'
                     AND metricTimesliceName = '${metricTimesliceNameMapping["errorRate"]}' FACET metricTimesliceName TIMESERIES`,
-					spanQuery: `SELECT rate(count(*), 1 minute) AS \`errorsPerMinute\`
+					spanQuery: `SELECT rate(count(*), 1 minute) AS 'Errors (per minute)'
                                FROM Span
                                WHERE entity.guid IN ('${entityGuid}')
                                  AND name = '${metricTimesliceNameMapping["errorRate"]}'
                                  AND \`error.group.guid\` IS NOT NULL FACET name TIMESERIES`,
-					title: "Error rate",
-					name: "errorRate",
+					title: "Errors (per minute)",
+					name: "errorsPerMinute",
 				},
 				// duration
 				{
@@ -2222,16 +2222,16 @@ export class NewRelicProvider
 				},
 				// samples
 				{
-					metricQuery: `SELECT count(newrelic.timeslice.value) AS 'Samples'
+					metricQuery: `SELECT rate(count(newrelic.timeslice.value), 1 minute) AS 'Samples (per minute)'
 												FROM Metric
                   WHERE entity.guid IN ('${entityGuid}')
                     AND metricTimesliceName = '${metricTimesliceNameMapping["sampleSize"]}' TIMESERIES`,
-					spanQuery: `SELECT rate(count(*), 1 minute) AS 'Samples'
+					spanQuery: `SELECT rate(count(*), 1 minute) AS 'Samples (per minute)'
                                FROM Span
                                WHERE entity.guid IN ('${entityGuid}')
                                  AND name = '${metricTimesliceNameMapping["sampleSize"]}' FACET name TIMESERIES`,
-					title: "Samples",
-					name: "samples",
+					title: "Samples (per minute)",
+					name: "samplesPerMinute",
 				},
 			],
 		};
@@ -2301,17 +2301,6 @@ export class NewRelicProvider
 
 		const response = queries.metricQueries.map((_, i) => {
 			const nrql = results[i].actor.account.nrql;
-			if (i === 0) {
-				// TODO this isn't great
-				// fix up the title for this one since the element title != the parent's title
-				_.title = "Error rate";
-				nrql.results.forEach((element: any) => {
-					element["Error rate"] = element["errorsPerMinute"]
-						? element["errorsPerMinute"].toFixed(2)
-						: null;
-				});
-				``;
-			}
 			return {
 				..._,
 				result: nrql.results.map((r: any) => {
@@ -2322,6 +2311,12 @@ export class NewRelicProvider
 						...r,
 						["Average duration (ms)"]: r["Average duration (ms)"]
 							? r["Average duration (ms)"].toFixed(2)
+							: null,
+						["Samples (per minute)"]: r["Samples (per minute)"]
+							? r["Samples (per minute)"].toFixed(2)
+							: null,
+						["Errors (per minute)"]: r["Errors (per minute)"]
+							? r["Errors (per minute)"].toFixed(2)
 							: null,
 						endDate: date,
 					};
