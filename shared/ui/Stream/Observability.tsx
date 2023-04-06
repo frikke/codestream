@@ -689,14 +689,15 @@ export const Observability = React.memo((props: Props) => {
 					setAnomalyDetectionSupported(false);
 				} else {
 					setObservabilityAnomalies(response);
-					setCalculatingAnomalies(false);
 					dispatch(setRefreshAnomalies(false));
 				}
 			})
 			.catch(_ => {
 				console.error("Failed to fetch anomalies", _);
-				setCalculatingAnomalies(false);
 				dispatch(setRefreshAnomalies(false));
+			})
+			.finally(() => {
+				setCalculatingAnomalies(false);
 			});
 	};
 
