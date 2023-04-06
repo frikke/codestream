@@ -1,7 +1,7 @@
 "use strict";
 import * as qs from "querystring";
 
-import { flatten, uniq } from "lodash-es";
+import { flatten } from "lodash-es";
 import { URI } from "vscode-uri";
 import {
 	BitbucketBoard,
@@ -2134,32 +2134,33 @@ export class BitbucketProvider
 		return this._isMatchingRemotePredicate;
 	}
 
-	// private async _getUserRepos(workspaceSlugsArray: { slug: string }[]) {
-	// 	let repoArray: { fullname: string }[] = [];
-	// 	workspaceSlugsArray.forEach(async (workspace: { slug: string }) => {
-	// 		//list repositories in a workspace  repositories/{workspace}
-	// 		const reposInWorkspace = await this.get<BitbucketReposInWorkspace[]>(
-	// 			`/repositories/${workspace.slug}`
-	// 		);
-	// 		//values.full_name
+	private async _getFullNames(): Promise<{ fullname: string }[]> {
+		//get all workspaces for a user: user/permissions/workspaces
+		let array: { fullname: string }[] = [];
+		const reposInWorkspace = await this.get<any>(`/user/permissions/workspaces`);
+		//values.workspace.slug
+		const repoSlugs = reposInWorkspace.body.values.map(
+			(workspace: { workspace: { slug: string } }) => {
+				return { slug: workspace.workspace.slug };
+			}
+		); //array of the workspace slugs for current user
 
-	// 		repoArray.push(
-	// 			...reposInWorkspace.body.map(_ => {
-	// 				return { fullname: _.full_name };
-	// 			})
-	// 		);
-	// 	});
-	// 	return repoArray;
-	// }
+		for (let i = 0; i < repoSlugs.length; i++) {
+			const response = await this.get<any>(`/repositories/${repoSlugs[i].slug}`);
 
-	// private async _getUserWorkspaces(): Promise<{ slug: string }[]> {
-	// 	//get all workspaces for a user: user/permissions/workspaces
-	// 	const reposInWorkspace = await this.get<BitbucketWorkspace[]>(`/user/permissions/workspaces`);
-	// 	//values.workspace.slug
-	// 	return reposInWorkspace.body.map(workspace => {
-	// 		return { slug: workspace.workspace.slug };
-	// 	}); //array of the workspace slugs for current user
-	// }
+			//if response.body.values is more than 1, there are more than one repos.
+			if (response.body.values.length > 1) {
+				response.body.values.forEach((repo: any) => {
+					array.push({ fullname: repo.full_name });
+				});
+			} else if (response.body.values.length === 1) {
+				if (response.body.values[0].full_name) {
+					array.push({ fullname: response.body.values[0].full_name });
+				}
+			}
+		}
+		return array;
+	}
 
 	async getMyPullRequests(
 		request: GetMyPullRequestsRequest
@@ -2172,18 +2173,22 @@ export class BitbucketProvider
 			return undefined;
 		}
 
-		let defaultReviewerCollection: boolean[] = [];
+		let queryCollection: string[] = [];
 		request.prQueries.forEach((_, index) => {
-			let isDefaultReviewer = false;
+			let querySelection = "null";
 			if (_.query) {
 				let parsedQuery = qs.parse(_.query);
 				if (parsedQuery && parsedQuery["with_default_reviewer"] === "true") {
 					delete parsedQuery["with_default_reviewer"];
-					isDefaultReviewer = true;
+					querySelection = "defaultReviewer";
+					_.query = qs.stringify(parsedQuery);
+				} else if (parsedQuery && parsedQuery["recent"] === "true") {
+					delete parsedQuery["recent"];
+					querySelection = "recent";
 					_.query = qs.stringify(parsedQuery);
 				}
 			}
-			defaultReviewerCollection.push(isDefaultReviewer);
+			queryCollection.push(querySelection);
 		});
 
 		const username = usernameResponse.body.username;
@@ -2205,6 +2210,8 @@ export class BitbucketProvider
 		}
 
 		const providerId = this.providerConfig?.id;
+		const fullNames = await this._getFullNames();
+		console.log("***************fullNames", fullNames);
 		const items = await Promise.all(
 			queriesSafe.map(async query => {
 				// TODO fix below
@@ -2213,6 +2220,17 @@ export class BitbucketProvider
 						values: [] as BitbucketPullRequest[],
 					},
 				};
+
+				//TODO: fix all this
+
+				//I. if open repos, use those
+				//I. else if not open repos, grab all
+				//II. take userWorkspaces and find the full_name of each repo to store in variable - make a separate function
+				//II. loop through collection query:
+				//III. if collection query equals "default reviewer":
+				//IV.
+				//III. if collection query equals "recent":
+				//III. if collection query equals "null":
 
 				if (reposWithOwners.length) {
 					for (const repo of reposWithOwners) {
@@ -2248,33 +2266,33 @@ export class BitbucketProvider
 		// const repoFullNameArr = await this._getUserRepos(workspaceSlugsArr);
 		//repoFullNameArr should be array that looks like: [slug: "reneepetit/practice", "reneepetit86/bitbucketpractice"]
 
-		items.forEach(async (pullrequests, index) => {
-			if (defaultReviewerCollection[index]) {
-				//find uniq list of repository.full_name from pullrequests as an array of strings
-				const newArray = [];
-				const uniqueFullNames = uniq(
-					pullrequests.body.values.map(pullrequest => pullrequest.destination.repository.full_name)
-				);
-				//if there is nothing, nothing to do
-				if (uniqueFullNames.length) {
-					//else, for each iterate over them and call get default reviewer using that workspace/slug
-					uniqueFullNames.forEach(async fullname => {
-						const defaultReviewers = await this.get<any>(
-							`/repositories/${fullname}/default-reviewers`
-						);
-						if (defaultReviewers.body.values.length) {
-							const foundSelf = defaultReviewers.body.values.find(
-								(_: { account_id: string }) => _.account_id === usernameResponse.body.account_id
-							);
-							if (foundSelf) {
-								//push into new array all PRs in pullreqeusts.body.values that have a matching full_name in uniqueFullNames
-								newArray.push(foundSelf);
-							}
-						}
-					});
-				}
-			}
-		});
+		// items.forEach(async (pullrequests, index) => {
+		// 	if (defaultReviewerCollection[index]) {
+		// 		//find uniq list of repository.full_name from pullrequests as an array of strings
+		// 		const newArray = [];
+		// 		const uniqueFullNames = uniq(
+		// 			pullrequests.body.values.map(pullrequest => pullrequest.destination.repository.full_name)
+		// 		);
+		// 		//if there is nothing, nothing to do
+		// 		if (uniqueFullNames.length) {
+		// 			//else, for each iterate over them and call get default reviewer using that workspace/slug
+		// 			uniqueFullNames.forEach(async fullname => {
+		// 				const defaultReviewers = await this.get<any>(
+		// 					`/repositories/${fullname}/default-reviewers`
+		// 				);
+		// 				if (defaultReviewers.body.values.length) {
+		// 					const foundSelf = defaultReviewers.body.values.find(
+		// 						(_: { account_id: string }) => _.account_id === usernameResponse.body.account_id
+		// 					);
+		// 					if (foundSelf) {
+		// 						//push into new array all PRs in pullreqeusts.body.values that have a matching full_name in uniqueFullNames
+		// 						newArray.push(foundSelf);
+		// 					}
+		// 				}
+		// 			});
+		// 		}
+		// 	}
+		// });
 
 		const response: GetMyPullRequestsResponse[][] = [];
 		items.forEach((item, index) => {
