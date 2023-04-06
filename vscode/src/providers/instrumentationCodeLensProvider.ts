@@ -310,7 +310,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 		const lines = documentText.split(/\r?\n/);
 
 		for (const line of lines) {
-			const matcher = line.match(/^\s*package\s+([A-Za-z\.]+);\s*$/);
+			const matcher = line.match(/^\s*package\s+([A-Za-z0-9_\.]+);\s*$/);
 			if (matcher && matcher.length > 1) {
 				return matcher[1];
 			}
