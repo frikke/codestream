@@ -391,6 +391,7 @@ export class DocumentMarkerManager {
 				.find((provider: ThirdPartyProvider) => provider.getConfig().id === pr.providerId);
 			if (provider) {
 				comments.forEach(async (comment: any) => {
+					//TODO: fix any
 					let summary = comment.bodyText;
 					if (summary.length !== 0) {
 						summary = summary.replace(emojiRegex, (s: string, code: string) => emojiMap[code] || s);

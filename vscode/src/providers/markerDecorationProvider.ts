@@ -36,7 +36,7 @@ import { Logger } from "../logger";
 import { Functions, Strings } from "../system";
 import * as csUri from "../system/uri";
 
-const emptyArray = (Object.freeze([]) as any) as any[];
+const emptyArray = Object.freeze([]) as any as any[];
 
 const positionStyleMap: { [key: string]: string } = {
 	inline: "display: inline-block; margin: 0 0.5em 0 0; vertical-align: middle;",
@@ -514,6 +514,7 @@ export class CodemarkDecorationProvider implements HoverProvider, Disposable {
 						const isGitLab = ["gitlab*com", "gitlab/enterprise"].includes(
 							m.externalContent.provider.id
 						);
+						const isBitbucket = ["bitbucket*org"].includes(m.externalContent.provider.id);
 						let typeString = "Comment";
 						if (m.type === "prcomment") {
 							if (isGitLab) {
@@ -529,7 +530,7 @@ export class CodemarkDecorationProvider implements HoverProvider, Disposable {
 							message += "  $(github-inverted) ";
 						}
 						message += m.title ? m.title : "";
-						if (isGitHub || isGitLab) {
+						if (isGitHub || isGitLab || isBitbucket) {
 							message += ` \n\n[__View ${typeString} \u2197__](command:codestream.openPullRequest?${encodeURIComponent(
 								JSON.stringify(viewCommandArgs)
 							)} "View ${typeString}")`;
