@@ -2193,19 +2193,6 @@ export class NewRelicProvider
 
 		return {
 			metricQueries: [
-				// duration
-				{
-					metricQuery: `SELECT average(newrelic.timeslice.value) * 1000 AS 'Average duration (ms)'
-												FROM Metric
-                  WHERE entity.guid IN ('${entityGuid}')
-                    AND metricTimesliceName = '${metricTimesliceNameMapping["duration"]}' TIMESERIES`,
-					spanQuery: `SELECT average(duration) * 1000 AS 'Average duration (ms)'
-                               FROM Span
-                               WHERE entity.guid IN ('${entityGuid}')
-                                 AND name = '${metricTimesliceNameMapping["duration"]}' FACET name TIMESERIES`,
-					title: "Average duration (ms)",
-					name: "responseTimeMs",
-				},
 				// error
 				{
 					metricQuery: `SELECT rate(count(apm.service.transaction.error.count), 1 minute) AS \`errorsPerMinute\`
@@ -2219,6 +2206,19 @@ export class NewRelicProvider
                                  AND \`error.group.guid\` IS NOT NULL FACET name TIMESERIES`,
 					title: "Error rate",
 					name: "errorRate",
+				},
+				// duration
+				{
+					metricQuery: `SELECT average(newrelic.timeslice.value) * 1000 AS 'Average duration (ms)'
+												FROM Metric
+                  WHERE entity.guid IN ('${entityGuid}')
+                    AND metricTimesliceName = '${metricTimesliceNameMapping["duration"]}' TIMESERIES`,
+					spanQuery: `SELECT average(duration) * 1000 AS 'Average duration (ms)'
+                               FROM Span
+                               WHERE entity.guid IN ('${entityGuid}')
+                                 AND name = '${metricTimesliceNameMapping["duration"]}' FACET name TIMESERIES`,
+					title: "Average duration (ms)",
+					name: "responseTimeMs",
 				},
 				// samples
 				{
@@ -2301,7 +2301,7 @@ export class NewRelicProvider
 
 		const response = queries.metricQueries.map((_, i) => {
 			const nrql = results[i].actor.account.nrql;
-			if (i === 1) {
+			if (i === 0) {
 				// TODO this isn't great
 				// fix up the title for this one since the element title != the parent's title
 				_.title = "Error rate";
