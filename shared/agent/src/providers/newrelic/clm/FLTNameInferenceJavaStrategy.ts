@@ -25,7 +25,7 @@ export class FLTNameInferenceJavaStrategy extends FLTNameInferenceStrategy {
 	}
 
 	private getNamespace() {
-		return (this.request.locator?.namespaces || [])[0];
+		return (this.request.locator?.namespaces || [])[0] || this.request.locator?.namespace;
 	}
 }
 
