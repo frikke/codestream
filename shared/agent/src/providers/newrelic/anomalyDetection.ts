@@ -75,6 +75,13 @@ export class AnomalyDetector {
 			benchmarkSampleSizessMetricLookup,
 			benchmarkSampleRateTimeFrame
 		);
+		if (!benchmarkSampleSizesMetric || !benchmarkSampleSizesMetric.length) {
+			return {
+				isSupported: false,
+				responseTime: [],
+				errorRate: [],
+			};
+		}
 		const metricRoots = this.getCommonRoots(
 			benchmarkSampleSizesMetric.map(_ => this.extractSymbolStr(_.name))
 		);
@@ -90,7 +97,6 @@ export class AnomalyDetector {
 			benchmarkSampleSizesSpanLookup,
 			benchmarkSampleRateTimeFrame
 		);
-		const totalSpans = benchmarkSampleSizesSpan.length;
 		// Used to determine metric validity
 		const benchmarkSampleSizes = this.consolidateBenchmarkSampleSizes(
 			benchmarkSampleSizesMetric,
@@ -123,7 +129,7 @@ export class AnomalyDetector {
 		const telemetry = Container.instance().telemetry;
 
 		const event = {
-			"Total Methods": totalSpans,
+			"Total Methods": benchmarkSampleSizesMetric.length,
 			"Anomalous Error Methods": durationAnomalies.length,
 			"Anomalous Duration Methods": errorRateAnomalies.length,
 		};
@@ -136,6 +142,7 @@ export class AnomalyDetector {
 			responseTime: durationAnomalies,
 			errorRate: errorRateAnomalies,
 			detectionMethod,
+			isSupported: true,
 		};
 	}
 

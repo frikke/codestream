@@ -1252,6 +1252,7 @@ export interface GetObservabilityAnomaliesResponse {
 	errorRate: ObservabilityAnomaly[];
 	detectionMethod?: DetectionMethod;
 	error?: string;
+	isSupported?: boolean;
 }
 
 export const GetObservabilityAnomaliesRequestType = new RequestType<

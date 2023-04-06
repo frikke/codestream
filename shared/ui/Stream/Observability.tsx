@@ -305,6 +305,7 @@ export const Observability = React.memo((props: Props) => {
 	>();
 	const [recentAlertViolationsError, setRecentAlertViolationsError] = useState<string>();
 	const previousNewRelicIsConnected = usePrevious(derivedState.newRelicIsConnected);
+	const [anomalyDetectionSupported, setAnomalyDetectionSupported] = useState<boolean>(true);
 
 	const buildFilters = (repoIds: string[]) => {
 		return repoIds.map(repoId => {
@@ -684,9 +685,13 @@ export const Observability = React.memo((props: Props) => {
 				),
 			})
 			.then(response => {
-				setObservabilityAnomalies(response);
-				setCalculatingAnomalies(false);
-				dispatch(setRefreshAnomalies(false));
+				if (response && response.isSupported === false) {
+					setAnomalyDetectionSupported(false);
+				} else {
+					setObservabilityAnomalies(response);
+					setCalculatingAnomalies(false);
+					dispatch(setRefreshAnomalies(false));
+				}
 			})
 			.catch(_ => {
 				console.error("Failed to fetch anomalies", _);
@@ -1154,18 +1159,19 @@ export const Observability = React.memo((props: Props) => {
 																									errorMsg={serviceLevelObjectiveError}
 																								/>
 																							)}
-																							{derivedState.showAnomalies && (
-																								<ObservabilityAnomaliesWrapper
-																									observabilityAnomalies={observabilityAnomalies}
-																									observabilityRepo={_observabilityRepo}
-																									entityGuid={ea.entityGuid}
-																									noAccess={noErrorsAccess}
-																									calculatingAnomalies={calculatingAnomalies}
-																									distributedTracingEnabled={
-																										ea?.distributedTracingEnabled
-																									}
-																								/>
-																							)}
+																							{derivedState.showAnomalies &&
+																								anomalyDetectionSupported && (
+																									<ObservabilityAnomaliesWrapper
+																										observabilityAnomalies={observabilityAnomalies}
+																										observabilityRepo={_observabilityRepo}
+																										entityGuid={ea.entityGuid}
+																										noAccess={noErrorsAccess}
+																										calculatingAnomalies={calculatingAnomalies}
+																										distributedTracingEnabled={
+																											ea?.distributedTracingEnabled
+																										}
+																									/>
+																								)}
 
 																							{ea.domain === "APM" && (
 																								<>
