@@ -12,6 +12,7 @@ import {
 	XAxis,
 	YAxis,
 } from "recharts";
+import Tooltip from "../Tooltip";
 import {
 	DidChangeObservabilityDataNotificationType,
 	GetMethodLevelTelemetryRequestType,
@@ -31,7 +32,6 @@ import { CodeStreamState } from "@codestream/webview/store";
 import { closeAllPanels } from "@codestream/webview/store/context/actions";
 import { useDidMount, usePrevious } from "@codestream/webview/utilities/hooks";
 import { HostApi } from "@codestream/webview/webview-api";
-import { PanelHeader } from "../../src/components/PanelHeader";
 import { closePanel } from "../actions";
 import CancelButton from "../CancelButton";
 import { EntityAssociator } from "../EntityAssociator";
@@ -79,6 +79,17 @@ export const ObservabilityAnomalyPanel = () => {
 			clmSettings: state.preferences.clmSettings || {},
 		};
 	});
+
+	const computedStyle = getComputedStyle(document.body);
+	const colorSubtle = computedStyle.getPropertyValue("--text-color-subtle").trim();
+	const colorPrimary = computedStyle.getPropertyValue("--text-color").trim();
+	const colorLine = "#8884d8";
+	const colorBackgroundHover = computedStyle
+		.getPropertyValue("--app-background-color-hover")
+		.trim();
+	// const date = new Date(unixTimestamp * 1000); // Convert seconds to milliseconds
+	// const options = { month: 'long', day: 'numeric', year: 'numeric' };
+	// const formattedDate = date.toLocaleDateString('en-US', options);
 
 	const [telemetryResponse, setTelemetryResponse] = useState<
 		GetMethodLevelTelemetryResponse | undefined
@@ -129,17 +140,23 @@ export const ObservabilityAnomalyPanel = () => {
 			const nDaysAgoRelease = derivedState?.clmSettings?.compareDataLastReleaseValue || 7;
 			maxReleaseDate.setDate(maxReleaseDate.getDate() - nDaysAgoRelease);
 			let comparisonReleaseSeconds = 0;
+			//latest release that is at least 7 days old
 			response.deployments?.forEach(d => {
 				const date = new Date(d.seconds * 1000);
 				if (date.getTime() <= maxReleaseDate.getTime()) {
+					//x value of cutoff point
 					comparisonReleaseSeconds = d.seconds;
 				}
 			});
 			response.deployments?.forEach(d => {
 				if (d.seconds != comparisonReleaseSeconds) {
+					//dont do this, keep all labels, render all labels with tooltip instead (if possible)
 					d.version = "";
 				}
 			});
+			// [{
+			// 	midnightValue: [release-name1, release-name2],
+			// }]
 			response.deployments?.forEach(d => {
 				const midnight = new Date(d.seconds * 1000);
 				midnight.setHours(0, 0, 0, 0);
@@ -287,18 +304,40 @@ export const ObservabilityAnomalyPanel = () => {
 	return (
 		<Root className="full-height-codemark-form">
 			{!loading && (
-				<div
-					style={{
-						whiteSpace: "nowrap",
-						overflow: "hidden",
-						textOverflow: "ellipsis",
-						direction: "rtl",
-					}}
+				<Tooltip
+					title={
+						<div style={{ overflowWrap: "break-word" }}>
+							{derivedState.currentObservabilityAnomaly.text}
+						</div>
+					}
+					placement="topRight"
+					delay={1}
 				>
-					<PanelHeader
-						title={derivedState.currentObservabilityAnomaly.text + " telemetry"}
-					></PanelHeader>
-				</div>
+					<div>
+						<div
+							style={{
+								fontSize: "16px",
+								margin: "20px 20px 0px 20px",
+							}}
+						>
+							Telemetry for:
+						</div>
+						<div
+							style={{
+								whiteSpace: "nowrap",
+								overflow: "hidden",
+								textOverflow: "ellipsis",
+								direction: "rtl",
+								color: "var(--text-color-highlight)",
+								fontSize: "16px",
+								margin: "0px 20px 10px 20px",
+								cursor: "pointer",
+							}}
+						>
+							{derivedState.currentObservabilityAnomaly.text}
+						</div>
+					</div>
+				</Tooltip>
 			)}
 			<CancelButton onClick={() => dispatch(closePanel())} />
 
@@ -458,28 +497,30 @@ export const ObservabilityAnomalyPanel = () => {
 																/>
 																<YAxis tick={{ fontSize: 12 }} domain={[0, maxY]} />
 																<ReTooltip
-																	label={"chupacabra"}
-																	contentStyle={{ color: "#8884d8", textAlign: "center" }}
+																	content={<CustomTooltip />}
+																	contentStyle={{ color: colorLine, textAlign: "center" }}
 																/>
 																<Legend wrapperStyle={{ fontSize: "0.95em" }} />
 																<Line
 																	type="monotone"
 																	dataKey={_.title}
-																	stroke="#8884d8"
+																	stroke={colorLine}
 																	activeDot={{ r: 8 }}
 																	connectNulls={true}
 																	name={title}
+																	dot={{ style: { fill: colorLine } }}
 																/>
+																{/* itterate over mapped array of objects */}
 																{telemetryResponse.deployments?.map(_ => {
 																	return (
 																		<ReferenceLine
 																			x={_.seconds}
-																			stroke={_.version.length ? "white" : "gray"}
+																			stroke={_.version.length ? colorPrimary : colorSubtle}
 																		>
 																			<Label
 																				value={_.version}
 																				position="middle"
-																				style={{ fill: "white", fontSize: 14 }} // Set the label color and other styles here
+																				style={{ fill: colorPrimary, fontSize: 14 }}
 																			/>
 																		</ReferenceLine>
 																	);
@@ -505,4 +546,37 @@ export const ObservabilityAnomalyPanel = () => {
 			</div>
 		</Root>
 	);
+};
+
+interface CustomTooltipProps {
+	active?: boolean;
+	payload?: any[];
+	label?: string;
+}
+
+const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label }) => {
+	const computedStyle = getComputedStyle(document.body);
+	const colorSubtle = computedStyle.getPropertyValue("--text-color-subtle").trim();
+	const colorBackgroundHover = computedStyle
+		.getPropertyValue("--app-background-color-hover")
+		.trim();
+
+	if (active && payload && payload.length) {
+		const dataValue = payload[0].value;
+		const modifiedValue = dataValue;
+		return (
+			<div
+				style={{
+					zIndex: 9999,
+					padding: "5px",
+					border: `${colorSubtle} solid 1px`,
+					background: colorBackgroundHover,
+				}}
+			>
+				<div>{label}</div>
+				<div>{modifiedValue}</div>
+			</div>
+		);
+	}
+	return null;
 };
