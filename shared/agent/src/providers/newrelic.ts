@@ -3857,6 +3857,7 @@ export class NewRelicProvider
 	}
 
 	@lspHandler(GetDeploymentsRequestType)
+	@log({ timed: true })
 	public async getDeployments(request: GetDeploymentsRequest): Promise<GetDeploymentsResponse> {
 		const { entityGuid, since } = {
 			since: "30 days ago",
