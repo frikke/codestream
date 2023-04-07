@@ -2136,7 +2136,6 @@ export class BitbucketProvider
 	}
 
 	private _mergeSort(arr: any[]) {
-		console.log(arr);
 		if (arr.length <= 1) return arr;
 		let mid = Math.floor(arr.length / 2);
 		let left: any = this._mergeSort(arr.slice(0, mid));
@@ -2145,8 +2144,6 @@ export class BitbucketProvider
 	}
 
 	private _merge(arr1: any[], arr2: any[]) {
-		console.log(arr1);
-		console.log(arr2);
 		let results = [];
 		let i = 0;
 		let j = 0;
@@ -2203,23 +2200,29 @@ export class BitbucketProvider
 		usernameResponse: ApiResponse<BitbucketUser>,
 		query: string
 	): Promise<any> {
-		const defaultReviewers = await this.get<any>(
-			`/repositories/${fullnameArr[2].fullname}/default-reviewers`
-		);
-
-		if (defaultReviewers.body.values.length) {
-			const foundSelf = defaultReviewers.body.values.find(
-				(_: { account_id: string }) => _.account_id === usernameResponse.body.account_id
+		let array = [];
+		for (let i = 0; i < fullnameArr.length; i++) {
+			const defaultReviewers = await this.get<any>(
+				`/repositories/${fullnameArr[i].fullname}/default-reviewers`
 			);
-			if (foundSelf) {
-				//if the user matches, we need to call that pull request with that fullnames.
-				console.log("you mateched", foundSelf);
-				const pullrequests = await this.get<any>(
-					`/repositories/${fullnameArr[1].fullname}/pullrequests?${query}`
+
+			if (defaultReviewers.body.values.length) {
+				const foundSelf = defaultReviewers.body.values.find(
+					(_: { account_id: string }) => _.account_id === usernameResponse.body.account_id
 				);
-				console.log("pullrequestsssssssssss", pullrequests);
+				if (foundSelf) {
+					//if the user matches, we need to call that pull request with that fullnames.
+					const pullrequests = await this.get<any>(
+						`/repositories/${fullnameArr[i].fullname}/pullrequests?${query}`
+					);
+					array.push(pullrequests.body.values);
+					array = flatten(array);
+				}
 			}
 		}
+		//sort through array so it's in order
+		const sortedDefaultReviewersPRs = this._mergeSort(array);
+		return sortedDefaultReviewersPRs;
 	}
 
 	private async _getRecents(fullnameArr: { fullname: string }[], query: string): Promise<any> {
@@ -2295,7 +2298,11 @@ export class BitbucketProvider
 
 		const providerId = this.providerConfig?.id;
 		const fullNames = await this._getFullNames();
-		const thing = await this._getDefaultReviewers(fullNames, usernameResponse, queriesSafe[0]); //NOTE: this is hardcoded, so if the order of the queries changes this should change too
+		const defaultReviewerPRs = await this._getDefaultReviewers(
+			fullNames,
+			usernameResponse,
+			queriesSafe[0]
+		); //NOTE: this is hardcoded, so if the order of the queries changes this should change too
 		const fiveMostRecentPRs = await this._getRecents(fullNames, queriesSafe[2]); //NOTE: this is hardcoded, so if the order of the queries changes this should change too
 		const items = await Promise.all(
 			queriesSafe.map(async query => {
@@ -2316,6 +2323,9 @@ export class BitbucketProvider
 					//III. if collection query equals "default reviewer":
 					if (queryCollection[i] === "defaultReviewer") {
 						//IV. loop through the fullNames array and call the API endpoint for each
+						results.body.values.push(defaultReviewerPRs);
+						results.body.values = flatten(results.body.values);
+						return results;
 					} else if (queryCollection[i] === "null") {
 						//III. if collection query equals "null":
 					} else if (queryCollection[i] === "recent") {
