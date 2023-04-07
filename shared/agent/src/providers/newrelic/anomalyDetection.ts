@@ -33,7 +33,7 @@ export class AnomalyDetector {
 	}
 
 	private _dataTimeFrame;
-	private readonly _baselineTimeFrame;
+	private _baselineTimeFrame;
 	private readonly _accountId;
 	private _totalDays = 0;
 	private _benchmarkSampleSizeTimeFrame = "SINCE 30 minutes ago";
@@ -70,10 +70,14 @@ export class AnomalyDetector {
 				detectionMethod = "Release Based";
 				const deploymentDate = new Date(deployment.seconds * 1000);
 				const now = new Date();
-				const timeDifference = now.getTime() - deploymentDate.getTime();
-				const daysDifference = Math.round(timeDifference / (1000 * 60 * 60 * 24));
-				this._dataTimeFrame = `SINCE ${daysDifference} days AGO`;
-				this._totalDays = daysDifference + parseInt(this._request.baselineDays as any);
+				const timeSinceDeployment = now.getTime() - deploymentDate.getTime();
+				const daysSinceDeployment = Math.round(timeSinceDeployment / (1000 * 60 * 60 * 24));
+				this._dataTimeFrame = `SINCE ${daysSinceDeployment} days AGO`;
+				const baselineDays = parseInt(this._request.baselineDays as any);
+				this._baselineTimeFrame = `SINCE ${
+					daysSinceDeployment + baselineDays
+				} days AGO UNTIL ${daysSinceDeployment} days AGO`;
+				this._totalDays = daysSinceDeployment + baselineDays;
 			}
 		}
 
