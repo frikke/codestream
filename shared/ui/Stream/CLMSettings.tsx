@@ -72,7 +72,7 @@ export const CLMSettings = () => {
 
 		if (entityGuid) {
 			HostApi.instance
-				.send(GetDeploymentsRequestType, { entityGuid, since: "60 days ago" })
+				.send(GetDeploymentsRequestType, { entityGuid, since: "30 days ago" })
 				.then((_: GetDeploymentsResponse) => {
 					if (!_isEmpty(_?.deployments)) {
 						setIsChangeTrackingEnabled(true);
