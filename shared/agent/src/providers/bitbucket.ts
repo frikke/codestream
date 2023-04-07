@@ -40,6 +40,7 @@ import { Logger } from "../logger";
 import { Dates, log, lspProvider } from "../system";
 import { Directive, Directives } from "./directives";
 import {
+	ApiResponse,
 	getOpenedRepos,
 	getRemotePaths,
 	ProviderCreatePullRequestRequest,
@@ -2162,6 +2163,53 @@ export class BitbucketProvider
 		return array;
 	}
 
+	private async _getDefaultReviewers(
+		fullnameArr: { fullname: string }[],
+		usernameResponse: ApiResponse<BitbucketUser>,
+		query: string
+	): Promise<any> {
+		const defaultReviewers = await this.get<any>(
+			`/repositories/${fullnameArr[2].fullname}/default-reviewers`
+		);
+
+		if (defaultReviewers.body.values.length) {
+			const foundSelf = defaultReviewers.body.values.find(
+				(_: { account_id: string }) => _.account_id === usernameResponse.body.account_id
+			);
+			if (foundSelf) {
+				//if the user matches, we need to call that pull request with that fullnames.
+				console.log("you mateched", foundSelf);
+				const pullrequests = await this.get<any>(
+					`/repositories/${fullnameArr[1].fullname}/pullrequests?${query}`
+				);
+				console.log("pullrequestsssssssssss", pullrequests);
+			}
+		}
+	}
+
+	private async _getRecents(fullnameArr: { fullname: string }[], query: string): Promise<any> {
+		let array = [];
+		for (let i = 0; i < fullnameArr.length; i++) {
+			const recents = await this.get<any>(
+				`/repositories/${fullnameArr[i].fullname}/pullrequests?${query}`
+			);
+			console.log("RECENTS", recents);
+
+			if (recents.body.values.length > 1) {
+				recents.body.values.forEach((repo: any) => {
+					array.push(repo);
+				});
+			} else if (recents.body.values.length === 1) {
+				if (recents.body.values[0]) {
+					array.push(recents.body.values);
+				}
+			}
+		}
+		console.log("******** after the for loop array", array);
+		//sort the array and take the top 5
+		// array has an array of the reponse objects from pullrequest call, contains 5 most recent pull requests for each object
+	}
+
 	async getMyPullRequests(
 		request: GetMyPullRequestsRequest
 	): Promise<GetMyPullRequestsResponse[][] | undefined> {
@@ -2212,6 +2260,8 @@ export class BitbucketProvider
 		const providerId = this.providerConfig?.id;
 		const fullNames = await this._getFullNames();
 		console.log("***************fullNames", fullNames);
+		// const thing = await this._getDefaultReviewers(fullNames, usernameResponse, queriesSafe[0]);
+		const thing2 = await this._getRecents(fullNames, queriesSafe[2]);
 		const items = await Promise.all(
 			queriesSafe.map(async query => {
 				// TODO fix below
@@ -2227,10 +2277,16 @@ export class BitbucketProvider
 				//I. else if not open repos, grab all
 				//II. take userWorkspaces and find the full_name of each repo to store in variable - make a separate function
 				//II. loop through collection query:
-				//III. if collection query equals "default reviewer":
-				//IV.
-				//III. if collection query equals "recent":
-				//III. if collection query equals "null":
+				for (let i = 0; i < queryCollection.length; i++) {
+					//III. if collection query equals "default reviewer":
+					if (queryCollection[i] === "defaultReviewer") {
+						//IV. loop through the fullNames array and call the API endpoint for each
+					} else if (queryCollection[i] === "null") {
+						//III. if collection query equals "null":
+					} else if (queryCollection[i] === "recent") {
+						//III. if collection query equals "recent":
+					}
+				}
 
 				if (reposWithOwners.length) {
 					for (const repo of reposWithOwners) {

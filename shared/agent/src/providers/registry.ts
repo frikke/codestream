@@ -881,19 +881,19 @@ export class ThirdPartyProviderRegistry {
 				{
 					providerId: "bitbucket*org",
 					name: "Waiting on my Review",
-					query: `with_default_reviewer=true&sort=-updated_on&state=OPEN`,
+					query: `with_default_reviewer=true&state=OPEN`,
 					hidden: false,
 				},
 				{
 					providerId: "bitbucket*org",
 					name: "Created by Me",
-					query: `state=OPEN&sort=-updated_on`,
+					query: `state=OPEN`,
 					hidden: false,
 				},
 				{
 					providerId: "bitbucket*org",
 					name: "Recent",
-					query: `recent=true&sort=-updated_on&state=OPEN&state=MERGED&state=DECLINED&state=SUPERSEDED&pagelen=5`,
+					query: `recent=true&state=OPEN&state=MERGED&state=DECLINED&state=SUPERSEDED&pagelen=5`,
 					hidden: false,
 				},
 			],
