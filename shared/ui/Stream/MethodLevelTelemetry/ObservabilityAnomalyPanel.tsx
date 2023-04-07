@@ -433,7 +433,7 @@ export const ObservabilityAnomalyPanel = () => {
 												return (
 													<div
 														key={"chart-" + index}
-														style={{ marginLeft: "-28px", marginBottom: "15px" }}
+														style={{ marginLeft: "0px", marginBottom: "15px" }}
 													>
 														<MetaLabel style={{ marginLeft: "27px" }}>{title}</MetaLabel>
 														<ResponsiveContainer width="100%" height={300} debounce={1}>
@@ -458,6 +458,7 @@ export const ObservabilityAnomalyPanel = () => {
 																/>
 																<YAxis tick={{ fontSize: 12 }} domain={[0, maxY]} />
 																<ReTooltip
+																	label={"chupacabra"}
 																	contentStyle={{ color: "#8884d8", textAlign: "center" }}
 																/>
 																<Legend wrapperStyle={{ fontSize: "0.95em" }} />
