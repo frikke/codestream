@@ -2135,6 +2135,41 @@ export class BitbucketProvider
 		return this._isMatchingRemotePredicate;
 	}
 
+	private _mergeSort(arr: any[]) {
+		console.log(arr);
+		if (arr.length <= 1) return arr;
+		let mid = Math.floor(arr.length / 2);
+		let left: any = this._mergeSort(arr.slice(0, mid));
+		let right: any = this._mergeSort(arr.slice(mid));
+		return this._merge(left, right);
+	}
+
+	private _merge(arr1: any[], arr2: any[]) {
+		console.log(arr1);
+		console.log(arr2);
+		let results = [];
+		let i = 0;
+		let j = 0;
+		while (i < arr1.length && j < arr2.length) {
+			if (arr2[j].updated_on > arr1[i].updated_on) {
+				results.push(arr1[i]);
+				i++;
+			} else {
+				results.push(arr2[j]);
+				j++;
+			}
+		}
+		while (i < arr1.length) {
+			results.push(arr1[i]);
+			i++;
+		}
+		while (j < arr2.length) {
+			results.push(arr2[j]);
+			j++;
+		}
+		return results;
+	}
+
 	private async _getFullNames(): Promise<{ fullname: string }[]> {
 		//get all workspaces for a user: user/permissions/workspaces
 		let array: { fullname: string }[] = [];
@@ -2207,6 +2242,8 @@ export class BitbucketProvider
 		}
 		console.log("******** after the for loop array", array);
 		//sort the array and take the top 5
+		//array[i].updated_on
+		const sortedRecents = this._mergeSort(array);
 		// array has an array of the reponse objects from pullrequest call, contains 5 most recent pull requests for each object
 	}
 
