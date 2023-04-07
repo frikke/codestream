@@ -580,16 +580,16 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label, d
 					background: colorBackgroundHover,
 				}}
 			>
+				<div>{humanReadableDate}</div>
+				<div style={{ marginTop: "3px" }}>{dataValue}</div>
+
 				{!_isEmpty(releases) && (
-					<div style={{ borderBottom: "1px solid", marginBottom: "3px", paddingBottom: "3px" }}>
+					<div style={{ borderTop: "1px solid", marginTop: "3px", paddingTop: "3px" }}>
 						{releases.map((_, index) => {
 							return <div>{_.version}</div>;
 						})}
 					</div>
 				)}
-				<div>{humanReadableDate}</div>
-				<div style={{ marginTop: "3px" }}>{dataName}:</div>
-				<div>{dataValue}</div>
 			</div>
 		);
 	}
