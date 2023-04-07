@@ -26,7 +26,7 @@ interface RadioProps {
 	"data-testid"?: string;
 }
 
-const RadioDiv = styled.div`
+export const RadioContainer = styled.div`
 	display: flex;
 	margin-bottom: 5px;
 	> div {
@@ -91,7 +91,7 @@ export function Radio(props: PropsWithChildren<RadioProps>) {
 	const className = (props.className || "") + (isDisabled ? " disabled" : "");
 	const showSpinner = loading && props.value === selectedValue;
 	return (
-		<RadioDiv className={className}>
+		<RadioContainer className={className}>
 			<div>
 				{showSpinner ? (
 					<Icon className="spin" name="sync" data-testid={props["data-testid"] + "-loading"} />
@@ -110,7 +110,7 @@ export function Radio(props: PropsWithChildren<RadioProps>) {
 				)}
 			</div>
 			<label htmlFor={name + ":" + props.value}>{props.children}</label>
-		</RadioDiv>
+		</RadioContainer>
 	);
 }
 

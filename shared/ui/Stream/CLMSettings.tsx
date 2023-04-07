@@ -6,7 +6,7 @@ import ScrollBox from "./ScrollBox";
 import { Dialog } from "../src/components/Dialog";
 import Button from "./Button";
 import { useDidMount } from "../utilities/hooks";
-import { RadioGroup, Radio } from "../src/components/RadioGroup";
+import { RadioContainer } from "../src/components/RadioGroup";
 import { setUserPreference } from "../Stream/actions";
 import { setRefreshAnomalies } from "../store/context/actions";
 import { HostApi } from "../webview-api";
@@ -144,6 +144,7 @@ export const CLMSettings = () => {
 		}
 	};
 
+	// @TODO: convert most this jsx to styled-components
 	return (
 		<Dialog wide title="Code-Level Metrics Settings" onClose={() => dispatch(closeModal())}>
 			<ScrollBox>
@@ -196,47 +197,79 @@ export const CLMSettings = () => {
 							)}
 							{isChangeTrackingEnabled && (
 								<>
-									<RadioGroup
-										selectedValue={changeTrackingRadioValue}
-										onChange={value => setChangeTrackingRadioValue(value)}
-										name="change-tracking"
+									<div
+										style={{
+											display: "flex",
+											justifyContent: "space-between",
+											alignItems: "center",
+										}}
 									>
-										<div style={{ display: "flex", margin: "10px 0 5px 0" }}>
-											<div style={{ width: "100%", marginRight: "5px" }}>
-												<Radio value="LATEST_RELEASE">
-													Compare data from the most recent release that is at least:
-												</Radio>
-											</div>
-											<div style={{ marginLeft: "auto", minWidth: "112px" }}>
-												<NumberInput
-													name="compare-last-release"
-													type="number"
-													min="1"
-													max="100"
-													value={compareDataLastReleaseValue}
-													onChange={e => handleNumberChange(e)}
-												/>{" "}
-												days ago
-											</div>
+										<div style={{ position: "absolute", paddingTop: "5px" }}>
+											<RadioContainer>
+												<div>
+													<input
+														type="radio"
+														id="LATEST_RELEASE"
+														name="compare-data"
+														value="LATEST_RELEASE"
+														checked={changeTrackingRadioValue === "LATEST_RELEASE"}
+														onChange={e => setChangeTrackingRadioValue("LATEST_RELEASE")}
+													/>
+												</div>
+											</RadioContainer>
 										</div>
-										<div style={{ display: "flex" }}>
-											<div style={{ width: "100%", marginRight: "5px" }}>
-												<Radio value="LATEST_DAYS">Compare data from the last: </Radio>
-											</div>
-											<div style={{ marginLeft: "auto", minWidth: "86px" }}>
-												<NumberInput
-													name="compare-last"
-													type="number"
-													min="1"
-													max="100"
-													value={compareDataLastValue}
-													onChange={e => handleNumberChange(e)}
-												/>{" "}
-												days
-											</div>
+										<div style={{ margin: "0px 8px 0px 22px" }}>
+											Compare data from the most recent release that is at least:
 										</div>
-									</RadioGroup>
-									<div style={{ display: "flex" }}>
+										<div style={{ whiteSpace: "nowrap" }}>
+											<NumberInput
+												name="compare-last-release"
+												type="number"
+												min="1"
+												max="100"
+												value={compareDataLastReleaseValue}
+												onChange={e => handleNumberChange(e)}
+											/>{" "}
+											days ago
+										</div>
+									</div>
+									<div
+										style={{
+											marginTop: "10px",
+											display: "flex",
+											justifyContent: "space-between",
+											alignItems: "center",
+										}}
+									>
+										<div style={{ position: "absolute", paddingTop: "5px" }}>
+											<RadioContainer>
+												<div>
+													<input
+														type="radio"
+														id="LATEST_DAYS"
+														name="compare-data"
+														value="LATEST_DAYS"
+														checked={changeTrackingRadioValue === "LATEST_DAYS"}
+														onChange={e => setChangeTrackingRadioValue("LATEST_DAYS")}
+													/>
+												</div>
+											</RadioContainer>
+										</div>
+										<div style={{ margin: "0px 8px 0px 22px" }}>Compare data from the last:</div>
+										<div style={{ whiteSpace: "nowrap" }}>
+											<NumberInput
+												name="compare-last"
+												type="number"
+												min="1"
+												max="100"
+												value={compareDataLastValue}
+												onChange={e => handleNumberChange(e)}
+											/>{" "}
+											days
+										</div>
+									</div>
+
+									<div style={{ marginTop: "10px", display: "flex" }}>
 										<div>Against data from the preceding:</div>
 										<div style={{ marginLeft: "auto" }}>
 											<NumberInput
