@@ -84,12 +84,6 @@ export const ObservabilityAnomalyPanel = () => {
 	const colorSubtle = computedStyle.getPropertyValue("--text-color-subtle").trim();
 	const colorPrimary = computedStyle.getPropertyValue("--text-color").trim();
 	const colorLine = "#8884d8";
-	const colorBackgroundHover = computedStyle
-		.getPropertyValue("--app-background-color-hover")
-		.trim();
-	// const date = new Date(unixTimestamp * 1000); // Convert seconds to milliseconds
-	// const options = { month: 'long', day: 'numeric', year: 'numeric' };
-	// const formattedDate = date.toLocaleDateString('en-US', options);
 
 	const [telemetryResponse, setTelemetryResponse] = useState<
 		GetMethodLevelTelemetryResponse | undefined
@@ -561,9 +555,13 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label })
 		.getPropertyValue("--app-background-color-hover")
 		.trim();
 
-	if (active && payload && payload.length) {
+	if (active && payload && payload.length && label) {
 		const dataValue = payload[0].value;
-		const modifiedValue = dataValue;
+		const dataName = payload[0].name;
+		const dataTime = payload[0].payload.endTimeSeconds;
+		const date = new Date(dataTime * 1000); // Convert to milliseconds
+		const humanReadableDate = date.toLocaleDateString();
+
 		return (
 			<div
 				style={{
@@ -573,8 +571,9 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label })
 					background: colorBackgroundHover,
 				}}
 			>
-				<div>{label}</div>
-				<div>{modifiedValue}</div>
+				<div>{humanReadableDate}</div>
+				<div style={{ marginTop: "3px" }}>{dataName}:</div>
+				<div>{dataValue}</div>
 			</div>
 		);
 	}
