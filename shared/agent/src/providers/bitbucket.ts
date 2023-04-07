@@ -2151,7 +2151,7 @@ export class BitbucketProvider
 		let i = 0;
 		let j = 0;
 		while (i < arr1.length && j < arr2.length) {
-			if (arr2[j].updated_on > arr1[i].updated_on) {
+			if (arr2[j].updated_on < arr1[i].updated_on) {
 				results.push(arr1[i]);
 				i++;
 			} else {
@@ -2228,7 +2228,6 @@ export class BitbucketProvider
 			const recents = await this.get<any>(
 				`/repositories/${fullnameArr[i].fullname}/pullrequests?${query}`
 			);
-			console.log("RECENTS", recents);
 
 			if (recents.body.values.length > 1) {
 				recents.body.values.forEach((repo: any) => {
@@ -2240,11 +2239,11 @@ export class BitbucketProvider
 				}
 			}
 		}
-		console.log("******** after the for loop array", array);
 		//sort the array and take the top 5
 		//array[i].updated_on
 		const sortedRecents = this._mergeSort(array);
-		// array has an array of the reponse objects from pullrequest call, contains 5 most recent pull requests for each object
+		const fiveMostRecent = sortedRecents.slice(0, 5);
+		return fiveMostRecent;
 	}
 
 	async getMyPullRequests(
@@ -2296,9 +2295,8 @@ export class BitbucketProvider
 
 		const providerId = this.providerConfig?.id;
 		const fullNames = await this._getFullNames();
-		console.log("***************fullNames", fullNames);
-		// const thing = await this._getDefaultReviewers(fullNames, usernameResponse, queriesSafe[0]);
-		const thing2 = await this._getRecents(fullNames, queriesSafe[2]);
+		const thing = await this._getDefaultReviewers(fullNames, usernameResponse, queriesSafe[0]); //NOTE: this is hardcoded, so if the order of the queries changes this should change too
+		const fiveMostRecentPRs = await this._getRecents(fullNames, queriesSafe[2]); //NOTE: this is hardcoded, so if the order of the queries changes this should change too
 		const items = await Promise.all(
 			queriesSafe.map(async query => {
 				// TODO fix below
@@ -2322,6 +2320,9 @@ export class BitbucketProvider
 						//III. if collection query equals "null":
 					} else if (queryCollection[i] === "recent") {
 						//III. if collection query equals "recent":
+						results.body.values.push(fiveMostRecentPRs);
+						results.body.values = flatten(results.body.values);
+						return results;
 					}
 				}
 
