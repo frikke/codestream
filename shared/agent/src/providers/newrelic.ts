@@ -3864,7 +3864,7 @@ export class NewRelicProvider
 			...request,
 		};
 		const parsedId = NewRelicProvider.parseId(entityGuid)!;
-		const query = `SELECT timestamp, version FROM Deployment WHERE entity.guid = '${entityGuid}' SINCE ${since} ORDER BY timestamp`;
+		const query = `SELECT timestamp, version FROM Deployment WHERE entity.guid = '${entityGuid}' SINCE ${since} ORDER BY timestamp LIMIT MAX`;
 		const result = await this.runNrql<{
 			timestamp: number;
 			version: string;
