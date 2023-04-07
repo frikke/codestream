@@ -146,7 +146,8 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 				</>
 			)}
 
-			{expanded && !props.distributedTracingEnabled && !props.calculatingAnomalies && (
+			{/* Currently surpressing the DT warning, subject to change */}
+			{/* {expanded && !props.distributedTracingEnabled && !props.calculatingAnomalies && (
 				<Row
 					style={{
 						padding: "2px 10px 2px 40px",
@@ -155,11 +156,13 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 				>
 					<span style={{ marginLeft: "2px", whiteSpace: "normal" }}>
 						Enable{" "}
-						<Link href="https://newrelic.com/termsandconditions/privacy">distributed tracing</Link>{" "}
+						<Link href="https://docs.newrelic.com/docs/distributed-tracing/concepts/quick-start/">
+							distributed tracing
+						</Link>{" "}
 						for this service to see code-level metrics.
 					</span>
-				</Row>
-			)}
+				</Row> 
+			)}*/}
 
 			{expanded && missingExtension && !props.calculatingAnomalies && (
 				<>
