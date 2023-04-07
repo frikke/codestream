@@ -2202,24 +2202,30 @@ export class BitbucketProvider
 	): Promise<any> {
 		let array = [];
 		for (let i = 0; i < fullnameArr.length; i++) {
-			const defaultReviewers = await this.get<any>(
-				`/repositories/${fullnameArr[i].fullname}/default-reviewers`
+			const pullrequests = await this.get<any>(
+				`/repositories/${fullnameArr[i].fullname}/pullrequests?${query}`
 			);
 
-			if (defaultReviewers.body.values.length) {
-				const foundSelf = defaultReviewers.body.values.find(
-					(_: { account_id: string }) => _.account_id === usernameResponse.body.account_id
+			for (let j = 0; j < pullrequests.body.values.length; j++) {
+				const PRid = pullrequests.body.values[j].id;
+				const individualPRs = await this.get<any>(
+					`/repositories/${fullnameArr[i].fullname}/pullrequests/${PRid}`
 				);
-				if (foundSelf) {
-					//if the user matches, we need to call that pull request with that fullnames.
-					const pullrequests = await this.get<any>(
-						`/repositories/${fullnameArr[i].fullname}/pullrequests?${query}`
+
+				if (individualPRs.body.reviewers.length) {
+					//@ts-ignore
+					const foundSelf = individualPRs.body.reviewers.find(
+						(_: { account_id: string }) => _.account_id === usernameResponse.body.account_id
 					);
-					array.push(pullrequests.body.values);
-					array = flatten(array);
+					console.log(foundSelf);
+					if (foundSelf) {
+						array.push(pullrequests.body.values[j]);
+						array = flatten(array);
+					}
 				}
 			}
 		}
+		console.log(array);
 		//sort through array so it's in order
 		const sortedDefaultReviewersPRs = this._mergeSort(array);
 		return sortedDefaultReviewersPRs;
@@ -2247,6 +2253,15 @@ export class BitbucketProvider
 		const sortedRecents = this._mergeSort(array);
 		const fiveMostRecent = sortedRecents.slice(0, 5);
 		return fiveMostRecent;
+	}
+
+	private async _getPRsByMe(username: string, query: string): Promise<any> {
+		let array: any[] = [];
+		const createdByMe = await this.get<any>(`/pullrequests/${username}?${query}`);
+		createdByMe.body.values.forEach((_: any) => {
+			array.push(_);
+		});
+		return array;
 	}
 
 	async getMyPullRequests(
@@ -2303,6 +2318,7 @@ export class BitbucketProvider
 			usernameResponse,
 			queriesSafe[0]
 		); //NOTE: this is hardcoded, so if the order of the queries changes this should change too
+		const PRsByMe = await this._getPRsByMe(username, queriesSafe[1]); //note this is hardcoded
 		const fiveMostRecentPRs = await this._getRecents(fullNames, queriesSafe[2]); //NOTE: this is hardcoded, so if the order of the queries changes this should change too
 		const items = await Promise.all(
 			queriesSafe.map(async query => {
@@ -2315,45 +2331,39 @@ export class BitbucketProvider
 
 				//TODO: fix all this
 
-				//I. if open repos, use those
-				//I. else if not open repos, grab all
-				//II. take userWorkspaces and find the full_name of each repo to store in variable - make a separate function
-				//II. loop through collection query:
+				//if open repos, use those
 				for (let i = 0; i < queryCollection.length; i++) {
-					//III. if collection query equals "default reviewer":
-					if (queryCollection[i] === "defaultReviewer") {
-						//IV. loop through the fullNames array and call the API endpoint for each
-						results.body.values.push(defaultReviewerPRs);
+					if (reposWithOwners.length) {
+						for (const repo of reposWithOwners) {
+							results.body.values.push(
+								(
+									await this.get<BitbucketValues<BitbucketPullRequest[]>>(
+										`/repositories/${repo}/pullrequests?${query}`
+									)
+								)?.body?.values as any
+							);
+						}
 						results.body.values = flatten(results.body.values);
 						return results;
-					} else if (queryCollection[i] === "null") {
-						//III. if collection query equals "null":
-					} else if (queryCollection[i] === "recent") {
-						//III. if collection query equals "recent":
-						results.body.values.push(fiveMostRecentPRs);
-						results.body.values = flatten(results.body.values);
+					} else {
+						//else if not open repos, grab all
+						//if collection query equals "default reviewer":
+						if (queryCollection[i] === "defaultReviewer") {
+							results.body.values.push(defaultReviewerPRs);
+							results.body.values = flatten(results.body.values);
+						} else if (queryCollection[i] === "null") {
+							//if collection query equals "null":
+							results.body.values.push(PRsByMe);
+							results.body.values = flatten(results.body.values);
+						} else if (queryCollection[i] === "recent") {
+							//if collection query equals "recent":
+							results.body.values.push(fiveMostRecentPRs);
+							results.body.values = flatten(results.body.values);
+						}
 						return results;
 					}
 				}
-
-				if (reposWithOwners.length) {
-					for (const repo of reposWithOwners) {
-						results.body.values.push(
-							(
-								await this.get<BitbucketValues<BitbucketPullRequest[]>>(
-									`/repositories/${repo}/pullrequests?${query}`
-								)
-							)?.body?.values as any
-						);
-					}
-					results.body.values = flatten(results.body.values);
-					return results;
-				} else {
-					// the baseUrl will be applied inside the this.get, it normally looks like https://api.bitbucket.org/2.0
-					return this.get<BitbucketValues<BitbucketPullRequest[]>>(
-						`/pullrequests/${username}?${query}`
-					);
-				}
+				return results;
 			})
 		).catch(ex => {
 			Logger.error(ex, "getMyPullRequests");
