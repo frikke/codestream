@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
 	CartesianGrid,
-	Label,
 	Legend,
 	Line,
 	LineChart,
@@ -36,7 +35,7 @@ import { closePanel } from "../actions";
 import CancelButton from "../CancelButton";
 import { EntityAssociator } from "../EntityAssociator";
 import { WarningBox } from "../WarningBox";
-
+import { isEmpty as _isEmpty } from "lodash-es";
 import { MetaLabel } from "../Codemark/BaseCodemark";
 
 const Root = styled.div``;
@@ -491,7 +490,9 @@ export const ObservabilityAnomalyPanel = () => {
 																/>
 																<YAxis tick={{ fontSize: 12 }} domain={[0, maxY]} />
 																<ReTooltip
-																	content={<CustomTooltip />}
+																	content={
+																		<CustomTooltip deployments={telemetryResponse.deployments} />
+																	}
 																	contentStyle={{ color: colorLine, textAlign: "center" }}
 																/>
 																<Legend wrapperStyle={{ fontSize: "0.95em" }} />
@@ -506,17 +507,23 @@ export const ObservabilityAnomalyPanel = () => {
 																/>
 																{/* itterate over mapped array of objects */}
 																{telemetryResponse.deployments?.map(_ => {
+																	// return (
+																	// 	<ReferenceLine
+																	// 		x={_.seconds}
+																	// 		stroke={_.version.length ? colorPrimary : colorSubtle}
+																	// 	>
+																	// 		<Label
+																	// 			value={_.version}
+																	// 			position="middle"
+																	// 			style={{ fill: colorPrimary, fontSize: 14 }}
+																	// 		/>
+																	// 	</ReferenceLine>
+																	// );
 																	return (
 																		<ReferenceLine
 																			x={_.seconds}
 																			stroke={_.version.length ? colorPrimary : colorSubtle}
-																		>
-																			<Label
-																				value={_.version}
-																				position="middle"
-																				style={{ fill: colorPrimary, fontSize: 14 }}
-																			/>
-																		</ReferenceLine>
+																		/>
 																	);
 																})}
 															</LineChart>
@@ -546,9 +553,10 @@ interface CustomTooltipProps {
 	active?: boolean;
 	payload?: any[];
 	label?: string;
+	deployments?: any;
 }
 
-const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label }) => {
+const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label, deployments }) => {
 	const computedStyle = getComputedStyle(document.body);
 	const colorSubtle = computedStyle.getPropertyValue("--text-color-subtle").trim();
 	const colorBackgroundHover = computedStyle
@@ -561,6 +569,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label })
 		const dataTime = payload[0].payload.endTimeSeconds;
 		const date = new Date(dataTime * 1000); // Convert to milliseconds
 		const humanReadableDate = date.toLocaleDateString();
+		const releases = deployments.filter(_ => _.seconds === dataTime);
 
 		return (
 			<div
@@ -571,6 +580,13 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label })
 					background: colorBackgroundHover,
 				}}
 			>
+				{!_isEmpty(releases) && (
+					<div style={{ borderBottom: "1px solid", marginBottom: "3px", paddingBottom: "3px" }}>
+						{releases.map((_, index) => {
+							return <div>{_.version}</div>;
+						})}
+					</div>
+				)}
 				<div>{humanReadableDate}</div>
 				<div style={{ marginTop: "3px" }}>{dataName}:</div>
 				<div>{dataValue}</div>
