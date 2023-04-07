@@ -36,8 +36,25 @@ export class AnomalyDetector {
 	private readonly _baselineTimeFrame;
 	private readonly _accountId;
 	private _totalDays = 0;
+	private _benchmarkSampleSizeTimeFrame = "SINCE 30 minutes ago";
 
 	async execute(): Promise<GetObservabilityAnomaliesResponse> {
+		const benchmarkSampleSizesMetric = await this.getBenchmarkSampleSizesMetric();
+		const javaMetrics = benchmarkSampleSizesMetric.filter(_ => _.name.indexOf("Java/") >= 0);
+		if (!javaMetrics.length) {
+			return {
+				isSupported: false,
+				responseTime: [],
+				errorRate: [],
+			};
+		}
+		const benchmarkSampleSizesSpan = await this.getBenchmarkSampleSizesSpan();
+		// Used to determine metric validity
+		const benchmarkSampleSizes = this.consolidateBenchmarkSampleSizes(
+			benchmarkSampleSizesMetric,
+			benchmarkSampleSizesSpan
+		);
+
 		this._totalDays =
 			parseInt(this._request.sinceDaysAgo as any) + parseInt(this._request.baselineDays as any);
 		let detectionMethod: DetectionMethod = "Time Based";
@@ -60,28 +77,12 @@ export class AnomalyDetector {
 			}
 		}
 
-		const includeSpans = this._request.includeSpans || true;
 		const minimumErrorRate =
 			this._request.minimumErrorRate != null ? this._request.minimumErrorRate : 0;
 		const minimumResponseTime =
 			this._request.minimumResponseTime != null ? this._request.minimumResponseTime : 0;
 		const minimumSampleRate =
 			this._request.minimumSampleRate != null ? this._request.minimumSampleRate : 0;
-		const benchmarkSampleRateTimeFrame = "SINCE 30 minutes ago";
-
-		const benchmarkSampleSizessMetricLookup =
-			"(metricTimesliceName LIKE 'Java/%.%/%' OR metricTimesliceName LIKE 'Custom/%.%/%')";
-		const benchmarkSampleSizesMetric = await this.getSampleSizeMetric(
-			benchmarkSampleSizessMetricLookup,
-			benchmarkSampleRateTimeFrame
-		);
-		if (!benchmarkSampleSizesMetric || !benchmarkSampleSizesMetric.length) {
-			return {
-				isSupported: false,
-				responseTime: [],
-				errorRate: [],
-			};
-		}
 		const metricRoots = this.getCommonRoots(
 			benchmarkSampleSizesMetric.map(_ => this.extractSymbolStr(_.name))
 		);
@@ -91,17 +92,6 @@ export class AnomalyDetector {
 				errorRate: [],
 			};
 		}
-
-		const benchmarkSampleSizesSpanLookup = "(name LIKE 'Java/%.%/%' OR name LIKE 'Custom/%.%/%')";
-		const benchmarkSampleSizesSpan = await this.getSampleSizeSpan(
-			benchmarkSampleSizesSpanLookup,
-			benchmarkSampleRateTimeFrame
-		);
-		// Used to determine metric validity
-		const benchmarkSampleSizes = this.consolidateBenchmarkSampleSizes(
-			benchmarkSampleSizesMetric,
-			benchmarkSampleSizesSpan
-		);
 
 		const { comparisons: durationComparisons, metricTimesliceNames } =
 			await this.getAnomalousDurationComparisons(
@@ -126,10 +116,18 @@ export class AnomalyDetector {
 			this.errorRateComparisonToAnomaly(_, metricTimesliceNames)
 		);
 
+		const symbolStrs = new Set();
+		for (const name of metricTimesliceNames) {
+			symbolStrs.add(this.extractSymbolStr(name));
+		}
+		for (const name of errorMetricTimesliceNames) {
+			symbolStrs.add(this.extractSymbolStr(name));
+		}
+
 		const telemetry = Container.instance().telemetry;
 
 		const event = {
-			"Total Methods": benchmarkSampleSizesMetric.length,
+			"Total Methods": symbolStrs.size,
 			"Anomalous Error Methods": durationAnomalies.length,
 			"Anomalous Duration Methods": errorRateAnomalies.length,
 		};
@@ -144,6 +142,25 @@ export class AnomalyDetector {
 			detectionMethod,
 			isSupported: true,
 		};
+	}
+
+	private async getBenchmarkSampleSizesSpan() {
+		const benchmarkSampleSizesSpanLookup = "(name LIKE 'Java/%.%/%' OR name LIKE 'Custom/%.%/%')";
+		const benchmarkSampleSizesSpan = await this.getSampleSizeSpan(
+			benchmarkSampleSizesSpanLookup,
+			this._benchmarkSampleSizeTimeFrame
+		);
+		return benchmarkSampleSizesSpan;
+	}
+
+	private async getBenchmarkSampleSizesMetric() {
+		const benchmarkSampleSizesMetricLookup =
+			"(metricTimesliceName LIKE 'Java/%.%/%' OR metricTimesliceName LIKE 'Custom/%.%/%')";
+		const benchmarkSampleSizesMetric = await this.getSampleSizeMetric(
+			benchmarkSampleSizesMetricLookup,
+			this._benchmarkSampleSizeTimeFrame
+		);
+		return benchmarkSampleSizesMetric;
 	}
 
 	private async getAnomalousDurationComparisons(
@@ -168,7 +185,10 @@ export class AnomalyDetector {
 		const data = await this.getDurationMetric(lookup, this._dataTimeFrame);
 
 		const baseline = await this.getDurationMetric(lookup, this._baselineTimeFrame);
-		const baselineSampleRate = await this.getSampleRateMetric(lookup, this._baselineTimeFrame);
+		const baselineSampleRate = await this.getSampleRateMetricFiltered(
+			lookup,
+			this._baselineTimeFrame
+		);
 		const baselineFilter = this.getSampleRateFilterPredicate(baselineSampleRate, minimumSampleRate);
 		const baselineFiltered = baseline.filter(baselineFilter);
 
@@ -226,7 +246,7 @@ export class AnomalyDetector {
 			sampleLookup,
 			this._baselineTimeFrame
 		);
-		const baselineSampleRate = await this.getSampleRateMetric(
+		const baselineSampleRate = await this.getSampleRateMetricFiltered(
 			sampleLookup,
 			this._baselineTimeFrame
 		);
@@ -470,6 +490,9 @@ export class AnomalyDetector {
 	}
 
 	private async filterSampleRates(sampleRates: NameValue[]) {
+		if (!sampleRates || !sampleRates.length) {
+			return [];
+		}
 		const classNames = await this.extractClassNames(sampleRates.map(_ => _.name));
 		const { filteredNamespaces } = await SessionContainer.instance().session.agent.sendRequest(
 			AgentFilterNamespacesRequestType,
@@ -484,7 +507,10 @@ export class AnomalyDetector {
 		return filteredSampleRates;
 	}
 
-	private async getSampleRateMetric(lookup: string, timeFrame: string): Promise<NameValue[]> {
+	private async getSampleRateMetricFiltered(
+		lookup: string,
+		timeFrame: string
+	): Promise<NameValue[]> {
 		const query =
 			`SELECT rate(count(newrelic.timeslice.value), 1 minute) AS 'value' ` +
 			`FROM Metric WHERE \`entity.guid\` = '${this._request.entityGuid}' AND (${lookup}) FACET metricTimesliceName AS name ` +
