@@ -13,6 +13,7 @@ import {
 	GetObservabilityResponseTimesRequest,
 	GetObservabilityResponseTimesResponse,
 	NRErrorResponse,
+	ObservabilityAnomaly,
 	ObservabilityRepo,
 } from "@codestream/protocols/agent";
 import { AdditionalMetadataInfo, MetricTimeslice, ResolutionMethod } from "../newrelic.types";
@@ -140,6 +141,12 @@ export class ClmManager {
 			const averageDuration = this.mergeResults(results.map(_ => _.averageDuration));
 			const errorRate = this.mergeResults(results.map(_ => _.errorRate));
 			const sampleSize = this.mergeResults(results.map(_ => _.sampleSize));
+
+			const anomalies = this.provider.getLastObservabilityAnomaliesResponse();
+			if (anomalies) {
+				this.addAnomalies(averageDuration, anomalies.responseTime);
+				this.addAnomalies(errorRate, anomalies.errorRate);
+			}
 
 			const hasAnyData = sampleSize.length || averageDuration.length || errorRate.length;
 			const response: GetFileLevelTelemetryResponse = {
@@ -383,6 +390,23 @@ export class ClmManager {
 			}
 		}
 		return Array.from(consolidated.values());
+	}
+
+	private addAnomalies(metrics: FileLevelTelemetryMetric[], anomalies: ObservabilityAnomaly[]) {
+		for (const duration of metrics) {
+			// FIXME quick workaround to account for methods implemented in Java superclasses
+			// className, when it comes from code attributes strategy, will be the name of the superclass
+			// where the method is implemented, but the actual metricTimesliceName (in which anomaly detection
+			// is also based) is the name of the concrete class
+			const parts = duration.metricTimesliceName.split("/");
+			const altClassName = parts[parts.length - 2];
+			const anomaly = anomalies.find(
+				_ =>
+					(_.className === duration.className || _.className === altClassName) &&
+					_.functionName === duration.functionName
+			);
+			duration.anomaly = anomaly;
+		}
 	}
 }
 

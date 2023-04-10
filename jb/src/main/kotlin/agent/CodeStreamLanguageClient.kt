@@ -288,6 +288,12 @@ class CodeStreamLanguageClient(private val project: Project) : LanguageClient {
         project.webViewService?.postNotification("codestream/nr/didResolveStackTraceLine", json, true)
     }
 
+    @JsonNotification("codestream/didChangeCodelenses")
+    fun didChangeCodelenses(json: JsonElement?) {
+        println("CHUPACABRA didChangeCodelenses")
+        project.sessionService?.didChangeCodelenses()
+    }
+
     override fun workspaceFolders(): CompletableFuture<MutableList<WorkspaceFolder>> {
         val folders = project.workspaceFolders.toMutableList()
         logger.info("Workspace folders: ${folders.joinToString()}")

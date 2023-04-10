@@ -102,6 +102,7 @@ import {
 	UpdateNewRelicOrgIdRequestType,
 	UpdateNewRelicOrgIdRequest,
 	UpdateNewRelicOrgIdResponse,
+	DidChangeCodelensesNotificationType,
 } from "@codestream/protocols/agent";
 import { CSMe, CSNewRelicProviderInfo } from "@codestream/protocols/api";
 import { GraphQLClient } from "graphql-request";
@@ -173,6 +174,7 @@ export interface INewRelicProvider {
 	) => EntityAccount;
 	errorLogIfNotIgnored: (ex: Error, message: string, ...params: any[]) => void;
 	getDeployments(request: GetDeploymentsRequest): Promise<GetDeploymentsResponse>;
+	getLastObservabilityAnomaliesResponse(): GetObservabilityAnomaliesResponse | undefined;
 }
 
 @lspProvider("newrelic")
@@ -1095,6 +1097,12 @@ export class NewRelicProvider
 	private _observabilityAnomaliesTimedCache = new Cache<GetObservabilityAnomaliesResponse>({
 		defaultTtl: 120 * 1000,
 	});
+	private _lastObservabilityAnomaliesResponse: GetObservabilityAnomaliesResponse | undefined;
+
+	getLastObservabilityAnomaliesResponse() {
+		return this._lastObservabilityAnomaliesResponse;
+	}
+
 	@lspHandler(GetObservabilityAnomaliesRequestType)
 	@log({
 		timed: true,
@@ -1104,8 +1112,12 @@ export class NewRelicProvider
 	): Promise<GetObservabilityAnomaliesResponse> {
 		const cached = this._observabilityAnomaliesTimedCache.get(request);
 		if (cached) {
+			this._lastObservabilityAnomaliesResponse = cached;
+			this.session.agent.sendNotification(DidChangeCodelensesNotificationType, undefined);
 			return cached;
 		}
+
+		this._lastObservabilityAnomaliesResponse = undefined;
 
 		let lastEx;
 		const fn = async () => {
@@ -1123,13 +1135,16 @@ export class NewRelicProvider
 			}
 		};
 		await Functions.withExponentialRetryBackoff(fn, 5, 1000);
-		return (
-			this._observabilityAnomaliesTimedCache.get(request) || {
-				responseTime: [],
-				errorRate: [],
-				error: lastEx,
-			}
-		);
+		const response = this._observabilityAnomaliesTimedCache.get(request) || {
+			responseTime: [],
+			errorRate: [],
+			error: lastEx,
+		};
+
+		this._lastObservabilityAnomaliesResponse = response;
+		this.session.agent.sendNotification(DidChangeCodelensesNotificationType, undefined);
+
+		return response;
 	}
 
 	@log()

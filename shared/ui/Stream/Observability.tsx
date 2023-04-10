@@ -678,6 +678,14 @@ export const Observability = React.memo((props: Props) => {
 						? derivedState?.clmSettings?.minimumBaselineValue
 						: 0
 				),
+				minimumRatio:
+					parseFloat(
+						!_isNil(derivedState?.clmSettings?.minimumChangeValue)
+							? derivedState?.clmSettings?.minimumChangeValue
+							: 0
+					) /
+						100 +
+					1,
 			})
 			.then(response => {
 				if (response && response.isSupported === false) {

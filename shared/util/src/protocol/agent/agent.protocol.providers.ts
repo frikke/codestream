@@ -1,7 +1,7 @@
 "use strict";
-import { RequestType } from "vscode-languageserver-protocol";
+import { NotificationType, RequestType } from "vscode-languageserver-protocol";
 
-import { CrossPostIssueValues, GitLabMergeRequest } from "./agent.protocol";
+import { CrossPostIssueValues, DidResolveStackTraceLineNotification, GitLabMergeRequest } from "./agent.protocol";
 import { CodeErrorPlus } from "./agent.protocol.codeErrors";
 import { CodemarkPlus } from "./agent.protocol.codemarks";
 import { ReviewPlus } from "./agent.protocol.reviews";
@@ -1226,10 +1226,10 @@ export interface GetObservabilityAnomaliesRequest {
 	sinceDaysAgo: number;
 	baselineDays: number;
 	sinceReleaseAtLeastDaysAgo?: number;
-	includeSpans?: Boolean;
-	minimumErrorRate?: number;
-	minimumResponseTime?: number;
-	minimumSampleRate?: number;
+	minimumErrorRate: number;
+	minimumResponseTime: number;
+	minimumSampleRate: number;
+	minimumRatio: number;
 }
 
 export interface ObservabilityAnomaly {
@@ -1241,6 +1241,7 @@ export interface ObservabilityAnomaly {
 	ratio: number;
 	text: string;
 	totalDays: number;
+	sinceText: string;
 	metricTimesliceName: string;
 	errorMetricTimesliceName: string;
 }
@@ -1468,28 +1469,23 @@ export type MetricTimesliceNameMapping = {
 
 export interface FileLevelTelemetryMetric {
 	metricTimesliceName: string;
+	namespace?: string;
+	className?: string;
+	functionName: string;
+	anomaly?:  ObservabilityAnomaly;
 }
 
 export interface FileLevelTelemetryAverageDuration extends FileLevelTelemetryMetric {
 	averageDuration: any;
-	namespace?: string;
-	className?: string;
-	functionName: string;
 }
 
 export interface FileLevelTelemetrySampleSize extends FileLevelTelemetryMetric {
 	sampleSize: any;
-	namespace?: string;
-	className?: string;
-	functionName: string;
 	source: string;
 }
 
 export interface FileLevelTelemetryErrorRate extends FileLevelTelemetryMetric {
 	errorRate: any;
-	namespace?: string;
-	className?: string;
-	functionName: string;
 }
 
 export interface GetFileLevelTelemetryResponse {
@@ -2119,3 +2115,8 @@ export const CheckTrunkRequestType = new RequestType<
 	void,
 	void
 >("codestream/trunk/check");
+
+export const DidChangeCodelensesNotificationType = new NotificationType<
+	void,
+	void
+>("codestream/didChangeCodelenses");

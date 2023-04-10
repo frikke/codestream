@@ -75,15 +75,29 @@ class Metrics {
     var averageDuration: MethodLevelTelemetryAverageDuration? = null
     var sampleSize: MethodLevelTelemetrySampleSize? = null
 
-    fun format(template: String, since: String): String {
+    fun format(template: String, since: String): Pair<String, Boolean> {
+        if (errorRate?.anomaly != null || averageDuration?.anomaly != null) {
+            val anomalyTexts = mutableListOf<String>()
+            errorRate?.anomaly?.let {
+                anomalyTexts += "error rate +%.2f%%".format((it.ratio - 1) * 100)
+            }
+            averageDuration?.anomaly?.let {
+                anomalyTexts += "avg duration +%.2f%%".format((it.ratio - 1) * 100)
+            }
+            val since = errorRate?.anomaly?.sinceText ?: averageDuration?.anomaly?.sinceText
+            val text = anomalyTexts.joinToString() + " since $since"
+            return Pair(text, true)
+        }
+
         val sampleSizeStr = sampleSize?.sampleSize?.toString() ?: "0"
         val averageDurationStr = averageDuration?.averageDuration?.let { "%.3f".format(it) + "ms" } ?: "n/a"
         val errorRateValue = errorRate?.errorRate ?: 0f
         val errorRateStr = "%.1f".format(errorRateValue * 100) + "%"
-        return template.replace("\${averageDuration}", averageDurationStr)
+        val text = template.replace("\${averageDuration}", averageDurationStr)
             .replace("\${errorRate}", errorRateStr)
             .replace("\${sampleSize}", sampleSizeStr)
             .replace("\${since}", since)
+        return Pair(text, false)
     }
 
     val nameMapping: MethodLevelTelemetryNotifications.View.MetricTimesliceNameMapping
@@ -326,10 +340,10 @@ abstract class CLMEditorManager(
         val toRender: List<RenderElements> = metricsBySymbol.mapNotNull { (symbolIdentifier, metrics) ->
             val symbol = resolveSymbol(symbolIdentifier, psiFile) ?: return@mapNotNull null
 
-            val text = metrics.format(appSettings.goldenSignalsInEditorFormat, since)
+            val formatted = metrics.format(appSettings.goldenSignalsInEditorFormat, since)
             val range = getTextRangeWithoutLeadingCommentsAndWhitespaces(symbol)
             val smartElement = SmartPointerManager.createPointer(symbol)
-            val textPresentation = presentationFactory.text(text)
+            val textPresentation = presentationFactory.text(formatted.first)
             val referenceOnHoverPresentation =
                 presentationFactory.referenceOnHover(textPresentation, object : InlayPresentationFactory.ClickListener {
                     override fun onClick(event: MouseEvent, translated: Point) {

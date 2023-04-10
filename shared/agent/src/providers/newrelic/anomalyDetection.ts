@@ -38,6 +38,7 @@ export class AnomalyDetector {
 	private readonly _accountId;
 	private _totalDays = 0;
 	private _benchmarkSampleSizeTimeFrame = "SINCE 30 minutes ago";
+	private _sinceText = "";
 
 	async execute(): Promise<GetObservabilityAnomaliesResponse> {
 		const benchmarkSampleSizesMetric = await this.getBenchmarkSampleSizesMetric();
@@ -56,8 +57,9 @@ export class AnomalyDetector {
 			benchmarkSampleSizesSpan
 		);
 
-		this._totalDays =
-			parseInt(this._request.sinceDaysAgo as any) + parseInt(this._request.baselineDays as any);
+		const sinceDaysAgo = parseInt(this._request.sinceDaysAgo as any);
+		this._totalDays = sinceDaysAgo + parseInt(this._request.baselineDays as any);
+		this._sinceText = `${sinceDaysAgo} days ago`;
 		let detectionMethod: DetectionMethod = "Time Based";
 		if (this._request.sinceReleaseAtLeastDaysAgo) {
 			const deployments = (
@@ -79,15 +81,17 @@ export class AnomalyDetector {
 					daysSinceDeployment + baselineDays
 				} days AGO UNTIL ${daysSinceDeployment} days AGO`;
 				this._totalDays = daysSinceDeployment + baselineDays;
+
+				const options: Intl.DateTimeFormatOptions = {
+					month: "short",
+					day: "2-digit",
+				};
+				const formattedDate = new Intl.DateTimeFormat(undefined, options).format(deploymentDate);
+
+				this._sinceText = `release ${deployment.version} on ${formattedDate}`;
 			}
 		}
 
-		const minimumErrorRate =
-			this._request.minimumErrorRate != null ? this._request.minimumErrorRate : 0;
-		const minimumResponseTime =
-			this._request.minimumResponseTime != null ? this._request.minimumResponseTime : 0;
-		const minimumSampleRate =
-			this._request.minimumSampleRate != null ? this._request.minimumSampleRate : 0;
 		const metricRoots = this.getCommonRoots(
 			benchmarkSampleSizesMetric.map(_ => this.extractSymbolStr(_.name))
 		);
@@ -102,16 +106,18 @@ export class AnomalyDetector {
 			await this.getAnomalousDurationComparisons(
 				metricRoots,
 				benchmarkSampleSizes,
-				minimumResponseTime,
-				minimumSampleRate
+				this._request.minimumResponseTime,
+				this._request.minimumSampleRate,
+				this._request.minimumRatio
 			);
 
 		const { comparisons: errorRateComparisons, metricTimesliceNames: errorMetricTimesliceNames } =
 			await this.getErrorRateAnomalies(
 				metricRoots,
 				benchmarkSampleSizes,
-				minimumErrorRate,
-				minimumSampleRate
+				this._request.minimumErrorRate,
+				this._request.minimumSampleRate,
+				this._request.minimumRatio
 			);
 
 		const durationAnomalies = durationComparisons.map(_ =>
@@ -172,7 +178,8 @@ export class AnomalyDetector {
 		metricRoots: string[],
 		benchmarkSampleSizes: Map<string, { span?: NameValue; metric?: NameValue }>,
 		minimumDuration: number,
-		minimumSampleRate: number
+		minimumSampleRate: number,
+		minimumRatio: number
 	): Promise<{ comparisons: Comparison[]; metricTimesliceNames: string[] }> {
 		if (!metricRoots.length) {
 			return {
@@ -202,7 +209,7 @@ export class AnomalyDetector {
 		const filteredComparisons = this.filterComparisonsByBenchmarkSampleSizes(
 			benchmarkSampleSizes,
 			allComparisons
-		).filter(_ => _.ratio > 1 && _.newValue > minimumDuration);
+		).filter(_ => _.ratio > minimumRatio && _.newValue > minimumDuration);
 
 		return {
 			comparisons: filteredComparisons,
@@ -214,7 +221,8 @@ export class AnomalyDetector {
 		metricRoots: string[],
 		benchmarkSampleSizes: Map<string, { span?: NameValue; metric?: NameValue }>,
 		minimumErrorRate: number,
-		minimumSampleRate: number
+		minimumSampleRate: number,
+		minimumRatio: number
 	): Promise<{
 		comparisons: Comparison[];
 		metricTimesliceNames: string[];
@@ -265,7 +273,7 @@ export class AnomalyDetector {
 			benchmarkSampleSizes,
 			allComparisons
 		)
-			.filter(_ => _.ratio > 1 && _.newValue > minimumErrorRate)
+			.filter(_ => _.ratio > minimumRatio && _.newValue > minimumErrorRate)
 			.filter(baselineFilter);
 
 		return {
@@ -577,6 +585,7 @@ export class AnomalyDetector {
 			text: this.extractSymbolStr(comparison.name),
 			totalDays: this._totalDays,
 			metricTimesliceName: comparison.name,
+			sinceText: this._sinceText,
 			errorMetricTimesliceName:
 				errorMetricTimesliceNames.find(
 					_ => this.extractSymbolStr(_) === this.extractSymbolStr(comparison.name)
@@ -599,6 +608,7 @@ export class AnomalyDetector {
 			...symbol,
 			text: this.extractSymbolStr(comparison.name),
 			totalDays: this._totalDays,
+			sinceText: this._sinceText,
 			metricTimesliceName:
 				metricTimesliceNames.find(
 					_ => this.extractSymbolStr(_) === this.extractSymbolStr(comparison.name)

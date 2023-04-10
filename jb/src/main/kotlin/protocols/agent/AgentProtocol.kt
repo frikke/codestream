@@ -566,11 +566,26 @@ data class MethodLevelTelemetrySymbolIdentifier(
     val functionName: String
 )
 
+class ObservabilityAnomaly(
+    val name: String,
+    val className: String,
+    val functionName: String,
+    val oldValue: Float,
+    val newValue: Float,
+    val ratio: Float,
+    val text: String,
+    val totalDays: Int,
+    val sinceText: String,
+    val metricTimesliceName: String,
+    val errorMetricTimesliceName: String,
+)
+
 open class MethodLevelTelemetryData(
     val namespace: String?,
     val className: String?,
     val functionName: String,
-    val metricTimesliceName: String
+    val metricTimesliceName: String,
+    val anomaly: ObservabilityAnomaly?
 ) {
     val symbolIdentifier: MethodLevelTelemetrySymbolIdentifier
         get() = MethodLevelTelemetrySymbolIdentifier(namespace, className, functionName)
@@ -581,25 +596,28 @@ class MethodLevelTelemetrySampleSize (
     className: String?,
     functionName: String,
     metricTimesliceName: String,
+    anomaly: ObservabilityAnomaly?,
     val sampleSize: Int,
     val source: String
-) : MethodLevelTelemetryData(namespace, className, functionName, metricTimesliceName)
+) : MethodLevelTelemetryData(namespace, className, functionName, metricTimesliceName, anomaly)
 
 class MethodLevelTelemetryAverageDuration(
     namespace: String?,
     className: String?,
     functionName: String,
     metricTimesliceName: String,
+    anomaly: ObservabilityAnomaly?,
     val averageDuration: Float
-) : MethodLevelTelemetryData(namespace, className, functionName, metricTimesliceName)
+) : MethodLevelTelemetryData(namespace, className, functionName, metricTimesliceName, anomaly)
 
 class MethodLevelTelemetryErrorRate(
     namespace: String?,
     className: String?,
     functionName: String,
     metricTimesliceName: String,
+    anomaly: ObservabilityAnomaly?,
     val errorRate: Float
-) : MethodLevelTelemetryData(namespace, className, functionName, metricTimesliceName)
+) : MethodLevelTelemetryData(namespace, className, functionName, metricTimesliceName, anomaly)
 
 class FileLevelTelemetryResult(
     var error: FileLevelTelemetryResultError?,
