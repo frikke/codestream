@@ -8,13 +8,14 @@ import {
 } from "@codestream/protocols/agent";
 import { INewRelicProvider, NewRelicProvider } from "../newrelic";
 
-interface NameValue {
+interface Named {
 	name: string;
+}
+interface NameValue extends Named {
 	value: number;
 }
 
-interface Comparison {
-	name: string;
+interface Comparison extends Named {
 	oldValue: number;
 	newValue: number;
 	ratio: number;
@@ -254,16 +255,18 @@ export class AnomalyDetector {
 			sampleLookup,
 			this._baselineTimeFrame
 		);
-		const baselineFilter = this.getSampleRateFilterPredicate(baselineSampleRate, minimumSampleRate);
 		const baselineTransformer = this.getErrorRateTransformer(baselineSampleSize);
-		const baselineErrorRate = baselineErrorCount.filter(baselineFilter).map(baselineTransformer);
+		const baselineErrorRate = baselineErrorCount.map(baselineTransformer);
 
 		const allComparisons = this.compareData(dataErrorRate, baselineErrorRate, true);
 
+		const baselineFilter = this.getSampleRateFilterPredicate(baselineSampleRate, minimumSampleRate);
 		const filteredComparison = this.filterComparisonsByBenchmarkSampleSizes(
 			benchmarkSampleSizes,
 			allComparisons
-		).filter(_ => _.ratio > 1 && _.newValue > minimumErrorRate);
+		)
+			.filter(_ => _.ratio > 1 && _.newValue > minimumErrorRate)
+			.filter(baselineFilter);
 
 		return {
 			comparisons: filteredComparison,
@@ -272,7 +275,7 @@ export class AnomalyDetector {
 	}
 
 	private getSampleRateFilterPredicate(sampleRates: NameValue[], minimumSampleRate: number) {
-		return (data: NameValue) => {
+		return (data: Named) => {
 			const sampleRate = sampleRates.find(
 				sampleRate => this.extractSymbolStr(data.name) === this.extractSymbolStr(sampleRate.name)
 			);
