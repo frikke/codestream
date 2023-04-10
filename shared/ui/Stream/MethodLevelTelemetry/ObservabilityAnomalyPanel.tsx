@@ -108,7 +108,8 @@ export const ObservabilityAnomalyPanel = () => {
 			// }
 
 			const anomaly = derivedState.currentObservabilityAnomaly;
-			const since = `${anomaly.totalDays} days ago`;
+			const isPlural = anomaly.totalDays > 1 ? "s" : "";
+			const since = `${anomaly.totalDays} day${isPlural} ago`;
 			const response = await HostApi.instance.send(GetMethodLevelTelemetryRequestType, {
 				newRelicEntityGuid: newRelicEntityGuid,
 				metricTimesliceNameMapping: {
@@ -162,10 +163,11 @@ export const ObservabilityAnomalyPanel = () => {
 				date.setHours(0, 0, 0, 0);
 				const nDaysAgo = derivedState?.clmSettings?.compareDataLastValue;
 				date.setDate(date.getDate() - nDaysAgo);
+				const isPlural = nDaysAgo > 1 ? "s" : "";
 				response.deployments = [
 					{
 						seconds: Math.floor(date.getTime() / 1000),
-						version: `${nDaysAgo} days ago`,
+						version: `${nDaysAgo} day${isPlural} ago`,
 					},
 				];
 			}
