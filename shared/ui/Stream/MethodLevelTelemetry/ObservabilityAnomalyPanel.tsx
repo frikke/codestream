@@ -35,8 +35,8 @@ import { closePanel } from "../actions";
 import CancelButton from "../CancelButton";
 import { EntityAssociator } from "../EntityAssociator";
 import { WarningBox } from "../WarningBox";
-import { isEmpty as _isEmpty } from "lodash-es";
 import { MetaLabel } from "../Codemark/BaseCodemark";
+import Icon from "../Icon";
 
 const Root = styled.div``;
 
@@ -93,6 +93,8 @@ export const ObservabilityAnomalyPanel = () => {
 	const [showGoldenSignalsInEditor, setshowGoldenSignalsInEditor] = useState<boolean>(
 		derivedState.showGoldenSignalsInEditor || false
 	);
+	const [referenceTooltipVisible, setReferenceTooltipVisible] = useState<boolean>(false);
+
 	const loadData = async (newRelicEntityGuid: string) => {
 		setLoading(true);
 		try {
@@ -474,7 +476,7 @@ export const ObservabilityAnomalyPanel = () => {
 																height={300}
 																data={_.result}
 																margin={{
-																	top: 5,
+																	top: 25,
 																	right: 0,
 																	left: 0,
 																	bottom: 5,
@@ -507,22 +509,11 @@ export const ObservabilityAnomalyPanel = () => {
 																/>
 																{/* itterate over mapped array of objects */}
 																{telemetryResponse.deployments?.map(_ => {
-																	// return (
-																	// 	<ReferenceLine
-																	// 		x={_.seconds}
-																	// 		stroke={_.version.length ? colorPrimary : colorSubtle}
-																	// 	>
-																	// 		<Label
-																	// 			value={_.version}
-																	// 			position="middle"
-																	// 			style={{ fill: colorPrimary, fontSize: 14 }}
-																	// 		/>
-																	// 	</ReferenceLine>
-																	// );
 																	return (
 																		<ReferenceLine
 																			x={_.seconds}
 																			stroke={_.version.length ? colorPrimary : colorSubtle}
+																			label={e => renderCustomLabel(e, _.version)}
 																		/>
 																	);
 																})}
@@ -565,11 +556,9 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label, d
 
 	if (active && payload && payload.length && label) {
 		const dataValue = payload[0].value;
-		const dataName = payload[0].name;
 		const dataTime = payload[0].payload.endTimeSeconds;
 		const date = new Date(dataTime * 1000); // Convert to milliseconds
 		const humanReadableDate = date.toLocaleDateString();
-		const releases = deployments.filter(_ => _.seconds === dataTime);
 
 		return (
 			<div
@@ -582,16 +571,31 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label, d
 			>
 				<div>{humanReadableDate}</div>
 				<div style={{ marginTop: "3px" }}>{dataValue}</div>
-
-				{!_isEmpty(releases) && (
-					<div style={{ borderTop: "1px solid", marginTop: "3px", paddingTop: "3px" }}>
-						{releases.map((_, index) => {
-							return <div>{_.version}</div>;
-						})}
-					</div>
-				)}
 			</div>
 		);
 	}
 	return null;
+};
+
+// The label property in recharts must be wrapped in a <g> tag.
+// To get the correct location, we have to take the  viewBox x and y coords
+// and modfiy them for a transform property.
+const renderCustomLabel = ({ viewBox: { x, y } }, title) => {
+	const d = 20;
+	const r = d / 2;
+
+	const transform = `translate(${x - r} ${y - d - 5})`;
+	return (
+		<g transform={transform}>
+			<foreignObject x={0} y={0} width={100} height={100}>
+				<Icon
+					style={{ paddingLeft: "4px" }}
+					name="info"
+					className="circled"
+					title={title}
+					placement="top"
+				/>
+			</foreignObject>
+		</g>
+	);
 };
