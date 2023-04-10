@@ -2148,7 +2148,7 @@ export class BitbucketProvider
 		let i = 0;
 		let j = 0;
 		while (i < arr1.length && j < arr2.length) {
-			if (arr2[j].updated_on < arr1[i].updated_on) {
+			if (arr2[j].updatedAt < arr1[i].updatedAt || arr2[j].updated_on < arr1[i].updated_on) {
 				results.push(arr1[i]);
 				i++;
 			} else {
@@ -2255,7 +2255,6 @@ export class BitbucketProvider
 					const foundSelf = individualPRs.body.reviewers.find(
 						(_: { account_id: string }) => _.account_id === usernameResponse.body.account_id
 					);
-					console.log(foundSelf);
 					if (foundSelf) {
 						array.push(pullrequests.body.values[j]);
 						array = flatten(array);
@@ -2263,11 +2262,10 @@ export class BitbucketProvider
 				}
 			}
 		}
-		console.log(array);
 		//sort through array so it's in order
-		const sortedDefaultReviewersPRs = this._mergeSort(array);
 		//loop through array and map with the object below
-		const response = this._setUpResponse(sortedDefaultReviewersPRs);
+		const setUpArray = this._setUpResponse(array);
+		const response = this._mergeSort(setUpArray);
 		return response;
 	}
 
@@ -2292,17 +2290,42 @@ export class BitbucketProvider
 		//array[i].updated_on
 		const sortedRecents = this._mergeSort(array);
 		const fiveMostRecent = sortedRecents.slice(0, 5);
-		const response = this._setUpResponse(fiveMostRecent);
+		const setUpArray = this._setUpResponse(fiveMostRecent);
+		const response = this._mergeSort(setUpArray);
 		return response;
 	}
 
 	private async _getPRsByMe(username: string, query: string): Promise<any> {
-		let array: any[] = [];
+		const array: any[] = [];
 		const createdByMe = await this.get<any>(`/pullrequests/${username}?${query}`);
 		createdByMe.body.values.forEach((_: any) => {
 			array.push(_);
 		});
-		const response = this._setUpResponse(array);
+		const setUpArray = this._setUpResponse(array);
+		const response = this._mergeSort(setUpArray);
+		return response;
+	}
+
+	private async _PRsByMeinCurrentRepo(
+		fullNames: { fullname: string }[],
+		usernameResponse: ApiResponse<BitbucketUser>,
+		query: string
+	): Promise<any> {
+		const array = [];
+		for (let i = 0; i < fullNames.length; i++) {
+			const pullrequests = await this.get<any>(
+				`/repositories/${fullNames[i].fullname}/pullrequests?${query}` //note this is hardcoded
+			);
+			const foundSelf = pullrequests.body.values.find(
+				(_: { author: { account_id: string } }) =>
+					_.author.account_id === usernameResponse.body.account_id
+			);
+			if (foundSelf) {
+				array.push(foundSelf);
+			}
+		} //get all the prs, then check if author is current user
+		const setUpArray = this._setUpResponse(array);
+		const response = this._mergeSort(setUpArray);
 		return response;
 	}
 
@@ -2354,114 +2377,39 @@ export class BitbucketProvider
 		}
 
 		const response: GetMyPullRequestsResponse[][] = [];
-		const fullNames = await this._getFullNames();
-		const defaultReviewerPRs = await this._getDefaultReviewers(
-			fullNames,
-			usernameResponse,
-			queriesSafe[0]
-		); //NOTE: this is hardcoded, so if the order of the queries changes this should change too
-		response.push(defaultReviewerPRs);
-		const PRsByMe = await this._getPRsByMe(username, queriesSafe[1]); //note this is hardcoded
-		response.push(PRsByMe);
-		const fiveMostRecentPRs = await this._getRecents(fullNames, queriesSafe[2]); //NOTE: this is hardcoded, so if the order of the queries changes this should change too
-		response.push(fiveMostRecentPRs);
-		// const items = await Promise.all(
-		// 	queriesSafe.map(async query => {
-		// 		const results = {
-		// 			body: {
-		// 				values: [] as BitbucketPullRequest[],
-		// 			},
-		// 		};
 
-		// 		//if open repos, use those
-		// 		for (let i = 0; i < queryCollection.length; i++) {
-		// 			if (reposWithOwners.length) {
-		// 				//TODO
-		// 				for (const repo of reposWithOwners) {
-		// 					results.body.values.push(
-		// 						(
-		// 							await this.get<BitbucketValues<BitbucketPullRequest[]>>(
-		// 								`/repositories/${repo}/pullrequests?${query}`
-		// 							)
-		// 						)?.body?.values as any
-		// 					);
-		// 				}
-		// 				results.body.values = flatten(results.body.values);
-		// 				return results;
-		// 			} else {
-		// 				//else if not open repos, grab all
-		// 				//if collection query equals "default reviewer":
-		// 				if (queryCollection[i] === "defaultReviewer") {
-		// 					results.body.values.push(defaultReviewerPRs);
-		// 					// results.body.values = flatten(results.body.values);
-		// 					return results;
-		// 				} else if (queryCollection[i] === "null") {
-		// 					//if collection query equals "null":
-		// 					results.body.values.push(PRsByMe);
-		// 					// results.body.values = flatten(results.body.values);
-		// 				} else if (queryCollection[i] === "recent") {
-		// 					//if collection query equals "recent":
-		// 					results.body.values.push(fiveMostRecentPRs);
-		// 					// results.body.values = flatten(results.body.values);
-		// 				}
-		// 			}
-		// 		}
-		// 	})
-		// ).catch(ex => {
-		// 	Logger.error(ex, "getMyPullRequests");
-		// 	let errString;
-		// 	if (ex.response) {
-		// 		errString = JSON.stringify(ex.response);
-		// 	} else {
-		// 		errString = ex.message;
-		// 	}
-		// 	throw new Error(errString);
-		// });
-
-		// items.forEach((item, index) => {
-		// 	if (item?.body?.values?.length) {
-		// 		response[index] = item.body.values.map(pr => {
-		// 			const lastEditedString = new Date(pr.updated_on).getTime() + "";
-		// 			return {
-		// 				author: {
-		// 					avatarUrl: "",
-		// 					login: username,
-		// 				},
-		// 				baseRefName: pr.destination.branch.name,
-		// 				body: pr.summary.html,
-		// 				bodyText: pr.summary.raw,
-		// 				createdAt: new Date(pr.created_on).getTime(),
-		// 				headRefName: pr.source.branch.name,
-		// 				headRepository: {
-		// 					name: pr.source.repository.name,
-		// 					nameWithOwner: pr.source.repository.full_name,
-		// 				},
-		// 				id: pr.id + "",
-		// 				idComputed: JSON.stringify({
-		// 					id: pr.id,
-		// 					pullRequestId: pr.id,
-		// 					repoWithOwner: pr.source.repository.full_name,
-		// 				}),
-		// 				lastEditedAt: lastEditedString,
-		// 				labels: {
-		// 					nodes: [],
-		// 				},
-		// 				number: pr.id,
-		// 				providerId: providerId,
-		// 				state: pr.state,
-		// 				title: pr.title,
-		// 				updatedAt: lastEditedString,
-		// 				url: "",
-		// 			} as GetMyPullRequestsResponse;
-		// 		});
-		// 		if (!request.prQueries[index].query.match(/\bsort:/)) {
-		// 			response[index] = response[index].sort(
-		// 				(a: { createdAt: number }, b: { createdAt: number }) => b.createdAt - a.createdAt
-		// 			);
-		// 		}
-		// 	}
-		// });
-		//response.push the items -- OpenPullRequests.tsx
+		if (reposWithOwners.length) {
+			const fullNames: { fullname: string }[] = [];
+			for (const repo of reposWithOwners) {
+				fullNames.push({ fullname: repo });
+			}
+			const defaultReviewerPRs = await this._getDefaultReviewers(
+				fullNames,
+				usernameResponse,
+				queriesSafe[0]
+			); //NOTE: this is hardcoded, so if the order of the queries changes this should change too
+			const byMeinCurrentRepo = await this._PRsByMeinCurrentRepo(
+				fullNames,
+				usernameResponse,
+				queriesSafe[1]
+			);
+			const fiveMostRecentPRs = await this._getRecents(fullNames, queriesSafe[2]); //NOTE: this is hardcoded, so if the order of the queries changes this should change too
+			response.push(defaultReviewerPRs);
+			response.push(byMeinCurrentRepo);
+			response.push(fiveMostRecentPRs);
+		} else {
+			const fullNames = await this._getFullNames();
+			const defaultReviewerPRs = await this._getDefaultReviewers(
+				fullNames,
+				usernameResponse,
+				queriesSafe[0]
+			); //NOTE: this is hardcoded, so if the order of the queries changes this should change too
+			const PRsByMe = await this._getPRsByMe(username, queriesSafe[1]); //note this is hardcoded
+			const fiveMostRecentPRs = await this._getRecents(fullNames, queriesSafe[2]); //NOTE: this is hardcoded, so if the order of the queries changes this should change too
+			response.push(defaultReviewerPRs);
+			response.push(PRsByMe);
+			response.push(fiveMostRecentPRs);
+		}
 		return response;
 	}
 
