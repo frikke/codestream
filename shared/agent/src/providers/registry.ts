@@ -128,13 +128,13 @@ const PR_QUERIES: PRProviderQueries = {
 			query: `is:pr is:open assignee:@me -author:@me`,
 		},
 	],
-	// "bitbucket*org": [
-	// 	{
-	// 		providerId: "bitbucket*org",
-	// 		name: "is waiting on your review",
-	// 		query: `with_default_reviewer=true&sort=updated_on&state=OPEN`,
-	// 	},
-	// ],
+	"bitbucket*org": [
+		{
+			providerId: "bitbucket*org",
+			name: "Waiting on my Review",
+			query: `with_default_reviewer=true&state=OPEN`,
+		},
+	],
 };
 
 interface ProviderPullRequests {
