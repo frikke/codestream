@@ -2148,7 +2148,7 @@ export class BitbucketProvider
 		let i = 0;
 		let j = 0;
 		while (i < arr1.length && j < arr2.length) {
-			if (arr2[j].updatedAt < arr1[i].updatedAt || arr2[j].updated_on < arr1[i].updated_on) {
+			if (arr2[j].created_on < arr1[i].created_on) {
 				results.push(arr1[i]);
 				i++;
 			} else {
@@ -2264,8 +2264,8 @@ export class BitbucketProvider
 		}
 		//sort through array so it's in order
 		//loop through array and map with the object below
-		const setUpArray = this._setUpResponse(array);
-		const response = this._mergeSort(setUpArray);
+		const setUpArray = this._mergeSort(array);
+		const response = this._setUpResponse(setUpArray);
 		return response;
 	}
 
@@ -2290,8 +2290,7 @@ export class BitbucketProvider
 		//array[i].updated_on
 		const sortedRecents = this._mergeSort(array);
 		const fiveMostRecent = sortedRecents.slice(0, 5);
-		const setUpArray = this._setUpResponse(fiveMostRecent);
-		const response = this._mergeSort(setUpArray);
+		const response = this._setUpResponse(fiveMostRecent);
 		return response;
 	}
 
@@ -2301,8 +2300,8 @@ export class BitbucketProvider
 		createdByMe.body.values.forEach((_: any) => {
 			array.push(_);
 		});
-		const setUpArray = this._setUpResponse(array);
-		const response = this._mergeSort(setUpArray);
+		const setUpArray = this._mergeSort(array);
+		const response = this._setUpResponse(setUpArray);
 		return response;
 	}
 
@@ -2324,8 +2323,8 @@ export class BitbucketProvider
 				array.push(foundSelf);
 			}
 		} //get all the prs, then check if author is current user
-		const setUpArray = this._setUpResponse(array);
-		const response = this._mergeSort(setUpArray);
+		const setUpArray = this._mergeSort(array);
+		const response = this._setUpResponse(setUpArray);
 		return response;
 	}
 
