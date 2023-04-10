@@ -14,6 +14,8 @@ const DropdownItemsContainer = styled.div`
 	.vscode-dark& {
 		box-shadow: 0 5px 10px rgba(0, 0, 0, 0.5);
 	}
+	max-height: 350px;
+	overflow: auto;
 `;
 
 const DropdownItemContainer = styled.div`
@@ -22,6 +24,7 @@ const DropdownItemContainer = styled.div`
 	&:hover {
 		background: var(--button-background-color);
 	}
+	min-width: 65px;
 `;
 
 const CheckboxContainer = styled.span`

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
 	CartesianGrid,
-	Label,
 	Legend,
 	Line,
 	LineChart,
@@ -12,6 +11,7 @@ import {
 	XAxis,
 	YAxis,
 } from "recharts";
+import Tooltip from "../Tooltip";
 import {
 	DidChangeObservabilityDataNotificationType,
 	GetMethodLevelTelemetryRequestType,
@@ -31,13 +31,12 @@ import { CodeStreamState } from "@codestream/webview/store";
 import { closeAllPanels } from "@codestream/webview/store/context/actions";
 import { useDidMount, usePrevious } from "@codestream/webview/utilities/hooks";
 import { HostApi } from "@codestream/webview/webview-api";
-import { PanelHeader } from "../../src/components/PanelHeader";
 import { closePanel } from "../actions";
 import CancelButton from "../CancelButton";
 import { EntityAssociator } from "../EntityAssociator";
 import { WarningBox } from "../WarningBox";
-
 import { MetaLabel } from "../Codemark/BaseCodemark";
+import Icon from "../Icon";
 
 const Root = styled.div``;
 
@@ -80,6 +79,11 @@ export const ObservabilityAnomalyPanel = () => {
 		};
 	});
 
+	const computedStyle = getComputedStyle(document.body);
+	const colorSubtle = computedStyle.getPropertyValue("--text-color-subtle").trim();
+	const colorPrimary = computedStyle.getPropertyValue("--text-color").trim();
+	const colorLine = "#8884d8";
+
 	const [telemetryResponse, setTelemetryResponse] = useState<
 		GetMethodLevelTelemetryResponse | undefined
 	>(undefined);
@@ -89,6 +93,8 @@ export const ObservabilityAnomalyPanel = () => {
 	const [showGoldenSignalsInEditor, setshowGoldenSignalsInEditor] = useState<boolean>(
 		derivedState.showGoldenSignalsInEditor || false
 	);
+	const [referenceTooltipVisible, setReferenceTooltipVisible] = useState<boolean>(false);
+
 	const loadData = async (newRelicEntityGuid: string) => {
 		setLoading(true);
 		try {
@@ -102,7 +108,8 @@ export const ObservabilityAnomalyPanel = () => {
 			// }
 
 			const anomaly = derivedState.currentObservabilityAnomaly;
-			const since = `${anomaly.totalDays} days ago`;
+			const isPlural = anomaly.totalDays > 1 ? "s" : "";
+			const since = `${anomaly.totalDays} day${isPlural} ago`;
 			const response = await HostApi.instance.send(GetMethodLevelTelemetryRequestType, {
 				newRelicEntityGuid: newRelicEntityGuid,
 				metricTimesliceNameMapping: {
@@ -129,17 +136,23 @@ export const ObservabilityAnomalyPanel = () => {
 			const nDaysAgoRelease = derivedState?.clmSettings?.compareDataLastReleaseValue || 7;
 			maxReleaseDate.setDate(maxReleaseDate.getDate() - nDaysAgoRelease);
 			let comparisonReleaseSeconds = 0;
+			//latest release that is at least 7 days old
 			response.deployments?.forEach(d => {
 				const date = new Date(d.seconds * 1000);
 				if (date.getTime() <= maxReleaseDate.getTime()) {
+					//x value of cutoff point
 					comparisonReleaseSeconds = d.seconds;
 				}
 			});
 			response.deployments?.forEach(d => {
 				if (d.seconds != comparisonReleaseSeconds) {
+					//dont do this, keep all labels, render all labels with tooltip instead (if possible)
 					d.version = "";
 				}
 			});
+			// [{
+			// 	midnightValue: [release-name1, release-name2],
+			// }]
 			response.deployments?.forEach(d => {
 				const midnight = new Date(d.seconds * 1000);
 				midnight.setHours(0, 0, 0, 0);
@@ -150,10 +163,11 @@ export const ObservabilityAnomalyPanel = () => {
 				date.setHours(0, 0, 0, 0);
 				const nDaysAgo = derivedState?.clmSettings?.compareDataLastValue;
 				date.setDate(date.getDate() - nDaysAgo);
+				const isPlural = nDaysAgo > 1 ? "s" : "";
 				response.deployments = [
 					{
 						seconds: Math.floor(date.getTime() / 1000),
-						version: `${nDaysAgo} days ago`,
+						version: `${nDaysAgo} day${isPlural} ago`,
 					},
 				];
 			}
@@ -287,18 +301,40 @@ export const ObservabilityAnomalyPanel = () => {
 	return (
 		<Root className="full-height-codemark-form">
 			{!loading && (
-				<div
-					style={{
-						whiteSpace: "nowrap",
-						overflow: "hidden",
-						textOverflow: "ellipsis",
-						direction: "rtl",
-					}}
+				<Tooltip
+					title={
+						<div style={{ overflowWrap: "break-word" }}>
+							{derivedState.currentObservabilityAnomaly.text}
+						</div>
+					}
+					placement="topRight"
+					delay={1}
 				>
-					<PanelHeader
-						title={derivedState.currentObservabilityAnomaly.text + " telemetry"}
-					></PanelHeader>
-				</div>
+					<div>
+						<div
+							style={{
+								fontSize: "16px",
+								margin: "20px 20px 0px 20px",
+							}}
+						>
+							Telemetry for:
+						</div>
+						<div
+							style={{
+								whiteSpace: "nowrap",
+								overflow: "hidden",
+								textOverflow: "ellipsis",
+								direction: "rtl",
+								color: "var(--text-color-highlight)",
+								fontSize: "16px",
+								margin: "0px 20px 10px 20px",
+								cursor: "pointer",
+							}}
+						>
+							{derivedState.currentObservabilityAnomaly.text}
+						</div>
+					</div>
+				</Tooltip>
 			)}
 			<CancelButton onClick={() => dispatch(closePanel())} />
 
@@ -442,7 +478,7 @@ export const ObservabilityAnomalyPanel = () => {
 																height={300}
 																data={_.result}
 																margin={{
-																	top: 5,
+																	top: 25,
 																	right: 0,
 																	left: 0,
 																	bottom: 5,
@@ -458,30 +494,29 @@ export const ObservabilityAnomalyPanel = () => {
 																/>
 																<YAxis tick={{ fontSize: 12 }} domain={[0, maxY]} />
 																<ReTooltip
-																	label={"chupacabra"}
-																	contentStyle={{ color: "#8884d8", textAlign: "center" }}
+																	content={
+																		<CustomTooltip deployments={telemetryResponse.deployments} />
+																	}
+																	contentStyle={{ color: colorLine, textAlign: "center" }}
 																/>
 																<Legend wrapperStyle={{ fontSize: "0.95em" }} />
 																<Line
 																	type="monotone"
 																	dataKey={_.title}
-																	stroke="#8884d8"
+																	stroke={colorLine}
 																	activeDot={{ r: 8 }}
 																	connectNulls={true}
 																	name={title}
+																	dot={{ style: { fill: colorLine } }}
 																/>
+																{/* itterate over mapped array of objects */}
 																{telemetryResponse.deployments?.map(_ => {
 																	return (
 																		<ReferenceLine
 																			x={_.seconds}
-																			stroke={_.version.length ? "white" : "gray"}
-																		>
-																			<Label
-																				value={_.version}
-																				position="middle"
-																				style={{ fill: "white", fontSize: 14 }} // Set the label color and other styles here
-																			/>
-																		</ReferenceLine>
+																			stroke={_.version.length ? colorPrimary : colorSubtle}
+																			label={e => renderCustomLabel(e, _.version)}
+																		/>
 																	);
 																})}
 															</LineChart>
@@ -504,5 +539,65 @@ export const ObservabilityAnomalyPanel = () => {
 				</div>
 			</div>
 		</Root>
+	);
+};
+
+interface CustomTooltipProps {
+	active?: boolean;
+	payload?: any[];
+	label?: string;
+	deployments?: any;
+}
+
+const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label, deployments }) => {
+	const computedStyle = getComputedStyle(document.body);
+	const colorSubtle = computedStyle.getPropertyValue("--text-color-subtle").trim();
+	const colorBackgroundHover = computedStyle
+		.getPropertyValue("--app-background-color-hover")
+		.trim();
+
+	if (active && payload && payload.length && label) {
+		const dataValue = payload[0].value;
+		const dataTime = payload[0].payload.endTimeSeconds;
+		const date = new Date(dataTime * 1000); // Convert to milliseconds
+		const humanReadableDate = date.toLocaleDateString();
+
+		return (
+			<div
+				style={{
+					zIndex: 9999,
+					padding: "5px",
+					border: `${colorSubtle} solid 1px`,
+					background: colorBackgroundHover,
+				}}
+			>
+				<div>{humanReadableDate}</div>
+				<div style={{ marginTop: "3px" }}>{dataValue}</div>
+			</div>
+		);
+	}
+	return null;
+};
+
+// The label property in recharts must be wrapped in a <g> tag.
+// To get the correct location, we have to take the  viewBox x and y coords
+// and modfiy them for a transform property.
+const renderCustomLabel = ({ viewBox: { x, y } }, title) => {
+	const d = 20;
+	const r = d / 2;
+
+	const transform = `translate(${x - r} ${y - d - 5})`;
+	return (
+		<g transform={transform}>
+			<foreignObject x={0} y={0} width={100} height={100}>
+				<Icon
+					style={{ paddingLeft: "4px" }}
+					name="info"
+					className="circled"
+					title={title}
+					placement="top"
+				/>
+			</foreignObject>
+		</g>
 	);
 };
