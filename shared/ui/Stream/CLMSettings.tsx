@@ -12,6 +12,7 @@ import { setRefreshAnomalies } from "../store/context/actions";
 import { HostApi } from "../webview-api";
 import { isEmpty as _isEmpty, isNil as _isNil } from "lodash-es";
 import { GetDeploymentsRequestType, GetDeploymentsResponse } from "@codestream/protocols/agent";
+import { Dropdown } from "../Stream/Dropdown";
 import styled from "styled-components";
 
 interface Props {}
@@ -66,6 +67,22 @@ export const CLMSettings = React.memo(function CLMSettings(props: Props) {
 			? clmSettings.minimumAverageDurationValue
 			: "0.1"
 	);
+	const populateDropdownItems = action => {
+		let options: { label: string; key: string; action: Function }[] = [];
+
+		for (let i = 1; i <= 30; i++) {
+			options.push({
+				label: `${i}`,
+				key: `${i}`,
+				action: () => setCompareDataLastValue(`${i}`),
+			});
+		}
+
+		return options;
+	};
+	const compareDataLastItems = populateDropdownItems(setCompareDataLastValue);
+	const compareDataLastReleaseItems = populateDropdownItems(setCompareDataLastReleaseValue);
+	const againstDataPrecedingItems = populateDropdownItems(setAgainstDataPrecedingValue);
 
 	useDidMount(() => {
 		const entityGuid = derivedState?.activeO11y?.[derivedState?.currentO11yRepoId || ""];
@@ -164,14 +181,10 @@ export const CLMSettings = React.memo(function CLMSettings(props: Props) {
 									<div style={{ display: "flex", marginTop: "10px" }}>
 										<div>Compare data from the last:</div>
 										<div style={{ marginLeft: "auto" }}>
-											<NumberInput
-												key="compare-last-key"
-												name="compare-last"
-												type="number"
-												min="1"
-												max="100"
-												value={compareDataLastValue}
-												onChange={handleNumberChange}
+											<Dropdown
+												selectedValue={compareDataLastValue}
+												items={compareDataLastItems}
+												noModal={true}
 											/>{" "}
 											days
 										</div>
@@ -179,14 +192,10 @@ export const CLMSettings = React.memo(function CLMSettings(props: Props) {
 									<div style={{ display: "flex", marginTop: "5px" }}>
 										<div>Against data from the preceding:</div>
 										<div style={{ marginLeft: "auto" }}>
-											<NumberInput
-												key="against-preceding-key"
-												name="against-preceding"
-												type="number"
-												min="1"
-												max="100"
-												value={againstDataPrecedingValue}
-												onChange={handleNumberChange}
+											<Dropdown
+												selectedValue={againstDataPrecedingValue}
+												items={againstDataPrecedingItems}
+												noModal={true}
 											/>{" "}
 											days
 										</div>
@@ -229,14 +238,10 @@ export const CLMSettings = React.memo(function CLMSettings(props: Props) {
 											Compare data from the most recent release that is at least:
 										</div>
 										<div style={{ whiteSpace: "nowrap" }}>
-											<NumberInput
-												key="compare-last-release-key"
-												name="compare-last-release"
-												type="number"
-												min="1"
-												max="100"
-												value={compareDataLastReleaseValue}
-												onChange={e => handleNumberChange(e)}
+											<Dropdown
+												selectedValue={compareDataLastReleaseValue}
+												items={compareDataLastReleaseItems}
+												noModal={true}
 											/>{" "}
 											days ago
 										</div>
@@ -266,14 +271,10 @@ export const CLMSettings = React.memo(function CLMSettings(props: Props) {
 										</div>
 										<div style={{ margin: "0px 8px 0px 22px" }}>Compare data from the last:</div>
 										<div style={{ whiteSpace: "nowrap" }}>
-											<NumberInput
-												key="compare-last-key"
-												name="compare-last"
-												type="number"
-												min="1"
-												max="100"
-												value={compareDataLastValue}
-												onChange={e => handleNumberChange(e)}
+											<Dropdown
+												selectedValue={compareDataLastValue}
+												items={compareDataLastItems}
+												noModal={true}
 											/>{" "}
 											days
 										</div>
@@ -282,14 +283,10 @@ export const CLMSettings = React.memo(function CLMSettings(props: Props) {
 									<div style={{ marginTop: "10px", display: "flex" }}>
 										<div>Against data from the preceding:</div>
 										<div style={{ marginLeft: "auto" }}>
-											<NumberInput
-												key="against-preceding-key"
-												name="against-preceding"
-												type="number"
-												min="1"
-												max="100"
-												value={againstDataPrecedingValue}
-												onChange={e => handleNumberChange(e)}
+											<Dropdown
+												selectedValue={againstDataPrecedingValue}
+												items={againstDataPrecedingItems}
+												noModal={true}
 											/>{" "}
 											days
 										</div>
