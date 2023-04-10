@@ -14,7 +14,14 @@ import { isEmpty as _isEmpty, isNil as _isNil } from "lodash-es";
 import { GetDeploymentsRequestType, GetDeploymentsResponse } from "@codestream/protocols/agent";
 import styled from "styled-components";
 
-export const CLMSettings = () => {
+interface Props {}
+const NumberInput = styled.input`
+	&::-webkit-outer-spin-button,
+	&::-webkit-inner-spin-button {
+		display: none;
+	}
+`;
+export const CLMSettings = React.memo(function CLMSettings(props: Props) {
 	const dispatch = useAppDispatch();
 	const derivedState = useAppSelector((state: CodeStreamState) => {
 		const clmSettings = state.preferences.clmSettings || {};
@@ -60,13 +67,6 @@ export const CLMSettings = () => {
 			: "0.1"
 	);
 
-	const NumberInput = styled.input`
-		&::-webkit-outer-spin-button,
-		&::-webkit-inner-spin-button {
-			display: none;
-		}
-	`;
-
 	useDidMount(() => {
 		const entityGuid = derivedState?.activeO11y?.[derivedState?.currentO11yRepoId || ""];
 
@@ -93,7 +93,10 @@ export const CLMSettings = () => {
 		}
 	});
 
-	const handleClickSubmit = () => {
+	const handleClickSubmit = e => {
+		e.preventDefault();
+		e.stopPropagation();
+
 		dispatch(
 			setUserPreference({
 				prefPath: ["clmSettings"],
@@ -114,9 +117,11 @@ export const CLMSettings = () => {
 		dispatch(closeModal());
 	};
 
-	const handleNumberChange = e => {
+	const handleNumberChange = React.useCallback(e => {
+		e.preventDefault();
 		let { value, min, max, name } = e.target;
 		value = Math.max(Number(min), Math.min(Number(max), Number(value)));
+
 		switch (name) {
 			case "min-change":
 				setMinimumChangeValue(value);
@@ -142,7 +147,7 @@ export const CLMSettings = () => {
 			default:
 				throw new Error("Invalid input name");
 		}
-	};
+	}, []);
 
 	// @TODO: convert most this jsx to styled-components
 	return (
@@ -160,12 +165,13 @@ export const CLMSettings = () => {
 										<div>Compare data from the last:</div>
 										<div style={{ marginLeft: "auto" }}>
 											<NumberInput
+												key="compare-last-key"
 												name="compare-last"
 												type="number"
 												min="1"
 												max="100"
 												value={compareDataLastValue}
-												onChange={e => handleNumberChange(e)}
+												onChange={handleNumberChange}
 											/>{" "}
 											days
 										</div>
@@ -174,12 +180,13 @@ export const CLMSettings = () => {
 										<div>Against data from the preceding:</div>
 										<div style={{ marginLeft: "auto" }}>
 											<NumberInput
+												key="against-preceding-key"
 												name="against-preceding"
 												type="number"
 												min="1"
 												max="100"
 												value={againstDataPrecedingValue}
-												onChange={e => handleNumberChange(e)}
+												onChange={handleNumberChange}
 											/>{" "}
 											days
 										</div>
@@ -223,6 +230,7 @@ export const CLMSettings = () => {
 										</div>
 										<div style={{ whiteSpace: "nowrap" }}>
 											<NumberInput
+												key="compare-last-release-key"
 												name="compare-last-release"
 												type="number"
 												min="1"
@@ -245,6 +253,7 @@ export const CLMSettings = () => {
 											<RadioContainer>
 												<div>
 													<input
+														key="compare-data-key"
 														type="radio"
 														id="LATEST_DAYS"
 														name="compare-data"
@@ -258,6 +267,7 @@ export const CLMSettings = () => {
 										<div style={{ margin: "0px 8px 0px 22px" }}>Compare data from the last:</div>
 										<div style={{ whiteSpace: "nowrap" }}>
 											<NumberInput
+												key="compare-last-key"
 												name="compare-last"
 												type="number"
 												min="1"
@@ -273,6 +283,7 @@ export const CLMSettings = () => {
 										<div>Against data from the preceding:</div>
 										<div style={{ marginLeft: "auto" }}>
 											<NumberInput
+												key="against-preceding-key"
 												name="against-preceding"
 												type="number"
 												min="1"
@@ -297,12 +308,13 @@ export const CLMSettings = () => {
 								<div>Minimum change to be anomalous:</div>
 								<div style={{ marginLeft: "auto" }}>
 									<NumberInput
+										key="min-change-key"
 										name="min-change"
 										type="number"
 										min="0"
 										max="100"
 										value={minimumChangeValue}
-										onChange={e => handleNumberChange(e)}
+										onChange={handleNumberChange}
 									/>
 								</div>
 								<div style={{ marginLeft: "5px", width: "24px", paddingTop: "2px" }}>%</div>
@@ -311,12 +323,13 @@ export const CLMSettings = () => {
 								<div>Minimum baseline sample rate:</div>
 								<div style={{ marginLeft: "auto" }}>
 									<NumberInput
+										key="min-baseline-key"
 										name="min-baseline"
 										type="number"
 										min="0"
 										max="100"
 										value={minimumBaselineValue}
-										onChange={e => handleNumberChange(e)}
+										onChange={handleNumberChange}
 									/>
 								</div>
 								<div style={{ marginLeft: "5px", width: "24px", paddingTop: "2px" }}>rpm</div>
@@ -325,12 +338,13 @@ export const CLMSettings = () => {
 								<div>Minimum error rate:</div>
 								<div style={{ marginLeft: "auto" }}>
 									<NumberInput
+										key="min-error-rate-key"
 										name="min-error-rate"
 										type="number"
 										min="0"
 										max="100"
 										value={minimumErrorRateValue}
-										onChange={e => handleNumberChange(e)}
+										onChange={handleNumberChange}
 									/>
 								</div>
 								<div style={{ marginLeft: "5px", width: "24px", paddingTop: "2px" }}>%</div>
@@ -340,11 +354,11 @@ export const CLMSettings = () => {
 								<div style={{ marginLeft: "auto" }}>
 									<NumberInput
 										name="min-average-duration"
+										value={minimumAverageDurationValue}
 										type="number"
 										min="0"
 										max="100"
-										value={minimumAverageDurationValue}
-										onChange={e => handleNumberChange(e)}
+										onChange={handleNumberChange}
 									/>
 								</div>
 								<div style={{ marginLeft: "5px", width: "24px", paddingTop: "2px" }}>ms</div>
@@ -363,7 +377,7 @@ export const CLMSettings = () => {
 									className="control-button"
 									type="button"
 									loading={false}
-									onClick={() => handleClickSubmit()}
+									onClick={e => handleClickSubmit(e)}
 								>
 									Submit
 								</Button>
@@ -374,4 +388,4 @@ export const CLMSettings = () => {
 			</ScrollBox>
 		</Dialog>
 	);
-};
+});
