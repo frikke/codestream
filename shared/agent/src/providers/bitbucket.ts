@@ -2195,6 +2195,44 @@ export class BitbucketProvider
 		return array;
 	}
 
+	private _setUpResponse(array: any[]) {
+		const providerId = this.providerConfig?.id;
+		const response = array.map(item => {
+			return {
+				author: {
+					avatarUrl: item.author.links.avatar.href,
+					login: item.author.display_name,
+				},
+				baseRefName: item.destination.branch.name,
+				body: item.summary.html,
+				bodyText: item.summary.raw,
+				createdAt: new Date(item.created_on).getTime(),
+				headRefName: item.source.branch.name,
+				headRepository: {
+					name: item.source.repository.name,
+					nameWithOwner: item.source.repository.full_name,
+				},
+				id: item.id + "",
+				idComputed: JSON.stringify({
+					id: item.id,
+					pullRequestId: item.id,
+					repoWithOwner: item.source.repository.full_name,
+				}),
+				lastEditedAt: item.updated_on,
+				labels: {
+					nodes: [],
+				},
+				number: item.id,
+				providerId: providerId,
+				state: item.state,
+				title: item.title,
+				updatedAt: item.updated_on,
+				url: item.links.html.href,
+			} as GetMyPullRequestsResponse;
+		});
+		return response;
+	}
+
 	private async _getDefaultReviewers(
 		fullnameArr: { fullname: string }[],
 		usernameResponse: ApiResponse<BitbucketUser>,
@@ -2228,7 +2266,9 @@ export class BitbucketProvider
 		console.log(array);
 		//sort through array so it's in order
 		const sortedDefaultReviewersPRs = this._mergeSort(array);
-		return sortedDefaultReviewersPRs;
+		//loop through array and map with the object below
+		const response = this._setUpResponse(sortedDefaultReviewersPRs);
+		return response;
 	}
 
 	private async _getRecents(fullnameArr: { fullname: string }[], query: string): Promise<any> {
@@ -2252,7 +2292,8 @@ export class BitbucketProvider
 		//array[i].updated_on
 		const sortedRecents = this._mergeSort(array);
 		const fiveMostRecent = sortedRecents.slice(0, 5);
-		return fiveMostRecent;
+		const response = this._setUpResponse(fiveMostRecent);
+		return response;
 	}
 
 	private async _getPRsByMe(username: string, query: string): Promise<any> {
@@ -2261,7 +2302,8 @@ export class BitbucketProvider
 		createdByMe.body.values.forEach((_: any) => {
 			array.push(_);
 		});
-		return array;
+		const response = this._setUpResponse(array);
+		return response;
 	}
 
 	async getMyPullRequests(
@@ -2311,148 +2353,115 @@ export class BitbucketProvider
 			}
 		}
 
-		const providerId = this.providerConfig?.id;
+		const response: GetMyPullRequestsResponse[][] = [];
 		const fullNames = await this._getFullNames();
 		const defaultReviewerPRs = await this._getDefaultReviewers(
 			fullNames,
 			usernameResponse,
 			queriesSafe[0]
 		); //NOTE: this is hardcoded, so if the order of the queries changes this should change too
+		response.push(defaultReviewerPRs);
 		const PRsByMe = await this._getPRsByMe(username, queriesSafe[1]); //note this is hardcoded
+		response.push(PRsByMe);
 		const fiveMostRecentPRs = await this._getRecents(fullNames, queriesSafe[2]); //NOTE: this is hardcoded, so if the order of the queries changes this should change too
-		const items = await Promise.all(
-			queriesSafe.map(async query => {
-				// TODO fix below
-				const results = {
-					body: {
-						values: [] as BitbucketPullRequest[],
-					},
-				};
+		response.push(fiveMostRecentPRs);
+		// const items = await Promise.all(
+		// 	queriesSafe.map(async query => {
+		// 		const results = {
+		// 			body: {
+		// 				values: [] as BitbucketPullRequest[],
+		// 			},
+		// 		};
 
-				//TODO: fix all this
-
-				//if open repos, use those
-				for (let i = 0; i < queryCollection.length; i++) {
-					if (reposWithOwners.length) {
-						for (const repo of reposWithOwners) {
-							results.body.values.push(
-								(
-									await this.get<BitbucketValues<BitbucketPullRequest[]>>(
-										`/repositories/${repo}/pullrequests?${query}`
-									)
-								)?.body?.values as any
-							);
-						}
-						results.body.values = flatten(results.body.values);
-						return results;
-					} else {
-						//else if not open repos, grab all
-						//if collection query equals "default reviewer":
-						if (queryCollection[i] === "defaultReviewer") {
-							results.body.values.push(defaultReviewerPRs);
-							results.body.values = flatten(results.body.values);
-						} else if (queryCollection[i] === "null") {
-							//if collection query equals "null":
-							results.body.values.push(PRsByMe);
-							results.body.values = flatten(results.body.values);
-						} else if (queryCollection[i] === "recent") {
-							//if collection query equals "recent":
-							results.body.values.push(fiveMostRecentPRs);
-							results.body.values = flatten(results.body.values);
-						}
-						return results;
-					}
-				}
-				return results;
-			})
-		).catch(ex => {
-			Logger.error(ex, "getMyPullRequests");
-			let errString;
-			if (ex.response) {
-				errString = JSON.stringify(ex.response);
-			} else {
-				errString = ex.message;
-			}
-			throw new Error(errString);
-		});
-
-		// const workspaceSlugsArr = await this._getUserWorkspaces();
-		// const repoFullNameArr = await this._getUserRepos(workspaceSlugsArr);
-		//repoFullNameArr should be array that looks like: [slug: "reneepetit/practice", "reneepetit86/bitbucketpractice"]
-
-		// items.forEach(async (pullrequests, index) => {
-		// 	if (defaultReviewerCollection[index]) {
-		// 		//find uniq list of repository.full_name from pullrequests as an array of strings
-		// 		const newArray = [];
-		// 		const uniqueFullNames = uniq(
-		// 			pullrequests.body.values.map(pullrequest => pullrequest.destination.repository.full_name)
-		// 		);
-		// 		//if there is nothing, nothing to do
-		// 		if (uniqueFullNames.length) {
-		// 			//else, for each iterate over them and call get default reviewer using that workspace/slug
-		// 			uniqueFullNames.forEach(async fullname => {
-		// 				const defaultReviewers = await this.get<any>(
-		// 					`/repositories/${fullname}/default-reviewers`
-		// 				);
-		// 				if (defaultReviewers.body.values.length) {
-		// 					const foundSelf = defaultReviewers.body.values.find(
-		// 						(_: { account_id: string }) => _.account_id === usernameResponse.body.account_id
+		// 		//if open repos, use those
+		// 		for (let i = 0; i < queryCollection.length; i++) {
+		// 			if (reposWithOwners.length) {
+		// 				//TODO
+		// 				for (const repo of reposWithOwners) {
+		// 					results.body.values.push(
+		// 						(
+		// 							await this.get<BitbucketValues<BitbucketPullRequest[]>>(
+		// 								`/repositories/${repo}/pullrequests?${query}`
+		// 							)
+		// 						)?.body?.values as any
 		// 					);
-		// 					if (foundSelf) {
-		// 						//push into new array all PRs in pullreqeusts.body.values that have a matching full_name in uniqueFullNames
-		// 						newArray.push(foundSelf);
-		// 					}
 		// 				}
-		// 			});
+		// 				results.body.values = flatten(results.body.values);
+		// 				return results;
+		// 			} else {
+		// 				//else if not open repos, grab all
+		// 				//if collection query equals "default reviewer":
+		// 				if (queryCollection[i] === "defaultReviewer") {
+		// 					results.body.values.push(defaultReviewerPRs);
+		// 					// results.body.values = flatten(results.body.values);
+		// 					return results;
+		// 				} else if (queryCollection[i] === "null") {
+		// 					//if collection query equals "null":
+		// 					results.body.values.push(PRsByMe);
+		// 					// results.body.values = flatten(results.body.values);
+		// 				} else if (queryCollection[i] === "recent") {
+		// 					//if collection query equals "recent":
+		// 					results.body.values.push(fiveMostRecentPRs);
+		// 					// results.body.values = flatten(results.body.values);
+		// 				}
+		// 			}
+		// 		}
+		// 	})
+		// ).catch(ex => {
+		// 	Logger.error(ex, "getMyPullRequests");
+		// 	let errString;
+		// 	if (ex.response) {
+		// 		errString = JSON.stringify(ex.response);
+		// 	} else {
+		// 		errString = ex.message;
+		// 	}
+		// 	throw new Error(errString);
+		// });
+
+		// items.forEach((item, index) => {
+		// 	if (item?.body?.values?.length) {
+		// 		response[index] = item.body.values.map(pr => {
+		// 			const lastEditedString = new Date(pr.updated_on).getTime() + "";
+		// 			return {
+		// 				author: {
+		// 					avatarUrl: "",
+		// 					login: username,
+		// 				},
+		// 				baseRefName: pr.destination.branch.name,
+		// 				body: pr.summary.html,
+		// 				bodyText: pr.summary.raw,
+		// 				createdAt: new Date(pr.created_on).getTime(),
+		// 				headRefName: pr.source.branch.name,
+		// 				headRepository: {
+		// 					name: pr.source.repository.name,
+		// 					nameWithOwner: pr.source.repository.full_name,
+		// 				},
+		// 				id: pr.id + "",
+		// 				idComputed: JSON.stringify({
+		// 					id: pr.id,
+		// 					pullRequestId: pr.id,
+		// 					repoWithOwner: pr.source.repository.full_name,
+		// 				}),
+		// 				lastEditedAt: lastEditedString,
+		// 				labels: {
+		// 					nodes: [],
+		// 				},
+		// 				number: pr.id,
+		// 				providerId: providerId,
+		// 				state: pr.state,
+		// 				title: pr.title,
+		// 				updatedAt: lastEditedString,
+		// 				url: "",
+		// 			} as GetMyPullRequestsResponse;
+		// 		});
+		// 		if (!request.prQueries[index].query.match(/\bsort:/)) {
+		// 			response[index] = response[index].sort(
+		// 				(a: { createdAt: number }, b: { createdAt: number }) => b.createdAt - a.createdAt
+		// 			);
 		// 		}
 		// 	}
 		// });
-
-		const response: GetMyPullRequestsResponse[][] = [];
-		items.forEach((item, index) => {
-			if (item?.body?.values?.length) {
-				response[index] = item.body.values.map(pr => {
-					const lastEditedString = new Date(pr.updated_on).getTime() + "";
-					return {
-						author: {
-							avatarUrl: pr.author.links.avatar.href,
-							login: username,
-						},
-						baseRefName: pr.destination.branch.name,
-						body: pr.summary.html,
-						bodyText: pr.summary.raw,
-						createdAt: new Date(pr.created_on).getTime(),
-						headRefName: pr.source.branch.name,
-						headRepository: {
-							name: pr.source.repository.name,
-							nameWithOwner: pr.source.repository.full_name,
-						},
-						id: pr.id + "",
-						idComputed: JSON.stringify({
-							id: pr.id,
-							pullRequestId: pr.id,
-							repoWithOwner: pr.source.repository.full_name,
-						}),
-						lastEditedAt: lastEditedString,
-						labels: {
-							nodes: [],
-						},
-						number: pr.id,
-						providerId: providerId,
-						state: pr.state,
-						title: pr.title,
-						updatedAt: lastEditedString,
-						url: pr.links.html.href,
-					} as GetMyPullRequestsResponse;
-				});
-				if (!request.prQueries[index].query.match(/\bsort:/)) {
-					response[index] = response[index].sort(
-						(a: { createdAt: number }, b: { createdAt: number }) => b.createdAt - a.createdAt
-					);
-				}
-			}
-		});
-
+		//response.push the items -- OpenPullRequests.tsx
 		return response;
 	}
 
