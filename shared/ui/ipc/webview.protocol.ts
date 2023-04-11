@@ -1,4 +1,7 @@
-import { PixieDynamicLoggingFunctionParameter } from "@codestream/protocols/agent";
+import {
+	ObservabilityAnomaly,
+	PixieDynamicLoggingFunctionParameter,
+} from "@codestream/protocols/agent";
 import { CodemarkType } from "@codestream/protocols/api";
 import { Range } from "vscode-languageserver-types";
 
@@ -164,6 +167,15 @@ export const ViewMethodLevelTelemetryNotificationType = new NotificationType<
 	ViewMethodLevelTelemetryNotification,
 	void
 >(`${IpcRoutes.Webview}/mlt/view`);
+
+export interface ViewAnomalyNotification {
+	anomaly: ObservabilityAnomaly;
+	entityGuid: string;
+}
+
+export const ViewAnomalyNotificationType = new NotificationType<ViewAnomalyNotification, void>(
+	`${IpcRoutes.Webview}/anomaly/view`
+);
 
 export interface ShowProgressIndicator {
 	progressStatus: boolean;

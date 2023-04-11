@@ -64,6 +64,7 @@ import {
 	ShowStreamNotificationType,
 	ViewMethodLevelTelemetryNotificationType,
 	WebviewDidInitializeNotificationType,
+	ViewAnomalyNotificationType,
 } from "./ipc/webview.protocol";
 import { WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
 import { logWarning } from "./logger";
@@ -89,6 +90,7 @@ import {
 	setCurrentCodeError,
 	setCurrentCodemark,
 	setCurrentMethodLevelTelemetry,
+	setCurrentObservabilityAnomaly,
 	setCurrentPullRequest,
 	setCurrentReview,
 	setCurrentStream,
@@ -819,6 +821,12 @@ function listenForEvents(store) {
 		store.dispatch(closeAllPanels());
 		store.dispatch(setCurrentMethodLevelTelemetry(e));
 		store.dispatch(openPanel(WebviewPanels.MethodLevelTelemetry));
+	});
+
+	api.on(ViewAnomalyNotificationType, async e => {
+		store.dispatch(closeAllPanels());
+		store.dispatch(setCurrentObservabilityAnomaly(e.anomaly, e.entityGuid));
+		store.dispatch(openPanel(WebviewPanels.ObservabilityAnomaly));
 	});
 
 	api.on(ConfigChangeReloadNotificationType, params => {

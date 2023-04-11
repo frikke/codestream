@@ -3,6 +3,7 @@ package com.codestream.protocols.webview
 import com.codestream.protocols.CodemarkType
 import com.codestream.protocols.agent.CSRepo
 import com.codestream.protocols.agent.FileLevelTelemetryOptions
+import com.codestream.protocols.agent.ObservabilityAnomaly
 import com.codestream.protocols.agent.PixieDynamicLoggingFunctionParameter
 import com.google.gson.JsonObject
 import org.eclipse.lsp4j.Range
@@ -168,6 +169,15 @@ object PixieNotifications {
         val packageName: String
     ) : WebViewNotification {
         override fun getMethod(): String = "webview/pixie/dynamicLogging"
+    }
+}
+
+object ObservabilityAnomalyNotifications {
+    class View(
+        val anomaly: ObservabilityAnomaly,
+        val entityGuid: String
+    ) : WebViewNotification {
+        override fun getMethod(): String = "webview/anomaly/view"
     }
 }
 

@@ -18,6 +18,7 @@ import com.codestream.protocols.agent.NOT_ASSOCIATED
 import com.codestream.protocols.agent.NOT_CONNECTED
 import com.codestream.protocols.agent.TelemetryParams
 import com.codestream.protocols.webview.MethodLevelTelemetryNotifications
+import com.codestream.protocols.webview.ObservabilityAnomalyNotifications
 import com.codestream.review.LOCAL_PATH
 import com.codestream.sessionService
 import com.codestream.settings.ApplicationSettingsService
@@ -353,7 +354,13 @@ abstract class CLMEditorManager(
                             val end = editor.document.lspPosition(actualSymbol.textRange.endOffset)
                             val range = Range(start, end)
                             project.codeStream?.show {
-                                project.webViewService?.postNotification(
+                                val anomaly = metrics.averageDuration?.anomaly ?: metrics.errorRate?.anomaly
+                                val notification = if (anomaly != null) {
+                                    ObservabilityAnomalyNotifications.View(
+                                        anomaly,
+                                        result.newRelicEntityGuid!!
+                                    )
+                                } else {
                                     MethodLevelTelemetryNotifications.View(
                                         result.error,
                                         result.repo,
@@ -368,7 +375,8 @@ abstract class CLMEditorManager(
                                         OPTIONS,
                                         metrics.nameMapping
                                     )
-                                )
+                                }
+                                project.webViewService?.postNotification(notification)
                             }
                         }
                     }
