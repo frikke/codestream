@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
 	CartesianGrid,
-	Legend,
 	Line,
 	LineChart,
 	ReferenceLine,
@@ -11,7 +10,6 @@ import {
 	XAxis,
 	YAxis,
 } from "recharts";
-import Tooltip from "../Tooltip";
 import {
 	DidChangeObservabilityDataNotificationType,
 	GetMethodLevelTelemetryRequestType,
@@ -37,6 +35,7 @@ import { EntityAssociator } from "../EntityAssociator";
 import { WarningBox } from "../WarningBox";
 import { MetaLabel } from "../Codemark/BaseCodemark";
 import Icon from "../Icon";
+import { PanelHeader } from "../../src/components/PanelHeader";
 
 const Root = styled.div``;
 
@@ -300,40 +299,15 @@ export const ObservabilityAnomalyPanel = () => {
 	return (
 		<Root className="full-height-codemark-form">
 			{!loading && (
-				<Tooltip
-					title={
-						<div style={{ overflowWrap: "break-word" }}>
-							{derivedState.currentObservabilityAnomaly.text}
-						</div>
-					}
-					placement="topRight"
-					delay={1}
+				<div
+					style={{
+						whiteSpace: "nowrap",
+						overflow: "hidden",
+						textOverflow: "ellipsis",
+					}}
 				>
-					<div>
-						<div
-							style={{
-								fontSize: "16px",
-								margin: "20px 20px 0px 20px",
-							}}
-						>
-							Telemetry for:
-						</div>
-						<div
-							style={{
-								whiteSpace: "nowrap",
-								overflow: "hidden",
-								textOverflow: "ellipsis",
-								direction: "rtl",
-								color: "var(--text-color-highlight)",
-								fontSize: "16px",
-								margin: "0px 20px 10px 20px",
-								cursor: "pointer",
-							}}
-						>
-							{derivedState.currentObservabilityAnomaly.text}
-						</div>
-					</div>
-				</Tooltip>
+					<PanelHeader title={derivedState.currentObservabilityAnomaly.functionName}></PanelHeader>
+				</div>
 			)}
 			<CancelButton onClick={() => dispatch(closePanel())} />
 
@@ -468,7 +442,7 @@ export const ObservabilityAnomalyPanel = () => {
 												return (
 													<div
 														key={"chart-" + index}
-														style={{ marginLeft: "0px", marginBottom: "15px" }}
+														style={{ marginLeft: "0px", marginBottom: "20px" }}
 													>
 														<MetaLabel style={{ marginLeft: "27px" }}>{title}</MetaLabel>
 														<ResponsiveContainer width="100%" height={300} debounce={1}>
@@ -498,7 +472,6 @@ export const ObservabilityAnomalyPanel = () => {
 																	}
 																	contentStyle={{ color: colorLine, textAlign: "center" }}
 																/>
-																<Legend wrapperStyle={{ fontSize: "0.95em" }} />
 																<Line
 																	type="monotone"
 																	dataKey={_.title}

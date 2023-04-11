@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
 	CartesianGrid,
-	Legend,
 	Line,
 	LineChart,
 	ResponsiveContainer,
@@ -391,7 +390,7 @@ export const MethodLevelTelemetryPanel = () => {
 												return (
 													<div
 														key={"chart-" + index}
-														style={{ marginLeft: "-28px", marginBottom: "15px" }}
+														style={{ marginLeft: "0px", marginBottom: "20px" }}
 													>
 														<MetaLabel style={{ marginLeft: "27px" }}>{title}</MetaLabel>
 														<ResponsiveContainer width="100%" height={300} debounce={1}>
@@ -422,7 +421,6 @@ export const MethodLevelTelemetryPanel = () => {
 																	content={<CustomTooltip />}
 																	contentStyle={{ color: colorLine, textAlign: "center" }}
 																/>
-																<Legend wrapperStyle={{ fontSize: "0.95em" }} />
 																<Line
 																	type="monotone"
 																	dataKey={_.title}

@@ -37,6 +37,7 @@ export const ObservabilityAnomaliesGroup = React.memo((props: Props) => {
 	}, shallowEqual);
 	const [expanded, setExpanded] = useState<boolean>(true);
 	const [showMoreExpanded, setShowMoreExpanded] = useState<boolean>(false);
+	const [numToShow, setNumToShow] = useState(5);
 
 	const getRoundedPercentage = ratio => {
 		const percentage = (ratio - 1) * 100;
@@ -72,8 +73,7 @@ export const ObservabilityAnomaliesGroup = React.memo((props: Props) => {
 		);
 	};
 
-	const primaryAnomalies = props.observabilityAnomalies?.slice(0, 5);
-	const secondaryAnomalies = props.observabilityAnomalies?.slice(5, 10);
+	const hasMoreAnomaliesToShow = props.observabilityAnomalies.length > numToShow;
 
 	function handleClickTelemetry() {
 		const event = {
@@ -109,7 +109,7 @@ export const ObservabilityAnomaliesGroup = React.memo((props: Props) => {
 			</Row>
 			{expanded && (
 				<>
-					{primaryAnomalies.length == 0 ? (
+					{props.observabilityAnomalies.length == 0 ? (
 						<ErrorRow
 							customPadding={"0 10px 0 50px"}
 							title={"No anomalies found"}
@@ -117,7 +117,7 @@ export const ObservabilityAnomaliesGroup = React.memo((props: Props) => {
 						/>
 					) : (
 						<>
-							{primaryAnomalies.map(anomaly => {
+							{props.observabilityAnomalies.slice(0, numToShow).map((anomaly, index) => {
 								return (
 									<Row
 										style={{
@@ -151,58 +151,16 @@ export const ObservabilityAnomaliesGroup = React.memo((props: Props) => {
 							})}
 						</>
 					)}
-					{secondaryAnomalies.length > 0 && (
-						<>
-							{!showMoreExpanded && (
-								<div
-									style={{ padding: "0px 10px 0px 50px", cursor: "pointer" }}
-									onClick={() => setShowMoreExpanded(true)}
-								>
-									Show More
-								</div>
-							)}
-							{showMoreExpanded && (
-								<>
-									{secondaryAnomalies.map(anomaly => {
-										return (
-											<Row
-												style={{
-													padding: "0 10px 0 42px",
-												}}
-												className={"pr-row"}
-												onClick={e => {
-													HostApi.instance.send(EditorRevealSymbolRequestType, {
-														className: anomaly.className,
-														functionName: anomaly.functionName,
-													});
-													dispatch(closeAllPanels());
-													dispatch(setCurrentObservabilityAnomaly(anomaly, props.entityGuid!));
-													dispatch(openPanel(WebviewPanels.ObservabilityAnomaly));
-												}}
-											>
-												<Tooltip
-													title={<div style={{ overflowWrap: "break-word" }}>{anomaly.text}</div>}
-													placement="topRight"
-													delay={1}
-												>
-													<div
-														style={{
-															width: "75%",
-															textAlign: "left",
-															marginRight: "auto",
-															direction: "rtl",
-														}}
-													>
-														<span>{anomaly.text}</span>
-													</div>
-												</Tooltip>
-												{getRoundedPercentageOutput(anomaly.ratio)}
-											</Row>
-										);
-									})}
-								</>
-							)}
-						</>
+					{hasMoreAnomaliesToShow && (
+						<div
+							style={{ padding: "0px 10px 0px 50px", cursor: "pointer" }}
+							onClick={() => {
+								const newNumToShow = numToShow + 5;
+								setNumToShow(newNumToShow);
+							}}
+						>
+							Show More
+						</div>
 					)}
 				</>
 			)}
