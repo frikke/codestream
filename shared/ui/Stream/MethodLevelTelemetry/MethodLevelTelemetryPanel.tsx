@@ -97,6 +97,12 @@ export const MethodLevelTelemetryPanel = () => {
 	const [showGoldenSignalsInEditor, setshowGoldenSignalsInEditor] = useState<boolean>(
 		derivedState.showGoldenSignalsInEditor || false
 	);
+
+	const computedStyle = getComputedStyle(document.body);
+	const colorSubtle = computedStyle.getPropertyValue("--text-color-subtle").trim();
+	const colorPrimary = computedStyle.getPropertyValue("--text-color").trim();
+	const colorLine = "#8884d8";
+
 	const loadData = async (newRelicEntityGuid: string) => {
 		setLoading(true);
 		try {
@@ -408,16 +414,18 @@ export const MethodLevelTelemetryPanel = () => {
 																/>
 																<YAxis tick={{ fontSize: 12 }} />
 																<ReTooltip
-																	contentStyle={{ color: "#8884d8", textAlign: "center" }}
+																	content={<CustomTooltip />}
+																	contentStyle={{ color: colorLine, textAlign: "center" }}
 																/>
 																<Legend wrapperStyle={{ fontSize: "0.95em" }} />
 																<Line
 																	type="monotone"
 																	dataKey={_.title}
-																	stroke="#8884d8"
+																	stroke={colorLine}
 																	activeDot={{ r: 8 }}
 																	connectNulls={true}
 																	name={title}
+																	dot={{ style: { fill: colorLine } }}
 																/>
 															</LineChart>
 														</ResponsiveContainer>
@@ -440,4 +448,40 @@ export const MethodLevelTelemetryPanel = () => {
 			</div>
 		</Root>
 	);
+};
+
+interface CustomTooltipProps {
+	active?: boolean;
+	payload?: any[];
+	label?: string;
+}
+
+const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label }) => {
+	const computedStyle = getComputedStyle(document.body);
+	const colorSubtle = computedStyle.getPropertyValue("--text-color-subtle").trim();
+	const colorBackgroundHover = computedStyle
+		.getPropertyValue("--app-background-color-hover")
+		.trim();
+
+	if (active && payload && payload.length && label) {
+		const dataValue = payload[0].value;
+		const dataTime = payload[0].payload.endTimeSeconds;
+		const date = new Date(dataTime * 1000); // Convert to milliseconds
+		const humanReadableDate = date.toLocaleDateString();
+
+		return (
+			<div
+				style={{
+					zIndex: 9999,
+					padding: "5px",
+					border: `${colorSubtle} solid 1px`,
+					background: colorBackgroundHover,
+				}}
+			>
+				<div>{humanReadableDate}</div>
+				<div style={{ marginTop: "3px" }}>{dataValue}</div>
+			</div>
+		);
+	}
+	return null;
 };
