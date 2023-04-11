@@ -29,6 +29,7 @@ import styled from "styled-components";
 
 import { ObservabilityRelatedWrapper } from "@codestream/webview/Stream/ObservabilityRelatedWrapper";
 import { CurrentMethodLevelTelemetry } from "@codestream/webview/store/context/types";
+import { isFeatureEnabled } from "../store/apiVersioning/reducer";
 import { setRefreshAnomalies } from "../store/context/actions";
 
 import { HealthIcon } from "@codestream/webview/src/components/HealthIcon";
@@ -251,7 +252,7 @@ export const Observability = React.memo((props: Props) => {
 			scmInfo: state.editorContext.scmInfo,
 			anomaliesNeedRefresh: state.context.anomaliesNeedRefresh,
 			clmSettings,
-			showAnomalies: true, //isFeatureEnabled(state, "showAnomalies"),
+			showAnomalies: isFeatureEnabled(state, "showAnomalies"),
 		};
 	}, shallowEqual);
 
