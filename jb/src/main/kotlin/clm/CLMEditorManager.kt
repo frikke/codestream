@@ -69,6 +69,7 @@ private val OPTIONS = FileLevelTelemetryOptions(true, true, true)
 data class RenderElements(
     val range: TextRange,
     val referenceOnHoverPresentation: InlayPresentation,
+    val isAnomaly: Boolean
 )
 
 class Metrics {
@@ -342,6 +343,7 @@ abstract class CLMEditorManager(
             val symbol = resolveSymbol(symbolIdentifier, psiFile) ?: return@mapNotNull null
 
             val formatted = metrics.format(appSettings.goldenSignalsInEditorFormat, since)
+            val anomaly = metrics.averageDuration?.anomaly ?: metrics.errorRate?.anomaly
             val range = getTextRangeWithoutLeadingCommentsAndWhitespaces(symbol)
             val smartElement = SmartPointerManager.createPointer(symbol)
             val textPresentation = presentationFactory.text(formatted.first)
@@ -354,7 +356,6 @@ abstract class CLMEditorManager(
                             val end = editor.document.lspPosition(actualSymbol.textRange.endOffset)
                             val range = Range(start, end)
                             project.codeStream?.show {
-                                val anomaly = metrics.averageDuration?.anomaly ?: metrics.errorRate?.anomaly
                                 val notification = if (anomaly != null) {
                                     ObservabilityAnomalyNotifications.View(
                                         anomaly,
@@ -382,7 +383,7 @@ abstract class CLMEditorManager(
                     }
                 }
                 )
-            RenderElements(range, referenceOnHoverPresentation)
+            RenderElements(range, referenceOnHoverPresentation, anomaly != null)
         }
 
         ApplicationManager.getApplication().invokeLaterOnWriteThread {
@@ -398,8 +399,8 @@ abstract class CLMEditorManager(
                 analyticsTracked = true
             }
             _clearInlays()
-            for ((range, referenceOnHoverPresentation) in toRender) {
-                val renderer = CLMCustomRenderer(referenceOnHoverPresentation)
+            for ((range, referenceOnHoverPresentation, isAnomaly) in toRender) {
+                val renderer = CLMCustomRenderer(referenceOnHoverPresentation, isAnomaly)
 
                 val inlay = editor.inlayModel.addBlockElement(range.startOffset, false, true, 1, renderer)
 

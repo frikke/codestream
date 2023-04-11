@@ -10,6 +10,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorCustomElementRenderer
 import com.intellij.openapi.editor.Inlay
 import com.intellij.openapi.editor.markup.TextAttributes
+import com.intellij.ui.JBColor
 import com.intellij.util.DocumentUtil
 import com.intellij.util.text.CharArrayUtil
 import java.awt.Graphics
@@ -33,14 +34,19 @@ fun Graphics2D.withTranslated(x: Int, y: Int, block: () -> Unit) {
 Based on com.intellij.codeInsight.codeVision.ui.renderers.BlockCodeVisionListRenderer and
 com.intellij.codeInsight.hints.presentation.PresentationRenderer
  */
-class CLMCustomRenderer(val presentation: InlayPresentation) : EditorCustomElementRenderer,
+class CLMCustomRenderer(val presentation: InlayPresentation, val isAnomaly: Boolean = false) : EditorCustomElementRenderer,
     InputHandler by presentation {
     override fun paint(inlay: Inlay<*>, g: Graphics, targetRegion: Rectangle, textAttributes: TextAttributes) {
+
         val point = getPoint(inlay, targetRegion.location)
         g as Graphics2D
         val leftShift = if (inlay.editor.shiftIndentation) 0 else -5
         g.withTranslated(targetRegion.x + point.x + leftShift, targetRegion.y + 2) {
-            presentation.paint(g, LinearOrderInlayRenderer.effectsIn(textAttributes))
+            val attributes = LinearOrderInlayRenderer.effectsIn(textAttributes)
+            if (isAnomaly) {
+                attributes.foregroundColor = JBColor.RED
+            }
+            presentation.paint(g, attributes)
         }
     }
 
