@@ -290,7 +290,6 @@ class CodeStreamLanguageClient(private val project: Project) : LanguageClient {
 
     @JsonNotification("codestream/didChangeCodelenses")
     fun didChangeCodelenses(json: JsonElement?) {
-        println("CHUPACABRA didChangeCodelenses")
         project.sessionService?.didChangeCodelenses()
     }
 

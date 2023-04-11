@@ -35,7 +35,7 @@ abstract class CLMLanguageComponent<T : CLMEditorManager>(
                 this, this
             )
             project.sessionService?.onCodelensChanged {
-                managersByEditor.values.forEach { it.loadInlays(true) }
+                managersByEditor.values.forEach { it.loadInlays(true, true) }
             }
             project.clmService?.registerLanguageComponent(this)
         }

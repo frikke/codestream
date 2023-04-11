@@ -157,10 +157,10 @@ abstract class CLMEditorManager(
         ReadAction.nonBlocking(toExecute).submit(NonUrgentExecutor.getInstance())
     }
 
-    fun loadInlays(resetCache: Boolean = false) {
+    fun loadInlays(resetCache: Boolean = false, skipStaleCheck: Boolean = false) {
         if (path == null) return
         if (editor !is EditorImpl) return
-        if (!isStale()) return
+        if (!skipStaleCheck && !isStale()) return
 
         project?.agentService?.onDidStart {
             tasksCoroutineScope.launch {
