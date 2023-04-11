@@ -93,7 +93,6 @@ export const ObservabilityAnomalyPanel = () => {
 	const [showGoldenSignalsInEditor, setshowGoldenSignalsInEditor] = useState<boolean>(
 		derivedState.showGoldenSignalsInEditor || false
 	);
-	const [referenceTooltipVisible, setReferenceTooltipVisible] = useState<boolean>(false);
 
 	const loadData = async (newRelicEntityGuid: string) => {
 		setLoading(true);
