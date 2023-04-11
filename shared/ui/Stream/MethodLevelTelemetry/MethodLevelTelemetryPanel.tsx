@@ -392,7 +392,7 @@ export const MethodLevelTelemetryPanel = () => {
 														key={"chart-" + index}
 														style={{ marginLeft: "0px", marginBottom: "20px" }}
 													>
-														<MetaLabel style={{ marginLeft: "27px" }}>{title}</MetaLabel>
+														<MetaLabel>{title}</MetaLabel>
 														<ResponsiveContainer width="100%" height={300} debounce={1}>
 															<LineChart
 																width={500}
