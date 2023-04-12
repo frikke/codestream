@@ -1244,6 +1244,9 @@ export interface ObservabilityAnomaly {
 	sinceText: string;
 	metricTimesliceName: string;
 	errorMetricTimesliceName: string;
+	chartHeaderTexts: {
+		[key: string]: string
+	}
 }
 
 export type DetectionMethod = "Release Based" | "Time Based";

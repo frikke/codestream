@@ -127,6 +127,8 @@ export class AnomalyDetector {
 			this.errorRateComparisonToAnomaly(_, metricTimesliceNames)
 		);
 
+		this.addChartHeaderTexts(durationAnomalies, errorRateAnomalies);
+
 		const symbolStrs = new Set();
 		for (const name of metricTimesliceNames) {
 			symbolStrs.add(this.extractSymbolStr(name));
@@ -591,6 +593,7 @@ export class AnomalyDetector {
 				errorMetricTimesliceNames.find(
 					_ => this.extractSymbolStr(_) === this.extractSymbolStr(comparison.name)
 				) || comparison.name,
+			chartHeaderTexts: {},
 		};
 	}
 
@@ -615,6 +618,46 @@ export class AnomalyDetector {
 					_ => this.extractSymbolStr(_) === this.extractSymbolStr(comparison.name)
 				) || comparison.name,
 			errorMetricTimesliceName: comparison.name,
+			chartHeaderTexts: {},
 		};
+	}
+
+	private addChartHeaderTexts(
+		durationAnomalies: ObservabilityAnomaly[],
+		errorRateAnomalies: ObservabilityAnomaly[]
+	) {
+		// FIXME temporary solution for anomaly charts
+		for (const anomaly of durationAnomalies) {
+			const percentage = ((anomaly.ratio - 1) * 100).toFixed(2);
+			const text = `Average duration +${percentage}% since ${anomaly.sinceText}`;
+			anomaly.chartHeaderTexts["Average duration (ms)"] = text;
+		}
+		for (const anomaly of errorRateAnomalies) {
+			const percentage = ((anomaly.ratio - 1) * 100).toFixed(2);
+			const text = `Error rate +${percentage}% since ${anomaly.sinceText}`;
+			anomaly.chartHeaderTexts["Errors (per minute)"] = text;
+		}
+		for (const anomaly of durationAnomalies) {
+			const counterpart = errorRateAnomalies.find(
+				_ => _.className === anomaly.className && _.functionName === anomaly.functionName
+			);
+			if (counterpart) {
+				anomaly.chartHeaderTexts = {
+					...anomaly.chartHeaderTexts,
+					...counterpart.chartHeaderTexts,
+				};
+			}
+		}
+		for (const anomaly of errorRateAnomalies) {
+			const counterpart = durationAnomalies.find(
+				_ => _.className === anomaly.className && _.functionName === anomaly.functionName
+			);
+			if (counterpart) {
+				anomaly.chartHeaderTexts = {
+					...anomaly.chartHeaderTexts,
+					...counterpart.chartHeaderTexts,
+				};
+			}
+		}
 	}
 }
