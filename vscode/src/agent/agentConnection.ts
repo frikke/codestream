@@ -1419,7 +1419,6 @@ export class CodeStreamAgentConnection implements Disposable {
 				if (symbols?.some(s => (s as any)?.location?.uri?.scheme === "file")) {
 					filteredNamespaces.push(namespace);
 				}
-				console.log(namespace + " " + symbols);
 			}
 
 			return {

@@ -509,10 +509,11 @@ export class AnomalyDetector {
 			return [];
 		}
 		const classNames = await this.extractClassNames(sampleRates.map(_ => _.name));
+		const uniqueClassNames = [...new Set(classNames)];
 		const { filteredNamespaces } = await SessionContainer.instance().session.agent.sendRequest(
 			AgentFilterNamespacesRequestType,
 			{
-				namespaces: classNames,
+				namespaces: uniqueClassNames,
 			}
 		);
 
