@@ -474,17 +474,6 @@ export const ObservabilityAnomalyPanel = () => {
 																	name={title}
 																	dot={{ style: { fill: colorLine } }}
 																/>
-																{/* itterate over mapped array of objects */}
-																{/* {telemetryResponse.deployments?.map(_ => {
-																	// return (
-																	// 	<ReferenceLine
-																	// 		x={_.seconds}
-																	// 		stroke={_.version.length ? colorPrimary : colorSubtle}
-																	// 		label={e => renderCustomLabel(e, _.version)}
-																	// 	/>
-																	// );
-																})} */}
-
 																{Object.entries(remappedDeployments).map(
 																	([key, value]: [string, any]) => {
 																		return (
