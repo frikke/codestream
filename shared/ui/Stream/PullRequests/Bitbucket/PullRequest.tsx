@@ -442,11 +442,13 @@ export const PullRequest = () => {
 		// note we're passing no value for the 3rd argument, which clears
 		// the commentId
 		if (oneLayerModal && pr) {
-			dispatch(setCurrentPullRequest(pr.providerId, pr.id, "", "", "sidebar-diffs"));
+			//TODO: not sure why pr.id is a number, but should be a string. Causes error when closing modal.
+			dispatch(setCurrentPullRequest(pr.providerId, pr.id.toString(), "", "", "sidebar-diffs"));
 		}
 
 		if (!oneLayerModal && pr) {
-			dispatch(setCurrentPullRequest(pr.providerId, pr.id, "", "", "details"));
+			//TODO: not sure why pr.id is a number, but should be a string. Causes error when closing modal.
+			dispatch(setCurrentPullRequest(pr.providerId, pr.id.toString(), "", "", "details"));
 		}
 	};
 

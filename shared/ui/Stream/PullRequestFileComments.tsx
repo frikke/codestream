@@ -69,6 +69,56 @@ const STATUS_MAP = {
 	modified: FileStatus.modified,
 };
 
+interface BitbucketPRComment {
+	author: {
+		login: string;
+	};
+	bodyHtml: string;
+	bodyText: string;
+	content: {
+		html: string;
+		markup: string;
+		raw: string;
+		type: string;
+	};
+	created_on: string;
+	deleted: boolean;
+	file: string;
+	id: number;
+	inline: {
+		from: number;
+		path: string;
+		to: number;
+	};
+	pullrequest: {
+		id: number;
+		title: string;
+		type: string;
+	};
+	replies: BitbucketPRComment[];
+	state: string;
+	type: string;
+	updated_on: string;
+	user: {
+		account_id: string;
+		display_name: string;
+		links?: {
+			self?: {
+				href: string;
+			};
+			avatar?: {
+				href: string;
+			};
+			html?: {
+				href: string;
+			};
+		};
+		type: string;
+		uuid: string;
+		nickname: string;
+	};
+}
+
 interface Props {
 	pr: any;
 	setIsLoadingMessage: Function;
@@ -191,11 +241,9 @@ export const PullRequestFileComments = (props: PropsWithChildren<Props>) => {
 					if (!map[comment.inline.path]) map[comment.inline.path] = [];
 					map[comment.inline.path].push({
 						review: {
-							// TODO??
 							state: comment.state,
 						},
-						// TODO? what shape is this (need type)
-						comment: comment,
+						comment: comment as BitbucketPRComment,
 					});
 					if (comment.id === props.commentId) {
 						setFilename(comment.inline.path);
