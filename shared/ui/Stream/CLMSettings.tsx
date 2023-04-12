@@ -77,7 +77,7 @@ export const CLMSettings = React.memo(function CLMSettings(props: Props) {
 			options.push({
 				label: `${i}`,
 				key: `${i}`,
-				action: () => setCompareDataLastValue(`${i}`),
+				action: () => action(`${i}`),
 			});
 		}
 
@@ -164,6 +164,7 @@ export const CLMSettings = React.memo(function CLMSettings(props: Props) {
 					["isChangeTrackingEnabled"]: isChangeTrackingEnabled,
 					["changeTrackingRadioValue"]: changeTrackingRadioValue,
 					["compareDataLastValue"]: compareDataLastValue,
+					["compareDataLastReleaseValue"]: compareDataLastReleaseValue,
 					["againstDataPrecedingValue"]: againstDataPrecedingValue,
 					["minimumChangeValue"]: minimumChangeValue,
 					["minimumBaselineValue"]: minimumBaselineValue,
