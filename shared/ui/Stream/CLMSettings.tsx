@@ -1,5 +1,5 @@
 import { useAppDispatch, useAppSelector } from "../utilities/hooks";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { CodeStreamState } from "../store";
 import { closeModal } from "./actions";
 import ScrollBox from "./ScrollBox";
@@ -14,6 +14,7 @@ import { isEmpty as _isEmpty, isNil as _isNil } from "lodash-es";
 import { GetDeploymentsRequestType, GetDeploymentsResponse } from "@codestream/protocols/agent";
 import { Dropdown } from "../Stream/Dropdown";
 import styled from "styled-components";
+import { Loading } from "../Container/Loading";
 
 interface Props {}
 const NumberInput = styled.input`
@@ -36,6 +37,8 @@ export const CLMSettings = React.memo(function CLMSettings(props: Props) {
 	});
 	const { clmSettings } = derivedState;
 	const [getDeploymentsError, setGetDeploymentsError] = useState<string | undefined>();
+	const [isLoading, setIsLoading] = useState<boolean>(true);
+	const [hasFetchedDeployments, setHasFetchedDeployments] = useState<boolean>(false);
 	const [isChangeTrackingEnabled, setIsChangeTrackingEnabled] = useState<boolean>(
 		!_isNil(clmSettings.isChangeTrackingEnabled) ? clmSettings.isChangeTrackingEnabled : false
 	);
@@ -88,6 +91,7 @@ export const CLMSettings = React.memo(function CLMSettings(props: Props) {
 		const entityGuid = derivedState?.activeO11y?.[derivedState?.currentO11yRepoId || ""];
 
 		if (entityGuid) {
+			setIsLoading(true);
 			HostApi.instance
 				.send(GetDeploymentsRequestType, { entityGuid, since: "30 days ago" })
 				.then((_: GetDeploymentsResponse) => {
@@ -106,9 +110,48 @@ export const CLMSettings = React.memo(function CLMSettings(props: Props) {
 				.catch(ex => {
 					console.error("ERROR: GetDeploymentsRequestType", ex);
 					setGetDeploymentsError("ERROR: failed to find recent deployments for change tracking");
+				})
+				.finally(() => {
+					setIsLoading(false);
+					setHasFetchedDeployments(true);
 				});
+		} else {
+			setIsLoading(false);
 		}
 	});
+
+	useEffect(() => {
+		const entityGuid = derivedState?.activeO11y?.[derivedState?.currentO11yRepoId || ""];
+
+		if (entityGuid) {
+			setIsLoading(true);
+			HostApi.instance
+				.send(GetDeploymentsRequestType, { entityGuid, since: "30 days ago" })
+				.then((_: GetDeploymentsResponse) => {
+					if (!_isEmpty(_?.deployments)) {
+						setIsChangeTrackingEnabled(true);
+					} else {
+						setIsChangeTrackingEnabled(false);
+					}
+					setUserPreference({
+						prefPath: ["clmSettings"],
+						value: {
+							["isChangeTrackingEnabled"]: isChangeTrackingEnabled,
+						},
+					});
+				})
+				.catch(ex => {
+					console.error("ERROR: GetDeploymentsRequestType", ex);
+					setGetDeploymentsError("ERROR: failed to find recent deployments for change tracking");
+				})
+				.finally(() => {
+					setIsLoading(false);
+					setHasFetchedDeployments(true);
+				});
+		} else {
+			setIsLoading(false);
+		}
+	}, [derivedState?.activeO11y?.[derivedState?.currentO11yRepoId || ""]]);
 
 	const handleClickSubmit = e => {
 		e.preventDefault();
@@ -173,212 +216,219 @@ export const CLMSettings = React.memo(function CLMSettings(props: Props) {
 				<form className="standard-form vscroll">
 					<fieldset className="form-body">
 						<div id="controls">
-							{getDeploymentsError && (
-								<div style={{ marginTop: "10px" }}>{getDeploymentsError}</div>
-							)}
-							{!isChangeTrackingEnabled && (
+							{isLoading && <Loading />}
+							{!isLoading && (
 								<>
-									<div style={{ display: "flex", marginTop: "10px" }}>
-										<div>Compare data from the last:</div>
-										<div style={{ marginLeft: "auto" }}>
-											<Dropdown
-												selectedValue={compareDataLastValue}
-												items={compareDataLastItems}
-												noModal={true}
-											/>{" "}
-											days
-										</div>
+									{getDeploymentsError && (
+										<div style={{ marginTop: "10px" }}>{getDeploymentsError}</div>
+									)}
+									{!isChangeTrackingEnabled && (
+										<>
+											<div style={{ display: "flex", marginTop: "10px" }}>
+												<div>Compare data from the last:</div>
+												<div style={{ marginLeft: "auto" }}>
+													<Dropdown
+														selectedValue={compareDataLastValue}
+														items={compareDataLastItems}
+														noModal={true}
+													/>{" "}
+													days
+												</div>
+											</div>
+											<div style={{ display: "flex", marginTop: "5px" }}>
+												<div>Against data from the preceding:</div>
+												<div style={{ marginLeft: "auto" }}>
+													<Dropdown
+														selectedValue={againstDataPrecedingValue}
+														items={againstDataPrecedingItems}
+														noModal={true}
+													/>{" "}
+													days
+												</div>
+											</div>
+											<div>
+												<span style={{ fontSize: "smaller" }}>
+													Set up{" "}
+													<a href="https://docs.newrelic.com/docs/change-tracking/change-tracking-introduction/">
+														change tracking
+													</a>{" "}
+													to compare across releases
+												</span>
+											</div>
+										</>
+									)}
+									{isChangeTrackingEnabled && (
+										<>
+											<div
+												style={{
+													display: "flex",
+													justifyContent: "space-between",
+													alignItems: "center",
+												}}
+											>
+												<div style={{ position: "absolute", paddingTop: "5px" }}>
+													<RadioContainer>
+														<div>
+															<input
+																type="radio"
+																id="LATEST_RELEASE"
+																name="compare-data"
+																value="LATEST_RELEASE"
+																checked={changeTrackingRadioValue === "LATEST_RELEASE"}
+																onChange={e => setChangeTrackingRadioValue("LATEST_RELEASE")}
+															/>
+														</div>
+													</RadioContainer>
+												</div>
+												<div style={{ margin: "0px 8px 0px 22px" }}>
+													Compare data from the most recent release that is at least:
+												</div>
+												<div style={{ whiteSpace: "nowrap" }}>
+													<Dropdown
+														selectedValue={compareDataLastReleaseValue}
+														items={compareDataLastReleaseItems}
+														noModal={true}
+													/>{" "}
+													days ago
+												</div>
+											</div>
+											<div
+												style={{
+													marginTop: "10px",
+													display: "flex",
+													justifyContent: "space-between",
+													alignItems: "center",
+												}}
+											>
+												<div style={{ position: "absolute", paddingTop: "5px" }}>
+													<RadioContainer>
+														<div>
+															<input
+																key="compare-data-key"
+																type="radio"
+																id="LATEST_DAYS"
+																name="compare-data"
+																value="LATEST_DAYS"
+																checked={changeTrackingRadioValue === "LATEST_DAYS"}
+																onChange={e => setChangeTrackingRadioValue("LATEST_DAYS")}
+															/>
+														</div>
+													</RadioContainer>
+												</div>
+												<div style={{ margin: "0px 8px 0px 22px" }}>
+													Compare data from the last:
+												</div>
+												<div style={{ whiteSpace: "nowrap" }}>
+													<Dropdown
+														selectedValue={compareDataLastValue}
+														items={compareDataLastItems}
+														noModal={true}
+													/>{" "}
+													days
+												</div>
+											</div>
+
+											<div style={{ marginTop: "10px", display: "flex" }}>
+												<div>Against data from the preceding:</div>
+												<div style={{ marginLeft: "auto" }}>
+													<Dropdown
+														selectedValue={againstDataPrecedingValue}
+														items={againstDataPrecedingItems}
+														noModal={true}
+													/>{" "}
+													days
+												</div>
+											</div>
+										</>
+									)}
+
+									<div style={{ borderTop: "1px solid", marginTop: "20px", paddingTop: "20px" }}>
+										These settings control how CodeStream determines whether or not a method’s
+										performance is anomalous. If you’re not seeing anomalies, decrease the
+										thresholds. Particularly the “minimum change”. If you’re seeing too many false
+										positives, increase the thresholds.
 									</div>
-									<div style={{ display: "flex", marginTop: "5px" }}>
-										<div>Against data from the preceding:</div>
+
+									<div style={{ marginTop: "20px", display: "flex" }}>
+										<div>Minimum change to be anomalous:</div>
 										<div style={{ marginLeft: "auto" }}>
-											<Dropdown
-												selectedValue={againstDataPrecedingValue}
-												items={againstDataPrecedingItems}
-												noModal={true}
-											/>{" "}
-											days
+											<NumberInput
+												key="min-change-key"
+												name="min-change"
+												type="number"
+												min="0"
+												max="100"
+												value={minimumChangeValue}
+												onChange={handleNumberChange}
+											/>
 										</div>
+										<div style={{ marginLeft: "5px", width: "24px", paddingTop: "2px" }}>%</div>
 									</div>
-									<div>
-										<span style={{ fontSize: "smaller" }}>
-											Set up{" "}
-											<a href="https://docs.newrelic.com/docs/change-tracking/change-tracking-introduction/">
-												change tracking
-											</a>{" "}
-											to compare across releases
-										</span>
+									<div style={{ marginTop: "5px", display: "flex" }}>
+										<div>Minimum baseline sample rate:</div>
+										<div style={{ marginLeft: "auto" }}>
+											<NumberInput
+												key="min-baseline-key"
+												name="min-baseline"
+												type="number"
+												min="0"
+												max="100"
+												value={minimumBaselineValue}
+												onChange={handleNumberChange}
+											/>
+										</div>
+										<div style={{ marginLeft: "5px", width: "24px", paddingTop: "2px" }}>rpm</div>
+									</div>
+									<div style={{ marginTop: "5px", display: "flex" }}>
+										<div>Minimum error rate:</div>
+										<div style={{ marginLeft: "auto" }}>
+											<NumberInput
+												key="min-error-rate-key"
+												name="min-error-rate"
+												type="number"
+												min="0"
+												max="100"
+												value={minimumErrorRateValue}
+												onChange={handleNumberChange}
+											/>
+										</div>
+										<div style={{ marginLeft: "5px", width: "24px", paddingTop: "2px" }}>%</div>
+									</div>
+									<div style={{ marginTop: "5px", display: "flex" }}>
+										<div>Minimum average duration:</div>
+										<div style={{ marginLeft: "auto" }}>
+											<NumberInput
+												name="min-average-duration"
+												value={minimumAverageDurationValue}
+												type="number"
+												min="0"
+												max="100"
+												onChange={handleNumberChange}
+											/>
+										</div>
+										<div style={{ marginLeft: "5px", width: "24px", paddingTop: "2px" }}>ms</div>
+									</div>
+									<div style={{ margin: "30px 0 10px 0" }} className="button-group">
+										<Button
+											style={{ width: "100px" }}
+											className="control-button cancel"
+											type="button"
+											onClick={() => dispatch(closeModal())}
+										>
+											Cancel
+										</Button>
+										<Button
+											style={{ width: "100px" }}
+											className="control-button"
+											type="button"
+											loading={false}
+											onClick={e => handleClickSubmit(e)}
+										>
+											Submit
+										</Button>
 									</div>
 								</>
 							)}
-							{isChangeTrackingEnabled && (
-								<>
-									<div
-										style={{
-											display: "flex",
-											justifyContent: "space-between",
-											alignItems: "center",
-										}}
-									>
-										<div style={{ position: "absolute", paddingTop: "5px" }}>
-											<RadioContainer>
-												<div>
-													<input
-														type="radio"
-														id="LATEST_RELEASE"
-														name="compare-data"
-														value="LATEST_RELEASE"
-														checked={changeTrackingRadioValue === "LATEST_RELEASE"}
-														onChange={e => setChangeTrackingRadioValue("LATEST_RELEASE")}
-													/>
-												</div>
-											</RadioContainer>
-										</div>
-										<div style={{ margin: "0px 8px 0px 22px" }}>
-											Compare data from the most recent release that is at least:
-										</div>
-										<div style={{ whiteSpace: "nowrap" }}>
-											<Dropdown
-												selectedValue={compareDataLastReleaseValue}
-												items={compareDataLastReleaseItems}
-												noModal={true}
-											/>{" "}
-											days ago
-										</div>
-									</div>
-									<div
-										style={{
-											marginTop: "10px",
-											display: "flex",
-											justifyContent: "space-between",
-											alignItems: "center",
-										}}
-									>
-										<div style={{ position: "absolute", paddingTop: "5px" }}>
-											<RadioContainer>
-												<div>
-													<input
-														key="compare-data-key"
-														type="radio"
-														id="LATEST_DAYS"
-														name="compare-data"
-														value="LATEST_DAYS"
-														checked={changeTrackingRadioValue === "LATEST_DAYS"}
-														onChange={e => setChangeTrackingRadioValue("LATEST_DAYS")}
-													/>
-												</div>
-											</RadioContainer>
-										</div>
-										<div style={{ margin: "0px 8px 0px 22px" }}>Compare data from the last:</div>
-										<div style={{ whiteSpace: "nowrap" }}>
-											<Dropdown
-												selectedValue={compareDataLastValue}
-												items={compareDataLastItems}
-												noModal={true}
-											/>{" "}
-											days
-										</div>
-									</div>
-
-									<div style={{ marginTop: "10px", display: "flex" }}>
-										<div>Against data from the preceding:</div>
-										<div style={{ marginLeft: "auto" }}>
-											<Dropdown
-												selectedValue={againstDataPrecedingValue}
-												items={againstDataPrecedingItems}
-												noModal={true}
-											/>{" "}
-											days
-										</div>
-									</div>
-								</>
-							)}
-
-							<div style={{ borderTop: "1px solid", marginTop: "20px", paddingTop: "20px" }}>
-								These settings control how CodeStream determines whether or not a method’s
-								performance is anomalous. If you’re not seeing anomalies, decrease the thresholds.
-								Particularly the “minimum change”. If you’re seeing too many false positives,
-								increase the thresholds.
-							</div>
-
-							<div style={{ marginTop: "20px", display: "flex" }}>
-								<div>Minimum change to be anomalous:</div>
-								<div style={{ marginLeft: "auto" }}>
-									<NumberInput
-										key="min-change-key"
-										name="min-change"
-										type="number"
-										min="0"
-										max="100"
-										value={minimumChangeValue}
-										onChange={handleNumberChange}
-									/>
-								</div>
-								<div style={{ marginLeft: "5px", width: "24px", paddingTop: "2px" }}>%</div>
-							</div>
-							<div style={{ marginTop: "5px", display: "flex" }}>
-								<div>Minimum baseline sample rate:</div>
-								<div style={{ marginLeft: "auto" }}>
-									<NumberInput
-										key="min-baseline-key"
-										name="min-baseline"
-										type="number"
-										min="0"
-										max="100"
-										value={minimumBaselineValue}
-										onChange={handleNumberChange}
-									/>
-								</div>
-								<div style={{ marginLeft: "5px", width: "24px", paddingTop: "2px" }}>rpm</div>
-							</div>
-							<div style={{ marginTop: "5px", display: "flex" }}>
-								<div>Minimum error rate:</div>
-								<div style={{ marginLeft: "auto" }}>
-									<NumberInput
-										key="min-error-rate-key"
-										name="min-error-rate"
-										type="number"
-										min="0"
-										max="100"
-										value={minimumErrorRateValue}
-										onChange={handleNumberChange}
-									/>
-								</div>
-								<div style={{ marginLeft: "5px", width: "24px", paddingTop: "2px" }}>%</div>
-							</div>
-							<div style={{ marginTop: "5px", display: "flex" }}>
-								<div>Minimum average duration:</div>
-								<div style={{ marginLeft: "auto" }}>
-									<NumberInput
-										name="min-average-duration"
-										value={minimumAverageDurationValue}
-										type="number"
-										min="0"
-										max="100"
-										onChange={handleNumberChange}
-									/>
-								</div>
-								<div style={{ marginLeft: "5px", width: "24px", paddingTop: "2px" }}>ms</div>
-							</div>
-							<div style={{ margin: "30px 0 10px 0" }} className="button-group">
-								<Button
-									style={{ width: "100px" }}
-									className="control-button cancel"
-									type="button"
-									onClick={() => dispatch(closeModal())}
-								>
-									Cancel
-								</Button>
-								<Button
-									style={{ width: "100px" }}
-									className="control-button"
-									type="button"
-									loading={false}
-									onClick={e => handleClickSubmit(e)}
-								>
-									Submit
-								</Button>
-							</div>
 						</div>
 					</fieldset>
 				</form>

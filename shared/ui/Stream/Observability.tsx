@@ -28,7 +28,6 @@ import styled from "styled-components";
 
 import { ObservabilityRelatedWrapper } from "@codestream/webview/Stream/ObservabilityRelatedWrapper";
 import { CurrentMethodLevelTelemetry } from "@codestream/webview/store/context/types";
-import { isFeatureEnabled } from "../store/apiVersioning/reducer";
 import { setRefreshAnomalies } from "../store/context/actions";
 
 import { HealthIcon } from "@codestream/webview/src/components/HealthIcon";
@@ -252,7 +251,7 @@ export const Observability = React.memo((props: Props) => {
 			scmInfo: state.editorContext.scmInfo,
 			anomaliesNeedRefresh: state.context.anomaliesNeedRefresh,
 			clmSettings,
-			showAnomalies: isFeatureEnabled(state, "showAnomalies"),
+			showAnomalies: true, //isFeatureEnabled(state, "showAnomalies"),
 		};
 	}, shallowEqual);
 
@@ -869,7 +868,8 @@ export const Observability = React.memo((props: Props) => {
 	// Separate useEffect to prevent duplicate requests
 	useEffect(() => {
 		if (expandedEntity && currentRepoId) {
-			console.debug(`o11y: useEffect for expandedEntity`);
+			//eric here
+			setExpandedEntityUserPref(currentRepoId, expandedEntity);
 			fetchGoldenMetrics(expandedEntity, true);
 			fetchServiceLevelObjectives(expandedEntity);
 			fetchObservabilityErrors(expandedEntity, currentRepoId);
