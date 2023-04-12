@@ -434,12 +434,15 @@ export const ObservabilityAnomalyPanel = () => {
 													_ != undefined ? _ : 0
 												);
 												const maxY = Math.max(...sanitizedYValues);
+												const redHeaderText =
+													derivedState.currentObservabilityAnomaly.chartHeaderTexts[title];
 												return (
 													<div
 														key={"chart-" + index}
 														style={{ marginLeft: "0px", marginBottom: "20px" }}
 													>
 														<MetaLabel>{title}</MetaLabel>
+														<div style={{ color: "red" }}>{redHeaderText}</div>
 														<ResponsiveContainer width="100%" height={300} debounce={1}>
 															<LineChart
 																width={500}
