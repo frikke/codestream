@@ -56,7 +56,12 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 			): Promise<GetFileLevelTelemetryResponse>;
 		},
 		private telemetryService: { track: Function }
-	) {}
+	) {
+		Container.session.onDidChangeCodelenses(e => {
+			this.resetCache = true;
+			this._onDidChangeCodeLenses.fire();
+		});
+	}
 
 	private _onDidChangeCodeLenses = new EventEmitter<void>();
 	get onDidChangeCodeLenses(): Event<void> {
@@ -549,6 +554,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 					return undefined;
 				}
 
+				const anomaly = averageDurationForFunction?.anomaly || errorRateForFunction?.anomaly;
 				const viewCommandArgs: ViewMethodLevelTelemetryCommandArgs = {
 					repo: fileLevelTelemetryResponse.repo,
 					codeNamespace: fileLevelTelemetryResponse.codeNamespace!,
@@ -567,32 +573,52 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 					functionName: _.symbol.name,
 					newRelicAccountId: fileLevelTelemetryResponse.newRelicAccountId,
 					newRelicEntityGuid: fileLevelTelemetryResponse.newRelicEntityGuid,
-					methodLevelTelemetryRequestOptions: methodLevelTelemetryRequestOptions
+					methodLevelTelemetryRequestOptions: methodLevelTelemetryRequestOptions,
+					anomaly
 				};
 
+				let text;
+
+				if (!averageDurationForFunction?.anomaly && !errorRateForFunction?.anomaly) {
+					text = Strings.interpolate(this.codeLensTemplate, {
+						averageDuration:
+							averageDurationForFunction && averageDurationForFunction.averageDuration
+								? `${averageDurationForFunction.averageDuration.toFixed(3) || "0.00"}ms`
+								: "n/a",
+						sampleSize:
+							sampleSizeForFunction && sampleSizeForFunction.sampleSize
+								? `${sampleSizeForFunction.sampleSize}`
+								: "n/a",
+						errorRate:
+							errorRateForFunction && errorRateForFunction.errorRate
+								? `${(errorRateForFunction.errorRate * 100).toFixed(2)}%`
+								: "0.00%",
+						since: fileLevelTelemetryResponse.sinceDateFormatted,
+						date: date
+					});
+				} else {
+					const anomalyTexts: string[] = [];
+					if (errorRateForFunction?.anomaly) {
+						const value = (errorRateForFunction.anomaly.ratio - 1) * 100;
+						anomalyTexts.push(`error rate +${value.toFixed(2)}%`);
+					}
+					if (averageDurationForFunction?.anomaly) {
+						const value = (averageDurationForFunction.anomaly.ratio - 1) * 100;
+						anomalyTexts.push(`avg duration +${value.toFixed(2)}%`);
+					}
+
+					const since =
+						errorRateForFunction?.anomaly?.sinceText ||
+						averageDurationForFunction?.anomaly?.sinceText;
+					text = anomalyTexts.join(", ") + " since " + since;
+				}
+
+				// TODO pass anomaly object
 				return new vscode.CodeLens(
 					_.symbol.range,
-					new InstrumentableSymbolCommand(
-						Strings.interpolate(this.codeLensTemplate, {
-							averageDuration:
-								averageDurationForFunction && averageDurationForFunction.averageDuration
-									? `${averageDurationForFunction.averageDuration.toFixed(3) || "0.00"}ms`
-									: "n/a",
-							sampleSize:
-								sampleSizeForFunction && sampleSizeForFunction.sampleSize
-									? `${sampleSizeForFunction.sampleSize}`
-									: "n/a",
-							errorRate:
-								errorRateForFunction && errorRateForFunction.errorRate
-									? `${(errorRateForFunction.errorRate * 100).toFixed(2)}%`
-									: "0.00%",
-							since: fileLevelTelemetryResponse.sinceDateFormatted,
-							date: date
-						}),
-						"codestream.viewMethodLevelTelemetry",
-						tooltip,
-						[JSON.stringify(viewCommandArgs)]
-					)
+					new InstrumentableSymbolCommand(text, "codestream.viewMethodLevelTelemetry", tooltip, [
+						JSON.stringify(viewCommandArgs)
+					])
 				);
 			});
 

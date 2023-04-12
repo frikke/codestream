@@ -87,7 +87,9 @@ import {
 	WebviewIpcNotificationMessage,
 	WebviewIpcRequestMessage,
 	WebviewPanels,
-	EditorRevealSymbolRequestType
+	EditorRevealSymbolRequestType,
+	ViewAnomalyNotificationType,
+	ViewAnomalyNotification
 } from "@codestream/protocols/webview";
 import {
 	authentication,
@@ -517,6 +519,21 @@ export class WebviewController implements Disposable {
 			return;
 		}
 		this._webview!.notify(ViewMethodLevelTelemetryNotificationType, args);
+	}
+
+	@log()
+	async viewAnomaly(args: ViewAnomalyNotification): Promise<void> {
+		if (this.visible) {
+			await this._webview!.show();
+		} else {
+			await this.show();
+		}
+
+		if (!this._webview) {
+			// it's possible that the webview is closing...
+			return;
+		}
+		this._webview!.notify(ViewAnomalyNotificationType, args);
 	}
 
 	@log()

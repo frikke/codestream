@@ -150,7 +150,8 @@ import {
 	UpdateUserRequest,
 	UpdateUserRequestType,
 	UserDidCommitNotification,
-	UserDidCommitNotificationType
+	UserDidCommitNotificationType,
+	DidChangeCodelensesNotificationType
 } from "@codestream/protocols/agent";
 import {
 	ChannelServiceType,
@@ -234,6 +235,11 @@ export class CodeStreamAgentConnection implements Disposable {
 	private _onDidChangeDocumentMarkers = new EventEmitter<DidChangeDocumentMarkersNotification>();
 	get onDidChangeDocumentMarkers(): Event<DidChangeDocumentMarkersNotification> {
 		return this._onDidChangeDocumentMarkers.event;
+	}
+
+	private _onDidChangeCodelenses = new EventEmitter<void>();
+	get onDidChangeCodelenses(): Event<void> {
+		return this._onDidChangeCodelenses.event;
 	}
 
 	private _onDidChangePullRequestComments =
@@ -1316,6 +1322,9 @@ export class CodeStreamAgentConnection implements Disposable {
 		);
 		this._client.onNotification(DidResolveStackTraceLineNotificationType, e =>
 			this._onDidResolveStackTraceLine.fire(e)
+		);
+		this._client.onNotification(DidChangeCodelensesNotificationType, e =>
+			this._onDidChangeCodelenses.fire(e)
 		);
 		this._client.onRequest(AgentOpenUrlRequestType, e => this._onOpenUrl.fire(e));
 		this._client.onRequest(AgentFileSearchRequestType, async e => {

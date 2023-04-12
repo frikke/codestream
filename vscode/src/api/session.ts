@@ -162,6 +162,11 @@ export class CodeStreamSession implements Disposable {
 
 	private fireDidChangePullRequests = createMergableDebouncedEvent(this._onDidChangePullRequests);
 
+	private _onDidChangeCodelenses = new EventEmitter<void>();
+	get onDidChangeCodelenses(): Event<void> {
+		return this._onDidChangeCodelenses.event;
+	}
+
 	private _agentCapabilities: Capabilities | undefined;
 
 	get capabilities() {
@@ -265,6 +270,10 @@ export class CodeStreamSession implements Disposable {
 		this._onDidChangeTextDocumentMarkers.fire(
 			new TextDocumentMarkersChangedEvent(this, Uri.parse(e.textDocument.uri))
 		);
+	}
+
+	private onCodelensesChanged() {
+		this._onDidChangeCodelenses.fire(undefined);
 	}
 
 	private onPullRequestCommentsChanged(_e: DidChangePullRequestCommentsNotification) {
@@ -728,6 +737,7 @@ export class CodeStreamSession implements Disposable {
 		this._state = new SessionState(this, companyId, teamId, response.loginResponse);
 
 		this._disposableAuthenticated = Disposable.from(
+			Container.agent.onDidChangeCodelenses(this.onCodelensesChanged, this),
 			Container.agent.onDidChangeDocumentMarkers(this.onDocumentMarkersChanged, this),
 			Container.agent.onDidChangePullRequestComments(this.onPullRequestCommentsChanged, this),
 			Container.agent.onDidChangeData(this.onDataChanged, this)

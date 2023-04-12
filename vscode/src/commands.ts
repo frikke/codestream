@@ -4,7 +4,8 @@ import { CodemarkType, CSMarkerIdentifier, CSReviewCheckpoint } from "@codestrea
 import { commands, Disposable, env, Range, Uri, ViewColumn, window, workspace } from "vscode";
 import {
 	FileLevelTelemetryRequestOptions,
-	MetricTimesliceNameMapping
+	MetricTimesliceNameMapping,
+	ObservabilityAnomaly
 } from "@codestream/protocols/agent";
 
 import { Editor } from "./extensions/editor";
@@ -118,6 +119,7 @@ export interface ViewMethodLevelTelemetryCommandArgs
 	functionName: string;
 	methodLevelTelemetryRequestOptions?: FileLevelTelemetryRequestOptions;
 	metricTimesliceNameMapping?: MetricTimesliceNameMapping;
+	anomaly?: ObservabilityAnomaly;
 }
 
 export class Commands implements Disposable {
@@ -641,7 +643,14 @@ export class Commands implements Disposable {
 				return;
 			}
 
-			await Container.webview.viewMethodLevelTelemetry(parsedArgs);
+			if (parsedArgs.anomaly) {
+				await Container.webview.viewAnomaly({
+					anomaly: parsedArgs.anomaly,
+					entityGuid: parsedArgs.newRelicEntityGuid!!
+				});
+			} else {
+				await Container.webview.viewMethodLevelTelemetry(parsedArgs);
+			}
 		} catch (ex) {
 			Logger.error(ex);
 		}
