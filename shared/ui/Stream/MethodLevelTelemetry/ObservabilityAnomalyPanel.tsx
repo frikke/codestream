@@ -196,6 +196,7 @@ export const ObservabilityAnomalyPanel = () => {
 				// ];
 			}
 
+			console.warn(derivedState.currentObservabilityAnomaly);
 			setRemappedDeployments(deploymentsObject);
 
 			setTelemetryResponse(response);
