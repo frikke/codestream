@@ -86,6 +86,7 @@ export const ObservabilityAnomalyPanel = () => {
 	const [telemetryResponse, setTelemetryResponse] = useState<
 		GetMethodLevelTelemetryResponse | undefined
 	>(undefined);
+	const [remappedDeployments, setRemappedDeployments] = useState({});
 	const [loading, setLoading] = useState<boolean>(true);
 	const [warningOrErrors, setWarningOrErrors] = useState<WarningOrError[] | undefined>(undefined);
 	const previousCurrentObservabilityAnomaly = usePrevious(derivedState.currentObservabilityAnomaly);
@@ -134,42 +135,36 @@ export const ObservabilityAnomalyPanel = () => {
 			const nDaysAgoRelease = derivedState?.clmSettings?.compareDataLastReleaseValue || 7;
 			maxReleaseDate.setDate(maxReleaseDate.getDate() - nDaysAgoRelease);
 			let comparisonReleaseSeconds = 0;
-			//latest release that is at least 7 days old
-			response.deployments?.forEach(d => {
-				const date = new Date(d.seconds * 1000);
-				if (date.getTime() <= maxReleaseDate.getTime()) {
-					//x value of cutoff point
-					comparisonReleaseSeconds = d.seconds;
-				}
-			});
-			response.deployments?.forEach(d => {
-				if (d.seconds != comparisonReleaseSeconds) {
-					//dont do this, keep all labels, render all labels with tooltip instead (if possible)
-					d.version = "";
-				}
-			});
-			// [{
-			// 	midnightValue: [release-name1, release-name2],
-			// }]
-			response.deployments?.forEach(d => {
-				const midnight = new Date(d.seconds * 1000);
+
+			const deploymentsObject = {};
+
+			response.deployments?.forEach(item => {
+				const { seconds, version } = item;
+
+				const midnight = new Date(seconds * 1000);
 				midnight.setHours(0, 0, 0, 0);
-				d.seconds = Math.ceil(midnight.getTime() / 1000);
+				const midnightSeconds = Math.ceil(midnight.getTime() / 1000);
+
+				if (version !== "") {
+					if (!deploymentsObject[midnightSeconds]) {
+						deploymentsObject[midnightSeconds] = [version];
+					} else {
+						deploymentsObject[midnightSeconds].push(version);
+					}
+				}
 			});
+
 			if (!response.deployments || !response.deployments.length) {
 				const date = new Date();
 				date.setHours(0, 0, 0, 0);
 				const nDaysAgo = derivedState?.clmSettings?.compareDataLastValue;
 				date.setDate(date.getDate() - nDaysAgo);
 				const isPlural = nDaysAgo > 1 ? "s" : "";
-				response.deployments = [
-					{
-						seconds: Math.floor(date.getTime() / 1000),
-						version: `${nDaysAgo} day${isPlural} ago`,
-					},
-				];
+
+				deploymentsObject[Math.floor(date.getTime() / 1000)] = [`${nDaysAgo} day${isPlural} ago`];
 			}
 
+			setRemappedDeployments(deploymentsObject);
 			setTelemetryResponse(response);
 		} catch (ex) {
 			setWarningOrErrors([{ message: ex.toString() }]);
@@ -439,12 +434,15 @@ export const ObservabilityAnomalyPanel = () => {
 													_ != undefined ? _ : 0
 												);
 												const maxY = Math.max(...sanitizedYValues);
+												const redHeaderText =
+													derivedState.currentObservabilityAnomaly.chartHeaderTexts[title];
 												return (
 													<div
 														key={"chart-" + index}
 														style={{ marginLeft: "0px", marginBottom: "20px" }}
 													>
 														<MetaLabel>{title}</MetaLabel>
+														<div style={{ color: "red" }}>{redHeaderText}</div>
 														<ResponsiveContainer width="100%" height={300} debounce={1}>
 															<LineChart
 																width={500}
@@ -467,9 +465,7 @@ export const ObservabilityAnomalyPanel = () => {
 																/>
 																<YAxis tick={{ fontSize: 12 }} domain={[0, maxY]} />
 																<ReTooltip
-																	content={
-																		<CustomTooltip deployments={telemetryResponse.deployments} />
-																	}
+																	content={<CustomTooltip />}
 																	contentStyle={{ color: colorLine, textAlign: "center" }}
 																/>
 																<Line
@@ -481,16 +477,17 @@ export const ObservabilityAnomalyPanel = () => {
 																	name={title}
 																	dot={{ style: { fill: colorLine } }}
 																/>
-																{/* itterate over mapped array of objects */}
-																{telemetryResponse.deployments?.map(_ => {
-																	return (
-																		<ReferenceLine
-																			x={_.seconds}
-																			stroke={_.version.length ? colorPrimary : colorSubtle}
-																			label={e => renderCustomLabel(e, _.version)}
-																		/>
-																	);
-																})}
+																{Object.entries(remappedDeployments).map(
+																	([key, value]: [string, any]) => {
+																		return (
+																			<ReferenceLine
+																				x={key}
+																				stroke={value?.length ? colorPrimary : colorSubtle}
+																				label={e => renderCustomLabel(e, value.join(", "))}
+																			/>
+																		);
+																	}
+																)}
 															</LineChart>
 														</ResponsiveContainer>
 													</div>
@@ -518,10 +515,9 @@ interface CustomTooltipProps {
 	active?: boolean;
 	payload?: any[];
 	label?: string;
-	deployments?: any;
 }
 
-const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label, deployments }) => {
+const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label }) => {
 	const computedStyle = getComputedStyle(document.body);
 	const colorSubtle = computedStyle.getPropertyValue("--text-color-subtle").trim();
 	const colorBackgroundHover = computedStyle

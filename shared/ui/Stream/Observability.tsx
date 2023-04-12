@@ -28,7 +28,6 @@ import styled from "styled-components";
 
 import { ObservabilityRelatedWrapper } from "@codestream/webview/Stream/ObservabilityRelatedWrapper";
 import { CurrentMethodLevelTelemetry } from "@codestream/webview/store/context/types";
-import { isFeatureEnabled } from "../store/apiVersioning/reducer";
 import { setRefreshAnomalies } from "../store/context/actions";
 
 import { HealthIcon } from "@codestream/webview/src/components/HealthIcon";
@@ -76,6 +75,7 @@ import Timestamp from "./Timestamp";
 import Tooltip from "./Tooltip";
 import { WarningBox } from "./WarningBox";
 import { ObservabilityAnomaliesWrapper } from "@codestream/webview/Stream/ObservabilityAnomaliesWrapper";
+import { isFeatureEnabled } from "../store/apiVersioning/reducer";
 
 interface Props {
 	paneState: PaneState;
@@ -682,7 +682,7 @@ export const Observability = React.memo((props: Props) => {
 							? derivedState?.clmSettings?.minimumChangeValue
 							: 0
 					) /
-					100 +
+						100 +
 					1,
 			});
 
@@ -869,7 +869,7 @@ export const Observability = React.memo((props: Props) => {
 	// Separate useEffect to prevent duplicate requests
 	useEffect(() => {
 		if (expandedEntity && currentRepoId) {
-			console.debug(`o11y: useEffect for expandedEntity`);
+			setExpandedEntityUserPref(currentRepoId, expandedEntity);
 			fetchGoldenMetrics(expandedEntity, true);
 			fetchServiceLevelObjectives(expandedEntity);
 			fetchObservabilityErrors(expandedEntity, currentRepoId);

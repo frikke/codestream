@@ -629,12 +629,12 @@ export class AnomalyDetector {
 		// FIXME temporary solution for anomaly charts
 		for (const anomaly of durationAnomalies) {
 			const percentage = ((anomaly.ratio - 1) * 100).toFixed(2);
-			const text = `Average duration +${percentage}% since ${anomaly.sinceText}`;
+			const text = `+${percentage}% since ${anomaly.sinceText}`;
 			anomaly.chartHeaderTexts["Average duration (ms)"] = text;
 		}
 		for (const anomaly of errorRateAnomalies) {
 			const percentage = ((anomaly.ratio - 1) * 100).toFixed(2);
-			const text = `Error rate +${percentage}% since ${anomaly.sinceText}`;
+			const text = `+${percentage}% since ${anomaly.sinceText}`;
 			anomaly.chartHeaderTexts["Errors (per minute)"] = text;
 		}
 		for (const anomaly of durationAnomalies) {
