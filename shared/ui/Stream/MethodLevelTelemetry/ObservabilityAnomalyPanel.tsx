@@ -154,31 +154,6 @@ export const ObservabilityAnomalyPanel = () => {
 				}
 			});
 
-			console.warn("eric", deploymentsObject);
-
-			// //latest release that is at least 7 days old
-			// response.deployments?.forEach(d => {
-			// 	const date = new Date(d.seconds * 1000);
-			// 	if (date.getTime() <= maxReleaseDate.getTime()) {
-			// 		//x value of cutoff point
-			// 		comparisonReleaseSeconds = d.seconds;
-			// 	}
-			// });
-			// response.deployments?.forEach(d => {
-			// 	if (d.seconds != comparisonReleaseSeconds) {
-			// 		//dont do this, keep all labels, render all labels with tooltip instead (if possible)
-			// 		d.version = "";
-			// 	}
-			// });
-
-			// [{
-			// 	midnightValue: [release-name1, release-name2],
-			// }]
-			// response.deployments?.forEach(d => {
-			// 	const midnight = new Date(d.seconds * 1000);
-			// 	midnight.setHours(0, 0, 0, 0);
-			// 	d.seconds = Math.ceil(midnight.getTime() / 1000);
-			// });
 			if (!response.deployments || !response.deployments.length) {
 				const date = new Date();
 				date.setHours(0, 0, 0, 0);
@@ -187,18 +162,9 @@ export const ObservabilityAnomalyPanel = () => {
 				const isPlural = nDaysAgo > 1 ? "s" : "";
 
 				deploymentsObject[Math.floor(date.getTime() / 1000)] = [`${nDaysAgo} day${isPlural} ago`];
-
-				// response.deployments = [
-				// 	{
-				// 		seconds: Math.floor(date.getTime() / 1000),
-				// 		version: `${nDaysAgo} day${isPlural} ago`,
-				// 	},
-				// ];
 			}
 
-			console.warn(derivedState.currentObservabilityAnomaly);
 			setRemappedDeployments(deploymentsObject);
-
 			setTelemetryResponse(response);
 		} catch (ex) {
 			setWarningOrErrors([{ message: ex.toString() }]);

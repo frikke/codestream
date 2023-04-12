@@ -869,7 +869,6 @@ export const Observability = React.memo((props: Props) => {
 	// Separate useEffect to prevent duplicate requests
 	useEffect(() => {
 		if (expandedEntity && currentRepoId) {
-			//eric here
 			setExpandedEntityUserPref(currentRepoId, expandedEntity);
 			fetchGoldenMetrics(expandedEntity, true);
 			fetchServiceLevelObjectives(expandedEntity);
