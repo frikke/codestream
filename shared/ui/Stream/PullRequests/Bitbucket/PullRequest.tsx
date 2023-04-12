@@ -29,7 +29,6 @@ import {
 	clearPullRequestCommits,
 	getCurrentProviderPullRequest,
 	getCurrentProviderPullRequestLastUpdated,
-	updatePullRequestTitle,
 } from "../../../store/providerPullRequests/slice";
 import {
 	api,
@@ -394,18 +393,16 @@ export const PullRequest = () => {
 		try {
 			setIsLoadingMessage("Saving Title...");
 			setSavingTitle(true);
-			const response = await dispatch(
-				api({ method: "updatePullRequestTitle", params: { title } })
-			).unwrap();
-			if (response !== undefined) {
-				dispatch(
-					updatePullRequestTitle({
+			dispatch(
+				api({
+					method: "updatePullRequestTitle",
+					params: {
 						providerId: derivedState.currentPullRequestProviderId!,
 						id: derivedState.currentPullRequestId!,
-						pullRequestData: { title: title },
-					})
-				);
-			}
+						title: title,
+					},
+				})
+			);
 		} catch (er) {
 			dispatch(
 				setProviderError(

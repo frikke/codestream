@@ -1502,6 +1502,44 @@ export class BitbucketProvider
 		};
 	}
 
+	async updatePullRequestTitle(request: {
+		pullRequestId: string;
+		id: string;
+		title: string;
+	}): Promise<Directives> {
+		const payload: any = {
+			title: request.title,
+		};
+
+		Logger.log(`commenting:updatingPRTitle`, {
+			request: request,
+			payload: payload,
+		});
+
+		const { pullRequestId, repoWithOwner } = this.parseId(request.pullRequestId);
+		const response = await this.put<any, BitbucketPullRequest>(
+			`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}`,
+			payload
+		);
+		const directives: Directive[] = [
+			{
+				type: "updatePullRequest",
+				data: {
+					title: response.body.title as any,
+					updatedAt: new Date().getTime() as any,
+				},
+			},
+		];
+
+		this.updateCache(request.pullRequestId, {
+			directives: directives,
+		});
+
+		return {
+			directives: directives,
+		};
+	}
+
 	async createPullRequestComment(request: {
 		pullRequestId: string;
 		sha: string;
