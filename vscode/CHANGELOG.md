@@ -1,5 +1,15 @@
 # Change Log
 
+## [14.18.0] - 2023-4-13
+
+### Added
+
+- Adds support for anomaly detection for code-level metrics, available in private preview for Java
+
+### Fixed
+
+- Fixes an issue where entering confirmation code at signup by typing each number individually results in an error
+
 ## [14.17.0] - 2023-3-23
 
 ### Changed
