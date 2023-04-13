@@ -65,7 +65,7 @@ export class AnomalyDetector {
 			const deployments = (
 				await this._provider.getDeployments({
 					entityGuid: this._request.entityGuid,
-					since: `30 days ago UNTIL ${this._request.sinceReleaseAtLeastDaysAgo} days ago`,
+					since: `31 days ago UNTIL ${this._request.sinceReleaseAtLeastDaysAgo} days ago`,
 				})
 			).deployments;
 			const deployment = deployments[deployments.length - 1];
