@@ -931,17 +931,17 @@ const providerPullRequestsSlice = createSlice({
 									participated_on: directive.data.participated_on,
 									role: directive.data.role,
 								} as any); // TODO
-								const nonReviewers = pr.participantsUnfiltered.nodes.filter(
-									_ => _.role !== "REVIEWER"
-								);
-								const filteredParticipants = nonReviewers.filter(_ => _.state !== null);
-								const reviewers = pr.participantsUnfiltered.nodes.filter(
-									_ => _.role !== "PARTICIPANT"
-								);
-								//update participants with filteredParticipants & update reviewers with reviewers
-								pr.participants.nodes = filteredParticipants;
-								pr.reviewers.nodes = reviewers;
 							}
+							const nonReviewers = pr.participantsUnfiltered.nodes.filter(
+								_ => _.role !== "REVIEWER"
+							);
+							const filteredParticipants = nonReviewers.filter(_ => _.state !== null);
+							const reviewers = pr.participantsUnfiltered.nodes.filter(
+								_ => _.role !== "PARTICIPANT"
+							);
+							//update participants with filteredParticipants & update reviewers with reviewers
+							pr.participants.nodes = filteredParticipants;
+							pr.reviewers.nodes = reviewers;
 						} else if (directive.type === "removePendingReview") {
 							//removing the requested changes
 							const uuid = directive.data.user.account_id;
