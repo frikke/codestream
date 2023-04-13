@@ -122,6 +122,8 @@ export const PullRequestCommitsTab = props => {
 					: currentPullRequestProviderId === "gitlab*com" ||
 					  currentPullRequestProviderId === "gitlab/enterprise"
 					? "GitLab"
+					: currentPullRequestProviderId === "bitbucket*org"
+					? "Bitbucket"
 					: undefined;
 		}
 		return {
@@ -207,6 +209,16 @@ export const PullRequestCommitsTab = props => {
 
 	const order = derivedState.providerName === "GitLab" ? "desc" : "asc";
 
+	const getCommitUrl = commit => {
+		if (commit.url.href) {
+			return commit.url.href;
+		} else if (!commit.url) {
+			return `${pr.url}/commits/${commit.abbreviatedOid}`;
+		} else {
+			return commit.url;
+		}
+	};
+
 	return (
 		<PRCommitContent>
 			{orderBy(Object.keys(commitsByDay), _ => _, order).map((day, index) => {
@@ -243,12 +255,7 @@ export const PullRequestCommitsTab = props => {
 												placement="bottom"
 											>
 												<span>
-													<Link
-														href={
-															commit.url ? commit.url : `${pr.url}/commits/${commit.abbreviatedOid}`
-														}
-														className="monospace"
-													>
+													<Link href={getCommitUrl(commit)} className="monospace">
 														{commit.abbreviatedOid}
 													</Link>
 												</span>
