@@ -229,6 +229,7 @@ export const setErrorGroup =
 export const openErrorGroup =
 	(errorGroupGuid: string, occurrenceId?: string, data: any = {}) =>
 	async (dispatch, getState: () => CodeStreamState) => {
+		dispatch(setFunctionToEdit(undefined));
 		const { environment } = getState().configs;
 		let message, response;
 		if (data.environment && data.environment !== environment) {

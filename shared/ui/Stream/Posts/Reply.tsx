@@ -253,7 +253,7 @@ export const Reply = (props: ReplyProps) => {
 	const numNestedReplies = props.nestedReplies ? props.nestedReplies.length : 0;
 	const hasNestedReplies = numNestedReplies > 0;
 
-	const postText = codemark != null ? codemark.text : props.post.text.replace(/#chatgpt#/g, "");
+	const postText = codemark != null ? codemark.text : props.post.text.replace(/#.*?#/g, "");
 	const escapedPostText = escapeHtml(postText);
 	const [newReplyText, setNewReplyText] = React.useState(escapedPostText);
 
@@ -298,10 +298,12 @@ export const Reply = (props: ReplyProps) => {
 
 	const isEditing = props.editingPostId === props.post.id;
 	const checkpoint = props.post.reviewCheckpoint;
-	const isChatGpt = props.post.text.startsWith("#chatgpt#");
+	const pseudoUserMatch = /#(.*?)#.*/.exec(props.post.text);
+	const isPseudoUser = pseudoUserMatch && pseudoUserMatch.length > 1;
+	const pseudoUser = pseudoUserMatch?.[1];
 
-	const author = isChatGpt
-		? { username: "ChatGPT", id: "fake" }
+	const author = isPseudoUser
+		? { username: pseudoUser, id: "fake" }
 		: props.author ?? { username: "???" };
 
 	return (

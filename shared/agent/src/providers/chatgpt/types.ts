@@ -34,7 +34,7 @@ export function isChatGptErrorResponse(obj: unknown): obj is ChatGptErrorRespons
 export type ChatApiResponse = string;
 
 export type ChatGptRequest = {
-	model: string;
+	model?: string;
 	messages: ChatGptMessage[];
 	temperature?: number;
 	top_p?: number;

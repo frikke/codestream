@@ -86,7 +86,8 @@ const cachable = [
 
 async function resolveCached(url: RequestInfo, init?: RequestInit): Promise<string | undefined> {
 	const origin = urlOrigin(url);
-	if (!origin.includes("staging-api.newrelic.com") && !origin.includes("api.openai.com")) {
+	if (!origin.includes("staging-api.newrelic.com")) {
+		// && !origin.includes("api.openai.com")
 		return undefined;
 	}
 

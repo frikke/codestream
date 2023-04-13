@@ -2766,7 +2766,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		let data;
 		if (response.status >= 400 && response.status < 500) {
 			try {
-				data = (await response.json()) as any;
+				data = await response.json();
 				if (data.code) {
 					message += `(${data.code})`;
 				}

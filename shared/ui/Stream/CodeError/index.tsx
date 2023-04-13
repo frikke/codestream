@@ -33,7 +33,7 @@ import {
 	replaceSymbol,
 	upgradePendingCodeError,
 } from "@codestream/webview/store/codeErrors/thunks";
-import { getThreadPosts } from "@codestream/webview/store/posts/reducer";
+import { getThreadPosts, getPost } from "@codestream/webview/store/posts/reducer";
 import { isConnected } from "@codestream/webview/store/providers/reducer";
 import {
 	currentUserIsAdminSelector,
@@ -44,9 +44,8 @@ import {
 } from "@codestream/webview/store/users/reducer";
 import { useAppDispatch, useAppSelector, useDidMount } from "@codestream/webview/utilities/hooks";
 import { isSha } from "@codestream/webview/utilities/strings";
-import { emptyArray, replaceHtml } from "@codestream/webview/utils";
+import { replaceHtml } from "@codestream/webview/utils";
 import { HostApi } from "@codestream/webview/webview-api";
-import { getPost } from "../../store/posts/reducer";
 import { createPost, deletePost, invite, markItemRead } from "../actions";
 import { Attachments } from "../Attachments";
 import {
@@ -66,7 +65,7 @@ import { DropdownButton, DropdownButtonItems } from "../DropdownButton";
 import Icon from "../Icon";
 import { Link } from "../Link";
 import Menu from "../Menu";
-import { AttachmentField } from "../MessageInput";
+import MessageInput, { AttachmentField } from "../MessageInput";
 import { Modal } from "../Modal";
 import { RepliesToPost } from "../Posts/RepliesToPost";
 import { AddReactionIcon, Reactions } from "../Reactions";
@@ -77,6 +76,8 @@ import Tooltip from "../Tooltip";
 import { ConditionalNewRelic } from "./ConditionalComponent";
 import { isFeatureEnabled } from "../../store/apiVersioning/reducer";
 import { isEmpty } from "lodash-es";
+import { LoadingMessage } from "@codestream/webview/src/components/LoadingMessage";
+import { Post } from "@codestream/webview/store/posts/types";
 
 interface SimpleError {
 	/**
@@ -90,9 +91,8 @@ interface SimpleError {
 }
 
 export interface BaseCodeErrorProps extends CardProps {
-	analyzeClick: (event: SyntheticEvent) => void;
-	analyzeStackTrace: number;
 	codeError: CSCodeError;
+	replies: Post[];
 	errorGroup?: NewRelicErrorGroup;
 	parsedStack?: ResolveStackTraceResponse;
 	post?: CSPost;
@@ -138,7 +138,6 @@ const ComposeWrapper = styled.div.attrs(() => ({
 	&&& {
 		padding: 0 !important;
 	}
-
 	.message-input#input-div {
 		max-width: none !important;
 	}
@@ -156,14 +155,12 @@ export const Description = styled.div`
 
 const ClickLines = styled.div`
 	padding: 1px !important;
-
 	&:focus {
 		border: none;
 		outline: none;
 	}
-
 	,
-	& . pulse {
+	&.pulse {
 		opacity: 1;
 		background: var(--app-background-color-hover);
 	}
@@ -187,7 +184,6 @@ const ClickLine = styled.div`
 	direction: rtl;
 	text-overflow: ellipsis;
 	overflow: hidden;
-
 	:hover {
 		color: var(--text-color-highlight);
 		background: var(--app-background-color-hover);
@@ -211,18 +207,15 @@ const ApmServiceTitle = styled.span`
 		color: var(--text-color-highlight);
 		text-decoration: none;
 	}
-
 	.open-external {
 		margin-left: 5px;
 		font-size: 12px;
 		visibility: hidden;
 		color: var(--text-color-highlight);
 	}
-
 	&:hover .open-external {
 		visibility: visible;
 	}
-
 	padding-left: 5px;
 `;
 
@@ -1320,10 +1313,12 @@ const BaseCodeError = (props: BaseCodeErrorProps) => {
 								})}
 							</ClickLines>
 						</TourTip>
-						{derivedState.replies.length === 0 && (
-							<Button onClick={props.analyzeClick} isLoading={!!derivedState.isLoading}>
-								Analyze with ChatGPT
-							</Button>
+						{!!derivedState.isLoading && (
+							<DelayedRender>
+								<div>
+									<LoadingMessage>Analyzing Error...</LoadingMessage>
+								</div>
+							</DelayedRender>
 						)}
 					</Meta>
 					{props.post && (
@@ -1501,7 +1496,7 @@ const renderMetaSectionCollapsed = (props: BaseCodeErrorProps) => {
 	);
 };
 
-const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: number }) => {
+const ReplyInput = (props: { codeError: CSCodeError; replies: Post[] }) => {
 	const dispatch = useAppDispatch();
 	const [text, setText] = React.useState("");
 	const [attachments, setAttachments] = React.useState<AttachmentField[]>([]);
@@ -1512,9 +1507,6 @@ const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: number }
 	const codeSolution = useAppSelector(state => state.codeErrors.codeSolution);
 	const butttonRow = React.useRef<HTMLDivElement>(null);
 	const isLoading = useAppSelector(state => state.codeErrors.isLoading);
-	const replies = useAppSelector(state =>
-		getThreadPosts(state, props.codeError.streamId, props.codeError.postId)
-	);
 
 	const scrollToNew = () => {
 		const row = butttonRow.current;
@@ -1538,17 +1530,17 @@ const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: number }
 	};
 
 	useEffect(() => {
-		if (replies.length === 0) {
+		if (props.replies.length === 0) {
 			setFixApplied(false);
 			setChangesComitted(false);
 		}
 	}, [props.codeError]);
 
 	useEffect(() => {
-		if (props.analyzeStacktrace > 0) {
+		if (props.replies.length === 0 && functionToEdit && isLoading === undefined) {
 			submit("analyze");
 		}
-	}, [props.analyzeStacktrace]);
+	}, [functionToEdit]);
 
 	const commitChanges = async (event: SyntheticEvent) => {
 		if (!changesComitted) {
@@ -1573,7 +1565,7 @@ const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: number }
 				return "What is a good commit message for this change?";
 			}
 			case "commit_changes": {
-				return "#chatgpt#Changes Committed";
+				return "#RelicAI#Changes Committed";
 			}
 			default:
 				return text;
@@ -1619,7 +1611,7 @@ const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: number }
 
 	return (
 		<>
-			{/* <MessageInput
+			<MessageInput
 				multiCompose
 				text={text}
 				placeholder="Add a comment..."
@@ -1628,22 +1620,28 @@ const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: number }
 				attachments={attachments}
 				attachmentContainerType="reply"
 				setAttachments={setAttachments}
-			/> */}
-			<ButtonRow ref={butttonRow} style={{ marginTop: 0 }}>
-				{codeSolution && !fixApplied && replies.length > 0 && (
-					<div>
-						<Button onClick={applyFix} isLoading={isLoading === "chat"}>
-							Apply Fix
-						</Button>
-					</div>
-				)}
-				{codeSolution && fixApplied && !changesComitted && replies.length > 0 && (
-					<div>
-						<Button onClick={commitChanges} isLoading={!!isLoading}>
-							Commit changes
-						</Button>
-					</div>
-				)}
+			/>
+			<ButtonRow style={{ marginTop: 0 }}>
+				<Tooltip
+					title={
+						<span>
+							Submit Comment
+							<span className="keybinding extra-pad">
+								{navigator.appVersion.includes("Macintosh") ? "⌘" : "Ctrl"} ENTER
+							</span>
+						</span>
+					}
+					placement="bottomRight"
+					delay={1}
+				>
+					<Button
+						disabled={text.length === 0}
+						onClick={() => submit("normal")}
+						isLoading={!!isLoading}
+					>
+						Comment
+					</Button>
+				</Tooltip>
 			</ButtonRow>
 		</>
 	);
@@ -1678,6 +1676,7 @@ function isPropsWithId(props: PropsWithId | PropsWithCodeError): props is PropsW
 export type CodeErrorProps = PropsWithId | PropsWithCodeError;
 
 const CodeErrorForCodeError = (props: PropsWithCodeError) => {
+	const dispatch = useAppDispatch();
 	const { codeError, ...baseProps } = props;
 	const derivedState = useAppSelector((state: CodeStreamState) => {
 		const post =
@@ -1692,9 +1691,7 @@ const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 			author: state.users[props.codeError.creatorId],
 			repos: state.repos,
 			userIsFollowing: (props.codeError.followerIds || []).includes(state.session.userId!),
-			replies: props.collapsed
-				? emptyArray
-				: getThreadPosts(state, codeError.streamId, codeError.postId),
+			replies: getThreadPosts(state, codeError.streamId, codeError.postId),
 			isPDIdev: isFeatureEnabled(state, "PDIdev"),
 		};
 	}, shallowEqual);
@@ -1705,7 +1702,6 @@ const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 	});
 	const [isEditing, setIsEditing] = React.useState(false);
 	const [shareModalOpen, setShareModalOpen] = React.useState(false);
-	const [analyzeStackTrace, setAnalyzeStackTrace] = React.useState(0);
 
 	useDidMount(() => {
 		if (!props.collapsed) {
@@ -1715,10 +1711,6 @@ const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 			});
 		}
 	});
-
-	const analyzeSubmit = (e: SyntheticEvent) => {
-		setAnalyzeStackTrace(analyzeStackTrace + 1);
-	};
 
 	// console.warn(`*** replies ${JSON.stringify(derivedState.replies)}`);
 
@@ -1743,7 +1735,7 @@ const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 
 					{InputContainer && !derivedState.isPDIdev && (
 						<InputContainer>
-							<ReplyInput analyzeStacktrace={analyzeStackTrace} codeError={codeError} />
+							<ReplyInput codeError={codeError} replies={derivedState.replies} />
 						</InputContainer>
 					)}
 				</Footer>
@@ -1775,8 +1767,7 @@ const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 			)}
 			<BaseCodeError
 				{...baseProps}
-				analyzeClick={analyzeSubmit}
-				analyzeStackTrace={analyzeStackTrace}
+				replies={derivedState.replies}
 				parsedStack={props.parsedStack}
 				codeError={props.codeError}
 				post={derivedState.post}

@@ -250,8 +250,6 @@ function merge(defaults: Partial<State>, codemark: CSCodemark): State {
 	}, Object.create(null));
 }
 
-type SubmitMode = "analyze" | "normal";
-
 class CodemarkForm extends React.Component<Props, State> {
 	static defaultProps = {
 		commentType: "comment",
@@ -764,10 +762,10 @@ class CodemarkForm extends React.Component<Props, State> {
 		}
 	};
 
-	handleClickSubmit = async (event?: React.SyntheticEvent, mode: SubmitMode = "normal") => {
+	handleClickSubmit = async (event?: React.SyntheticEvent) => {
 		event && event.preventDefault();
 		if (this.state.isLoading || this.state.isReviewLoading) return;
-		if (this.isFormInvalid(mode)) return;
+		if (this.isFormInvalid()) return;
 
 		const {
 			codeBlocks,
@@ -894,13 +892,11 @@ class CodemarkForm extends React.Component<Props, State> {
 			}
 		}
 
-		const analyzeText = mode === "analyze" ? event?.currentTarget.textContent : undefined;
-
 		try {
 			const baseAttributes = {
 				codeBlocks,
 				deleteMarkerLocations,
-				text: analyzeText ?? replaceHtml(text)!,
+				text: replaceHtml(text)!,
 				type: type as CodemarkType,
 				assignees: csAssignees,
 				title,
@@ -913,7 +909,6 @@ class CodemarkForm extends React.Component<Props, State> {
 				isChangeRequest: this.state.isChangeRequest,
 				addedUsers: keyFilter(this.state.emailAuthors),
 				isProviderReview: this.state.isProviderReview,
-				analyze: mode === "analyze",
 			};
 			if (this.props.teamProvider === "codestream") {
 				const retVal = await this.props.onSubmit({
@@ -1004,7 +999,7 @@ class CodemarkForm extends React.Component<Props, State> {
 		});
 	};
 
-	isFormInvalid = (mode: SubmitMode) => {
+	isFormInvalid = () => {
 		const { codeBlocks } = this.state;
 		const { text, title, assignees, crossPostIssueValues, type } = this.state;
 
@@ -1040,7 +1035,7 @@ class CodemarkForm extends React.Component<Props, State> {
 				invalid = validationState.assigneesInvalid = true;
 			}
 		}
-		if ((type === "comment" || type === "trap") && mode != "analyze") {
+		if (type === "comment" || type === "trap") {
 			if (text.length === 0) {
 				validationState.textInvalid = true;
 				invalid = true;
@@ -1374,7 +1369,7 @@ class CodemarkForm extends React.Component<Props, State> {
 
 						return (
 							<div key={key} className="related-codemark">
-								{icon}&nbsp;{title}&nbsp;&nbsp;<span className="codemark-file">eee {file}</span>
+								{icon}&nbsp;{title}&nbsp;&nbsp;<span className="codemark-file">{file}</span>
 								<span style={{ marginLeft: 5 }}>
 									<Icon name="x" onClick={() => this.handleToggleCodemark(codemark)} />
 								</span>
@@ -2253,7 +2248,6 @@ class CodemarkForm extends React.Component<Props, State> {
 	renderCodemarkForm() {
 		const { editingCodemark, currentUser } = this.props;
 		const commentType = this.getCommentType();
-		const { codeBlocks } = this.state;
 
 		const titlePlaceholder =
 			commentType === "issue"
@@ -2517,26 +2511,6 @@ class CodemarkForm extends React.Component<Props, State> {
 					{commentType !== "link" && this.renderEmailAuthors()}
 					{commentType !== "link" && this.renderSharingControls()}
 					{this.props.currentReviewId && this.renderRequireChange()}
-					{codeBlocks?.length > 0 && (
-						<div style={{ clear: "both", marginTop: 45 }}>
-							<div>ChatGPT</div>
-							<div>
-								<Link onClick={e => this.handleClickSubmit(e, "analyze")}>
-									How do I fix this code?
-								</Link>
-							</div>
-							<div>
-								<Link onClick={e => this.handleClickSubmit(e, "analyze")}>
-									What does this code do?
-								</Link>
-							</div>
-							<div>
-								<Link onClick={e => this.handleClickSubmit(e, "analyze")}>
-									Write a test for this code
-								</Link>
-							</div>
-						</div>
-					)}
 					{!this.state.isPreviewing && (
 						<div key="buttons" className="button-group float-wrap">
 							<CancelButton
