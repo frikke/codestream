@@ -1265,17 +1265,6 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 			stream = await SessionContainer.instance().streams.getTeamStream();
 		}
 
-		const codeBlock = request.attributes.codeBlocks[0];
-		let chatResponsePromise: Promise<string> | undefined = undefined;
-		if (request.attributes.analyze && codeBlock.contents) {
-			chatResponsePromise = getChatResponse(
-				stream.id,
-				`${codemarkRequest.text!}\n${codeBlock.contents}`,
-				"user",
-				true
-			);
-		}
-
 		const response = await this.session.api.createPost({
 			codemark: codemarkRequest,
 			text: codemarkRequest.text!,
@@ -1288,15 +1277,6 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 		});
 		const { markers } = response!;
 		codemark = response.codemark!;
-
-		if (chatResponsePromise) {
-			const chatResponse = await chatResponsePromise;
-			const chatGptPostResponse = await this.session.api.createPost({
-				text: chatResponse,
-				streamId: stream.id,
-				parentPostId: response.post.id,
-			});
-		}
 
 		if (request.attributes.crossPostIssueValues) {
 			const cardResponse = await SessionContainer.instance().posts.createProviderCard(
@@ -1929,10 +1909,10 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				// First message is from user
 				postMessages.push({ ...request });
 			}
-			if (submitType !== "normal") {
+			if (submitType !== "normal" || request.text.startsWith("@RelicAI")) {
 				const chatResponse = await getChatResponse(
 					request.streamId,
-					request.text,
+					request.text.replace("@RelicAI", "").trim(),
 					"user",
 					submitType === "analyze"
 				);
@@ -1942,6 +1922,10 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 						: chatResponse;
 				// Second message is ChatGPT response
 				postMessages.push({ ...request, text: resolvedChatResponse });
+			} else {
+				if (request.text.startsWith("@Larry")) {
+					postMessages.push({ ...request, text: "#Larry#LGTM. Don't forget to add a test..." });
+				}
 			}
 			for (const finalRequest of postMessages) {
 				response = await this.session.api.createPost(finalRequest);
