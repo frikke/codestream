@@ -219,35 +219,46 @@ export const PullRequestFilesChangedFileComments = (props: Props) => {
 		//    - Number of negative or removed lines from diff hunk
 		//    -----------------------------------------------------
 		//      Line Number
-		let rightLine = 0;
 
-		if (!commentObject?.comment || !commentObject?.review) {
-			return "";
-		}
-
-		let diffHunk =
-			commentObject.comment?.diffHunk ||
-			commentObject.review?.diffHunk ||
-			commentObject?.comment?.position?.patch ||
-			"";
-		let diffHunkNewLineLength = diffHunk.split("\n").length - 1;
-		let negativeLineCount = 1;
-
-		diffHunk.split("\n").map(d => {
-			const topLineMatch = d.match(/@@ \-(\d+).*? \+(\d+)/);
-			const negativeLineMatch = d.match(/^\-.*/);
-			if (topLineMatch) {
-				rightLine = parseInt(topLineMatch[2]);
+		if (isBitbucket) {
+			if (commentObject.comment.inline.from !== null) {
+				return commentObject.comment.inline.from;
+			} else if (commentObject.comment.inline.to !== null) {
+				return commentObject.comment.inline.to;
+			} else {
+				return "";
 			}
-			if (negativeLineMatch) {
-				negativeLineCount++;
-			}
-		});
-
-		if (rightLine) {
-			return rightLine + diffHunkNewLineLength - negativeLineCount;
 		} else {
-			return "";
+			let rightLine = 0;
+
+			if (!commentObject?.comment || !commentObject?.review) {
+				return "";
+			}
+
+			let diffHunk =
+				commentObject.comment?.diffHunk ||
+				commentObject.review?.diffHunk ||
+				commentObject?.comment?.position?.patch ||
+				"";
+			let diffHunkNewLineLength = diffHunk.split("\n").length - 1;
+			let negativeLineCount = 1;
+
+			diffHunk.split("\n").map(d => {
+				const topLineMatch = d.match(/@@ \-(\d+).*? \+(\d+)/);
+				const negativeLineMatch = d.match(/^\-.*/);
+				if (topLineMatch) {
+					rightLine = parseInt(topLineMatch[2]);
+				}
+				if (negativeLineMatch) {
+					negativeLineCount++;
+				}
+			});
+
+			if (rightLine) {
+				return rightLine + diffHunkNewLineLength - negativeLineCount;
+			} else {
+				return "";
+			}
 		}
 	};
 
