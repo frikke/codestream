@@ -37,7 +37,7 @@ import {
 import { isSha } from "@codestream/webview/utilities/strings";
 import { HostApi } from "@codestream/webview/webview-api";
 import React, { useEffect } from "react";
-import { useSelector } from "react-redux";
+import { shallowEqual, useSelector } from "react-redux";
 import styled from "styled-components";
 import { DelayedRender } from "../Container/DelayedRender";
 import { logError, logWarning } from "../logger";
@@ -179,7 +179,7 @@ export function CodeErrorNav(props: Props) {
 			sidebarLocation: getSidebarLocation(state),
 		};
 		return result;
-	});
+	}, shallowEqual);
 
 	const [requiresConnection, setRequiresConnection] = React.useState<boolean | undefined>(
 		undefined
@@ -939,7 +939,7 @@ export function CodeErrorNav(props: Props) {
 		return (
 			<DelayedRender>
 				<div style={{ display: "flex", height: "100vh", alignItems: "center" }}>
-					<LoadingMessage>Loading Error Group...</LoadingMessage>
+					<LoadingMessage>Loading Error Groupeee...</LoadingMessage>
 				</div>
 			</DelayedRender>
 		);

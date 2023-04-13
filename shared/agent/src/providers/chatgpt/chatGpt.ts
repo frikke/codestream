@@ -15,7 +15,8 @@ import {
 import { isEmpty } from "lodash";
 import { Logger } from "../../logger";
 
-const apiUrl = "https://api.openai.com/v1/chat/completions";
+const apiUrl =
+	"https://nr-generativeai-api.openai.azure.com/openai/deployments/gpt-4/chat/completions?api-version=2023-03-15-preview";
 
 const codeStreamDirectory = path.join(os.homedir(), ".codestream");
 
@@ -51,7 +52,6 @@ export async function getChatResponse(
 	}
 
 	const request: ChatGptRequest = {
-		model: "gpt-3.5-turbo",
 		messages: conversation,
 		temperature: 0,
 	};
@@ -60,7 +60,7 @@ export async function getChatResponse(
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
-			Authorization: `Bearer ${getApiKey()}`,
+			"api-key": `${getApiKey()}`,
 		},
 		body: JSON.stringify(request),
 	});
@@ -83,5 +83,5 @@ export async function getChatResponse(
 	Logger.log(`*** ChatGPT prompt ${prompt}`);
 	Logger.log(`*** ChatGPT response ${message}`);
 
-	return `#chatgpt#${responseMessage}`;
+	return `#RelicAI#${responseMessage}`;
 }

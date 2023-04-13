@@ -22,6 +22,22 @@
 			"type": "extensionHost",
 			"request": "launch",
 			"runtimeExecutable": "${execPath}",
+			"args": ["--extensionDevelopmentPath=${workspaceFolder}"],
+			"env": {
+				"VSCODE_DEBUGGING_EXTENSION": "codestream",
+				"CODESTREAM_AGENT_BREAK_ON_START": "false"
+			},
+			"cwd": "${workspaceFolder}",
+			"outFiles": ["${workspaceFolder}/dist/**/*.js"],
+			"skipFiles": ["<node_internals>/**", "**/node_modules/**", "**/resources/app/out/vs/**"],
+			"smartStep": true,
+			"sourceMaps": true
+		},
+		{
+			"name": "Launch CodeStream (profile)",
+			"type": "extensionHost",
+			"request": "launch",
+			"runtimeExecutable": "${execPath}",
 			"args": ["--extensionDevelopmentPath=${workspaceFolder}", "--profile CodestreamDev"],
 			"env": {
 				"VSCODE_DEBUGGING_EXTENSION": "codestream",

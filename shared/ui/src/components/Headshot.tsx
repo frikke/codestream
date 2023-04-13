@@ -164,7 +164,7 @@ export const Headshot = styled((props: HeadshotProps) => {
 			onClick={props.onClick}
 		>
 			<StyledGravatar size={size} default="blank" protocol="https://" email={person.email} />
-			{person.username === "ChatGPT" ? (
+			{person.username === "RelicAI" ? (
 				<Icon
 					name="comment"
 					style={{ transform: "scale(1.25)", marginTop: 2, display: "inline-block" }}

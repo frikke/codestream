@@ -1938,7 +1938,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				);
 				const resolvedChatResponse =
 					submitType === "fix_applied"
-						? `#chatgpt#Code fix applied. A good commit message would be:\n\n ${chatResponse}`
+						? `#RelicAI#Code fix applied. A good commit message would be:\n\n ${chatResponse}`
 						: chatResponse;
 				// Second message is ChatGPT response
 				postMessages.push({ ...request, text: resolvedChatResponse });

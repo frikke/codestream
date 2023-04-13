@@ -176,7 +176,6 @@ interface State {
 	// newCodemarkAttributes: { type: CodemarkType; viewingInline: boolean } | undefined;
 	multiLocationCodemarkForm: boolean;
 	codemarkFormError?: string;
-	analyzeMode: boolean;
 }
 
 const NEW_CODEMARK_ATTRIBUTES_TO_RESTORE = "spatial-view:restore-codemark-form";
@@ -207,7 +206,6 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 			numLinesVisible: props.numLinesVisible,
 			problem: props.scmInfo && getFileScmError(props.scmInfo),
 			multiLocationCodemarkForm: false,
-			analyzeMode: false,
 		};
 
 		this.docMarkersByStartLine = {};
@@ -911,7 +909,6 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 	 * 	Intercepting the redux update is done via the injected middleware
 	 */
 	submitCodemark = async (attributes: NewCodemarkAttributes) => {
-		this.setState({ analyzeMode: attributes.analyze === true });
 		let docMarker: DocumentMarker | undefined;
 		const injectedMiddleware = middlewareInjector.inject(
 			DocumentMarkersActionsType.SaveForFile,
@@ -981,8 +978,6 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 					// wait until the next update, ideally because the new document marker is about to be rendered, and close the form
 					this._updateEmitter.enqueue(() => {
 						this.closeCodemarkForm();
-						const codemarkId = retVal.payload[0].id;
-						this.props.setCurrentCodemark(codemarkId);
 					});
 					this.props.addDocumentMarker(this.props.textEditorUri!, docMarker);
 				});

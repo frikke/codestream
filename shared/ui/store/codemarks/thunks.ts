@@ -244,7 +244,6 @@ export const deleteCodemark = (codemarkId: string, sharedTo?: ShareTarget[]) => 
 
 export const editCodemark =
 	(codemark: CodemarkPlus, attributes: EditableAttributes) => async (dispatch, getState) => {
-		console.log(`*** here we go in codemarks/thunks.ts with id ${codemark.id}`);
 		try {
 			const { markers = [] } = codemark;
 			const { deleteMarkerLocations = {}, codeBlocks } = attributes;
