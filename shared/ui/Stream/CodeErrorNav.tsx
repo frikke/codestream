@@ -939,7 +939,7 @@ export function CodeErrorNav(props: Props) {
 		return (
 			<DelayedRender>
 				<div style={{ display: "flex", height: "100vh", alignItems: "center" }}>
-					<LoadingMessage>Loading Error Groupeee...</LoadingMessage>
+					<LoadingMessage>Loading Error Group...</LoadingMessage>
 				</div>
 			</DelayedRender>
 		);
