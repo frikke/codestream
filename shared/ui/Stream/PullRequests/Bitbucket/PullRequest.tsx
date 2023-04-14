@@ -471,8 +471,8 @@ export const PullRequest = () => {
 	}, [derivedState.reviewLinks]);
 
 	const numComments = useMemo(() => {
-		if (!pr || !pr.comments) return 0;
-		const num = pr.comments.length;
+		if (!pr || !pr.timelineItems.nodes) return 0;
+		const num = pr.timelineItems.nodes.length;
 
 		return num;
 	}, [pr, pr?.updatedAt]);

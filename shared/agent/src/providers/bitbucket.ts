@@ -1211,7 +1211,7 @@ export class BitbucketProvider
 			);
 
 			const timeline = await this.get<BitbucketValues<TimelineItem[]>>(
-				`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}/activity`
+				`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}/activity?pagelen=50`
 			);
 
 			const commits = await this.get<BitbucketValues<BitbucketPullRequestCommit[]>>(
