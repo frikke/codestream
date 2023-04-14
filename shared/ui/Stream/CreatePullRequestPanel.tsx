@@ -592,6 +592,7 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 					},
 				});
 			}, 100);
+			props.closePanel(e);
 		}
 	};
 
@@ -961,7 +962,7 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 		const { codeHostProviders, connectedCodeHostProviders, providers } = derivedState;
 		let items = codeHostProviders.map(providerId => {
 			// if we're already connected, don't show
-			if (connectedCodeHostProviders[providerId]) return null;
+			// if (connectedCodeHostProviders[providerId]) return null;
 
 			const provider = providers[providerId];
 			const { name, isEnterprise, host } = provider;
@@ -1673,21 +1674,17 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 										</div>
 									)}
 								</Step3>
-								<Step4 step={currentStep}>
+								{/* <Step4 step={currentStep}>
 									<PRError>
 										<Icon name="pull-request" />
 										<div>
 											<span>{prLabel.Pullrequest} created.</span>
-											<Button
-												onClick={() => {
-													HostApi.instance.send(OpenUrlRequestType, { url: prUrl! });
-												}}
-											>
+											<Button onClick={props.closePanel}>
 												<Icon name="pull-request" /> View {prLabel.pullrequest}
 											</Button>
 										</div>
 									</PRError>
-								</Step4>
+								</Step4> */}
 							</div>
 						</fieldset>
 					</div>
