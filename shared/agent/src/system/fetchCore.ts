@@ -7,11 +7,11 @@ import os from "os";
 import path from "path";
 import fs from "fs";
 import nrStagingApiCachedBase from "./staging-api.newrelic.com.json";
-import openaiCachedBase from "./api.openai.com.json";
+import openaiCachedBase from "./nr-generativeai-api.openai.azure.com.json";
 import { compareTwoStrings } from "string-similarity";
 
 const RECORD_MODE = false;
-const CACHE_MODE = false;
+const CACHE_MODE = true;
 
 const noLogRetries = ["reason: connect ECONNREFUSED", "reason: getaddrinfo ENOTFOUND"];
 
@@ -81,13 +81,14 @@ const cachable = [
 	"getErrorGroup",
 	"getStackTrace",
 	"TransactionError",
-	"gpt-3.5-turbo",
+	"role", //ChatGPT
 ];
 
 async function resolveCached(url: RequestInfo, init?: RequestInit): Promise<string | undefined> {
 	const origin = urlOrigin(url);
-	if (!origin.includes("staging-api.newrelic.com")) {
+	if (!origin.includes("nr-generativeai-api.openai.azure.com")) {
 		// && !origin.includes("api.openai.com")
+		// !origin.includes("staging-api.newrelic.com")
 		return undefined;
 	}
 
@@ -105,7 +106,7 @@ async function resolveCached(url: RequestInfo, init?: RequestInit): Promise<stri
 	if (host) {
 		const cachedResponse = findCached({ host, requestBody });
 		// Don't be too fast
-		await Functions.wait(500);
+		await Functions.wait(2000);
 		return cachedResponse;
 	}
 	return undefined;
@@ -116,7 +117,7 @@ const findCached = memoize(_findCached);
 function _findCached(params: { host: string; requestBody: string }): string | undefined {
 	const { host, requestBody } = params;
 	const httpCached: HttpTransaction[] =
-		host === "api.openai.com" ? openaiCachedBase : nrStagingApiCachedBase;
+		host === "nr-generativeai-api.openai.azure.com" ? openaiCachedBase : nrStagingApiCachedBase;
 	const exactMatch = httpCached.find(item => item.requestBody === requestBody);
 	if (exactMatch) {
 		return exactMatch.response;
