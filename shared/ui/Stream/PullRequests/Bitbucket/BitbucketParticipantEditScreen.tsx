@@ -34,6 +34,8 @@ export const BitbucketParticipantEditScreen = (props: Props) => {
 					},
 				};
 			});
+		} else {
+			itemsMap = [];
 		}
 		return itemsMap;
 	};
@@ -44,15 +46,25 @@ export const BitbucketParticipantEditScreen = (props: Props) => {
 		let itemsMap;
 		if (props.pr.members.nodes.length) {
 			itemsMap = props.pr.members.nodes.map(_ => {
-				return {
-					label: _.user.display_name,
-					key: _.user.account_id,
-					action: () => {
-						setReviewerId(_.user.account_id);
-						setReviewerSelection(_.user.display_name);
-					},
-				};
+				if (_.user.account_id !== pr.pr.author.id) {
+					return {
+						label: _.user.display_name,
+						key: _.user.account_id,
+						action: () => {
+							setReviewerId(_.user.account_id);
+							setReviewerSelection(_.user.display_name);
+						},
+					};
+				} else {
+					return {
+						label: "",
+						key: _.user.account_id,
+						action: () => {},
+					};
+				}
 			});
+		} else {
+			itemsMap = [];
 		}
 		return itemsMap;
 	};

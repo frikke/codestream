@@ -1352,6 +1352,7 @@ export class BitbucketProvider
 						author: {
 							login: pr.body.author.display_name,
 							avatarUrl: pr.body.author.links.avatar,
+							id: pr.body.author.account_id,
 						},
 						comments: treeComments || [],
 						description: pr.body.description,

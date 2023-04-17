@@ -553,6 +553,7 @@ export interface FetchThirdPartyPullRequestPullRequest {
 	author: {
 		login: string;
 		avatarUrl: string;
+		id?: string;
 	};
 	authorAssociation:
 		| "COLLABORATOR"
@@ -629,6 +630,7 @@ export interface FetchThirdPartyPullRequestPullRequest {
 						author: {
 							login: string;
 							avatarUrl: string;
+							id?: string;
 						};
 						id: string;
 					}[];
@@ -935,6 +937,7 @@ export interface FetchThirdPartyPullRequestCommitsResponse {
 	author: {
 		name: string;
 		avatarUrl: string;
+		id?: string;
 		user?: {
 			login: string;
 			avatarUrl?: string;
@@ -1050,6 +1053,7 @@ export interface GetMyPullRequestsResponse {
 	author: {
 		login: string;
 		avatarUrl: string;
+		id?: string;
 	};
 	body: string;
 	bodyText: string;
