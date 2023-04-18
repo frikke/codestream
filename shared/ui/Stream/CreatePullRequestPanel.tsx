@@ -564,19 +564,6 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 					if (derivedState.reviewId) {
 						props.closePanel(e);
 						dispatch(setCurrentReview(derivedState.reviewId!));
-					} else if (prProviderId === "bitbucket*org") {
-						const parsedUrl = result.url!.split("/");
-						// “{“id":5,"pullRequestId":5,"repoWithOwner":"thiscoolworkspacename/thisnewrepository”}”
-						const id1 = parsedUrl[6];
-						const pullRequestId = parsedUrl[6];
-						const repoWithOwner = parsedUrl[3] + "/" + parsedUrl[4];
-						const id2 = JSON.stringify({
-							id: id1,
-							pullRequestId: pullRequestId,
-							repoWithOwner: repoWithOwner,
-						});
-						props.closePanel(e);
-						dispatch(setCurrentPullRequest(prProviderId, id2!));
 					} else {
 						setPrUrl(result.url!);
 						setCurrentStep(4);

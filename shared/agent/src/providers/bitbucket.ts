@@ -2037,6 +2037,11 @@ export class BitbucketProvider
 
 			const title = `#${createPullRequestResponse.body.id} ${createPullRequestResponse.body.title}`;
 			return {
+				id: JSON.stringify({
+					id: createPullRequestResponse.body.id,
+					pullRequestId: createPullRequestResponse.body.id,
+					repoWithOwner: `${owner}/${name}`,
+				}),
 				url: createPullRequestResponse.body.links.html.href,
 				title: title,
 			};
