@@ -1,5 +1,3 @@
-
-
 import { CSMe } from "@codestream/protocols/api";
 import React, { useState } from "react";
 import styled from "styled-components";
@@ -242,22 +240,31 @@ export const PullRequestConversationTab = (props: {
 							></BitbucketParticipantEditScreen>
 						) : (
 							<>
-								<Button
-									onClick={() => {
-										setIsOpen(true);
-										setIsAddReviewer(true);
-									}}
-								>
-									Add
-								</Button>
-								<Button
-									onClick={() => {
-										setIsOpen(true);
-										setIsAddReviewer(false);
-									}}
-								>
-									Remove
-								</Button>
+								<div style={{ marginLeft: "50%" }}>
+									<Button
+										variant="secondary"
+										size="subcompact"
+										style={{ marginLeft: "50%" }}
+										onClick={() => {
+											setIsOpen(true);
+											setIsAddReviewer(true);
+										}}
+									>
+										Add
+									</Button>
+
+									<Button
+										variant="secondary"
+										size="subcompact"
+										style={{ marginLeft: "50%" }}
+										onClick={() => {
+											setIsOpen(true);
+											setIsAddReviewer(false);
+										}}
+									>
+										Remove
+									</Button>
+								</div>
 							</>
 						)}
 					</PRHeadshots>
