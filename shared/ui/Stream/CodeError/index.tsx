@@ -1549,7 +1549,7 @@ const ReplyInput = (props: { codeError: CSCodeError; replies: Post[] }) => {
 		}
 	};
 
-	const applyFix = async (event: SyntheticEvent) => {
+	const applyFix = async (_event: SyntheticEvent) => {
 		if (codeSolution && functionToEdit) {
 			await dispatch(replaceSymbol(functionToEdit.uri, functionToEdit.symbol, codeSolution));
 			submit("fix_applied");
@@ -1622,6 +1622,11 @@ const ReplyInput = (props: { codeError: CSCodeError; replies: Post[] }) => {
 				setAttachments={setAttachments}
 			/>
 			<ButtonRow style={{ marginTop: 0 }}>
+				{codeSolution && !fixApplied && props.replies.length > 0 && (
+					<Button onClick={applyFix} isLoading={isLoading === "chat"}>
+						Apply Fix
+					</Button>
+				)}
 				<Tooltip
 					title={
 						<span>
