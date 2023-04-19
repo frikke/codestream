@@ -825,11 +825,27 @@ export const OpenPullRequests = React.memo((props: Props) => {
 
 	const cantCheckoutReason = prToCheckout => {
 		if (prToCheckout) {
-			const currentRepo = openRepos.find(
-				_ =>
-					_?.name?.toLowerCase() === prToCheckout.headRepository?.name?.toLowerCase() ||
-					_?.folder?.name?.toLowerCase() === prToCheckout.headRepository?.name?.toLowerCase()
-			);
+			const currentRepo = openRepos.find(_ => {
+				const nameFromPr = prToCheckout.headRepository?.name?.toLowerCase();
+				const parsedRemoteNamesFromRawUrl = _.remotes?.map(_ => {
+					const lastDotIndex = _?.rawUrl?.lastIndexOf(".");
+					let rawUrlWithoutDot;
+					if (lastDotIndex === -1) {
+						rawUrlWithoutDot = _?.rawUrl;
+					}
+					rawUrlWithoutDot = _?.rawUrl?.substring(0, lastDotIndex);
+					const splitRawUrlWithoutDot = rawUrlWithoutDot.split("/");
+					return splitRawUrlWithoutDot[splitRawUrlWithoutDot.length - 1];
+				});
+
+				let nameFoundInPrToCheckout = parsedRemoteNamesFromRawUrl?.find(_ => _ === nameFromPr);
+
+				return (
+					_?.name?.toLowerCase() === nameFromPr ||
+					_?.folder?.name?.toLowerCase() === nameFromPr ||
+					!isEmpty(nameFoundInPrToCheckout)
+				);
+			});
 
 			if (!currentRepo) {
 				return `You don't have the ${prToCheckout.headRepository?.name} repo open in your IDE`;
@@ -894,6 +910,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 		const response = await HostApi.instance.send(GetReposScmRequestType, {
 			inEditorOnly: true,
 			includeCurrentBranches: true,
+			includeRemotes: true,
 		});
 		if (response && response.repositories) {
 			const repos = response.repositories.map(repo => {
