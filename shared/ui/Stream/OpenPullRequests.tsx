@@ -776,16 +776,38 @@ export const OpenPullRequests = React.memo((props: Props) => {
 		}
 	};
 
+	const parseRawUrlFromRemote = remotes => {
+		return remotes?.map(_ => {
+			const lastDotIndex = _?.rawUrl?.lastIndexOf(".");
+			let rawUrlWithoutDot;
+			if (lastDotIndex === -1) {
+				rawUrlWithoutDot = _?.rawUrl;
+			}
+			rawUrlWithoutDot = _?.rawUrl?.substring(0, lastDotIndex);
+			const splitRawUrlWithoutDot = rawUrlWithoutDot.split("/");
+			return splitRawUrlWithoutDot[splitRawUrlWithoutDot.length - 1];
+		});
+	};
+
+	const getCurrentRepo = pr => {
+		return openRepos.find(_ => {
+			const nameFromPr = pr.headRepository?.name?.toLowerCase();
+			const parsedRemoteNamesFromRawUrl = parseRawUrlFromRemote(_.remotes);
+			const nameFoundInPrToCheckout = parsedRemoteNamesFromRawUrl?.find(_ => _ === nameFromPr);
+			return (
+				_?.name?.toLowerCase() === nameFromPr ||
+				_?.folder?.name?.toLowerCase() === nameFromPr ||
+				!isEmpty(nameFoundInPrToCheckout)
+			);
+		});
+	};
+
 	const checkout = async (event, prToCheckout, cantCheckoutReason) => {
 		event.preventDefault();
 		event.stopPropagation();
 		if (!prToCheckout || cantCheckoutReason) return;
 
-		const currentRepo = openRepos.find(
-			_ =>
-				_?.name?.toLowerCase() === prToCheckout.headRepository?.name?.toLowerCase() ||
-				_?.folder?.name?.toLowerCase() === prToCheckout.headRepository?.name?.toLowerCase()
-		);
+		const currentRepo = getCurrentRepo(prToCheckout);
 
 		const repoId = currentRepo?.id || "";
 		const result = await HostApi.instance.send(SwitchBranchRequestType, {
@@ -825,27 +847,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 
 	const cantCheckoutReason = prToCheckout => {
 		if (prToCheckout) {
-			const currentRepo = openRepos.find(_ => {
-				const nameFromPr = prToCheckout.headRepository?.name?.toLowerCase();
-				const parsedRemoteNamesFromRawUrl = _.remotes?.map(_ => {
-					const lastDotIndex = _?.rawUrl?.lastIndexOf(".");
-					let rawUrlWithoutDot;
-					if (lastDotIndex === -1) {
-						rawUrlWithoutDot = _?.rawUrl;
-					}
-					rawUrlWithoutDot = _?.rawUrl?.substring(0, lastDotIndex);
-					const splitRawUrlWithoutDot = rawUrlWithoutDot.split("/");
-					return splitRawUrlWithoutDot[splitRawUrlWithoutDot.length - 1];
-				});
-
-				let nameFoundInPrToCheckout = parsedRemoteNamesFromRawUrl?.find(_ => _ === nameFromPr);
-
-				return (
-					_?.name?.toLowerCase() === nameFromPr ||
-					_?.folder?.name?.toLowerCase() === nameFromPr ||
-					!isEmpty(nameFoundInPrToCheckout)
-				);
-			});
+			const currentRepo = getCurrentRepo(prToCheckout);
 
 			if (!currentRepo) {
 				return `You don't have the ${prToCheckout.headRepository?.name} repo open in your IDE`;
