@@ -1929,16 +1929,16 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				// First message is from user
 				postMessages.push({ ...request });
 			}
-			if (submitType !== "normal" || request.text.startsWith("@RelicAI")) {
+			if (submitType !== "normal" || request.text.startsWith("@Grok")) {
 				const chatResponse = await getChatResponse(
 					request.streamId,
-					request.text.replace("@RelicAI", "").trim(),
+					request.text.replace("@Grok", "").trim(),
 					"user",
 					submitType === "analyze"
 				);
 				const resolvedChatResponse =
 					submitType === "fix_applied"
-						? `#RelicAI#Code fix applied. A good commit message would be:\n\n ${chatResponse}`
+						? `#Grok#Code fix applied. A good commit message would be:\n\n ${chatResponse}`
 						: chatResponse;
 				// Second message is ChatGPT response
 				postMessages.push({ ...request, text: resolvedChatResponse });

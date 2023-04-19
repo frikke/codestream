@@ -1565,7 +1565,7 @@ const ReplyInput = (props: { codeError: CSCodeError; replies: Post[] }) => {
 				return "What is a good commit message for this change?";
 			}
 			case "commit_changes": {
-				return "#RelicAI#Changes Committed";
+				return "#Grok#Changes Committed";
 			}
 			default:
 				return text;
