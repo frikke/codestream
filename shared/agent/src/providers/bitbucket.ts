@@ -140,18 +140,12 @@ interface BitbucketAuthor {
 	};
 }
 
-interface BitbucketWorkspace {
+interface BitbucketWorkspacesRequestResponse {
 	type: string;
 	user: {
 		display_name: string;
 		links: {
-			self: {
-				href: string;
-			};
 			avatar: {
-				href: string;
-			};
-			html: {
 				href: string;
 			};
 		};
@@ -169,12 +163,6 @@ interface BitbucketWorkspace {
 			avatar: {
 				href: string;
 			};
-			html: {
-				href: string;
-			};
-			self: {
-				href: string;
-			};
 		};
 	};
 	links: {
@@ -186,6 +174,7 @@ interface BitbucketWorkspace {
 	permission: string;
 	last_accessed: string;
 }
+[];
 
 interface BitbucketReposInWorkspace {
 	type: string;
@@ -426,63 +415,8 @@ interface BitbucketRepoFull extends BitbucketRepo {
 		branching_model: boolean;
 	};
 	author: BitbucketAuthor;
-	participants: {
-		type?: string;
-		user: {
-			display_name?: string;
-			links?: {
-				avatar?: {
-					href?: string;
-				};
-			};
-			type?: string;
-			uuid?: string;
-			account_id?: string;
-			nickname?: string;
-		};
-		role?: string;
-		approved?: boolean;
-		state?: string;
-		participated_on?: string;
-	}[];
-	reviewers?: {
-		type: string;
-		user: {
-			display_name: string;
-			links: {
-				avatar: {
-					href: string;
-				};
-			};
-			type: string;
-			uuid: string;
-			account_id: string;
-			nickname: string;
-		};
-		role: string;
-		approved: boolean;
-		state: string;
-		participated_on: string;
-	}[];
-}
-
-interface BitbucketDefaultReviewer {
-	display_name: string;
-	links: {
-		self: {
-			href: string;
-		};
-		avatar: {
-			href: string;
-		};
-		html: {
-			href: string;
-		};
-	};
-	type: string;
-	uuid: string;
-	account_id: string;
-	nickname: string;
+	participants: BitbucketUnfilteredParticipants[];
+	reviewers?: BitbucketReviewers[];
 }
 
 interface BitbucketPullRequestComment2 {
@@ -530,33 +464,6 @@ interface BitbucketSubmitReviewRequestResponse {
 interface BitbucketSubmitReviewRequest {
 	type: string;
 }
-
-interface BitbucketParticipants {
-	type: string;
-	user: {
-		display_name: string;
-		links: {
-			self: {
-				href: string;
-			};
-			avatar: {
-				href: string;
-			};
-			html: {
-				href: string;
-			};
-		};
-		type: string;
-		uuid: string;
-		account_id: string;
-		nickname: string;
-	};
-	role: string;
-	approved: boolean;
-	state: string;
-	participated_on: string;
-}
-[];
 
 interface BitBucketCreateCommentRequest {
 	content: {
@@ -743,41 +650,129 @@ interface BitbucketWorkspaceMembers {
 }
 [];
 
-interface BitbucketPullRequest {
-	isApproved?: boolean;
-	isRequested?: boolean;
-	viewer: {
-		id: number;
-		login: string;
-		avatarUrl: string;
+interface BitbucketReviewers {
+	display_name: string;
+	links: {
+		self: {
+			href: string;
+		};
+		avatar: {
+			href: string;
+		};
+		html: {
+			href: string;
+		};
 	};
-	author: {
+	type: string;
+	uuid: string;
+	account_id: string;
+	nickname: string;
+}
+[];
+
+interface BitbucketUpdateReviewerRequest {
+	reviewers: BitbucketReviewers[];
+}
+
+interface BitbucketMergeRequestResponse {
+	comment_count: number;
+	task_count: number;
+	type: string;
+	id: number;
+	title: string;
+	description: string;
+	rendered: {
+		title: {
+			type: string;
+			raw: string;
+			markup: string;
+			html: string;
+		};
+		description: {
+			type: string;
+			raw: string;
+			markup: string;
+			html: string;
+		};
+	};
+	state: string;
+	merge_commit: {
+		type: string;
+		hash: string;
+		date: string;
+		author: {
+			type: string;
+			raw: string;
+			user: {
+				display_name: string;
+				links: {
+					avatar: {
+						href: string;
+					};
+				};
+				type: string;
+				uuid: string;
+				account_id: string;
+				nickname: string;
+			};
+		};
+		message: string;
+		summary: {
+			type: string;
+			raw: string;
+			markup: string;
+			html: string;
+		};
+		links: {
+			html: {
+				href: string;
+			};
+		};
+	};
+	close_source_branch: false;
+	closed_by: {
+		display_name: string;
 		links: {
 			avatar: {
 				href: string;
 			};
 		};
-		display_name: BitbucketAuthor;
+		type: string;
 		uuid: string;
 		account_id: string;
+		nickname: string;
 	};
+	author: BitbucketAuthor;
+	reason: string;
 	created_on: string;
-	description?: string;
+	updated_on: string;
+	closed_on: string;
 	destination: {
 		branch: {
 			name: string;
 		};
 		commit: {
+			type: string;
 			hash: string;
+			links: {
+				self: {
+					href: string;
+				};
+				html: {
+					href: string;
+				};
+			};
 		};
 		repository: {
+			type: string;
 			full_name: string;
-		};
-	};
-	id: number;
-	links: {
-		html: {
-			href: string;
+			links: {
+				avatar: {
+					href: string;
+				};
+			};
+			name: string;
+			uuid: string;
 		};
 	};
 	source: {
@@ -785,58 +780,401 @@ interface BitbucketPullRequest {
 			name: string;
 		};
 		commit: {
+			type: string;
 			hash: string;
+			links: {
+				html: {
+					href: string;
+				};
+			};
 		};
-		repository: BitbucketRepoFull;
+		repository: {
+			type: string;
+			full_name: string;
+			links: {
+				avatar: {
+					href: string;
+				};
+			};
+			name: string;
+			uuid: string;
+		};
+	};
+	reviewers: BitbucketReviewers[];
+	participants: BitbucketUnfilteredParticipants[];
+	links: {
+		html: {
+			href: string;
+		};
 	};
 	summary: {
-		html: string;
+		type: string;
 		raw: string;
+		markup: string;
+		html: string;
+	};
+}
+
+interface BitbucketUserPermissionsRequest {
+	repository: {
+		type: string;
+		full_name: string;
+		links: {
+			self: {
+				href: string;
+			};
+			html: {
+				href: string;
+			};
+			avatar: {
+				href: string;
+			};
+		};
+		name: string;
+		uuid: string;
+	};
+	type: string;
+	permission: string;
+	user: {
+		display_name: string;
+		links: {
+			self: {
+				href: string;
+			};
+			avatar: {
+				href: string;
+			};
+			html: {
+				href: string;
+			};
+		};
+		type: string;
+		uuid: string;
+		account_id: string;
+		nickname: string;
+	};
+}
+[];
+
+interface BitbucketRepositoriesRequestResponse {
+	type: string;
+	full_name: string;
+	links: {
+		avatar: {
+			href: string;
+		};
+	};
+	name: string;
+	slug: string;
+	description: string;
+	scm: string;
+	owner: {
+		display_name: string;
+		links: {
+			avatar: {
+				href: string;
+			};
+		};
+		type: string;
+		uuid: string;
+		account_id: string;
+		nickname: string;
+	};
+	workspace: {
+		type: string;
+		uuid: string;
+		name: string;
+		slug: string;
+		links: {
+			avatar: {
+				href: string;
+			};
+		};
+	};
+	is_private: boolean;
+	project: {
+		type: string;
+		key: string;
+		uuid: string;
+		name: string;
+		links: {
+			avatar: {
+				href: string;
+			};
+		};
+	};
+	fork_policy: string;
+	created_on: string;
+	updated_on: string;
+	size: number;
+	language: string;
+	has_issues: boolean;
+	has_wiki: boolean;
+	uuid: string;
+	mainbranch: {
+		name: string;
+		type: string;
+	};
+	override_settings: {
+		default_merge_strategy: boolean;
+		branching_model: boolean;
+	};
+}
+[];
+
+interface BitbucketPullRequests {
+	comment_count: number;
+	task_count: number;
+	type: string;
+	id: number;
+	title: string;
+	description: string;
+	state: string;
+	merge_commit: null;
+	close_source_branch: boolean;
+	closed_by: null;
+	author: {
+		display_name: string;
+		links: {
+			avatar: {
+				href: string;
+			};
+		};
+		type: string;
+		uuid: string;
+		account_id: string;
+		nickname: string;
+	};
+	reason: string;
+	created_on: string;
+	updated_on: string;
+	destination: {
+		branch: {
+			name: string;
+		};
+		commit: {
+			type: string;
+			hash: string;
+			links: {
+				html: {
+					href: string;
+				};
+			};
+		};
+		repository: {
+			type: string;
+			full_name: string;
+			links: {
+				avatar: {
+					href: string;
+				};
+			};
+			name: string;
+			uuid: string;
+		};
+	};
+	source: {
+		branch: {
+			name: string;
+		};
+		commit: {
+			type: string;
+			hash: string;
+			links: {
+				html: {
+					href: string;
+				};
+			};
+		};
+		repository: {
+			type: string;
+			full_name: string;
+			links: {
+				avatar: {
+					href: string;
+				};
+			};
+			name: string;
+			uuid: string;
+		};
+	};
+	links: {
+		html: {
+			href: string;
+		};
+	};
+	summary: {
+		type: string;
+		raw: string;
+		markup: string;
+		html: string;
+	};
+}
+[];
+
+interface BitbucketPullRequest {
+	comment_count: number;
+	task_count: number;
+	type: string;
+	id: number;
+	title: string;
+	description: string;
+	rendered: {
+		title: {
+			type: string;
+			raw: string;
+			markup: string;
+			html: string;
+		};
+		description: {
+			type: string;
+			raw: string;
+			markup: string;
+			html: string;
+		};
 	};
 	state: string;
-	title: string;
-	updated_on: string;
-	// repository?: {
-	// 	full_name: string;
-	// };
-	participants: {
-		type?: string;
-		user: {
-			display_name: string;
-			links: {
-				avatar: {
-					href: string;
-				};
-			};
-			type?: string;
-			uuid: string;
-			account_id?: string;
-			nickname: string;
-		};
-		role: string; // PARTICIPANT, REVIEWER
-		approved: boolean;
-		state: string; // approved, changes_requested, null
-		participated_on: string;
-	}[];
-	reviewers?: {
+	merge_commit?: {
 		type: string;
-		user: {
-			display_name: string;
+		hash: string;
+		links: {
+			html: {
+				href: string;
+			};
+		};
+	};
+	close_source_branch?: boolean;
+	closed_by?: {
+		display_name: string;
+		links: {
+			avatar: {
+				href: string;
+			};
+			html: {
+				href: string;
+			};
+		};
+		type: string;
+		uuid: string;
+		account_id: string;
+		nickname: string;
+	};
+	author: {
+		display_name: string;
+		links: {
+			avatar: {
+				href: string;
+			};
+			html: {
+				href: string;
+			};
+		};
+		type: string;
+		uuid: string;
+		account_id: string;
+		nickname: string;
+	};
+	reason: string;
+	created_on: string;
+	updated_on: string;
+	destination: {
+		branch: {
+			name: string;
+		};
+		commit: {
+			type: string;
+			hash: string;
+			links: {
+				html: {
+					href: string;
+				};
+			};
+		};
+		repository: {
+			type: string;
+			full_name: string;
 			links: {
 				avatar: {
 					href: string;
 				};
+				html: {
+					href: string;
+				};
 			};
-			type: string;
+			name: string;
 			uuid: string;
-			account_id: string;
-			nickname: string;
 		};
-		role: string;
-		approved: boolean;
-		state: string;
-		participated_on: string;
-	}[];
+	};
+	source: {
+		branch: {
+			name: string;
+		};
+		commit: {
+			type: string;
+			hash: string;
+			links: {
+				html: {
+					href: string;
+				};
+			};
+		};
+		repository: {
+			type: string;
+			full_name: string;
+			links: {
+				avatar: {
+					href: string;
+				};
+				html: {
+					href: string;
+				};
+			};
+			name: string;
+			uuid: string;
+		};
+	};
+	reviewers?: BitbucketReviewers[];
+	participants: BitbucketUnfilteredParticipants[];
+	links: {
+		html: {
+			href: string;
+		};
+	};
+	summary: {
+		type: string;
+		raw: string;
+		markup: string;
+		html: string;
+	};
+}
+
+interface BitbucketUpdateDescription {
+	description: string;
+}
+
+interface BitbucketUnfilteredParticipants {
+	type: string;
+	user: {
+		display_name: string;
+		links: {
+			avatar: {
+				href: string;
+			};
+		};
+		type: string;
+		uuid: string;
+		account_id?: string;
+		nickname: string;
+	};
+	role: string; // PARTICIPANT, REVIEWER
+	approved: boolean;
+	state: string; // approved, changes_requested, null
+	participated_on: string;
+}
+[];
+
+interface BitbucketUpdateTitleRequest {
+	title: string;
 }
 
 interface BitbucketDiffStat {
@@ -1146,12 +1484,12 @@ export class BitbucketProvider
 		return { users: [] };
 	}
 
-	private isPRApproved = (participants: any) => {
+	private isPRApproved = (participants: BitbucketUnfilteredParticipants[]) => {
 		//returns false or true
 		if (participants.length) {
 			const participantLength = participants.length;
 			const approvedParticipants = participants.filter(
-				(_: { approved: any; state: string }) => _.approved && _.state === "approved"
+				(_: { approved: boolean; state: string }) => _.approved && _.state === "approved"
 			);
 			const isApproved = participantLength == approvedParticipants?.length;
 			return isApproved;
@@ -1159,13 +1497,13 @@ export class BitbucketProvider
 		return false;
 	};
 
-	private excludeNonActiveParticipants = (participants: any) => {
+	private excludeNonActiveParticipants = (participants: BitbucketUnfilteredParticipants[]) => {
 		const nonReviewers = participants.filter((_: { role: string }) => _.role !== "REVIEWER");
 		const filteredParticipants = nonReviewers.filter((_: { state: string }) => _.state !== null);
 		return filteredParticipants;
 	};
 
-	private separateReviewers = (participants: any) => {
+	private separateReviewers = (participants: BitbucketUnfilteredParticipants[]) => {
 		const reviewers = participants.filter((_: { role: string }) => _.role !== "PARTICIPANT");
 		return reviewers;
 	};
@@ -1227,7 +1565,9 @@ export class BitbucketProvider
 			);
 
 			//get all users who have a permission of greater than read
-			const permissions = await this.get<any>(`/user/permissions/repositories?q=permission>"read"`); //TODO: fix any
+			const permissions = await this.get<BitbucketValues<BitbucketUserPermissionsRequest[]>>(
+				`/user/permissions/repositories?q=permission>"read"`
+			);
 
 			const userResponse = await this.getCurrentUser();
 
@@ -1441,7 +1781,7 @@ export class BitbucketProvider
 
 		try {
 			const { pullRequestId, repoWithOwner } = this.parseId(request.pullRequestId);
-			const response = await this.post<BitbucketMergeRequest, any>(
+			const response = await this.post<BitbucketMergeRequest, BitbucketMergeRequestResponse>(
 				`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}/merge`,
 				payload
 			);
@@ -1470,7 +1810,7 @@ export class BitbucketProvider
 		id: string;
 		body: string;
 	}): Promise<Directives> {
-		const payload: any = {
+		const payload: { description: string } = {
 			description: request.body,
 		};
 
@@ -1480,7 +1820,7 @@ export class BitbucketProvider
 		});
 
 		const { pullRequestId, repoWithOwner } = this.parseId(request.pullRequestId);
-		const response = await this.put<any, BitbucketPullRequest>(
+		const response = await this.put<BitbucketUpdateDescription, BitbucketPullRequest>(
 			`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}`,
 			payload
 		);
@@ -1488,7 +1828,7 @@ export class BitbucketProvider
 			{
 				type: "updatePullRequest",
 				data: {
-					description: response.body.description as any,
+					description: response.body.description as string,
 					updatedAt: new Date().getTime() as any,
 				},
 			},
@@ -1508,7 +1848,7 @@ export class BitbucketProvider
 		id: string;
 		title: string;
 	}): Promise<Directives> {
-		const payload: any = {
+		const payload: { title: string } = {
 			title: request.title,
 		};
 
@@ -1518,7 +1858,7 @@ export class BitbucketProvider
 		});
 
 		const { pullRequestId, repoWithOwner } = this.parseId(request.pullRequestId);
-		const response = await this.put<any, BitbucketPullRequest>(
+		const response = await this.put<BitbucketUpdateTitleRequest, BitbucketPullRequest>(
 			`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}`,
 			payload
 		);
@@ -1526,7 +1866,7 @@ export class BitbucketProvider
 			{
 				type: "updatePullRequest",
 				data: {
-					title: response.body.title as any,
+					title: response.body.title as string,
 					updatedAt: new Date().getTime() as any,
 				},
 			},
@@ -1639,7 +1979,7 @@ export class BitbucketProvider
 			});
 		}
 
-		const payload: any = {
+		const payload: { reviewers: any[] } = {
 			reviewers: newReviewers,
 		};
 		Logger.log(`commenting:removeRequestedReviewer`, {
@@ -1647,7 +1987,7 @@ export class BitbucketProvider
 			payload: payload,
 		});
 
-		const response = await this.put<any, BitbucketPullRequest>(
+		const response = await this.put<BitbucketUpdateReviewerRequest, BitbucketPullRequest>(
 			`/repositories/${request.fullname}/pullrequests/${request.pullRequestId}`,
 			payload
 		);
@@ -1707,7 +2047,7 @@ export class BitbucketProvider
 			payload: payload,
 		});
 
-		const response = await this.put<any, BitbucketPullRequest>(
+		const response = await this.put<BitbucketUpdateReviewerRequest, BitbucketPullRequest>(
 			`/repositories/${request.fullname}/pullrequests/${request.pullRequestId}`,
 			payload
 		);
@@ -1742,7 +2082,7 @@ export class BitbucketProvider
 		participants: any[];
 		repoWithOwner: string;
 	}): Promise<Directives> {
-		const payload: any = {
+		const payload: { type: string } = {
 			type: request.eventType,
 		};
 		Logger.log(`commenting:pullrequestsubmitreview`, {
@@ -2214,7 +2554,9 @@ export class BitbucketProvider
 	private async _getFullNames(): Promise<{ fullname: string }[]> {
 		//get all workspaces for a user: user/permissions/workspaces
 		let array: { fullname: string }[] = [];
-		const reposInWorkspace = await this.get<any>(`/user/permissions/workspaces`);
+		const reposInWorkspace = await this.get<BitbucketValues<BitbucketWorkspacesRequestResponse[]>>(
+			`/user/permissions/workspaces`
+		);
 		//values.workspace.slug
 		const repoSlugs = reposInWorkspace.body.values.map(
 			(workspace: { workspace: { slug: string } }) => {
@@ -2223,11 +2565,13 @@ export class BitbucketProvider
 		); //array of the workspace slugs for current user
 
 		for (let i = 0; i < repoSlugs.length; i++) {
-			const response = await this.get<any>(`/repositories/${repoSlugs[i].slug}`);
+			const response = await this.get<BitbucketValues<BitbucketRepositoriesRequestResponse[]>>(
+				`/repositories/${repoSlugs[i].slug}`
+			);
 
 			//if response.body.values is more than 1, there are more than one repos.
 			if (response.body.values.length > 1) {
-				response.body.values.forEach((repo: any) => {
+				response.body.values.forEach((repo: { full_name: string }) => {
 					array.push({ fullname: repo.full_name });
 				});
 			} else if (response.body.values.length === 1) {
@@ -2282,21 +2626,21 @@ export class BitbucketProvider
 		usernameResponse: ApiResponse<BitbucketUser>,
 		query: string
 	): Promise<any> {
-		let array = [];
+		let array: any[] = [];
 		for (let i = 0; i < fullnameArr.length; i++) {
-			const pullrequests = await this.get<any>(
+			const pullrequests = await this.get<BitbucketValues<BitbucketPullRequests[]>>(
 				`/repositories/${fullnameArr[i].fullname}/pullrequests?${query}`
 			);
 
 			for (let j = 0; j < pullrequests.body.values.length; j++) {
 				const PRid = pullrequests.body.values[j].id;
-				const individualPRs = await this.get<any>(
+				const individualPRs = await this.get<BitbucketValues<BitbucketPullRequest>>(
 					`/repositories/${fullnameArr[i].fullname}/pullrequests/${PRid}`
 				);
-
-				if (individualPRs.body.reviewers.length) {
+				//@ts-ignore
+				if (individualPRs.body.reviewers?.length) {
 					//@ts-ignore
-					const foundSelf = individualPRs.body.reviewers.find(
+					const foundSelf = individualPRs.body.reviewers?.find(
 						(_: { account_id: string }) => _.account_id === usernameResponse.body.account_id
 					);
 					if (foundSelf) {
@@ -2316,7 +2660,7 @@ export class BitbucketProvider
 	private async _getRecents(fullnameArr: { fullname: string }[], query: string): Promise<any> {
 		let array = [];
 		for (let i = 0; i < fullnameArr.length; i++) {
-			const recents = await this.get<any>(
+			const recents = await this.get<BitbucketValues<BitbucketPullRequests[]>>(
 				`/repositories/${fullnameArr[i].fullname}/pullrequests?${query}`
 			);
 
@@ -2340,7 +2684,9 @@ export class BitbucketProvider
 
 	private async _getPRsByMe(username: string, query: string): Promise<any> {
 		const array: any[] = [];
-		const createdByMe = await this.get<any>(`/pullrequests/${username}?${query}`);
+		const createdByMe = await this.get<BitbucketValues<BitbucketPullRequests[]>>(
+			`/pullrequests/${username}?${query}`
+		);
 		createdByMe.body.values.forEach((_: any) => {
 			array.push(_);
 		});
@@ -2356,7 +2702,7 @@ export class BitbucketProvider
 	): Promise<any> {
 		const array = [];
 		for (let i = 0; i < fullNames.length; i++) {
-			const pullrequests = await this.get<any>(
+			const pullrequests = await this.get<BitbucketValues<BitbucketPullRequests[]>>(
 				`/repositories/${fullNames[i].fullname}/pullrequests?${query}` //note this is hardcoded
 			);
 			const foundSelf = pullrequests.body.values.find(

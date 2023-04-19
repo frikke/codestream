@@ -240,31 +240,27 @@ export const PullRequestConversationTab = (props: {
 							></BitbucketParticipantEditScreen>
 						) : (
 							<>
-								<div style={{ marginLeft: "50%" }}>
-									<Button
-										variant="secondary"
-										size="subcompact"
-										style={{ marginLeft: "50%" }}
-										onClick={() => {
-											setIsOpen(true);
-											setIsAddReviewer(true);
-										}}
-									>
-										Add
-									</Button>
+								<Button
+									variant="secondary"
+									size="subcompact"
+									onClick={() => {
+										setIsOpen(true);
+										setIsAddReviewer(true);
+									}}
+								>
+									Add
+								</Button>
 
-									<Button
-										variant="secondary"
-										size="subcompact"
-										style={{ marginLeft: "50%" }}
-										onClick={() => {
-											setIsOpen(true);
-											setIsAddReviewer(false);
-										}}
-									>
-										Remove
-									</Button>
-								</div>
+								<Button
+									variant="secondary"
+									size="subcompact"
+									onClick={() => {
+										setIsOpen(true);
+										setIsAddReviewer(false);
+									}}
+								>
+									Remove
+								</Button>
 							</>
 						)}
 					</PRHeadshots>
