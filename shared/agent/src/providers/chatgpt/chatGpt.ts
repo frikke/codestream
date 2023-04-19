@@ -83,5 +83,5 @@ export async function getChatResponse(
 	Logger.log(`*** ChatGPT prompt ${prompt}`);
 	Logger.log(`*** ChatGPT response ${JSON.stringify(message)}`);
 
-	return `#RelicAI#${responseMessage}`;
+	return `#Grok#${responseMessage}`;
 }
