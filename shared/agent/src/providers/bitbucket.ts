@@ -1168,7 +1168,7 @@ export interface BitbucketUnfilteredParticipants {
 	};
 	role: string; // PARTICIPANT, REVIEWER
 	approved: boolean;
-	state: "approved" | "changes_requested" | null;
+	state: string | null; //"approved" | "changes_requested"
 	participated_on: string;
 }
 [];
