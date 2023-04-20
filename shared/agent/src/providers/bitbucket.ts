@@ -1973,7 +1973,7 @@ export class BitbucketProvider
 			newReviewers = [];
 		} else {
 			//remove that reviewer
-			pr.body.reviewers?.forEach(_ => {
+			pr.body.reviewers?.filter(_ => {
 				//@ts-ignore
 				if (_.account_id !== request.reviewerId) {
 					newReviewers.push(_);
@@ -2032,7 +2032,7 @@ export class BitbucketProvider
 		//get user info from members
 		let userInfo = pr.body.reviewers;
 		const selectedUser = request.reviewerId;
-		members.body.values.forEach(_ => {
+		members.body.values.find(_ => {
 			if (_.user.account_id === selectedUser) {
 				//@ts-ignore
 				userInfo.push(_.user);
