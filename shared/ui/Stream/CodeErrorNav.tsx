@@ -216,6 +216,7 @@ export function CodeErrorNav(props: Props) {
 
 	const pendingRequiresConnection = derivedState.currentCodeErrorData?.pendingRequiresConnection;
 
+	// this is only a test
 	const exit = async () => {
 		// clear out the current code error (set to blank) in the webview
 		await dispatch(setCurrentCodeError(undefined, undefined));
