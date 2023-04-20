@@ -218,14 +218,20 @@ export const PullRequestReviewButton = (props: Props) => {
 		},
 	};
 
+	//compare viewer's id with participants id
+	//if match return the role
+
 	let approvalStatus;
 	let requestStatus;
+	let viewerRole;
 
 	const currentUser = props.pullRequest.viewer.id;
+
 	if (props.pullRequest.participantsUnfiltered.nodes.length !== 0) {
 		const currentUserInfo = props.pullRequest.participantsUnfiltered.nodes.find(
 			_ => _.user.account_id === currentUser
 		);
+		viewerRole = currentUserInfo?.role;
 		if (currentUserInfo?.approved) {
 			approvalStatus = mapping["approve"];
 		} else {
@@ -251,6 +257,7 @@ export const PullRequestReviewButton = (props: Props) => {
 					userId: props.pullRequest.viewer.id,
 					participants: props.pullRequest.participantsUnfiltered.nodes,
 					repoWithOwner: props.pullRequest.repository.nameWithOwner,
+					viewerRole: viewerRole,
 				},
 			})
 		);

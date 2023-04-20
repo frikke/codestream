@@ -853,6 +853,7 @@ const providerPullRequestsSlice = createSlice({
 								pr.participantsUnfiltered.nodes[foundUser].approved = directive.data.approved;
 								pr.participantsUnfiltered.nodes[foundUser].participated_on =
 									directive.data.participated_on;
+								pr.participantsUnfiltered.nodes[foundUser].role = directive.data.role;
 							} else {
 								pr.participantsUnfiltered.nodes.push({
 									user: {
@@ -892,6 +893,7 @@ const providerPullRequestsSlice = createSlice({
 								pr.participantsUnfiltered.nodes[foundUser].approved = directive.data.approved;
 								pr.participantsUnfiltered.nodes[foundUser].participated_on =
 									directive.data.participated_on;
+								pr.participantsUnfiltered.nodes[foundUser].role = directive.data.role;
 							}
 							const nonReviewers = pr.participantsUnfiltered.nodes.filter(
 								_ => _.role !== "REVIEWER"
@@ -914,6 +916,7 @@ const providerPullRequestsSlice = createSlice({
 								pr.participantsUnfiltered.nodes[foundUser].approved = directive.data.approved;
 								pr.participantsUnfiltered.nodes[foundUser].participated_on =
 									directive.data.participated_on;
+								pr.participantsUnfiltered.nodes[foundUser].role = directive.data.role;
 							} else {
 								pr.participantsUnfiltered.nodes.push({
 									user: {
@@ -953,6 +956,7 @@ const providerPullRequestsSlice = createSlice({
 								pr.participantsUnfiltered.nodes[foundUser].approved = directive.data.approved;
 								pr.participantsUnfiltered.nodes[foundUser].participated_on =
 									directive.data.participated_on;
+								pr.participantsUnfiltered.nodes[foundUser].role = directive.data.role;
 							}
 							const nonReviewers = pr.participantsUnfiltered.nodes.filter(
 								_ => _.role !== "REVIEWER"

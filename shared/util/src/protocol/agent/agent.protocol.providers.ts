@@ -715,7 +715,7 @@ export interface FetchThirdPartyPullRequestPullRequest {
 			};
 			role: string;
 			approved: boolean;
-			state: "changes_requested" | "approve" | "null";
+			state: null | string;
 			participated_on: string;
 		}[];
 	};
@@ -736,7 +736,7 @@ export interface FetchThirdPartyPullRequestPullRequest {
 			};
 			role: string;
 			approved: boolean;
-			state: "changes_requested" | "approve" | "null";
+			state: string | null;
 			participated_on: string;
 		}[];
 	};
@@ -757,7 +757,7 @@ export interface FetchThirdPartyPullRequestPullRequest {
 			};
 			role: string;
 			approved: boolean;
-			state: string;
+			state: string | null;
 			participated_on: string;
 		}[];
 	};
