@@ -1152,8 +1152,8 @@ interface BitbucketUpdateDescription {
 	description: string;
 }
 
-interface BitbucketUnfilteredParticipants {
-	type: string;
+export interface BitbucketUnfilteredParticipants {
+	type?: string;
 	user: {
 		display_name: string;
 		links: {
@@ -1161,14 +1161,14 @@ interface BitbucketUnfilteredParticipants {
 				href: string;
 			};
 		};
-		type: string;
+		type?: string;
 		uuid: string;
-		account_id?: string;
+		account_id: string;
 		nickname: string;
 	};
 	role: string; // PARTICIPANT, REVIEWER
 	approved: boolean;
-	state: string; // approved, changes_requested, null
+	state: "approved" | "changes_requested" | null;
 	participated_on: string;
 }
 [];
@@ -1489,7 +1489,7 @@ export class BitbucketProvider
 		if (participants.length) {
 			const participantLength = participants.length;
 			const approvedParticipants = participants.filter(
-				(_: { approved: boolean; state: string }) => _.approved && _.state === "approved"
+				(_: { approved: boolean; state: string | null }) => _.approved && _.state === "approved"
 			);
 			const isApproved = participantLength == approvedParticipants?.length;
 			return isApproved;
@@ -1499,7 +1499,9 @@ export class BitbucketProvider
 
 	private excludeNonActiveParticipants = (participants: BitbucketUnfilteredParticipants[]) => {
 		const nonReviewers = participants.filter((_: { role: string }) => _.role !== "REVIEWER");
-		const filteredParticipants = nonReviewers.filter((_: { state: string }) => _.state !== null);
+		const filteredParticipants = nonReviewers.filter(
+			(_: { state: string | null }) => _.state !== null
+		);
 		return filteredParticipants;
 	};
 
@@ -2081,6 +2083,7 @@ export class BitbucketProvider
 		userId: string;
 		participants: any[];
 		repoWithOwner: string;
+		viewerRole: string;
 	}): Promise<Directives> {
 		const payload: { type: string } = {
 			type: request.eventType,
@@ -2116,6 +2119,7 @@ export class BitbucketProvider
 							state: "null",
 							participated_on: toUtcIsoNow(),
 							approved: false,
+							role: request.viewerRole,
 						},
 					},
 				],
@@ -2123,6 +2127,7 @@ export class BitbucketProvider
 		}
 		if (request.eventType === "request-changes") {
 			response = await this.post<
+				//returns the reviewer who requested changes
 				BitbucketSubmitReviewRequest,
 				BitbucketSubmitReviewRequestResponse
 			>(
@@ -2183,6 +2188,7 @@ export class BitbucketProvider
 							state: "null",
 							participated_on: toUtcIsoNow(),
 							approved: false,
+							role: request.viewerRole,
 						},
 					},
 				],
@@ -2190,6 +2196,7 @@ export class BitbucketProvider
 		}
 		if (request.eventType === "approve") {
 			response = await this.post<
+				//returns the information for the person added
 				BitbucketSubmitReviewRequest,
 				BitbucketSubmitReviewRequestResponse
 			>(
