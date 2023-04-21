@@ -45,7 +45,7 @@ export interface ReplyProps {
 	lastNestedReply?: boolean;
 }
 
-const AuthorInfo = styled.div`
+export const AuthorInfo = styled.div`
 	display: flex;
 	align-items: top;
 	${Headshot} {
@@ -115,7 +115,7 @@ const Root = styled.div`
 	}
 `;
 
-const ReplyBody = styled.span`
+export const ReplyBody = styled.span`
 	display: flex;
 	flex-direction: column;
 	position: relative;

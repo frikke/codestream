@@ -6,7 +6,7 @@ import {
 	EditorReplaceSymbolResponse
 } from "../../../shared/ui/ipc/host.protocol.editor";
 import { Editor } from "extensions";
-import { Uri, commands } from "vscode";
+import { Uri, commands, Range } from "vscode";
 import { CancellationTokenSource } from "vscode-languageclient";
 import { BuiltInCommands } from "../constants";
 
@@ -75,6 +75,12 @@ export async function replaceSymbol(
 	await commands.executeCommand(BuiltInCommands.FormatSelection);
 	// Undo the highlight done by the stack trace error jump
 	await Editor.highlightRange(uri, updatedTargetSymbol.range, undefined, true);
+	await Editor.selectRange(
+		editor.document.uri,
+		new Range(updatedTargetSymbol.range.start, updatedTargetSymbol.range.start),
+		undefined,
+		{}
+	);
 	await editor.document.save();
 	return {
 		success: true

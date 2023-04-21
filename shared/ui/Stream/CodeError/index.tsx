@@ -78,6 +78,7 @@ import { isFeatureEnabled } from "../../store/apiVersioning/reducer";
 import { isEmpty } from "lodash-es";
 import { LoadingMessage } from "@codestream/webview/src/components/LoadingMessage";
 import { Post } from "@codestream/webview/store/posts/types";
+import { AuthorInfo, ReplyBody } from "@codestream/webview/Stream/Posts/Reply";
 
 interface SimpleError {
 	/**
@@ -1313,13 +1314,6 @@ const BaseCodeError = (props: BaseCodeErrorProps) => {
 								})}
 							</ClickLines>
 						</TourTip>
-						{!!derivedState.isLoading && (
-							<DelayedRender>
-								<div>
-									<LoadingMessage>Analyzing Error...</LoadingMessage>
-								</div>
-							</DelayedRender>
-						)}
 					</Meta>
 					{props.post && (
 						<div style={{ marginBottom: "10px" }}>
@@ -1609,7 +1603,7 @@ const ReplyInput = (props: { codeError: CSCodeError; replies: Post[] }) => {
 		setTimeout(scrollToNew, 500);
 	};
 
-	return (
+	return props.replies.length > 0 ? (
 		<>
 			<MessageInput
 				multiCompose
@@ -1626,6 +1620,9 @@ const ReplyInput = (props: { codeError: CSCodeError; replies: Post[] }) => {
 					<Button onClick={applyFix} isLoading={isLoading === "chat"}>
 						Apply Fix
 					</Button>
+				)}
+				{props.replies.length === 4 && (
+					<Button onClick={() => submit("normal")}>Add Unit Test</Button>
 				)}
 				<Tooltip
 					title={
@@ -1649,6 +1646,8 @@ const ReplyInput = (props: { codeError: CSCodeError; replies: Post[] }) => {
 				</Tooltip>
 			</ButtonRow>
 		</>
+	) : (
+		<></>
 	);
 };
 
@@ -1698,6 +1697,7 @@ const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 			userIsFollowing: (props.codeError.followerIds || []).includes(state.session.userId!),
 			replies: getThreadPosts(state, codeError.streamId, codeError.postId),
 			isPDIdev: isFeatureEnabled(state, "PDIdev"),
+			isLoading: state.codeErrors.isLoading,
 		};
 	}, shallowEqual);
 
@@ -1728,7 +1728,20 @@ const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 				<Footer className="replies-to-review" style={{ borderTop: "none", marginTop: 0 }}>
 					{props.codeError.postId && (
 						<>
-							{derivedState.replies.length > 0 && <MetaLabel>Activity</MetaLabel>}
+							{<MetaLabel>Activity</MetaLabel>}
+							{!!derivedState.isLoading && derivedState.replies.length === 0 && (
+								<DelayedRender>
+									<ReplyBody style={{ marginTop: 13 }}>
+										<AuthorInfo style={{ fontWeight: 700 }}>
+											<Headshot size={20} person={{ username: "Grok" }} />
+											<span>Grok</span>
+										</AuthorInfo>
+									</ReplyBody>
+									<div>
+										<LoadingMessage align={"left"}>Analyzing Error...</LoadingMessage>
+									</div>
+								</DelayedRender>
+							)}
 							<RepliesToPost
 								streamId={props.codeError.streamId}
 								parentPostId={props.codeError.postId}
