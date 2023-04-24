@@ -45,3 +45,8 @@ export interface BitbucketList {
 export interface BitbucketFetchListsResponse {
 	lists: BitbucketList[];
 }
+
+export enum BitbucketParticipantRole {
+	Participant = "PARTICIPANT",
+	Reviewer = "REVIEWER",
+}

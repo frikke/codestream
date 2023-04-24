@@ -1,4 +1,5 @@
 import {
+	BitbucketParticipantRole,
 	DiscussionNode,
 	FetchThirdPartyPullRequestCommitsResponse,
 	FetchThirdPartyPullRequestPullRequest,
@@ -873,11 +874,11 @@ const providerPullRequestsSlice = createSlice({
 								});
 							}
 							const nonReviewers = pr.participantsUnfiltered.nodes.filter(
-								_ => _.role !== "REVIEWER"
+								_ => _.role !== BitbucketParticipantRole.Reviewer
 							);
 							const filteredParticipants = nonReviewers.filter(_ => _.state !== null);
 							const reviewers = pr.participantsUnfiltered.nodes.filter(
-								_ => _.role !== "PARTICIPANT"
+								_ => _.role !== BitbucketParticipantRole.Participant
 							);
 							//update participants with filteredParticipants & update reviewers with reviewers
 							pr.participants.nodes = filteredParticipants;
@@ -896,11 +897,11 @@ const providerPullRequestsSlice = createSlice({
 								pr.participantsUnfiltered.nodes[foundUser].role = directive.data.role;
 							}
 							const nonReviewers = pr.participantsUnfiltered.nodes.filter(
-								_ => _.role !== "REVIEWER"
+								_ => _.role !== BitbucketParticipantRole.Reviewer
 							);
 							const filteredParticipants = nonReviewers.filter(_ => _.state !== null);
 							const reviewers = pr.participantsUnfiltered.nodes.filter(
-								_ => _.role !== "PARTICIPANT"
+								_ => _.role !== BitbucketParticipantRole.Participant
 							);
 							//update participants with filteredParticipants & update reviewers with reviewers
 							pr.participants.nodes = filteredParticipants;
@@ -936,11 +937,11 @@ const providerPullRequestsSlice = createSlice({
 								});
 							}
 							const nonReviewers = pr.participantsUnfiltered.nodes.filter(
-								_ => _.role !== "REVIEWER"
+								_ => _.role !== BitbucketParticipantRole.Reviewer
 							);
 							const filteredParticipants = nonReviewers.filter(_ => _.state !== null);
 							const reviewers = pr.participantsUnfiltered.nodes.filter(
-								_ => _.role !== "PARTICIPANT"
+								_ => _.role !== BitbucketParticipantRole.Participant
 							);
 							//update participants with filteredParticipants & update reviewers with reviewers
 							pr.participants.nodes = filteredParticipants;
@@ -959,37 +960,37 @@ const providerPullRequestsSlice = createSlice({
 								pr.participantsUnfiltered.nodes[foundUser].role = directive.data.role;
 							}
 							const nonReviewers = pr.participantsUnfiltered.nodes.filter(
-								_ => _.role !== "REVIEWER"
+								_ => _.role !== BitbucketParticipantRole.Reviewer
 							);
 							const filteredParticipants = nonReviewers.filter(_ => _.state !== null);
 							const reviewers = pr.participantsUnfiltered.nodes.filter(
-								_ => _.role !== "PARTICIPANT"
+								_ => _.role !== BitbucketParticipantRole.Participant
 							);
 							//update participants with filteredParticipants & update reviewers with reviewers
 							pr.participants.nodes = filteredParticipants;
 							pr.reviewers.nodes = reviewers;
 						} else if (directive.type === "removeRequestedReviewer") {
 							const nonReviewers = directive.data.participants.filter(
-								(_: { role: string }) => _.role !== "REVIEWER"
+								(_: { role: string }) => _.role !== BitbucketParticipantRole.Reviewer
 							);
 							const filteredParticipants = nonReviewers.filter(
 								(_: { state: string }) => _.state !== null
 							);
 							const reviewers = directive.data.participants.filter(
-								(_: { role: string }) => _.role !== "PARTICIPANT"
+								(_: { role: string }) => _.role !== BitbucketParticipantRole.Participant
 							);
 							//update participants with filteredParticipants & update reviewers with reviewers
 							pr.participants.nodes = filteredParticipants;
 							pr.reviewers.nodes = reviewers;
 						} else if (directive.type === "updateReviewers") {
 							const nonReviewers = directive.data.participants.filter(
-								(_: { role: string }) => _.role !== "REVIEWER"
+								(_: { role: string }) => _.role !== BitbucketParticipantRole.Reviewer
 							);
 							const filteredParticipants = nonReviewers.filter(
 								(_: { state: string }) => _.state !== null
 							);
 							const reviewers = directive.data.participants.filter(
-								(_: { role: string }) => _.role !== "PARTICIPANT"
+								(_: { role: string }) => _.role !== BitbucketParticipantRole.Participant
 							);
 							//update participants with filteredParticipants & update reviewers with reviewers
 							pr.participants.nodes = filteredParticipants;
