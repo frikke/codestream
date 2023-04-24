@@ -971,29 +971,35 @@ const providerPullRequestsSlice = createSlice({
 							pr.reviewers.nodes = reviewers;
 						} else if (directive.type === "removeRequestedReviewer") {
 							const nonReviewers = directive.data.participants.filter(
-								(_: { role: string }) => _.role !== BitbucketParticipantRole.Reviewer
+								(_: { role: BitbucketParticipantRole }) =>
+									_.role !== BitbucketParticipantRole.Reviewer
 							);
 							const filteredParticipants = nonReviewers.filter(
-								(_: { state: string }) => _.state !== null
+								(_: { state?: string }) => _.state !== null
 							);
 							const reviewers = directive.data.participants.filter(
-								(_: { role: string }) => _.role !== BitbucketParticipantRole.Participant
+								(_: { role: BitbucketParticipantRole }) =>
+									_.role !== BitbucketParticipantRole.Participant
 							);
 							//update participants with filteredParticipants & update reviewers with reviewers
 							pr.participants.nodes = filteredParticipants;
+							pr.participantsUnfiltered.nodes = directive.data.participants;
 							pr.reviewers.nodes = reviewers;
 						} else if (directive.type === "updateReviewers") {
 							const nonReviewers = directive.data.participants.filter(
-								(_: { role: string }) => _.role !== BitbucketParticipantRole.Reviewer
+								(_: { role: BitbucketParticipantRole }) =>
+									_.role !== BitbucketParticipantRole.Reviewer
 							);
 							const filteredParticipants = nonReviewers.filter(
-								(_: { state: string }) => _.state !== null
+								(_: { state?: string }) => _.state !== null
 							);
 							const reviewers = directive.data.participants.filter(
-								(_: { role: string }) => _.role !== BitbucketParticipantRole.Participant
+								(_: { role: BitbucketParticipantRole }) =>
+									_.role !== BitbucketParticipantRole.Participant
 							);
 							//update participants with filteredParticipants & update reviewers with reviewers
 							pr.participants.nodes = filteredParticipants;
+							pr.participantsUnfiltered.nodes = directive.data.participants;
 							pr.reviewers.nodes = reviewers;
 						} else if (directive.type === "addNode") {
 							pr.comments = pr.comments || [];

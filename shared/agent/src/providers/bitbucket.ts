@@ -2077,7 +2077,7 @@ export class BitbucketProvider
 		// used with old servers
 		pullRequestReviewId?: string;
 		userId: string;
-		participants: any[];
+		participants: BitbucketUnfilteredParticipants[];
 		repoWithOwner: string;
 		viewerRole: string;
 	}): Promise<Directives> {
@@ -3078,26 +3078,26 @@ export class BitbucketProvider
 				pr.reviewers.nodes = reviewers;
 			} else if (directive.type === "removeRequestedReviewer") {
 				const nonReviewers = directive.data.participants.filter(
-					(_: { role: string }) => _.role !== BitbucketParticipantRole.Reviewer
+					(_: { role: BitbucketParticipantRole }) => _.role !== BitbucketParticipantRole.Reviewer
 				);
 				const filteredParticipants = nonReviewers.filter(
-					(_: { state: string }) => _.state !== null
+					(_: { state?: string }) => _.state !== null
 				);
 				const reviewers = directive.data.participants.filter(
-					(_: { role: string }) => _.role !== BitbucketParticipantRole.Participant
+					(_: { role: BitbucketParticipantRole }) => _.role !== BitbucketParticipantRole.Participant
 				);
 				//update participants with filteredParticipants & update reviewers with reviewers
 				pr.participants.nodes = filteredParticipants;
 				pr.reviewers.nodes = reviewers;
 			} else if (directive.type === "updateReviewers") {
 				const nonReviewers = directive.data.participants.filter(
-					(_: { role: string }) => _.role !== BitbucketParticipantRole.Reviewer
+					(_: { role: BitbucketParticipantRole }) => _.role !== BitbucketParticipantRole.Reviewer
 				);
 				const filteredParticipants = nonReviewers.filter(
-					(_: { state: string }) => _.state !== null
+					(_: { state?: string }) => _.state !== null
 				);
 				const reviewers = directive.data.participants.filter(
-					(_: { role: string }) => _.role !== BitbucketParticipantRole.Participant
+					(_: { role: BitbucketParticipantRole }) => _.role !== BitbucketParticipantRole.Participant
 				);
 				//update participants with filteredParticipants & update reviewers with reviewers
 				pr.participants.nodes = filteredParticipants;
