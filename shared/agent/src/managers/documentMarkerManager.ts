@@ -368,7 +368,6 @@ export class DocumentMarkerManager {
 				});
 			}
 		} else if (providerId === "bitbucket*org") {
-			// TODO get all the review comments for this PR
 			const pr = result.repository.pullRequest;
 			const comments: any[] = [];
 			pr.comments.forEach((_: { inline: any }) => {
@@ -377,20 +376,11 @@ export class DocumentMarkerManager {
 				}
 			});
 
-			// pr.comments.forEach((_: any) => {
-			// 	if (_.notes && _.notes.nodes) {
-			// 		_.notes.nodes.forEach((n: any) => {
-			// 			if (n.position && n.position.newPath === parsedUri.path) {
-			// 				comments.push(n);
-			// 			}
-			// 		});
-			// 	}
-			// });
 			const provider = providerRegistry
 				.getProviders()
 				.find((provider: ThirdPartyProvider) => provider.getConfig().id === pr.providerId);
 			if (provider) {
-				comments.forEach(async (comment: any) => {
+				comments.forEach((comment: any) => {
 					//TODO: fix any
 					let summary = comment.bodyText;
 					if (summary.length !== 0) {
@@ -399,8 +389,8 @@ export class DocumentMarkerManager {
 					const gotoLine = comment.inline.to;
 					const location: CSLocationArray = [gotoLine, 0, gotoLine, 0, undefined];
 					documentMarkers.push({
-						createdAt: +new Date(comment.created_on),
-						modifiedAt: +new Date(comment.updated_on),
+						createdAt: new Date(comment.created_on).getTime(),
+						modifiedAt: new Date(comment.updated_on).getTime(),
 						id: comment.id,
 						file: comment.inline.path,
 						repoId: "",

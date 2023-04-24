@@ -62,15 +62,6 @@ export const PullRequestReviewButton = (props: Props) => {
 			currentPullRequestId: state.context.currentPullRequest
 				? state.context.currentPullRequest.id
 				: undefined,
-			// currentPullRequestCommentId: state.context.currentPullRequest
-			// 	? state.context.currentPullRequest.commentId
-			// 	: undefined,
-			// currentPullRequestSource: state.context.currentPullRequest
-			// 	? state.context.currentPullRequest.source
-			// 	: undefined,
-			// previousPullRequestView: state.context.currentPullRequest
-			// 	? state.context.currentPullRequest.previousView
-			// 	: undefined,
 			currentPullRequest: currentPullRequest,
 			currentPullRequestLastUpdated: providerPullRequestLastUpdated,
 			composeCodemarkActive: state.context.composeCodemarkActive,

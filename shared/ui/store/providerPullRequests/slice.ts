@@ -870,7 +870,7 @@ const providerPullRequestsSlice = createSlice({
 									approved: directive.data.approved,
 									participated_on: directive.data.participated_on,
 									role: directive.data.role,
-								} as any); // TODO
+								});
 							}
 							const nonReviewers = pr.participantsUnfiltered.nodes.filter(
 								_ => _.role !== "REVIEWER"
@@ -933,7 +933,7 @@ const providerPullRequestsSlice = createSlice({
 									approved: directive.data.approved,
 									participated_on: directive.data.participated_on,
 									role: directive.data.role,
-								} as any); // TODO
+								});
 							}
 							const nonReviewers = pr.participantsUnfiltered.nodes.filter(
 								_ => _.role !== "REVIEWER"

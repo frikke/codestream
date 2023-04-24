@@ -64,7 +64,7 @@ export const PullRequestEditingComment = styled((props: Props) => {
 	};
 
 	const handleCancelEdit = async () => {
-		if (text == null || text == undefined || text == props.text || text == props.pr.description) {
+		if (text == null || text == props.text || text == props.pr.description) {
 			done();
 			return;
 		}

@@ -1574,15 +1574,9 @@ export class BitbucketProvider
 			const userResponse = await this.getCurrentUser();
 
 			const isViewerCanUpdate = () => {
-				if (
-					permissions.body.values.find(
-						(_: { user: { account_id: string } }) => _.user.account_id === userResponse.account_id
-					)
-				) {
-					return true;
-				} else {
-					return false;
-				}
+				return !!permissions.body.values.find(
+					(_: { user: { account_id: string } }) => _.user.account_id === userResponse.account_id
+				);
 			};
 
 			let lines_added_total = 0;
@@ -1967,21 +1961,20 @@ export class BitbucketProvider
 			`/repositories/${request.fullname}/pullrequests/${request.pullRequestId}`
 		);
 
-		let newReviewers: any[] = [];
+		let newReviewers: BitbucketReviewers[] = [];
 
 		if (pr.body.reviewers?.length === 1) {
 			newReviewers = [];
 		} else {
 			//remove that reviewer
 			pr.body.reviewers?.filter(_ => {
-				//@ts-ignore
 				if (_.account_id !== request.reviewerId) {
 					newReviewers.push(_);
 				}
 			});
 		}
 
-		const payload: { reviewers: any[] } = {
+		const payload = {
 			reviewers: newReviewers,
 		};
 		Logger.log(`commenting:removeRequestedReviewer`, {
@@ -2041,8 +2034,8 @@ export class BitbucketProvider
 
 		const newReviewers = userInfo;
 
-		const payload: any = {
-			reviewers: newReviewers,
+		const payload = {
+			reviewers: newReviewers ?? [],
 		};
 		Logger.log(`commenting:addRequestedReviewer`, {
 			request: request,
@@ -2632,8 +2625,8 @@ export class BitbucketProvider
 		fullnameArr: { fullname: string }[],
 		usernameResponse: ApiResponse<BitbucketUser>,
 		query: string
-	): Promise<any> {
-		let array: any[] = [];
+	): Promise<GetMyPullRequestsResponse[]> {
+		let array: BitbucketPullRequests[] = [];
 		for (let i = 0; i < fullnameArr.length; i++) {
 			const pullrequests = await this.get<BitbucketValues<BitbucketPullRequests[]>>(
 				`/repositories/${fullnameArr[i].fullname}/pullrequests?${query}`
@@ -2664,7 +2657,10 @@ export class BitbucketProvider
 		return response;
 	}
 
-	private async _getRecents(fullnameArr: { fullname: string }[], query: string): Promise<any> {
+	private async _getRecents(
+		fullnameArr: { fullname: string }[],
+		query: string
+	): Promise<GetMyPullRequestsResponse[]> {
 		let array = [];
 		for (let i = 0; i < fullnameArr.length; i++) {
 			const recents = await this.get<BitbucketValues<BitbucketPullRequests[]>>(
@@ -2672,7 +2668,7 @@ export class BitbucketProvider
 			);
 
 			if (recents.body.values.length > 1) {
-				recents.body.values.forEach((repo: any) => {
+				recents.body.values.forEach(repo => {
 					array.push(repo);
 				});
 			} else if (recents.body.values.length === 1) {
@@ -2689,12 +2685,12 @@ export class BitbucketProvider
 		return response;
 	}
 
-	private async _getPRsByMe(username: string, query: string): Promise<any> {
-		const array: any[] = [];
+	private async _getPRsByMe(username: string, query: string): Promise<GetMyPullRequestsResponse[]> {
+		const array: BitbucketPullRequests[] = [];
 		const createdByMe = await this.get<BitbucketValues<BitbucketPullRequests[]>>(
 			`/pullrequests/${username}?${query}`
 		);
-		createdByMe.body.values.forEach((_: any) => {
+		createdByMe.body.values.forEach(_ => {
 			array.push(_);
 		});
 		const setUpArray = this._mergeSort(array);
@@ -2706,7 +2702,7 @@ export class BitbucketProvider
 		fullNames: { fullname: string }[],
 		usernameResponse: ApiResponse<BitbucketUser>,
 		query: string
-	): Promise<any> {
+	): Promise<GetMyPullRequestsResponse[]> {
 		const array = [];
 		for (let i = 0; i < fullNames.length; i++) {
 			const pullrequests = await this.get<BitbucketValues<BitbucketPullRequests[]>>(

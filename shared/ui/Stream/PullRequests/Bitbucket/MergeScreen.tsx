@@ -11,11 +11,10 @@ import { WarningBox } from "../../WarningBox";
 
 interface Props {
 	pr: FetchThirdPartyPullRequestPullRequest;
-	onClose: Function;
+	onClose: () => void;
 }
 
 export const MergeScreen = (props: Props) => {
-	const pr = props;
 	const dispatch = useAppDispatch();
 	const [mergeMessage, setMergeMessage] = useState("");
 	const [mergeMethod, setMergeMethod] = useState("merge_commit");
@@ -23,7 +22,6 @@ export const MergeScreen = (props: Props) => {
 	const [isCloseSourceBranch, setIsCloseSourceBranch] = useState(false);
 	const [isChecked, setIsChecked] = useState(false);
 	const [mergeError, setMergeError] = useState("");
-	const options = ["merge_commit", "squash", "fast_forward"];
 
 	const handleChange = () => {
 		if (isChecked) {

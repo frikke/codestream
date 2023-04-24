@@ -93,8 +93,6 @@ export const PullRequestTimelineItems = (props: PropsWithChildren<Props>) => {
 		};
 	});
 
-	const [currentRepoRoot, setCurrentRepoRoot] = React.useState("");
-
 	const timelineNodes = pr.timelineItems.nodes;
 	console.warn(pr);
 	return (

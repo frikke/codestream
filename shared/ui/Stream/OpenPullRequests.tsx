@@ -519,10 +519,11 @@ export const OpenPullRequests = React.memo((props: Props) => {
 				// Update default queries for users in a non-destructive way
 				if (derivedState.pullRequestQueries) {
 					patchQueries(defaultQueriesResponse, derivedState.pullRequestQueries, saveQueries);
-					let newObject = {};
+					const newObject: FetchProviderDefaultPullResponse = {};
 					//check if there is an empty array and if so, take it out
 					Object.keys(derivedState.pullRequestQueries).forEach(key => {
 						if (
+							derivedState.pullRequestQueries &&
 							derivedState.pullRequestQueries![key] &&
 							Array.isArray(derivedState.pullRequestQueries![key]) &&
 							derivedState.pullRequestQueries![key].length > 0

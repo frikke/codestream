@@ -22,9 +22,8 @@ export const BitbucketParticipantEditScreen = (props: Props) => {
 	const [error, setError] = useState("");
 
 	const removeRevieweritems = () => {
-		let itemsMap;
 		if (props.pr.reviewers?.nodes.length) {
-			itemsMap = props.pr.reviewers?.nodes.map(_ => {
+			return props.pr.reviewers?.nodes.map(_ => {
 				return {
 					label: _.user.display_name,
 					key: _.user.account_id,
@@ -34,10 +33,8 @@ export const BitbucketParticipantEditScreen = (props: Props) => {
 					},
 				};
 			});
-		} else {
-			itemsMap = [];
 		}
-		return itemsMap;
+		return [];
 	};
 
 	const getRemoveReviewerItems = removeRevieweritems();

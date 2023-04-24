@@ -1,6 +1,7 @@
 import {
 	ChangeDataType,
 	DidChangeDataNotificationType,
+	FetchThirdPartyPullRequestRepository,
 	GetReposScmRequestType,
 	ReposScm,
 	SwitchBranchRequestType,
@@ -160,7 +161,7 @@ export const PullRequest = () => {
 
 	const [activeTab, setActiveTab] = useState(1);
 	const [scrollPosition, setScrollPosition] = useState(EMPTY_HASH2);
-	const [bbRepo, setBbRepo] = useState<any>(EMPTY_HASH);
+	const [bbRepo, setBbRepo] = useState<FetchThirdPartyPullRequestRepository>();
 	const [isLoadingPR, setIsLoadingPR] = useState(false);
 	const [isLoadingMessage, setIsLoadingMessage] = useState("");
 	const [generalError, setGeneralError] = useState("");
@@ -170,7 +171,7 @@ export const PullRequest = () => {
 	const [savingTitle, setSavingTitle] = useState(false);
 	const [title, setTitle] = useState("");
 	const [currentRepoChanged, setCurrentRepoChanged] = useState(false);
-	const [finishReviewOpen, setFinishReviewOpen] = useState(false);
+
 	const [oneLayerModal, setOneLayerModal] = useState(false);
 	const [autoCheckedMergeability, setAutoCheckedMergeability] =
 		useState<autoCheckedMergeabilityStatus>("UNCHECKED");
@@ -182,16 +183,6 @@ export const PullRequest = () => {
 		if (container) setScrollPosition({ ...scrollPosition, [activeTab]: container.scrollTop });
 		setActiveTab(tab);
 	};
-
-	const exit = async () => {
-		await dispatch(clearCurrentPullRequest());
-	};
-
-	// const [reviewText, setReviewText] = useState("");
-	const [submittingReview, setSubmittingReview] = useState(false);
-	const [reviewType, setReviewType] = useState<
-		"MERGE" | "APPROVE" | "UNAPPROVE" | "REQUEST_CHANGES"
-	>("APPROVE");
 
 	const PRError = styled.div`
 		padding: 0px 15px 20px 15px;
@@ -340,54 +331,25 @@ export const PullRequest = () => {
 	useEffect(() => {
 		if (!pr) return;
 
-		const _didChangeDataNotification = HostApi.instance.on(
-			DidChangeDataNotificationType,
-			(e: any) => {
-				if (e.type === ChangeDataType.Commits) {
-					getOpenRepos().then(_ => {
-						const currentOpenRepo = openRepos.find(
-							_ =>
-								_?.name.toLowerCase() === pr.repository?.name?.toLowerCase() ||
-								_?.folder?.name?.toLowerCase() === pr.repository?.name?.toLowerCase()
-						);
-						setCurrentRepoChanged(
-							!!(e.data.repo && currentOpenRepo && currentOpenRepo.currentBranch == pr.headRefName)
-						);
-					});
-				}
+		const _didChangeDataNotification = HostApi.instance.on(DidChangeDataNotificationType, e => {
+			if (e.type === ChangeDataType.Commits) {
+				getOpenRepos().then(_ => {
+					const currentOpenRepo = openRepos.find(
+						_ =>
+							_?.name.toLowerCase() === pr.repository?.name?.toLowerCase() ||
+							_?.folder?.name?.toLowerCase() === pr.repository?.name?.toLowerCase()
+					);
+					setCurrentRepoChanged(
+						!!(e.data.repo && currentOpenRepo && currentOpenRepo.currentBranch == pr.headRefName)
+					);
+				});
 			}
-		);
+		});
 
 		return () => {
 			_didChangeDataNotification && _didChangeDataNotification.dispose();
 		};
 	}, [openRepos, pr]);
-
-	const cantCheckoutReason = useMemo(() => {
-		if (pr) {
-			// Check for a name match in two places, covers edge case if repo was recently renamed
-			const currentRepo = openRepos.find(
-				_ =>
-					_?.name.toLowerCase() === pr.repository?.name?.toLowerCase() ||
-					_?.folder?.name?.toLowerCase() === pr.repository?.name?.toLowerCase()
-			);
-			if (!currentRepo) {
-				return `You don't have the ${pr.repository?.name} repo open in your IDE`;
-			}
-			if (currentRepo.currentBranch == pr.headRefName) {
-				return `You are on the ${pr.headRefName} branch`;
-			}
-
-			// branch is in a fork
-			if (pr.headRepository?.isFork) {
-				return `The source branch for this PR is located on the ${pr.headRepositoryOwner?.login}/${pr.headRepository?.name} fork`;
-			}
-
-			return "";
-		} else {
-			return "PR not loaded";
-		}
-	}, [pr, openRepos, currentRepoChanged]);
 
 	const saveTitle = async () => {
 		try {

@@ -131,7 +131,7 @@ export const PullRequestConversationTab = (props: {
 			currentPullRequestProviderId: state.context.currentPullRequest
 				? state.context.currentPullRequest.providerId
 				: undefined,
-			pr: currentPullRequest?.conversations?.repository?.pullRequest! as any, // TODO handle undefined / null
+			pr: currentPullRequest?.conversations?.repository?.pullRequest!,
 			team,
 			skipGitEmailCheck,
 			addBlameMapEnabled,
