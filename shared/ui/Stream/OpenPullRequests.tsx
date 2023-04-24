@@ -11,6 +11,7 @@ import {
 	ReposScm,
 	SwitchBranchRequestType,
 	UpdateTeamSettingsRequestType,
+	RemoteType,
 } from "@codestream/protocols/agent";
 import { PullRequestQuery } from "@codestream/protocols/api";
 import copy from "copy-to-clipboard";
@@ -776,14 +777,15 @@ export const OpenPullRequests = React.memo((props: Props) => {
 		}
 	};
 
-	const parseRawUrlFromRemote = remotes => {
+	const parseRawUrlFromRemote = (remotes: RemoteType[]) => {
 		return remotes?.map(_ => {
 			const lastDotIndex = _?.rawUrl?.lastIndexOf(".");
-			let rawUrlWithoutDot;
+			let rawUrlWithoutDot: string;
 			if (lastDotIndex === -1) {
-				rawUrlWithoutDot = _?.rawUrl;
+				rawUrlWithoutDot = _?.rawUrl || "";
+			} else {
+				rawUrlWithoutDot = _?.rawUrl?.substring(0, lastDotIndex) || "";
 			}
-			rawUrlWithoutDot = _?.rawUrl?.substring(0, lastDotIndex);
 			const splitRawUrlWithoutDot = rawUrlWithoutDot.split("/");
 			return splitRawUrlWithoutDot[splitRawUrlWithoutDot.length - 1];
 		});
@@ -792,8 +794,13 @@ export const OpenPullRequests = React.memo((props: Props) => {
 	const getCurrentRepo = pr => {
 		return openRepos.find(_ => {
 			const nameFromPr = pr.headRepository?.name?.toLowerCase();
-			const parsedRemoteNamesFromRawUrl = parseRawUrlFromRemote(_.remotes);
-			const nameFoundInPrToCheckout = parsedRemoteNamesFromRawUrl?.find(_ => _ === nameFromPr);
+			if (!nameFromPr) return false;
+			let nameFoundInPrToCheckout: string | undefined;
+			if (_?.remotes && !isEmpty(_?.remotes)) {
+				const parsedRemoteNamesFromRawUrl = parseRawUrlFromRemote(_.remotes).filter(Boolean);
+				nameFoundInPrToCheckout =
+					parsedRemoteNamesFromRawUrl?.find(_ => _ === nameFromPr) || undefined;
+			}
 			return (
 				_?.name?.toLowerCase() === nameFromPr ||
 				_?.folder?.name?.toLowerCase() === nameFromPr ||
