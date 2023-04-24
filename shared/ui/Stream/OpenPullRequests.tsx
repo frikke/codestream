@@ -779,12 +779,13 @@ export const OpenPullRequests = React.memo((props: Props) => {
 
 	const parseRawUrlFromRemote = (remotes: RemoteType[]) => {
 		return remotes?.map(_ => {
-			const lastDotIndex = _?.rawUrl?.lastIndexOf(".");
+			if (!_?.rawUrl) return;
+			const lastDotIndex = _.rawUrl?.lastIndexOf(".");
 			let rawUrlWithoutDot: string;
 			if (lastDotIndex === -1) {
-				rawUrlWithoutDot = _?.rawUrl || "";
+				rawUrlWithoutDot = _.rawUrl || "";
 			} else {
-				rawUrlWithoutDot = _?.rawUrl?.substring(0, lastDotIndex) || "";
+				rawUrlWithoutDot = _.rawUrl?.substring(0, lastDotIndex) || "";
 			}
 			const splitRawUrlWithoutDot = rawUrlWithoutDot.split("/");
 			return splitRawUrlWithoutDot[splitRawUrlWithoutDot.length - 1];
