@@ -11,7 +11,7 @@ import openaiCachedBase from "./nr-generativeai-api.openai.azure.com.json";
 import { compareTwoStrings } from "string-similarity";
 
 const RECORD_MODE = false;
-const CACHE_MODE = false;
+const CACHE_MODE = true;
 
 const noLogRetries = ["reason: connect ECONNREFUSED", "reason: getaddrinfo ENOTFOUND"];
 
@@ -86,9 +86,12 @@ const cachable = [
 
 async function resolveCached(url: RequestInfo, init?: RequestInit): Promise<string | undefined> {
 	const origin = urlOrigin(url);
-	if (!origin.includes("nr-generativeai-api.openai.azure.com")) {
+	if (
+		!origin.includes("nr-generativeai-api.openai.azure.com") &&
+		!origin.includes("staging-api.newrelic.com")
+	) {
 		// && !origin.includes("api.openai.com")
-		// !origin.includes("staging-api.newrelic.com")
+		// )
 		return undefined;
 	}
 

@@ -1910,16 +1910,17 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				postMessages.push({ ...request });
 			}
 			if (submitType !== "normal" || request.text.startsWith("@Grok")) {
-				const chatResponse = await getChatResponse(
-					request.streamId,
-					request.text.replace("@Grok", "").trim(),
-					"user",
-					submitType === "analyze"
-				);
+				let chatResponse = "";
+				if (submitType !== "fix_applied") {
+					chatResponse = await getChatResponse(
+						request.streamId,
+						request.text.replace("@Grok", "").trim(),
+						"user",
+						submitType === "analyze"
+					);
+				}
 				const resolvedChatResponse =
-					submitType === "fix_applied"
-						? `#Grok#Code fix applied. A good commit message would be:\n\n ${chatResponse}`
-						: chatResponse;
+					submitType === "fix_applied" ? `#Grok#Code fix applied.` : chatResponse;
 				// Second message is ChatGPT response
 				postMessages.push({ ...request, text: resolvedChatResponse });
 			} else {

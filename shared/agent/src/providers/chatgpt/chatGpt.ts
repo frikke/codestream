@@ -16,7 +16,7 @@ import { isEmpty } from "lodash";
 import { Logger } from "../../logger";
 
 const apiUrl =
-	"https://nr-generativeai-api.openai.azure.com/openai/deployments/gpt-4/chat/completions?api-version=2023-03-15-preview";
+	"https://nr-generativeai-api.openai.azure.com/openai/deployments/gpt-35-turbo/chat/completions?api-version=2023-03-15-preview";
 
 const codeStreamDirectory = path.join(os.homedir(), ".codestream");
 
