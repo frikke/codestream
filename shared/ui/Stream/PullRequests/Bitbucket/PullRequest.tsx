@@ -771,8 +771,7 @@ export const PullRequest = () => {
 								style={{ paddingTop: "10px" }}
 							>
 								{activeTab === 1 && (
-									<PullRequestConversationTab //TODO: this needs to be fixed to show comments
-										bbRepo={bbRepo}
+									<PullRequestConversationTab
 										autoCheckedMergeability={autoCheckedMergeability}
 										checkMergeabilityStatus={checkMergeabilityStatus}
 										setIsLoadingMessage={setIsLoadingMessage}

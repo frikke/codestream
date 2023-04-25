@@ -7,7 +7,7 @@ import { CodeStreamState } from "../../../store";
 import { isFeatureEnabled } from "../../../store/apiVersioning/reducer";
 import { getCurrentProviderPullRequest } from "../../../store/providerPullRequests/slice";
 import * as providerSelectors from "../../../store/providers/reducer";
-import { useAppDispatch, useAppSelector, useDidMount } from "../../../utilities/hooks";
+import { useAppSelector, useDidMount } from "../../../utilities/hooks";
 import Icon from "../../Icon";
 import { autoCheckedMergeabilityStatus } from "./PullRequest";
 import { PullRequestBottomComment } from "../../PullRequestBottomComment";
@@ -102,13 +102,11 @@ let focusOnMessageInput;
 
 export const PullRequestConversationTab = (props: {
 	setIsLoadingMessage: Function;
-	bbRepo: any;
 	checkMergeabilityStatus: Function;
 	autoCheckedMergeability: autoCheckedMergeabilityStatus;
 	initialScrollPosition: number;
 }) => {
-	const { bbRepo, setIsLoadingMessage } = props;
-	const dispatch = useAppDispatch();
+	const { setIsLoadingMessage } = props;
 	const derivedState = useAppSelector((state: CodeStreamState) => {
 		const currentUser = state.users[state.session.userId!] as CSMe;
 		const team = state.teams[state.context.currentTeamId];

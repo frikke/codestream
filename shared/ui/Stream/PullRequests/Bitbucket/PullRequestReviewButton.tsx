@@ -7,6 +7,7 @@ import {
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import {
 	FetchThirdPartyPullRequestPullRequest,
+	FetchThirdPartyPullRequestResponse,
 	GetReposScmRequestType,
 	ReposScm,
 	SwitchBranchRequestType,
@@ -166,7 +167,7 @@ export const PullRequestReviewButton = (props: Props) => {
 				id: derivedState.currentPullRequestId!,
 			})
 		).unwrap();
-		_assignState(response, "reload");
+		_assignState(response!, "reload");
 
 		// just clear the files and commits data -- it will be fetched if necessary (since it has its own api call)
 		// dispatch(
@@ -183,7 +184,7 @@ export const PullRequestReviewButton = (props: Props) => {
 		);
 	};
 
-	const _assignState = (pr, src?: string) => {
+	const _assignState = (pr: FetchThirdPartyPullRequestResponse, src?: string) => {
 		if (!pr || !pr.repository) return;
 		console.warn("_assignState src", src);
 		setBbRepo(pr.repository);

@@ -1766,7 +1766,7 @@ export class BitbucketProvider
 		mergeMessage: string;
 		mergeMethod: string;
 		closeSourceBranch?: boolean;
-		prParticipants: any; //TODO: fix any
+		prParticipants: BitbucketUnfilteredParticipants;
 	}): Promise<Directives | undefined | { error: string }> {
 		const payload: BitbucketMergeRequest = {
 			message: request.mergeMessage,
@@ -2028,12 +2028,13 @@ export class BitbucketProvider
 		//get user info from members
 		let userInfo = pr.body.reviewers;
 		const selectedUser = request.reviewerId;
-		members.body.values.find(_ => {
-			if (_.user.account_id === selectedUser) {
-				//@ts-ignore
-				userInfo.push(_.user);
-			}
-		});
+		if (userInfo) {
+			members.body.values.find(_ => {
+				if (_.user.account_id === selectedUser) {
+					userInfo?.push(_.user);
+				}
+			});
+		}
 
 		const newReviewers = userInfo;
 
@@ -2586,7 +2587,7 @@ export class BitbucketProvider
 		return array;
 	}
 
-	private _setUpResponse(array: any[]) {
+	private _setUpResponse(array: BitbucketPullRequest[]) {
 		const providerId = this.providerConfig?.id;
 		const response = array.map(item => {
 			return {
