@@ -69,7 +69,7 @@ export const BitbucketParticipantEditScreen = (props: Props) => {
 	const getAddReviewerItems = addReviewerItems();
 
 	const removeReviewer = async () => {
-		(await dispatch(
+		await dispatch(
 			api({
 				method: "removeReviewerFromPullRequest",
 				params: {
@@ -78,12 +78,12 @@ export const BitbucketParticipantEditScreen = (props: Props) => {
 					fullname: props.pr.repository.nameWithOwner,
 				},
 			})
-		)) as any;
+		);
 		return props.onClose();
 	};
 
 	const addReviewer = async () => {
-		(await dispatch(
+		await dispatch(
 			api({
 				method: "addReviewerToPullRequest",
 				params: {
@@ -92,7 +92,7 @@ export const BitbucketParticipantEditScreen = (props: Props) => {
 					fullname: props.pr.repository.nameWithOwner,
 				},
 			})
-		)) as any;
+		);
 		return props.onClose();
 	};
 

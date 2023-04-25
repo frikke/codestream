@@ -239,6 +239,7 @@ export const PullRequestConversationTab = (props: {
 						) : (
 							<>
 								<Button
+									style={{ width: "50px", marginRight: "2.5px" }}
 									variant="secondary"
 									size="subcompact"
 									onClick={() => {
@@ -250,6 +251,7 @@ export const PullRequestConversationTab = (props: {
 								</Button>
 
 								<Button
+									style={{ width: "60px", marginLeft: "2.5px" }}
 									variant="secondary"
 									size="subcompact"
 									onClick={() => {

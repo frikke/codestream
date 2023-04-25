@@ -694,48 +694,6 @@ export const PullRequest = () => {
 										</span>
 									</>
 								)}
-
-								{/* <InlineMenu
-									title="View Settings"
-									noChevronDown
-									noFocusOnSelect
-									items={[
-										{ label: "-" },
-										{
-											key: "auto",
-											label: "Auto",
-											subtle: " (based on width)",
-											checked: derivedState.viewPreference === "auto",
-											action: () =>
-												dispatch(
-													setUserPreference({ prefPath: ["pullRequestView"], value: "auto" })
-												),
-										},
-										{
-											key: "vertical",
-											label: "Vertical",
-											subtle: " (best for narrow)",
-											checked: derivedState.viewPreference === "vertical",
-											action: () =>
-												dispatch(
-													setUserPreference({ prefPath: ["pullRequestView"], value: "vertical" })
-												),
-										},
-										{
-											key: "side-by-side",
-											label: "Side-by-side",
-											subtle: " (best for wide)",
-											checked: derivedState.viewPreference === "side-by-side",
-											action: () =>
-												dispatch(
-													setUserPreference({
-														prefPath: ["pullRequestView"],
-														value: "side-by-side",
-													})
-												),
-										},
-									]}
-								></InlineMenu> */}
 							</PRActionButtons>
 						</PRStatus>
 						{derivedState.currentPullRequest &&
