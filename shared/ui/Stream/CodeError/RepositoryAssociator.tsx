@@ -26,6 +26,10 @@ const Ellipsize = styled.div`
 	}
 `;
 
+const ListItemCustom = styled.div`
+	margin: 5px;
+`;
+
 interface EnhancedRepoScm {
 	/**
 	 * name of the repo
@@ -164,7 +168,7 @@ export function RepositoryAssociator(props: {
 	if (openRepositories?.length === 0) {
 		return (
 			<Dismissable
-				title={repositoryError.title}
+				title={`Repository Not Found`}
 				buttons={[
 					{
 						text: "Dismiss",
@@ -175,7 +179,22 @@ export function RepositoryAssociator(props: {
 					},
 				]}
 			>
-				<p>Could not locate any open repositories. Please open a repository and try again.</p>
+				{_isEmpty(derivedState.relatedRepos) && (
+					<p>Could not locate any open repositories. Please open a repository and try again.</p>
+				)}
+				{!_isEmpty(derivedState.relatedRepos) && (
+					<>
+						<p>
+							Could not locate any open repositories. Please open one of the following repositories
+							and try again:
+						</p>
+						<ul>
+							{derivedState.relatedRepos.map((_, index) => (
+								<ListItemCustom key={`${index}_${_.name}`}>&#8226; {_.name}</ListItemCustom>
+							))}
+						</ul>
+					</>
+				)}
 			</Dismissable>
 		);
 	}
