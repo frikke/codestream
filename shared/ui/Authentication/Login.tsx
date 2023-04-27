@@ -475,7 +475,6 @@ const ConnectedLogin = connect<ConnectedProps, any, any, CodeStreamState>(
 			supportsSSOSignIn: supportsSSOSignIn(state.configs),
 			oktaEnabled: state.configs.isOnPrem,
 			isInVSCode: state.ide.name === "VSC",
-			supportsVSCodeGithubSignin: state.capabilities.vsCodeGithubSignin,
 			environmentHosts: state.configs.environmentHosts,
 			selectedRegion: state.context.__teamless__?.selectedRegion,
 			supportsMultiRegion,

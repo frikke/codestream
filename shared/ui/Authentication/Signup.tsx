@@ -122,7 +122,6 @@ export const Signup = (props: Props) => {
 			supportsSSOSignIn: supportsSSOSignIn(state.configs),
 			oktaEnabled: state.configs.isOnPrem,
 			isInVSCode: state.ide.name === "VSC",
-			supportsVSCodeGithubSignin: state.capabilities.vsCodeGithubSignin,
 			acceptedTOS: state.session.acceptedTOS,
 			machineId: state.session.machineId || "0",
 			webviewFocused: state.context.hasFocus,
