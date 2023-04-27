@@ -409,7 +409,7 @@ export const Signup = (props: Props) => {
 			HostApi.instance.track("Provider Auth Selected", {
 				Provider: "GitHub",
 			});
-			if (derivedState.isInVSCode && derivedState.supportsVSCodeGithubSignin) {
+			if (derivedState.isInVSCode) {
 				return dispatch(startIDESignin("github", buildSignupInfo()));
 			} else {
 				return dispatch(startSSOSignin("github", buildSignupInfo()));

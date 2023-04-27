@@ -74,7 +74,7 @@ export const connectProvider =
 		}
 		try {
 			const api = HostApi.instance;
-			if (ide.name === "VSC" && name === "github" && capabilities.vsCodeGithubSignin) {
+			if (ide.name === "VSC" && name === "github") {
 				const result = await api.send(ConnectToIDEProviderRequestType, { provider: name });
 				dispatch(
 					configureProvider(

@@ -209,7 +209,7 @@ class Login extends React.Component<Props, State> {
 
 	handleClickGithubLogin = event => {
 		event.preventDefault();
-		if (this.props.isInVSCode && this.props.supportsVSCodeGithubSignin) {
+		if (this.props.isInVSCode) {
 			this.props.startIDESignin("github");
 		} else {
 			this.props.startSSOSignin("github");

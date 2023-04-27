@@ -1,6 +1,5 @@
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
-import React, { MouseEventHandler, useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useEffect, useState } from "react";
 import { CodeStreamState } from "../store";
 import styled from "styled-components";
 import Button from "./Button";
@@ -38,7 +37,7 @@ export const ConfigureOAuthOrPATPanel = (props: {
 }) => {
 	const dispatch = useAppDispatch();
 	const derivedState = useAppSelector((state: CodeStreamState) => {
-		const { providers, ide, capabilities } = state;
+		const { providers, ide } = state;
 		const provider = providers[props.providerId];
 		const userProviderInfo = getUserProviderInfoFromState(provider.name, state) as CSProviderInfo;
 		const accessTokenError = { accessTokenError: undefined };
@@ -46,8 +45,7 @@ export const ConfigureOAuthOrPATPanel = (props: {
 			isConnected(state, { name: provider.name }, undefined, accessTokenError) &&
 			!accessTokenError.accessTokenError &&
 			!userProviderInfo.pendingVerification;
-		const isVSCGitHub =
-			ide.name === "VSC" && provider.name === "github" && capabilities.vsCodeGithubSignin;
+		const isVSCGitHub = ide.name === "VSC" && provider.name === "github";
 		return {
 			providers: state.providers,
 			userProviderInfo,
