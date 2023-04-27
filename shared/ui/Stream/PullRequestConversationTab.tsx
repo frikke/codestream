@@ -1386,7 +1386,7 @@ export const PullRequestConversationTab = (props: {
 					bottomCommentTextCallback={setBottomCommentText}
 					setIsLoadingMessage={setIsLoadingMessage}
 					__onDidRender={__onDidRender}
-					key={Math.random().toString()}
+					// key={Math.random().toString()}
 				/>
 			</div>
 			<PRSidebar>

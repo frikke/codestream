@@ -96,9 +96,9 @@ const StatusMetaRow = styled.div`
 
 const EMPTY_HASH = {};
 const EMPTY_ARRAY = [];
-let insertText;
-let insertNewline;
-let focusOnMessageInput;
+let insertText: Function;
+let insertNewline: Function;
+let focusOnMessageInput: Function;
 
 export const PullRequestConversationTab = (props: {
 	setIsLoadingMessage: Function;
@@ -194,7 +194,7 @@ export const PullRequestConversationTab = (props: {
 					bottomCommentTextCallback={setBottomCommentText}
 					setIsLoadingMessage={setIsLoadingMessage}
 					__onDidRender={__onDidRender}
-					key={Math.random().toString()}
+					// key={Math.random().toString()}
 				/>
 			</div>
 			<PRSidebar>
