@@ -238,6 +238,7 @@ export const PullRequestConversationTab = (props: {
 							></BitbucketParticipantEditScreen>
 						) : (
 							<>
+								<br></br>
 								<Button
 									style={{ width: "50px", marginRight: "2.5px" }}
 									variant="secondary"

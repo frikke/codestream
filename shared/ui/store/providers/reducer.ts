@@ -102,7 +102,7 @@ const BBPRLabel: LabelHash = {
 	PR: "PR",
 	PRs: "PRs",
 	pr: "pr",
-	AddSingleComment: "Add single comment",
+	AddSingleComment: "Add comment",
 	repoBaseLabel: "base",
 	repoBranchBaseLabel: "destination",
 	repoHeadLabel: "head",
@@ -127,7 +127,7 @@ export const getPRLabelForProvider = (providerId: string): LabelHash => {
 	return providerIdNormalized.startsWith("gitlab")
 		? { ...MRLabel, icon: "" }
 		: providerIdNormalized.startsWith("bitbucket*org")
-		? BBPRLabel
+		? { ...BBPRLabel, icon: "" }
 		: { ...PRLabel, icon: "" };
 };
 
