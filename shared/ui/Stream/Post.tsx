@@ -614,6 +614,15 @@ export function Post(props: PostProps) {
 
 	if (!post || !author) return null;
 
+	const pseudoUserMatch = /#(.*?)#.*/.exec(post.text);
+	const isPseudoUser = pseudoUserMatch && pseudoUserMatch.length > 1;
+
+	if (isPseudoUser) {
+		const pseudoUser = pseudoUserMatch[1];
+		post.text = post.text.replace(/#.*?#/g, "");
+		author.username = pseudoUser;
+	}
+
 	const showAssigneeHeadshots = { props };
 
 	const headshotSize = 36;

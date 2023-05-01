@@ -1536,7 +1536,7 @@ const ReplyInput = (props: { codeError: CSCodeError; replies: Post[] }) => {
 		}
 	}, [functionToEdit]);
 
-	const commitChanges = async (event: SyntheticEvent) => {
+	const commitChanges = async (_event: SyntheticEvent) => {
 		if (!changesComitted) {
 			submit("commit_changes");
 			setChangesComitted(true);
@@ -1621,29 +1621,18 @@ const ReplyInput = (props: { codeError: CSCodeError; replies: Post[] }) => {
 						Apply Fix
 					</Button>
 				)}
-				{props.replies.length === 4 && (
-					<Button onClick={() => submit("normal")}>Add Unit Test</Button>
-				)}
-				<Tooltip
-					title={
-						<span>
-							Submit Comment
-							<span className="keybinding extra-pad">
-								{navigator.appVersion.includes("Macintosh") ? "⌘" : "Ctrl"} ENTER
-							</span>
-						</span>
-					}
-					placement="bottomRight"
-					delay={1}
-				>
-					<Button
-						disabled={text.length === 0}
-						onClick={() => submit("normal")}
-						isLoading={!!isLoading}
-					>
-						Comment
+				{codeSolution && fixApplied && !changesComitted && props.replies.length > 0 && (
+					<Button onClick={commitChanges} isLoading={!!isLoading}>
+						Commit changes
 					</Button>
-				</Tooltip>
+				)}
+				<Button
+					disabled={text.length === 0}
+					onClick={() => submit("normal")}
+					isLoading={isLoading === "post"}
+				>
+					Comment
+				</Button>
 			</ButtonRow>
 		</>
 	) : (
