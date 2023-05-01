@@ -350,7 +350,6 @@ export async function getOpenedRepos<R>(
 						remoteRepos.set(remote.path, remoteRepo);
 					} catch (ex) {
 						Logger.error(ex);
-						debugger;
 					}
 				}
 

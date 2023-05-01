@@ -792,7 +792,7 @@ export class ThirdPartyProviderRegistry {
 				{
 					providerId: "github*com",
 					name: RECENT,
-					query: `recent`,
+					query: `recent involves:@me `,
 					hidden: false,
 				},
 			],
@@ -818,7 +818,7 @@ export class ThirdPartyProviderRegistry {
 				{
 					providerId: "github/enterprise",
 					name: RECENT,
-					query: `recent`,
+					query: `recent involves:@me `,
 					hidden: false,
 				},
 			],
@@ -844,7 +844,7 @@ export class ThirdPartyProviderRegistry {
 				{
 					providerId: "gitlab*com",
 					name: RECENT,
-					query: `scope=created_by_me&per_page=5`,
+					query: `state=opened&reviewer_username=@me&scope=all,state=opened&scope=assigned_to_me,state=opened&scope=created_by_me`,
 					hidden: false,
 				},
 			],
@@ -864,7 +864,7 @@ export class ThirdPartyProviderRegistry {
 				{
 					providerId: "gitlab/enterprise",
 					name: RECENT,
-					query: `scope=created_by_me&per_page=5`,
+					query: `state=opened&reviewer_username=@me&scope=all,state=opened&scope=assigned_to_me,state=opened&scope=created_by_me`,
 					hidden: false,
 				},
 			],

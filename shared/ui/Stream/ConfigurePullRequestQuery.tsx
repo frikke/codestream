@@ -90,6 +90,7 @@ export function ConfigurePullRequestQuery(props: Props) {
 			"reviewer_username",
 			"reviewer_id",
 			"created_by_me",
+			"recentCsCustomQuery",
 			"my_reaction_emoji",
 			"assigned_to_me",
 		])

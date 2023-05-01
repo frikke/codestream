@@ -706,6 +706,8 @@ export class GitLabProvider
 	async getMyPullRequests(
 		request: GetMyPullRequestsRequest
 	): Promise<GetMyPullRequestsResponse[][] | undefined> {
+		console.warn("test");
+
 		void (await this.ensureConnected());
 		Logger.log(`gitlab getMyPullRequests ${JSON.stringify(request)}`);
 		if (!this.isValidGetMyPullRequest(request)) {
@@ -890,6 +892,25 @@ export class GitLabProvider
 		});
 
 		return response;
+	}
+
+	private parseOrOperatorFromQuery(query: string): string[] {
+		const queries = [];
+		const parts = query.split("|");
+
+		for (const part of parts) {
+			const params = part.split("&");
+			let queryString = "";
+			for (let i = 0; i < params.length; i++) {
+				if (i > 0) {
+					queryString += "&";
+				}
+				queryString += params[i];
+			}
+			queries.push(queryString);
+		}
+
+		return queries;
 	}
 
 	get graphQlBaseUrl() {

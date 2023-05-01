@@ -1577,14 +1577,16 @@ export const OpenPullRequests = React.memo((props: Props) => {
 									className="clickable"
 									onClick={() => reloadQuery(providerId, index)}
 								/>
-								<Icon
-									title="Edit Query"
-									delay={0.5}
-									placement="bottom"
-									name="pencil"
-									className="clickable"
-									onClick={() => editQuery(providerId, index)}
-								/>
+								{query.name !== "Recent" && (
+									<Icon
+										title="Edit Query"
+										delay={0.5}
+										placement="bottom"
+										name="pencil"
+										className="clickable"
+										onClick={() => editQuery(providerId, index)}
+									/>
+								)}
 								<Icon
 									title="Delete Query"
 									delay={0.5}
@@ -1767,6 +1769,13 @@ export const OpenPullRequests = React.memo((props: Props) => {
 						pullRequestQueries![provider][index].query = "scope=created_by_me&per_page=5";
 						shouldUpdate = true;
 					}
+					if (query.name === "Recent") {
+						const replacementQuery = defaultQueries[provider].find(_ => _.name === "Recent")?.query;
+						if (replacementQuery) {
+							pullRequestQueries![provider][index].query = replacementQuery;
+							shouldUpdate = true;
+						}
+					}
 				}
 				if (provider === "github*com" || provider === "github/enterprise") {
 					if (
@@ -1776,6 +1785,13 @@ export const OpenPullRequests = React.memo((props: Props) => {
 						const replacementQuery = defaultQueries[provider].find(
 							_ => _.name === "Waiting on my Review"
 						)?.query;
+						if (replacementQuery) {
+							pullRequestQueries![provider][index].query = replacementQuery;
+							shouldUpdate = true;
+						}
+					}
+					if (query.name === "Recent" && query.query === "recent") {
+						const replacementQuery = defaultQueries[provider].find(_ => _.name === "Recent")?.query;
 						if (replacementQuery) {
 							pullRequestQueries![provider][index].query = replacementQuery;
 							shouldUpdate = true;
