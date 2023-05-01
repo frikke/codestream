@@ -147,11 +147,13 @@ export const PullRequestConversationTab = (props: {
 	const [bottomCommentText, setBottomCommentText] = useState("");
 	const [isOpen, setIsOpen] = useState(false);
 	const [isAddReviewer, setIsAddReviewer] = useState(false);
+	const [isEmpty, setIsEmpty] = useState(false);
 
 	const __onDidRender = functions => {
 		insertText = functions.insertTextAtCursor;
 		insertNewline = functions.insertNewlineAtCursor;
 		focusOnMessageInput = functions.focus;
+		checkIfEmpty();
 	};
 
 	useDidMount(() => {
@@ -159,6 +161,7 @@ export const PullRequestConversationTab = (props: {
 			const container = document.getElementById("pr-scroll-container");
 			if (container) container.scrollTo({ top: props.initialScrollPosition });
 		}
+		checkIfEmpty();
 	});
 
 	const quote = text => {
@@ -168,6 +171,14 @@ export const PullRequestConversationTab = (props: {
 				insertText && insertText(text.replace(/^/gm, "> ") + "\n");
 				insertNewline && insertNewline();
 			});
+	};
+
+	const checkIfEmpty = () => {
+		if (!pr.reviewers.nodes.length) {
+			setIsEmpty(true);
+		} else {
+			setIsEmpty(false);
+		}
 	};
 
 	const numParticpants = ((pr.participants && pr.participants.nodes) || []).length;
@@ -234,6 +245,7 @@ export const PullRequestConversationTab = (props: {
 								isAddReviewer={isAddReviewer}
 								onClose={() => {
 									setIsOpen(false);
+									checkIfEmpty();
 								}}
 							></BitbucketParticipantEditScreen>
 						) : (
@@ -250,11 +262,11 @@ export const PullRequestConversationTab = (props: {
 								>
 									Add
 								</Button>
-
 								<Button
 									style={{ width: "60px", marginLeft: "2.5px" }}
 									variant="secondary"
 									size="subcompact"
+									disabled={isEmpty}
 									onClick={() => {
 										setIsOpen(true);
 										setIsAddReviewer(false);
