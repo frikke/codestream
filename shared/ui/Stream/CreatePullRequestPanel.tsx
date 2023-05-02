@@ -2,7 +2,6 @@ import { configureAndConnectProvider } from "@codestream/webview/store/providers
 import cx from "classnames";
 import React, { MouseEventHandler, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FormattedMessage } from "react-intl";
-import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 
 import {
@@ -37,7 +36,6 @@ import { PanelHeader } from "../src/components/PanelHeader";
 import { CodeStreamState } from "../store";
 import {
 	closeAllPanels,
-	openPanel,
 	setCurrentPullRequest,
 	setCurrentRepo,
 	setCurrentReview,
@@ -258,6 +256,7 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 	const [selectedRepo, setSelectedRepo] = useState<ReposScm | undefined>(undefined);
 	const [filesChanged, setFilesChanged] = useState<any[]>([]);
 	const [propsForPrePRProviderInfoModal, setPropsForPrePRProviderInfoModal] = useState<any>();
+	const [isDraft, setIsDraft] = useState(false);
 
 	const fetchPreconditionDataRef = useRef((isRepoUpdate?: boolean) => {});
 
@@ -539,6 +538,7 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 					? [{ title: derivedState.userStatus.label, url: derivedState.userStatus.ticketUrl }]
 					: undefined,
 				ideName: derivedState.ideName,
+				isDraft: false, //TODO
 			});
 
 			if (result.error) {
@@ -1664,12 +1664,50 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 													Cancel
 												</Button>
 
-												<Button onClick={onSubmit} isLoading={isSubmitting}>
-													{prProviderIconName && (
-														<Icon name={prProviderIconName} style={{ marginRight: "3px" }} />
-													)}
-													Create {prLabel.PullRequest}
-												</Button>
+												<DropdownButton
+													items={[
+														{
+															onSelect: () => setIsDraft(false),
+															action: () => onSubmit,
+															// isLoading: isSubmitting,
+															// {prProviderIconName && (
+															// 	<Icon name={prProviderIconName} style={{ marginRight: "3px" }} />
+															// 	Create {prLabel.PullRequest}
+															// }
+															key: "PR",
+															label: (
+																<div>
+																	<Icon name={prProviderIconName} style={{ marginRight: "3px" }} />
+																	Create {prLabel.PullRequest}
+																</div>
+															),
+															subtext: (
+																<span>
+																	Open a pull request that <br></br> is ready for review
+																</span>
+															),
+														},
+														{
+															onSelect: () => setIsDraft(true),
+															action: () => onSubmit,
+															key: "Draft PR",
+															label: (
+																<div>
+																	<Icon name={prProviderIconName} style={{ marginRight: "3px" }} />
+																	Create draft {prLabel.PullRequest}
+																</div>
+															),
+															subtext: (
+																<span>
+																	Cannot be merged until <br></br> marked ready for review
+																</span>
+															),
+														},
+													]}
+													selectedKey={"PR"}
+													variant="success"
+													splitDropdown
+												/>
 											</ButtonRow>
 										</div>
 									)}
