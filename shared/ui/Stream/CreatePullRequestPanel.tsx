@@ -538,7 +538,7 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 					? [{ title: derivedState.userStatus.label, url: derivedState.userStatus.ticketUrl }]
 					: undefined,
 				ideName: derivedState.ideName,
-				isDraft: false, //TODO
+				isDraft: isDraft,
 			});
 
 			if (result.error) {
@@ -1668,18 +1668,14 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 													items={[
 														{
 															onSelect: () => setIsDraft(false),
-															action: () => onSubmit,
-															// isLoading: isSubmitting,
+															// buttonAction: () => onSubmit,
 															// {prProviderIconName && (
-															// 	<Icon name={prProviderIconName} style={{ marginRight: "3px" }} />
-															// 	Create {prLabel.PullRequest}
-															// }
 															key: "PR",
 															label: (
-																<div>
+																<Button onClick={onSubmit}>
 																	<Icon name={prProviderIconName} style={{ marginRight: "3px" }} />
 																	Create {prLabel.PullRequest}
-																</div>
+																</Button>
 															),
 															subtext: (
 																<span>
@@ -1689,13 +1685,13 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 														},
 														{
 															onSelect: () => setIsDraft(true),
-															action: () => onSubmit,
+															// buttonAction: () => onSubmit,
 															key: "Draft PR",
 															label: (
-																<div>
+																<Button onClick={onSubmit}>
 																	<Icon name={prProviderIconName} style={{ marginRight: "3px" }} />
 																	Create draft {prLabel.PullRequest}
-																</div>
+																</Button>
 															),
 															subtext: (
 																<span>
@@ -1707,6 +1703,7 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 													selectedKey={"PR"}
 													variant="success"
 													splitDropdown
+													isLoading={isSubmitting}
 												/>
 											</ButtonRow>
 										</div>

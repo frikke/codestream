@@ -433,6 +433,7 @@ export interface CreatePullRequestRequest {
 	}[];
 	/**  name of the user's IDE */
 	ideName?: string;
+	isDraft?: boolean;
 }
 
 export interface CreatePullRequestResponse {

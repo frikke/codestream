@@ -469,6 +469,7 @@ export interface ProviderCreatePullRequestRequest {
 	};
 	/**  name of the user's IDE */
 	ideName?: string;
+	isDraft?: boolean;
 }
 
 export interface ProviderCreatePullRequestResponse {
@@ -476,6 +477,7 @@ export interface ProviderCreatePullRequestResponse {
 	title?: string;
 	id?: string;
 	error?: { message?: string; type: string };
+	isDraft?: boolean;
 }
 
 export interface RepoPullRequestProvider {

@@ -1003,9 +1003,9 @@ export class GitHubProvider
 			 */
 
 			const createPullRequestResponse = await this.mutate<GitHubCreatePullRequestResponse>(
-				`mutation CreatePullRequest($repositoryId:ID!, $baseRefName:String!, $headRefName:String!, $title:String!, $body:String!) {
+				`mutation CreatePullRequest($repositoryId:ID!, $baseRefName:String!, $headRefName:String!, $title:String!, $body:String!, $isDraft:Boolean) {
 					__typename
-					createPullRequest(input: {repositoryId: $repositoryId, baseRefName: $baseRefName, headRefName: $headRefName, title: $title, body: $body}) {
+					createPullRequest(input: {repositoryId: $repositoryId, baseRefName: $baseRefName, headRefName: $headRefName, title: $title, body: $body, draft: $isDraft}) {
 					  pullRequest {
 							number,
 							id,
@@ -1022,6 +1022,7 @@ export class GitHubProvider
 						? `${request.headRefRepoOwner}:${request.headRefName}`
 						: request.headRefName,
 					body: this.createDescription(request),
+					isDraft: request.isDraft,
 				}
 			);
 			const pullRequest = createPullRequestResponse.createPullRequest.pullRequest;
@@ -1030,6 +1031,7 @@ export class GitHubProvider
 				url: pullRequest.url,
 				id: pullRequest.id,
 				title: `#${pullRequest.number} ${pullRequest.title}`,
+				isDraft: request.isDraft,
 			};
 		} catch (ex) {
 			Logger.error(ex, `${this.displayName}: createPullRequest`, {
