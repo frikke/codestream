@@ -1668,15 +1668,17 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 													items={[
 														{
 															onSelect: () => setIsDraft(false),
-															// buttonAction: () => onSubmit,
-															// {prProviderIconName && (
 															key: "PR",
+															action: e => {
+																onSubmit(e);
+															},
 															label: (
-																<Button onClick={onSubmit}>
+																<div>
 																	<Icon name={prProviderIconName} style={{ marginRight: "3px" }} />
 																	Create {prLabel.PullRequest}
-																</Button>
+																</div>
 															),
+
 															subtext: (
 																<span>
 																	Open a pull request that <br></br> is ready for review
@@ -1685,13 +1687,15 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 														},
 														{
 															onSelect: () => setIsDraft(true),
-															// buttonAction: () => onSubmit,
 															key: "Draft PR",
+															action: e => {
+																onSubmit(e);
+															},
 															label: (
-																<Button onClick={onSubmit}>
+																<div>
 																	<Icon name={prProviderIconName} style={{ marginRight: "3px" }} />
 																	Create draft {prLabel.PullRequest}
-																</Button>
+																</div>
 															),
 															subtext: (
 																<span>
