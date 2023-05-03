@@ -1935,7 +1935,7 @@ export class BitbucketProvider
 
 		const { pullRequestId, repoWithOwner } = this.parseId(request.pullRequestId);
 		const response = await this.post<BitBucketCreateCommentRequest, BitbucketPullRequestComment>(
-			`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}/comments`,
+			`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}/comments?pagelen=100`,
 			payload
 		);
 
@@ -2880,7 +2880,7 @@ export class BitbucketProvider
 
 		const { pullRequestId, repoWithOwner } = this.parseId(request.pullRequestId);
 		const response = await this.post<BitBucketCreateCommentRequest, BitbucketPullRequestComment>(
-			`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}/comments`,
+			`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}/comments?pagelen=100`,
 			payload
 		);
 
@@ -2932,7 +2932,7 @@ export class BitbucketProvider
 
 		const { pullRequestId, repoWithOwner } = this.parseId(request.pullRequestId);
 		const response = await this.post<BitBucketCreateCommentRequest, BitbucketPullRequestComment>(
-			`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}/comments`,
+			`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}/comments?pagelen=100`,
 			payload
 		);
 
