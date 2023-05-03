@@ -73,7 +73,8 @@ export const ObservabilityErrorDropdown = React.memo((props: Props) => {
 					) : (
 						<>
 							{filteredErrors.map(fe => {
-								return fe.map(err => {
+								return fe.map((err, index) => {
+									const indexedErrorGroupGuid = `${err.errorGroupGuid}_${index}`;
 									return (
 										<ErrorRow
 											title={`${err.errorClass} (${err.count})`}
@@ -82,10 +83,10 @@ export const ObservabilityErrorDropdown = React.memo((props: Props) => {
 											timestamp={err.lastOccurrence}
 											url={err.errorGroupUrl}
 											customPadding={"0 10px 0 50px"}
-											isLoading={isLoadingErrorGroupGuid === err.errorGroupGuid}
+											isLoading={isLoadingErrorGroupGuid === indexedErrorGroupGuid}
 											onClick={async e => {
 												try {
-													setIsLoadingErrorGroupGuid(err.errorGroupGuid);
+													setIsLoadingErrorGroupGuid(indexedErrorGroupGuid);
 													const response = (await HostApi.instance.send(
 														GetObservabilityErrorGroupMetadataRequestType,
 														{ errorGroupGuid: err.errorGroupGuid }

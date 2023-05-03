@@ -68,6 +68,7 @@ export const ObservabilityAssignmentsDropdown = React.memo((props: Props) => {
 					) : (
 						<>
 							{filteredAssignments.map((_, index) => {
+								const indexedErrorGroupGuid = `${_.errorGroupGuid}_${index}`;
 								return (
 									<ErrorRow
 										key={index}
@@ -76,10 +77,10 @@ export const ObservabilityAssignmentsDropdown = React.memo((props: Props) => {
 										tooltip={_.message}
 										url={_.errorGroupUrl}
 										customPadding={"0 10px 0 50px"}
-										isLoading={isLoadingErrorGroupGuid === _.errorGroupGuid}
+										isLoading={isLoadingErrorGroupGuid === indexedErrorGroupGuid}
 										onClick={async e => {
 											try {
-												setIsLoadingErrorGroupGuid(_.errorGroupGuid);
+												setIsLoadingErrorGroupGuid(indexedErrorGroupGuid);
 												const response = (await HostApi.instance.send(
 													GetObservabilityErrorGroupMetadataRequestType,
 													{ errorGroupGuid: _.errorGroupGuid }

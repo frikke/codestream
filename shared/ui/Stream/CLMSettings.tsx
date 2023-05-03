@@ -23,6 +23,19 @@ const NumberInput = styled.input`
 		display: none;
 	}
 `;
+
+export const DEFAULT_CLM_SETTINGS = {
+	isChangeTrackingEnabled: false,
+	changeTrackingRadioValue: "LATEST_RELEASE",
+	compareDataLastValue: "7",
+	compareDataLastReleaseValue: "7",
+	againstDataPrecedingValue: "21",
+	minimumChangeValue: "10",
+	minimumBaselineValue: "30",
+	minimumErrorRateValue: "1",
+	minimumAverageDurationValue: "0.1",
+};
+
 export const CLMSettings = React.memo(function CLMSettings(props: Props) {
 	const dispatch = useAppDispatch();
 	const derivedState = useAppSelector((state: CodeStreamState) => {
@@ -40,7 +53,9 @@ export const CLMSettings = React.memo(function CLMSettings(props: Props) {
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [hasFetchedDeployments, setHasFetchedDeployments] = useState<boolean>(false);
 	const [isChangeTrackingEnabled, setIsChangeTrackingEnabled] = useState<boolean>(
-		!_isNil(clmSettings.isChangeTrackingEnabled) ? clmSettings.isChangeTrackingEnabled : false
+		!_isNil(clmSettings.isChangeTrackingEnabled)
+			? clmSettings.isChangeTrackingEnabled
+			: DEFAULT_CLM_SETTINGS.isChangeTrackingEnabled
 	);
 	const [changeTrackingRadioValue, setChangeTrackingRadioValue] = useState<string>(
 		!_isNil(clmSettings.changeTrackingRadioValue)
@@ -48,27 +63,39 @@ export const CLMSettings = React.memo(function CLMSettings(props: Props) {
 			: "LATEST_RELEASE"
 	);
 	const [compareDataLastValue, setCompareDataLastValue] = useState<string>(
-		!_isNil(clmSettings.compareDataLastValue) ? clmSettings.compareDataLastValue : "7"
+		!_isNil(clmSettings.compareDataLastValue)
+			? clmSettings.compareDataLastValue
+			: DEFAULT_CLM_SETTINGS.compareDataLastValue
 	);
 	const [compareDataLastReleaseValue, setCompareDataLastReleaseValue] = useState<string>(
-		!_isNil(clmSettings.compareDataLastReleaseValue) ? clmSettings.compareDataLastReleaseValue : "7"
+		!_isNil(clmSettings.compareDataLastReleaseValue)
+			? clmSettings.compareDataLastReleaseValue
+			: DEFAULT_CLM_SETTINGS.compareDataLastReleaseValue
 	);
 	const [againstDataPrecedingValue, setAgainstDataPrecedingValue] = useState<string>(
-		!_isNil(clmSettings.againstDataPrecedingValue) ? clmSettings.againstDataPrecedingValue : "21"
+		!_isNil(clmSettings.againstDataPrecedingValue)
+			? clmSettings.againstDataPrecedingValue
+			: DEFAULT_CLM_SETTINGS.againstDataPrecedingValue
 	);
 	const [minimumChangeValue, setMinimumChangeValue] = useState<string>(
-		!_isNil(clmSettings.minimumChangeValue) ? clmSettings.minimumChangeValue : "10"
+		!_isNil(clmSettings.minimumChangeValue)
+			? clmSettings.minimumChangeValue
+			: DEFAULT_CLM_SETTINGS.minimumChangeValue
 	);
 	const [minimumBaselineValue, setMinimumBaselineValue] = useState<string>(
-		!_isNil(clmSettings.minimumBaselineValue) ? clmSettings.minimumBaselineValue : "30"
+		!_isNil(clmSettings.minimumBaselineValue)
+			? clmSettings.minimumBaselineValue
+			: DEFAULT_CLM_SETTINGS.minimumBaselineValue
 	);
 	const [minimumErrorRateValue, setMinimumErrorRateValue] = useState<string>(
-		!_isNil(clmSettings.minimumErrorRateValue) ? clmSettings.minimumErrorRateValue : "1"
+		!_isNil(clmSettings.minimumErrorRateValue)
+			? clmSettings.minimumErrorRateValue
+			: DEFAULT_CLM_SETTINGS.minimumErrorRateValue
 	);
 	const [minimumAverageDurationValue, setMinimumAverageDurationValue] = useState<string>(
 		!_isNil(clmSettings.minimumAverageDurationValue)
 			? clmSettings.minimumAverageDurationValue
-			: "0.1"
+			: DEFAULT_CLM_SETTINGS.minimumAverageDurationValue
 	);
 	const populateDropdownItems = action => {
 		let options: { label: string; key: string; action: Function }[] = [];

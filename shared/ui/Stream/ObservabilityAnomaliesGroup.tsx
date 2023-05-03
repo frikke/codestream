@@ -63,8 +63,7 @@ export const ObservabilityAnomaliesGroup = React.memo((props: Props) => {
 			>
 				<span
 					style={{
-						color:
-							roundedPercentage > derivedState.clmSettings.minimumChangeValue ? "red" : "default",
+						color: "red",
 					}}
 				>
 					{roundedPercentageText}

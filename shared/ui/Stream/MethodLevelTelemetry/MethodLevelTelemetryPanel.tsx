@@ -400,43 +400,46 @@ export const MethodLevelTelemetryPanel = () => {
 											<br />
 											<MetaLabel>Errors</MetaLabel>
 											<div>
-												{telemetryResponse.errors.map((_, index) => (
-													<ErrorRow
-														key={`observability-error-${index}`}
-														title={_.errorClass}
-														tooltip={_.message}
-														subtle={_.message}
-														alternateSubtleRight={`${_.count}`} // we want to show count instead of timestamp
-														url={_.errorGroupUrl}
-														customPadding={"0"}
-														isLoading={isLoadingErrorGroupGuid === _.errorGroupGuid}
-														onClick={async e => {
-															try {
-																setIsLoadingErrorGroupGuid(_.errorGroupGuid);
-																const response = (await HostApi.instance.send(
-																	GetObservabilityErrorGroupMetadataRequestType,
-																	{ errorGroupGuid: _.errorGroupGuid }
-																)) as GetObservabilityErrorGroupMetadataResponse;
-																dispatch(
-																	openErrorGroup(_.errorGroupGuid, _.occurrenceId, {
-																		multipleRepos: response?.relatedRepos?.length > 1,
-																		relatedRepos: response?.relatedRepos || undefined,
-																		timestamp: _.lastOccurrence,
-																		sessionStart: derivedState.sessionStart,
-																		pendingEntityId: response?.entityId || _.entityId,
-																		occurrenceId: response?.occurrenceId || _.occurrenceId,
-																		pendingErrorGroupGuid: _.errorGroupGuid,
-																		openType: "CLM Details",
-																	})
-																);
-															} catch (ex) {
-																console.error(ex);
-															} finally {
-																setIsLoadingErrorGroupGuid("");
-															}
-														}}
-													/>
-												))}
+												{telemetryResponse.errors.map((_, index) => {
+													const indexedErrorGroupGuid = `${_.errorGroupGuid}_${index}`;
+													return (
+														<ErrorRow
+															key={`observability-error-${index}`}
+															title={_.errorClass}
+															tooltip={_.message}
+															subtle={_.message}
+															alternateSubtleRight={`${_.count}`} // we want to show count instead of timestamp
+															url={_.errorGroupUrl}
+															customPadding={"0"}
+															isLoading={isLoadingErrorGroupGuid === indexedErrorGroupGuid}
+															onClick={async e => {
+																try {
+																	setIsLoadingErrorGroupGuid(indexedErrorGroupGuid);
+																	const response = (await HostApi.instance.send(
+																		GetObservabilityErrorGroupMetadataRequestType,
+																		{ errorGroupGuid: _.errorGroupGuid }
+																	)) as GetObservabilityErrorGroupMetadataResponse;
+																	dispatch(
+																		openErrorGroup(_.errorGroupGuid, _.occurrenceId, {
+																			multipleRepos: response?.relatedRepos?.length > 1,
+																			relatedRepos: response?.relatedRepos || undefined,
+																			timestamp: _.lastOccurrence,
+																			sessionStart: derivedState.sessionStart,
+																			pendingEntityId: response?.entityId || _.entityId,
+																			occurrenceId: response?.occurrenceId || _.occurrenceId,
+																			pendingErrorGroupGuid: _.errorGroupGuid,
+																			openType: "CLM Details",
+																		})
+																	);
+																} catch (ex) {
+																	console.error(ex);
+																} finally {
+																	setIsLoadingErrorGroupGuid("");
+																}
+															}}
+														/>
+													);
+												})}
 											</div>
 										</div>
 									)}
