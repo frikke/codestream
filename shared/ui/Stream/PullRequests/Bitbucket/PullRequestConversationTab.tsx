@@ -148,12 +148,14 @@ export const PullRequestConversationTab = (props: {
 	const [isOpen, setIsOpen] = useState(false);
 	const [isAddReviewer, setIsAddReviewer] = useState(false);
 	const [isEmpty, setIsEmpty] = useState(false);
+	const [isMerged, setIsMerged] = useState(false);
 
 	const __onDidRender = functions => {
 		insertText = functions.insertTextAtCursor;
 		insertNewline = functions.insertNewlineAtCursor;
 		focusOnMessageInput = functions.focus;
 		checkIfEmpty();
+		checkIfMerged();
 	};
 
 	useDidMount(() => {
@@ -162,6 +164,7 @@ export const PullRequestConversationTab = (props: {
 			if (container) container.scrollTo({ top: props.initialScrollPosition });
 		}
 		checkIfEmpty();
+		checkIfMerged();
 	});
 
 	const quote = text => {
@@ -178,6 +181,14 @@ export const PullRequestConversationTab = (props: {
 			setIsEmpty(true);
 		} else {
 			setIsEmpty(false);
+		}
+	};
+
+	const checkIfMerged = () => {
+		if (pr.state === "MERGED") {
+			setIsMerged(true);
+		} else {
+			setIsMerged(false);
 		}
 	};
 
@@ -246,6 +257,7 @@ export const PullRequestConversationTab = (props: {
 								onClose={() => {
 									setIsOpen(false);
 									checkIfEmpty();
+									checkIfMerged();
 								}}
 							></BitbucketParticipantEditScreen>
 						) : (
@@ -255,6 +267,7 @@ export const PullRequestConversationTab = (props: {
 									style={{ width: "50px", marginRight: "2.5px" }}
 									variant="secondary"
 									size="subcompact"
+									disabled={isMerged}
 									onClick={() => {
 										setIsOpen(true);
 										setIsAddReviewer(true);
@@ -266,7 +279,7 @@ export const PullRequestConversationTab = (props: {
 									style={{ width: "60px", marginLeft: "2.5px" }}
 									variant="secondary"
 									size="subcompact"
-									disabled={isEmpty}
+									disabled={isEmpty || isMerged}
 									onClick={() => {
 										setIsOpen(true);
 										setIsAddReviewer(false);
