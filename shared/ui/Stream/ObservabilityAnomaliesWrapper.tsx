@@ -45,23 +45,9 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 
 	const dispatch = useAppDispatch();
 
-	const getRoundedPercentage = ratio => {
-		const percentage = (ratio - 1) * 100;
-		const factor = Math.pow(10, 2);
-		return Math.floor(percentage * factor) / factor;
-	};
-
-	const filteredErrorRateAnomalies = props.observabilityAnomalies?.errorRate?.filter(_ => {
-		const roundedPercentage = getRoundedPercentage(_.ratio);
-		return roundedPercentage > derivedState.clmSettings.minimumChangeValue;
-	});
-
-	const filteredResponseTimeAnomalies = props.observabilityAnomalies?.responseTime?.filter(_ => {
-		const roundedPercentage = getRoundedPercentage(_.ratio);
-		return roundedPercentage > derivedState.clmSettings.minimumChangeValue;
-	});
-
-	const totalAnomalyArray = filteredErrorRateAnomalies.concat(filteredResponseTimeAnomalies);
+	const totalAnomalyArray = props.observabilityAnomalies.errorRate.concat(
+		props.observabilityAnomalies.responseTime
+	);
 
 	const showWarningIcon = totalAnomalyArray?.length > 0;
 	const warningTooltip =
@@ -215,14 +201,14 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 						{!props.calculatingAnomalies && (
 							<>
 								<ObservabilityAnomaliesGroup
-									observabilityAnomalies={filteredErrorRateAnomalies}
+									observabilityAnomalies={props.observabilityAnomalies.errorRate}
 									observabilityRepo={props.observabilityRepo}
 									entityGuid={props.entityGuid}
 									title="Error Rate"
 									detectionMethod={props.observabilityAnomalies.detectionMethod}
 								/>
 								<ObservabilityAnomaliesGroup
-									observabilityAnomalies={filteredResponseTimeAnomalies}
+									observabilityAnomalies={props.observabilityAnomalies.responseTime}
 									observabilityRepo={props.observabilityRepo}
 									entityGuid={props.entityGuid}
 									title="Average Duration"
