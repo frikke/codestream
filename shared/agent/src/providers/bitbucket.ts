@@ -466,6 +466,10 @@ interface BitbucketSubmitReviewRequest {
 	type: string;
 }
 
+interface BitbucketDeclinePullRequest {
+	type: string;
+}
+
 interface BitBucketCreateCommentRequest {
 	content: {
 		raw: string;
@@ -1804,9 +1808,46 @@ export class BitbucketProvider
 		}
 	}
 
+	async createPullRequestCommentAndClose(request: {
+		pullRequestId: string;
+		text: string;
+	}): Promise<Directives> {
+		const directives: any = [];
+		const { pullRequestId, repoWithOwner } = this.parseId(request.pullRequestId);
+
+		if (request.text) {
+			this.createPullRequestComment(request);
+		}
+
+		const payload: { type: string } = {
+			type: "pullrequest",
+		};
+
+		const response2 = await this.post<any, BitbucketMergeRequestResponse>(
+			`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}/decline`,
+			payload
+		);
+
+		directives.push({
+			type: "updatePullRequest",
+			data: {
+				state: response2.body.state,
+				updatedAt: response2.body.updated_on,
+			},
+		});
+
+		return this.handleResponse(request.pullRequestId, {
+			directives: directives,
+		});
+	}
+
+	async addComment(request: { pullRequestId: string; text: string }) {
+		this.createPullRequestComment(request);
+	}
+
 	async updatePullRequestBody(request: {
 		pullRequestId: string;
-		id: string;
+		id?: string;
 		body: string;
 	}): Promise<Directives> {
 		const payload: { description: string } = {
@@ -1882,7 +1923,7 @@ export class BitbucketProvider
 
 	async createPullRequestComment(request: {
 		pullRequestId: string;
-		sha: string;
+		sha?: string;
 		text: string;
 	}): Promise<Directives> {
 		const payload: BitBucketCreateCommentRequest = {
