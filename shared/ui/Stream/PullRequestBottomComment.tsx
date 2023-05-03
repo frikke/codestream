@@ -99,15 +99,21 @@ export const PullRequestBottomComment = styled((props: Props) => {
 		setIsLoadingMessage("Reopening...");
 		setIsLoadingCommentAndClose(true);
 		trackComment("Comment and Reopen");
-		await dispatch(
-			api({
-				method: "createPullRequestCommentAndReopen",
-				params: {
-					text: replaceHtml(text),
-					startThread: commentType === "thread",
-				},
-			})
-		);
+		if (!isBitbucket) {
+			await dispatch(
+				api({
+					method: "createPullRequestCommentAndReopen",
+					params: {
+						text: replaceHtml(text),
+						startThread: commentType === "thread",
+					},
+				})
+			);
+		} else {
+			await dispatch(
+				api({ method: "createPullRequestComment", params: { text: replaceHtml(text) } })
+			);
+		}
 
 		HostApi.instance.emit(DidChangeDataNotificationType.method, {
 			type: ChangeDataType.PullRequests,
@@ -130,6 +136,7 @@ export const PullRequestBottomComment = styled((props: Props) => {
 
 	const [commentType, setCommentType] = useState("comment");
 	const isGitLab = pr.providerId.includes("gitlab");
+	const isBitbucket = pr.providerId.includes("bitbucket*org");
 	const commentItems: DropdownButtonItems[] = [];
 	if (isGitLab) {
 		commentItems.push({

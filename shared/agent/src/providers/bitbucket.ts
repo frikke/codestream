@@ -1823,7 +1823,7 @@ export class BitbucketProvider
 			type: "pullrequest",
 		};
 
-		const response2 = await this.post<any, BitbucketMergeRequestResponse>(
+		const response2 = await this.post<BitbucketDeclinePullRequest, BitbucketMergeRequestResponse>(
 			`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}/decline`,
 			payload
 		);
@@ -1839,10 +1839,6 @@ export class BitbucketProvider
 		return this.handleResponse(request.pullRequestId, {
 			directives: directives,
 		});
-	}
-
-	async addComment(request: { pullRequestId: string; text: string }) {
-		this.createPullRequestComment(request);
 	}
 
 	async updatePullRequestBody(request: {
@@ -1926,7 +1922,7 @@ export class BitbucketProvider
 		sha?: string;
 		text: string;
 	}): Promise<Directives> {
-		const payload: BitBucketCreateCommentRequest = {
+		const payload = {
 			content: {
 				raw: request.text,
 			},
