@@ -1577,16 +1577,14 @@ export const OpenPullRequests = React.memo((props: Props) => {
 									className="clickable"
 									onClick={() => reloadQuery(providerId, index)}
 								/>
-								{query.name !== "Recent" && (
-									<Icon
-										title="Edit Query"
-										delay={0.5}
-										placement="bottom"
-										name="pencil"
-										className="clickable"
-										onClick={() => editQuery(providerId, index)}
-									/>
-								)}
+								<Icon
+									title="Edit Query"
+									delay={0.5}
+									placement="bottom"
+									name="pencil"
+									className="clickable"
+									onClick={() => editQuery(providerId, index)}
+								/>
 								<Icon
 									title="Delete Query"
 									delay={0.5}
@@ -1790,7 +1788,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 							shouldUpdate = true;
 						}
 					}
-					if (query.name === "Recent" && query.query === "recent") {
+					if (query.name === "Recent") {
 						const replacementQuery = defaultQueries[provider].find(_ => _.name === "Recent")?.query;
 						if (replacementQuery) {
 							pullRequestQueries![provider][index].query = replacementQuery;

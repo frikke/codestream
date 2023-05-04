@@ -3127,11 +3127,7 @@ export class GitHubProvider
 				// that you were the author of
 				// https://trello.com/c/XIg6MKWy/4813-add-4th-default-pr-query-recent
 				if (prQuery.query === "recent") {
-					if (repoQuery.length > 0) {
-						prQuery.query = "is:pr";
-					} else {
-						prQuery.query = "is:pr author:@me";
-					}
+					prQuery.query = "is:pr involves:@me";
 					limit = 5;
 				}
 

@@ -792,7 +792,7 @@ export class ThirdPartyProviderRegistry {
 				{
 					providerId: "github*com",
 					name: RECENT,
-					query: `recent involves:@me `,
+					query: `recent`,
 					hidden: false,
 				},
 			],
@@ -818,7 +818,7 @@ export class ThirdPartyProviderRegistry {
 				{
 					providerId: "github/enterprise",
 					name: RECENT,
-					query: `recent involves:@me `,
+					query: `recent`,
 					hidden: false,
 				},
 			],
