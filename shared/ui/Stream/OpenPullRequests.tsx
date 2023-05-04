@@ -1577,14 +1577,16 @@ export const OpenPullRequests = React.memo((props: Props) => {
 									className="clickable"
 									onClick={() => reloadQuery(providerId, index)}
 								/>
-								<Icon
-									title="Edit Query"
-									delay={0.5}
-									placement="bottom"
-									name="pencil"
-									className="clickable"
-									onClick={() => editQuery(providerId, index)}
-								/>
+								{query.name !== "Recent" && (
+									<Icon
+										title="Edit Query"
+										delay={0.5}
+										placement="bottom"
+										name="pencil"
+										className="clickable"
+										onClick={() => editQuery(providerId, index)}
+									/>
+								)}
 								<Icon
 									title="Delete Query"
 									delay={0.5}
