@@ -1033,7 +1033,7 @@ export class NewRelicProvider
 			relativeFilePath?: string;
 		}
 	) {
-		const transactionNameMatch = metricTimesliceNames.errorRate.match(/Errors\/(.*)/);
+		const transactionNameMatch = metricTimesliceNames?.errorRate?.match(/Errors\/(.*)/);
 		if (
 			(!transactionNameMatch || transactionNameMatch.length < 2) &&
 			!functionIdentifiers?.functionName
