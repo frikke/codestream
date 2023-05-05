@@ -1025,7 +1025,7 @@ export class NewRelicProvider
 
 	private getMethodLevelErrorsQuery(
 		entityGuid: string,
-		metricTimesliceNames: MetricTimesliceNameMapping,
+		metricTimesliceNames?: MetricTimesliceNameMapping,
 		since?: string,
 		functionIdentifiers?: {
 			codeNamespace?: string;
