@@ -98,6 +98,7 @@ class ResolveStackTraceHandler(private val project: Project) {
             }
             for (path in request.paths ?: arrayListOf()) {
                 if (path == null) {
+                    resolvedPaths += null
                     continue
                 }
                 val parts = path.replace("\\", "/").split("/").toMutableList()
