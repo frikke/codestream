@@ -176,7 +176,7 @@ export const PullRequestTimelineItems = (props: PropsWithChildren<Props>) => {
 												setIsLoadingMessage={setIsLoadingMessage}
 												node={item}
 												nodeType="ISSUE_COMMENT"
-												viewerCanDelete={item.author.account_id === pr.viewer.id}
+												viewerCanDelete={item.viewerCanDelete === true}
 												setEdit={setEditingComment}
 												quote={props.quote}
 												isPending={item.state === "PENDING"}

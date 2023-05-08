@@ -1,6 +1,5 @@
 import { useAppDispatch } from "@codestream/webview/utilities/hooks";
 import React from "react";
-import { useDispatch } from "react-redux";
 import Icon from "./Icon";
 import { InlineMenu } from "../src/components/controls/InlineMenu";
 import copy from "copy-to-clipboard";
@@ -83,7 +82,7 @@ export const PullRequestCommentMenu = (props: CommentMenuProps) => {
 		items.push({
 			label: "Quote Reply",
 			key: "quote",
-			action: () => quote(node.body || node.bodyText)
+			action: () => quote(node.body || node.bodyText),
 		});
 	}
 
@@ -103,7 +102,11 @@ export const PullRequestCommentMenu = (props: CommentMenuProps) => {
 		});
 	}
 
-	if (props.viewerCanDelete || (node.userPermissions && node.userPermissions.adminNote)) {
+	if (
+		props.viewerCanDelete ||
+		props.node.viewerCanDelete ||
+		(node.userPermissions && node.userPermissions.adminNote)
+	) {
 		items.push({
 			label: "Delete",
 			key: "delete",

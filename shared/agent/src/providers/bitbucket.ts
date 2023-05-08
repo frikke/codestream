@@ -1919,6 +1919,43 @@ export class BitbucketProvider
 		};
 	}
 
+	//this is for deleting a pullrequest comment
+	async deletePullRequestComment(request: {
+		pullRequestId: string;
+		id: string;
+		isPending?: string;
+		body: string;
+	}): Promise<Directives> {
+		Logger.log(`commenting:deletePRComment`, {
+			request: request,
+		});
+		const { pullRequestId, repoWithOwner } = this.parseId(request.pullRequestId);
+		// DELETE /2.0/repositories/{workspace}/{repo_slug}/pullrequests/{pull_request_id}/comments/{comment_id}
+		const response = await this.delete<BitBucketCreateCommentRequest>(
+			`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}/comments/${request.id}`
+		);
+		const directives: Directive[] = [
+			{
+				type: "updatePullRequest",
+				data: {
+					updatedAt: new Date().getTime() as any,
+				},
+			},
+			{
+				type: "updateNode",
+				data: { id: request.id },
+			},
+		];
+
+		this.updateCache(request.pullRequestId, {
+			directives: directives,
+		});
+
+		return {
+			directives: directives,
+		};
+	}
+
 	//this is for updating pullrequest comments
 	async updateIssueComment(request: {
 		pullRequestId: string;
@@ -2360,6 +2397,7 @@ export class BitbucketProvider
 			bodyText: _.content?.raw,
 			state: _.type,
 			viewerCanUpdate: bool,
+			viewerCanDelete: bool,
 			id: _.id,
 			author: {
 				login: _.user.display_name,
@@ -2388,6 +2426,7 @@ export class BitbucketProvider
 				id: user.account_id,
 			},
 			viewerCanUpdate: bool,
+			viewerCanDelete: bool,
 			bodyText: comment.content?.raw,
 			createdAt: comment.created_on,
 			file: comment.inline?.path,
