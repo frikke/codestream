@@ -97,131 +97,60 @@ export const PullRequestTimelineItems = (props: PropsWithChildren<Props>) => {
 	console.warn(pr);
 	return (
 		<div>
-			{pr.description ? (
-				<div>
-					<PRComment style={{ marginTop: "10px" }}>
-						<PRHeadshot person={pr.author} size={40} />
-						<PRCommentCard className="dark-header">
-							<PRCommentHeader>
-								<div>
-									<div>Description</div>
-									<br></br>
-									<PRAuthor>{(pr.author || GHOST).login}</PRAuthor> commented{" "}
-									<Timestamp time={pr.createdAt!} relative />
-									{pr.includesCreatedEdit ? <> • edited</> : ""}
-								</div>
-								<PRActionIcons>
-									<PRAuthorBadges pr={pr} node={pr} />
-									{/* <PullRequestReactButton
-										pr={pr}
-										targetId={pr.id}
-										setIsLoadingMessage={setIsLoadingMessage}
-										// reactionGroups={pr.reactionGroups}
-									/> */}
-									<PullRequestCommentMenu
-										pr={pr}
-										node={pr}
-										nodeType={"ROOT_COMMENT"}
-										setIsLoadingMessage={setIsLoadingMessage}
-										setEdit={setEditingComment}
-										// quote={props.quote}
-									/>
-								</PRActionIcons>
-							</PRCommentHeader>
-							<PRCommentBody>
-								{editingComments[pr.id] ? (
-									<PullRequestEditingComment
-										pr={pr}
-										setIsLoadingMessage={setIsLoadingMessage}
-										id={pr.id}
-										type={"PR"}
-										isPending={false}
-										text={pendingComments[pr.id]}
-										done={() => doneEditingComment(pr.id)}
-									/>
-								) : pr.description ? (
-									<div>
-										<MarkdownText
-											text={pr.description}
-											isHtml={pr.bodyHTML ? true : false}
-											inline
-										/>
-									</div>
-								) : (
-									<i>No description provided.</i>
-								)}
-							</PRCommentBody>
-
-							{/* <PullRequestReactions
-						pr={pr}
-						targetId={pr.id}
-						setIsLoadingMessage={setIsLoadingMessage}
-						reactionGroups={pr.reactionGroups}
-					/> */}
-						</PRCommentCard>
-					</PRComment>
-				</div>
-			) : (
-				<PRComment style={{ marginTop: "10px" }}>
-					<PRHeadshot person={pr.author} size={40} />
-					<PRCommentCard className="dark-header">
-						<PRCommentHeader>
+			<PRComment style={{ marginTop: "10px" }}>
+				<PRHeadshot person={pr.author} size={40} />
+				<PRCommentCard className="dark-header">
+					<PRCommentHeader>
+						<div>
+							<div>Description</div>
+							<br></br>
+							<PRAuthor>{(pr.author || GHOST).login}</PRAuthor> commented{" "}
+							<Timestamp time={pr.createdAt!} relative />
+							{pr.includesCreatedEdit ? <> • edited</> : ""}
+						</div>
+						<PRActionIcons>
+							<PRAuthorBadges pr={pr} node={pr} />
+							<PullRequestCommentMenu
+								pr={pr}
+								node={pr}
+								nodeType={"ROOT_COMMENT"}
+								setIsLoadingMessage={setIsLoadingMessage}
+								setEdit={setEditingComment}
+								// quote={props.quote}
+							/>
+						</PRActionIcons>
+					</PRCommentHeader>
+					<PRCommentBody>
+						{editingComments[pr.id] ? (
+							<PullRequestEditingComment
+								pr={pr}
+								setIsLoadingMessage={setIsLoadingMessage}
+								id={pr.id}
+								type={"PR"}
+								isPending={false}
+								text={pendingComments[pr.id]}
+								done={() => doneEditingComment(pr.id)}
+							/>
+						) : pr.description ? (
 							<div>
-								<PRAuthor>{(pr.author || GHOST).login}</PRAuthor> commented{" "}
-								<Timestamp time={pr.createdAt!} relative />
-								{pr.includesCreatedEdit ? <> • edited</> : ""}
+								<MarkdownText text={pr.description} isHtml={pr.bodyHTML ? true : false} inline />
 							</div>
-							<PRActionIcons>
-								<PRAuthorBadges pr={pr} node={pr} />
-								{/* <PullRequestReactButton
-									pr={pr}
-									targetId={pr.id}
-									setIsLoadingMessage={setIsLoadingMessage}
-									// reactionGroups={pr.reactionGroups}
-								/> */}
-								<PullRequestCommentMenu
-									pr={pr}
-									node={pr}
-									nodeType={"ROOT_COMMENT"}
-									setIsLoadingMessage={setIsLoadingMessage}
-									setEdit={setEditingComment}
-									quote={props.quote}
-								/>
-							</PRActionIcons>
-						</PRCommentHeader>
-						<PRCommentBody>
-							{editingComments[pr.id] ? (
-								<PullRequestEditingComment
-									pr={pr}
-									setIsLoadingMessage={setIsLoadingMessage}
-									id={pr.id}
-									type={"PR"}
-									isPending={false}
-									text={pendingComments[pr.id]}
-									done={() => doneEditingComment(pr.id)}
-								/>
-							) : pr.description ? (
-								<div>
-									<MarkdownText text={pr.description} isHtml={pr.bodyHTML ? true : false} inline />
-								</div>
-							) : (
-								<i>No description provided.</i>
-							)}
-						</PRCommentBody>
-
-						{/* <PullRequestReactions
-						pr={pr}
-						targetId={pr.id}
-						setIsLoadingMessage={setIsLoadingMessage}
-						reactionGroups={pr.reactionGroups}
-					/> */}
-					</PRCommentCard>
-				</PRComment>
-			)}
+						) : pr.bodyHTML || pr.body ? (
+							<MarkdownText
+								text={pr.bodyHTML ? pr.bodyHTML : pr.body}
+								isHtml={pr.bodyHTML ? true : false}
+								inline
+							/>
+						) : (
+							<i>No description provided.</i>
+						)}
+					</PRCommentBody>
+				</PRCommentCard>
+			</PRComment>
 
 			{timelineNodes.map((item, index) => {
 				const author = item.author || GHOST;
-				// console.warn("ITEM: ", index, item);
+				console.warn("ITEM: ", index, item);
 				return (
 					<PRComment key={index}>
 						<PRHeadshot key={index} size={40} person={author} />
@@ -241,20 +170,16 @@ export const PullRequestTimelineItems = (props: PropsWithChildren<Props>) => {
 										</div>
 										<PRActionIcons>
 											<PRAuthorBadges pr={pr} node={item} />
-											{/* <PullRequestReactButton
-												pr={pr}
-												targetId={item.id}
-												setIsLoadingMessage={setIsLoadingMessage}
-												reactionGroups={item.reactionGroups}
-											/> */}
+
 											<PullRequestCommentMenu
 												pr={pr}
 												setIsLoadingMessage={setIsLoadingMessage}
 												node={item}
 												nodeType="ISSUE_COMMENT"
-												viewerCanDelete={item.viewerCanDelete}
+												viewerCanDelete={item.author.account_id === pr.viewer.id}
 												setEdit={setEditingComment}
 												quote={props.quote}
+												isPending={item.state === "PENDING"}
 											/>
 										</PRActionIcons>
 									</PRCommentHeader>
@@ -266,7 +191,7 @@ export const PullRequestTimelineItems = (props: PropsWithChildren<Props>) => {
 												id={item.id}
 												isPending={item.state === "PENDING"}
 												type={"ISSUE"}
-												text={pendingComments[item.id]}
+												text={item.bodyText}
 												done={() => doneEditingComment(item.id)}
 											/>
 										) : (
@@ -277,12 +202,6 @@ export const PullRequestTimelineItems = (props: PropsWithChildren<Props>) => {
 											/>
 										)}
 									</PRCommentBody>
-									{/* <PullRequestReactions
-										pr={pr}
-										targetId={item.id}
-										setIsLoadingMessage={setIsLoadingMessage}
-										reactionGroups={item.reactionGroups}
-									/> */}
 								</>
 							)}
 						</PRCommentCard>

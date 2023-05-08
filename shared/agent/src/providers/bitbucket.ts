@@ -560,6 +560,7 @@ interface BitbucketPullRequestComment {
 		html: string;
 	};
 	user: {
+		account_id: string;
 		display_name: string;
 		nickname: string;
 		links?: {
@@ -1617,10 +1618,17 @@ export class BitbucketProvider
 				return res;
 			};
 
+			const viewer = {
+				id: userResponse.account_id,
+				login: userResponse.display_name,
+				avatarUrl: userResponse.links.avatar.href,
+				viewerDidAuthor: userResponse.account_id === pr.body.author.account_id,
+			};
+
 			const filterComments = comments.body.values
 				.filter(_ => !_.deleted)
 				.map((_: BitbucketPullRequestComment) => {
-					return this.mapComment(_);
+					return this.mapComment(_, viewer.id);
 				}) as ThirdPartyPullRequestComments<BitbucketPullRequestComment2>;
 
 			const treeComments = listToTree(filterComments);
@@ -1630,18 +1638,12 @@ export class BitbucketProvider
 			const mappedTimelineItems = timeline.body.values
 				.filter(_ => _.comment && !_.comment.deleted && !_.comment.inline)
 				.map(_ => {
-					return this.mapTimelineComment(_.comment);
+					return this.mapTimelineComment(_.comment, viewer.id);
 				});
 			mappedTimelineItems.sort(
 				(a: { createdAt: string }, b: { createdAt: string }) =>
 					new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
 			);
-
-			const viewer = {
-				id: userResponse.account_id,
-				login: userResponse.username,
-				avatarUrl: userResponse.links.avatar.href,
-			};
 
 			const { repos } = SessionContainer.instance();
 			const allRepos = await repos.get();
@@ -1917,6 +1919,50 @@ export class BitbucketProvider
 		};
 	}
 
+	//this is for updating pullrequest comments
+	async updateIssueComment(request: {
+		pullRequestId: string;
+		id: string;
+		isPending?: string;
+		body: string;
+	}): Promise<Directives> {
+		const payload = {
+			content: {
+				raw: request.body,
+			},
+		};
+		Logger.log(`commenting:updatingPRComment`, {
+			request: request,
+			payload: payload,
+		});
+		const { pullRequestId, repoWithOwner } = this.parseId(request.pullRequestId);
+		// PUT /2.0/repositories/{workspace}/{repo_slug}/pullrequests/{pull_request_id}/comments/{comment_id}
+		const response = await this.put<BitBucketCreateCommentRequest, BitbucketPullRequestComment>(
+			`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}/comments/${request.id}`,
+			payload
+		);
+		const directives: Directive[] = [
+			{
+				type: "updatePullRequest",
+				data: {
+					updatedAt: new Date().getTime() as any,
+				},
+			},
+			{
+				type: "updateNode",
+				data: this.mapTimelineComment(response.body, response.body.user.account_id),
+			},
+		];
+
+		this.updateCache(request.pullRequestId, {
+			directives: directives,
+		});
+
+		return {
+			directives: directives,
+		};
+	}
+
 	async createPullRequestComment(request: {
 		pullRequestId: string;
 		sha?: string;
@@ -1935,7 +1981,7 @@ export class BitbucketProvider
 
 		const { pullRequestId, repoWithOwner } = this.parseId(request.pullRequestId);
 		const response = await this.post<BitBucketCreateCommentRequest, BitbucketPullRequestComment>(
-			`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}/comments?pagelen=100`,
+			`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}/comments`,
 			payload
 		);
 
@@ -1948,7 +1994,7 @@ export class BitbucketProvider
 			},
 			{
 				type: "addPullRequestComment",
-				data: this.mapTimelineComment(response.body),
+				data: this.mapTimelineComment(response.body, response.body.user.account_id),
 			},
 		];
 
@@ -2295,29 +2341,59 @@ export class BitbucketProvider
 		return response;
 	}
 
-	private mapComment(_: BitbucketPullRequestComment): BitbucketPullRequestComment2 {
+	private mapComment(
+		_: BitbucketPullRequestComment,
+		viewerId: string
+	): BitbucketPullRequestComment2 {
+		const viewerCanUpdate = () => {
+			if (_.user.account_id === viewerId) {
+				return true;
+			} else {
+				return false;
+			}
+		};
+		const bool = viewerCanUpdate();
 		return {
 			..._,
 			file: _.inline?.path,
 			bodyHtml: _.content?.html,
 			bodyText: _.content?.raw,
 			state: _.type,
+			viewerCanUpdate: bool,
+			id: _.id,
 			author: {
 				login: _.user.display_name,
+				name: _.user.display_name,
+				id: _.user.account_id,
+				avatarUrl: _.user.links?.avatar?.href,
 			},
 		} as BitbucketPullRequestComment2;
 	}
 
-	private mapTimelineComment(comment: BitbucketPullRequestComment) {
+	private mapTimelineComment(comment: BitbucketPullRequestComment, viewerId: string) {
 		const user = comment?.user;
+		const viewerCanUpdate = () => {
+			if (user.account_id === viewerId) {
+				return true;
+			} else {
+				return false;
+			}
+		};
+		const bool = viewerCanUpdate();
 		return {
 			author: {
 				avatarUrl: user?.links?.avatar?.href,
 				name: user?.display_name,
 				login: user?.display_name,
+				id: user.account_id,
 			},
+			viewerCanUpdate: bool,
 			bodyText: comment.content?.raw,
 			createdAt: comment.created_on,
+			file: comment.inline?.path,
+			bodyHtml: comment.content.html,
+			state: comment.type,
+			id: comment.id,
 		};
 	}
 
@@ -2880,7 +2956,7 @@ export class BitbucketProvider
 
 		const { pullRequestId, repoWithOwner } = this.parseId(request.pullRequestId);
 		const response = await this.post<BitBucketCreateCommentRequest, BitbucketPullRequestComment>(
-			`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}/comments?pagelen=100`,
+			`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}/comments`,
 			payload
 		);
 
@@ -2893,7 +2969,7 @@ export class BitbucketProvider
 			},
 			{
 				type: "addNode",
-				data: this.mapComment(response.body),
+				data: this.mapComment(response.body, response.body.user.account_id),
 			},
 		];
 
@@ -2932,7 +3008,7 @@ export class BitbucketProvider
 
 		const { pullRequestId, repoWithOwner } = this.parseId(request.pullRequestId);
 		const response = await this.post<BitBucketCreateCommentRequest, BitbucketPullRequestComment>(
-			`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}/comments?pagelen=100`,
+			`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}/comments`,
 			payload
 		);
 
@@ -2945,7 +3021,7 @@ export class BitbucketProvider
 			},
 			{
 				type: "addReply",
-				data: this.mapComment(response.body),
+				data: this.mapComment(response.body, response.body.user.account_id),
 			},
 		];
 

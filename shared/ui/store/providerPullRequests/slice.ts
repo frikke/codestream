@@ -1008,6 +1008,13 @@ const providerPullRequestsSlice = createSlice({
 							pr.timelineItems = pr.timelineItems || {};
 							pr.timelineItems.nodes = pr.timelineItems.nodes || [];
 							pr.timelineItems.nodes.push(directive.data);
+						} else if (directive.type === "updateNode") {
+							const node = pr.timelineItems.nodes.find(_ => _.id === directive.data.id);
+							if (node) {
+								for (const key in directive.data) {
+									node[key] = directive.data[key];
+								}
+							}
 						} else if (directive.type === "addReply") {
 							pr.comments = pr.comments || [];
 							const findParent = function (
