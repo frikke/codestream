@@ -274,9 +274,16 @@ export const PullRequestReviewButton = (props: Props) => {
 						}
 						trigger={["hover"]}
 						delay={1}
-						onClick={checkout}
+						{...(!cantCheckoutReason
+							? {
+									onClick: () => {
+										checkout();
+									},
+							  }
+							: {})}
 						placement="bottom"
 						name="git-branch"
+						className="clickable"
 					/>
 				</span>
 			)}
@@ -314,10 +321,15 @@ export const PullRequestReviewButton = (props: Props) => {
 					} //text that shows to user when they hover, can be either Approve of Unapprove
 					trigger={["hover"]}
 					delay={1}
-					onClick={e => {
-						submitReview(approvalStatus.requestedState);
-					}}
+					{...(!props.pullRequest.viewerDidAuthor
+						? {
+								onClick: e => {
+									submitReview(approvalStatus.requestedState);
+								},
+						  }
+						: {})}
 					placement="bottom"
+					className="clickable"
 				/>
 			</span>
 			<span className={props.pullRequest.viewerDidAuthor ? "disabled" : ""}>
@@ -336,9 +348,14 @@ export const PullRequestReviewButton = (props: Props) => {
 					trigger={["hover"]}
 					delay={1}
 					placement="bottom"
-					onClick={e => {
-						submitReview(requestStatus.requestedState);
-					}}
+					{...(!props.pullRequest.viewerDidAuthor
+						? {
+								onClick: e => {
+									submitReview(requestStatus.requestedState);
+								},
+						  }
+						: {})}
+					className="clickable"
 				/>
 			</span>
 		</>
