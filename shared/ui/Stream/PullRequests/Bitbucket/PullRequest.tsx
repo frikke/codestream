@@ -492,7 +492,7 @@ export const PullRequest = () => {
 	};
 
 	const isMergeable = () => {
-		if (pr?.viewerCanUpdate && pr?.state !== "MERGED") {
+		if (pr?.viewerCanUpdate && pr?.state === "OPEN") {
 			return true;
 		} else {
 			return false;
@@ -685,11 +685,16 @@ export const PullRequest = () => {
 													</>
 												}
 												trigger={["hover"]}
+												className="clickable"
 												delay={1}
 												placement="bottom"
-												onClick={e => {
-													setIsOpen(true);
-												}}
+												{...(isMergeable()
+													? {
+															onClick: e => {
+																setIsOpen(true);
+															},
+													  }
+													: {})}
 											/>
 										</span>
 									</>
