@@ -3131,7 +3131,7 @@ export class BitbucketProvider
 						approved: directive.data.approved,
 						participated_on: directive.data.participated_on,
 						role: directive.data.role,
-					} as BitbucketUnfilteredParticipants);
+					});
 				}
 				const nonReviewers = pr.participantsUnfiltered.nodes.filter(
 					_ => _.role !== BitbucketParticipantRole.Reviewer
@@ -3194,10 +3194,10 @@ export class BitbucketProvider
 						approved: directive.data.approved,
 						participated_on: directive.data.participated_on,
 						role: directive.data.role,
-					} as BitbucketUnfilteredParticipants);
+					});
 				}
 				const nonReviewers = pr.participantsUnfiltered.nodes.filter(
-					_ => _.role === BitbucketParticipantRole.Reviewer
+					_ => _.role !== BitbucketParticipantRole.Reviewer
 				);
 				const filteredParticipants = nonReviewers.filter(_ => _.state !== null);
 				const reviewers = pr.participantsUnfiltered.nodes.filter(
@@ -3241,6 +3241,7 @@ export class BitbucketProvider
 				);
 				//update participants with filteredParticipants & update reviewers with reviewers
 				pr.participants.nodes = filteredParticipants;
+				pr.participantsUnfiltered.nodes = directive.data.participants;
 				pr.reviewers.nodes = reviewers;
 			} else if (directive.type === "updateReviewers") {
 				const nonReviewers = directive.data.participants.filter(
@@ -3254,6 +3255,7 @@ export class BitbucketProvider
 				);
 				//update participants with filteredParticipants & update reviewers with reviewers
 				pr.participants.nodes = filteredParticipants;
+				pr.participantsUnfiltered.nodes = directive.data.participants;
 				pr.reviewers.nodes = reviewers;
 			} else if (directive.type === "addNode") {
 				pr.comments = pr.comments || [];
@@ -3262,6 +3264,13 @@ export class BitbucketProvider
 				pr.timelineItems = pr.timelineItems || {};
 				pr.timelineItems.nodes = pr.timelineItems.nodes || [];
 				pr.timelineItems.nodes.push(directive.data);
+			} else if (directive.type === "updateNode") {
+				const node = pr.timelineItems.nodes.find(_ => _.id === directive.data.id);
+				if (node) {
+					for (const key in directive.data) {
+						node[key] = directive.data[key];
+					}
+				}
 			} else if (directive.type === "addReply") {
 				pr.comments = pr.comments || [];
 				const findParent = function (
