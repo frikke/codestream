@@ -1,0 +1,191 @@
+<idea-plugin require-restart="true">
+    <id>com.codestream.jetbrains-codestream</id>
+    <name>New Relic CodeStream: GitHub, GitLab, PRs and Code Review</name>
+    <vendor email="codestream@newrelic.com" url="https://www.newrelic.com/codestream">New Relic</vendor>
+
+    <description>DO NOT EDIT: Generated from docs/description.html</description>
+
+    <change-notes>DO NOT EDIT: Generated from docs/change-notes.html</change-notes>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends optional="true" config-file="com.codestream.jetbrains-codestream-withGo.xml">
+        org.jetbrains.plugins.go
+    </depends>
+    <depends optional="true" config-file="com.codestream.jetbrains-codestream-withPython.xml">
+        com.intellij.modules.python
+    </depends>
+    <depends optional="true" config-file="com.codestream.jetbrains-codestream-withJava.xml">
+        com.intellij.java
+    </depends>
+    <depends optional="true" config-file="com.codestream.jetbrains-codestream-withCSharp.xml">
+        com.intellij.modules.rider
+    </depends>
+    <depends optional="true" config-file="com.codestream.jetbrains-codestream-withRuby.xml">
+        org.jetbrains.plugins.ruby
+    </depends>
+    <depends optional="true" config-file="com.codestream.jetbrains-codestream-withPhp.xml">
+        com.jetbrains.php
+    </depends>
+    <depends optional="true" config-file="com.codestream.jetbrains-codestream-withKotlin.xml">
+        org.jetbrains.kotlin
+    </depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="CodeStream" icon="/images/codestream.svg" anchor="right"
+                    factoryClass="com.codestream.webview.CodeStreamToolWindowFactory"/>
+
+        <statusBarWidgetFactory implementation="com.codestream.widgets.CodeStreamStatusBarWidgetFactory"/>
+
+        <applicationService serviceImplementation="com.codestream.settings.ApplicationSettingsService"/>
+        <applicationService serviceImplementation="com.codestream.webview.JxBrowserEngineService"/>
+
+        <projectService serviceImplementation="com.codestream.CodeStreamProjectService"/>
+        <projectService serviceImplementation="com.codestream.agent.AgentService"/>
+        <projectService serviceImplementation="com.codestream.authentication.AuthenticationService"/>
+        <projectService serviceImplementation="com.codestream.settings.SettingsService"/>
+        <projectService serviceImplementation="com.codestream.session.SessionService"/>
+        <projectService serviceImplementation="com.codestream.webview.WebViewService"/>
+        <projectService serviceImplementation="com.codestream.editor.EditorService"/>
+        <projectService serviceImplementation="com.codestream.review.ReviewService"/>
+        <projectService serviceImplementation="com.codestream.telemetry.TelemetryService"/>
+        <projectService serviceImplementation="com.codestream.editor.LineLevelBlameService"/>
+
+        <applicationConfigurable groupId="tools" displayName="CodeStream" id="preferences.CodeStreamConfigurable"
+                                 instance="com.codestream.settings.CodeStreamConfigurable"/>
+
+        <errorHandler implementation="com.codestream.telemetry.ErrorHandler"/>
+
+        <diff.DiffExtension implementation="com.codestream.review.ReviewDiffExtension"/>
+
+        <intentionAction>
+            <className>com.codestream.actions.AddComment</className>
+            <category>Other</category>
+        </intentionAction>
+        <intentionAction>
+            <className>com.codestream.actions.CreateIssue</className>
+            <category>Other</category>
+        </intentionAction>
+        <intentionAction>
+            <className>com.codestream.actions.GetPermalink</className>
+            <category>Other</category>
+        </intentionAction>
+
+        <jbProtocolCommand implementation="com.codestream.commands.CodeStreamCommand"/>
+        <ignoredFileProvider implementation="com.codestream.vcs.CodeStreamIgnoredFileProvider"/>
+        <codeInsight.linkHandler prefix="#codemark/show/"
+                                 handlerClass="com.codestream.editor.GutterCodemarkTooltipLinkHandler"/>
+        <codeInsight.linkHandler prefix="#pr/show/"
+                                 handlerClass="com.codestream.editor.GutterPullRequestTooltipLinkHandler"/>
+        <codeInsight.linkHandler prefix="#pr/showExternal/"
+                                 handlerClass="com.codestream.editor.GutterPullRequestTooltipExternalLinkHandler"/>
+        <codeInsight.linkHandler prefix="#codemark/link/"
+                                 handlerClass="com.codestream.editor.GutterCodemarkLinkTooltipLinkHandler"/>
+    </extensions>
+
+    <project-components>
+        <component>
+            <implementation-class>com.codestream.notification.NotificationComponent</implementation-class>
+        </component>
+    </project-components>
+
+    <actions>
+        <action id="CodeStream.SignOut" class="com.codestream.actions.SignOut" text="CodeStream: Sign out"/>
+        <action id="CodeStream.ReloadWebview" class="com.codestream.actions.ReloadWebview"
+                text="CodeStream: Reload webview"/>
+        <action id="CodeStream.WebViewZoomIn" class="com.codestream.actions.WebViewZoomIn" text="CodeStream: Zoom in"/>
+        <action id="CodeStream.WebViewZoomOut" class="com.codestream.actions.WebViewZoomOut"
+                text="CodeStream: Zoom out"/>
+        <action id="CodeStream.WebViewZoomReset" class="com.codestream.actions.WebViewZoomReset"
+                text="CodeStream: Reset zoom"/>
+
+        <action id="CodeStream.OpenDevTools" class="com.codestream.actions.OpenDevTools"
+                text="CodeStream: Open webview dev tools"/>
+        <action id="CodeStream.TestUrlHandler" class="com.codestream.actions.TestUrlHandler"
+                text="CodeStream: Test URL handler"/>
+
+        <group id="com.codestream.Actions" popup="true" text="CodeStream" icon="/images/codestream-color.svg"
+               class="com.codestream.actions.CodeStreamActionGroup">
+            <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="EditorPopupMenu2"/>
+            <action id="CodeStream.AddComment" class="com.codestream.actions.AddComment" text="Add _Comment"
+                    description="Add comment" icon="/images/marker-comment.svg">
+                <add-to-group group-id="Diff.EditorPopupMenu"/>
+                <keyboard-shortcut keymap="$default" first-keystroke="control shift SLASH" second-keystroke="C"/>
+                <keyboard-shortcut keymap="Mac OS X" first-keystroke="control SLASH" second-keystroke="C"
+                                   replace-all="true"/>
+                <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="control SLASH" second-keystroke="C"
+                                   replace-all="true"/>
+            </action>
+            <action id="CodeStream.CreateIssue" class="com.codestream.actions.CreateIssue" text="Create _Issue"
+                    description="Create issue" icon="/images/marker-issue.svg">
+                <keyboard-shortcut keymap="$default" first-keystroke="control shift SLASH" second-keystroke="I"/>
+                <keyboard-shortcut keymap="Mac OS X" first-keystroke="control SLASH" second-keystroke="I"
+                                   replace-all="true"/>
+                <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="control SLASH" second-keystroke="I"
+                                   replace-all="true"/>
+            </action>
+            <action id="CodeStream.GetPermalink" class="com.codestream.actions.GetPermalink" text="Get _Permalink"
+                    description="Get permalink" icon="/images/marker-permalink.svg">
+                <keyboard-shortcut keymap="$default" first-keystroke="control shift SLASH" second-keystroke="L"/>
+                <keyboard-shortcut keymap="Mac OS X" first-keystroke="control SLASH" second-keystroke="L"
+                                   replace-all="true"/>
+                <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="control SLASH" second-keystroke="L"
+                                   replace-all="true"/>
+            </action>
+            <!--            <action id="ReviewCoverage" class="com.codestream.actions.ReviewCoverage" text="Review Coverage"-->
+            <!--                    description="Show code review coverage"/>-->
+        </group>
+
+        <action id="CodeStream.CreateReview" class="com.codestream.actions.CreateReview" text="_Request Feedback"
+                description="Request feedback" icon="/images/review.svg">
+            <keyboard-shortcut keymap="$default" first-keystroke="control shift SLASH" second-keystroke="R"/>
+            <keyboard-shortcut keymap="Mac OS X" first-keystroke="control SLASH" second-keystroke="R"
+                               replace-all="true"/>
+            <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="control SLASH" second-keystroke="R"
+                               replace-all="true"/>
+        </action>
+        <action id="CodeStream.NewPullRequest" class="com.codestream.actions.NewPullRequest"
+                text="New _Pull/Merge Request"
+                description="New Pull/Merge Request" icon="/images/pull-request.svg">
+            <keyboard-shortcut keymap="$default" first-keystroke="control shift SLASH" second-keystroke="P"/>
+            <keyboard-shortcut keymap="Mac OS X" first-keystroke="control SLASH" second-keystroke="P"
+                               replace-all="true"/>
+            <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="control SLASH" second-keystroke="P"
+                               replace-all="true"/>
+        </action>
+        <action id="CodeStream.ToggleView" class="com.codestream.actions.ToggleView" text="Toggle CodeStream">
+            <keyboard-shortcut keymap="$default" first-keystroke="control shift SLASH"
+                               second-keystroke="control shift SLASH"/>
+            <keyboard-shortcut keymap="Mac OS X" first-keystroke="control SLASH" second-keystroke="control SLASH"
+                               replace-all="true"/>
+            <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="control SLASH" second-keystroke="control SLASH"
+                               replace-all="true"/>
+        </action>
+        <action id="CodeStream.CopyPermalink" class="com.codestream.actions.CopyPermalink" text="Copy Permalink"
+                description="Copy Permalink">
+            <keyboard-shortcut keymap="$default" first-keystroke="control shift SLASH" second-keystroke="shift L"/>
+            <keyboard-shortcut keymap="Mac OS X" first-keystroke="control SLASH" second-keystroke="shift L"
+                               replace-all="true"/>
+            <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="control SLASH" second-keystroke="shift L"
+                               replace-all="true"/>
+        </action>
+        <action id="CodeStream.NewMergeRequest" class="com.codestream.actions.NewPullRequest" text="New Merge Request"
+                description="New Merge Request" icon="/images/pull-request.svg">
+            <keyboard-shortcut keymap="$default" first-keystroke="control shift SLASH" second-keystroke="M"/>
+            <keyboard-shortcut keymap="Mac OS X" first-keystroke="control SLASH" second-keystroke="M"
+                               replace-all="true"/>
+            <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="control SLASH" second-keystroke="M"
+                               replace-all="true"/>
+        </action>
+        <action id="CodeStream.StartWork" class="com.codestream.actions.StartWork" text="Start _Work"
+                description="Start work" icon="/images/startwork.svg">
+            <keyboard-shortcut keymap="$default" first-keystroke="control shift SLASH" second-keystroke="W"/>
+            <keyboard-shortcut keymap="Mac OS X" first-keystroke="control SLASH" second-keystroke="W"
+                               replace-all="true"/>
+            <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="control SLASH" second-keystroke="W"
+                               replace-all="true"/>
+        </action>
+    </actions>
+
+    <depends>Git4Idea</depends>
+    <idea-version since-build="213.6461.79"/>
+</idea-plugin>

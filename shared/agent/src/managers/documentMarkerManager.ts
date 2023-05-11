@@ -320,23 +320,23 @@ export class DocumentMarkerManager {
 						if (n.position && n.position.newPath === parsedUri.path) {
 							comments.push(n);
 						}
-					});
-				}
-			});
+			// 		});
+			// 	}
+			// });
 
-			const provider = providerRegistry
-				.getProviders()
-				.find((provider: ThirdPartyProvider) => provider.getConfig().id === pr.providerId);
-			if (provider) {
-				comments.forEach(async (comment: any) => {
-					let summary = comment.body;
-					if (summary.length !== 0) {
-						summary = summary.replace(emojiRegex, (s: string, code: string) => emojiMap[code] || s);
-					}
+			// // const provider = providerRegistry
+			// // 	.getProviders()
+			// // 	.find((provider: ThirdPartyProvider) => provider.getConfig().id === pr.providerId);
+			// // if (provider) {
+			// // 	comments.forEach(async (comment: any) => {
+			// // 		let summary = comment.body;
+			// // 		if (summary.length !== 0) {
+			// // 			summary = summary.replace(emojiRegex, (s: string, code: string) => emojiMap[code] || s);
+			// // 		}
 
-					const gotoLine = comment.position.newLine;
+			// // 		const gotoLine = comment.position.newLine;
 
-					const location: CSLocationArray = [gotoLine, 0, gotoLine, 0, undefined];
+			// 		const location: CSLocationArray = [gotoLine, 0, gotoLine, 0, undefined];
 					documentMarkers.push({
 						createdAt: +new Date(comment.createdAt),
 						modifiedAt: +new Date(comment.createdAt),

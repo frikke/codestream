@@ -1,0 +1,14 @@
+<idea-plugin>
+<!--    <extensions defaultExtensionNs="com.intellij">-->
+<!--        <lang.documentationProvider-->
+<!--            order="first"-->
+<!--            language="PHP"-->
+<!--            implementationClass="com.codestream.language.PhpTelemetryDocumentationProvider"/>-->
+<!--    </extensions>-->
+
+    <project-components>
+        <component>
+            <implementation-class>com.codestream.clm.CLMPhpComponent</implementation-class>
+        </component>
+    </project-components>
+</idea-plugin>
