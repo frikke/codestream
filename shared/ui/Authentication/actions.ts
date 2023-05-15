@@ -253,7 +253,12 @@ export const generateLoginCode =
 const _bootstrap = () => {};
 
 export const onLogin =
-	(response: LoginSuccessResponse, isFirstPageview?: boolean, teamCreated?: boolean) =>
+	(
+		response: LoginSuccessResponse,
+		isFirstPageview?: boolean,
+		teamCreated?: boolean,
+		nrSignupTestUi?: boolean
+	) =>
 	async (dispatch, getState: () => CodeStreamState) => {
 		const api = HostApi.instance;
 
@@ -283,6 +288,7 @@ export const onLogin =
 					...bootstrapCore.session,
 					userId: response.state.userId,
 					eligibleJoinCompanies: response.loginResponse.user.eligibleJoinCompanies || [],
+					nrSignupTestUi: nrSignupTestUi,
 				},
 				capabilities: response.state.capabilities,
 				context: {
@@ -328,6 +334,7 @@ export const completeSignup =
 			createdTeam: boolean;
 			provider?: string;
 			byDomain?: boolean;
+			nrSignupTestUi?: boolean;
 			setEnvironment?: { environment: string; serverUrl: string };
 		}
 	) =>
@@ -362,7 +369,7 @@ export const completeSignup =
 			"Signup Type": extra.byDomain ? "Domain" : extra.createdTeam ? "Organic" : "Viral",
 			"Auth Provider": providerName,
 		});
-		dispatch(onLogin(response, true, extra.createdTeam));
+		dispatch(onLogin(response, true, extra.createdTeam, extra.nrSignupTestUi));
 	};
 
 export const completeAcceptInvite =

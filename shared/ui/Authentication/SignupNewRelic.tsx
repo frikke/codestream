@@ -2,7 +2,7 @@ import { RegisterNrUserRequestType } from "@codestream/protocols/agent";
 import { LoginResult } from "@codestream/protocols/api";
 import { CodeStreamState } from "@codestream/webview/store";
 import { handleSelectedRegion, setSelectedRegion } from "@codestream/webview/store/session/thunks";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { FormattedMessage } from "react-intl";
 import styled from "styled-components";
 import { logError } from "../logger";
@@ -30,12 +30,12 @@ const ErrorMessageWrapper = styled.div`
 
 export const SignupNewRelic = () => {
 	//Local state
-	const [showEmailErrorMessage, setShowEmailErrorMessage] = React.useState(false);
-	const [showGenericErrorMessage, setShowGenericErrorMessage] = React.useState(false);
-	const [existingEmail, setExistingEmail] = React.useState("");
-	const [loading, setLoading] = React.useState(false);
-	const [apiKey, setApiKey] = React.useState("");
-	const [inviteConflict, setInviteConflict] = React.useState(false);
+	const [showEmailErrorMessage, setShowEmailErrorMessage] = useState(false);
+	const [showGenericErrorMessage, setShowGenericErrorMessage] = useState(false);
+	const [existingEmail, setExistingEmail] = useState("");
+	const [loading, setLoading] = useState(false);
+	const [apiKey, setApiKey] = useState("");
+	const [inviteConflict, setInviteConflict] = useState(false);
 
 	//Redux declarations
 	const dispatch = useAppDispatch();
@@ -53,6 +53,7 @@ export const SignupNewRelic = () => {
 			selectedRegion,
 			forceRegion,
 			supportsMultiRegion,
+			machineId: state.session.machineId || "0",
 		};
 	});
 
@@ -127,6 +128,9 @@ export const SignupNewRelic = () => {
 				});
 			};
 
+			const machineIdNumeric = derivedState.machineId.replace(/\D/g, "").substring(0, 10);
+			const abTestValue = Number(machineIdNumeric) % 2;
+
 			switch (status) {
 				// CompanyCreation should handle routing on success
 				case LoginResult.Success:
@@ -135,6 +139,7 @@ export const SignupNewRelic = () => {
 						dispatch(
 							completeSignup(email, token!, teamId!, {
 								createdTeam: false,
+								nrSignupTestUi: abTestValue === 0 ? false : true,
 							})
 						);
 					}
@@ -151,6 +156,7 @@ export const SignupNewRelic = () => {
 								isWebmail,
 								accountIsConnected,
 								provider: "newrelic",
+								nrSignupTestUi: abTestValue === 0 ? false : true,
 							})
 						);
 					}
