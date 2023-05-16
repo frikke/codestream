@@ -7,7 +7,7 @@ import {
 } from "@codestream/protocols/agent";
 import { CSCodeError, CSPost, CSStackTraceLine, CSUser } from "@codestream/protocols/api";
 import React, { PropsWithChildren, SyntheticEvent, useEffect } from "react";
-import { shallowEqual, useSelector } from "react-redux";
+import { shallowEqual } from "react-redux";
 import styled from "styled-components";
 
 import { OpenUrlRequestType } from "@codestream/protocols/webview";
@@ -1206,11 +1206,7 @@ const BaseCodeError = (props: BaseCodeErrorProps) => {
 				const methodName = extractMethodName(stackInfo.lines);
 				let lineIndex = currentSelectedLine;
 				const len = stackInfo.lines.length;
-				while (
-					lineIndex < len &&
-					// stackInfo.lines[lineNum].line !== undefined &&
-					stackInfo.lines[lineIndex].error
-				) {
+				while (lineIndex < len && !stackInfo.lines[lineIndex].resolved) {
 					lineIndex++;
 				}
 				if (lineIndex < len) {
