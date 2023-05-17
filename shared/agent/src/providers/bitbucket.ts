@@ -1742,6 +1742,7 @@ export class BitbucketProvider
 						viewerCanUpdate: viewerCanUpdate,
 						isApproved: isApproved,
 						id: pr.body.id,
+						updatedAt: pr.body.updated_on,
 					} as any, //TODO: make this work
 				},
 			};
@@ -2352,6 +2353,17 @@ export class BitbucketProvider
 			});
 		}
 		throw new Error(`Unknown request type: ${request.eventType}`);
+	}
+
+	async getPullRequestLastUpdated(request: { pullRequestId: string }) {
+		const { pullRequestId, repoWithOwner } = this.parseId(request.pullRequestId);
+		const pr = await this.get<BitbucketPullRequest>(
+			`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}`
+		);
+
+		return {
+			updatedAt: pr.body.updated_on,
+		};
 	}
 
 	async getPullRequestFilesChanged(request: {
