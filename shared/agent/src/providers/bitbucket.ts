@@ -1922,7 +1922,6 @@ export class BitbucketProvider
 
 	//this is for deleting a pullrequest comment
 	async deletePullRequestComment(request: {
-		viewerId: string;
 		pullRequestId: string;
 		id: string;
 		isPending?: string;
@@ -1937,44 +1936,17 @@ export class BitbucketProvider
 			`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}/comments/${request.id}`
 		);
 
-		const comments = await this.get<BitbucketValues<BitbucketPullRequestComment[]>>(
-			`/repositories/${repoWithOwner}/pullrequests/${pullRequestId}/comments?pagelen=100`
-		);
-
-		const listToTree: any = (
-			arr: { id: string; replies: any[]; parent: { id: string } }[] = []
-		) => {
-			let map: any = {};
-			let res: any = [];
-			for (let i = 0; i < arr.length; i++) {
-				if (!arr[i].replies) {
-					arr[i].replies = [];
-				}
-				map[arr[i].id] = i;
-				if (!arr[i].parent) {
-					res.push(arr[i]);
-				} else {
-					arr[map[arr[i].parent.id]].replies.push(arr[i]);
-				}
-			}
-
-			return res;
-		};
-
-		const filterComments = comments.body.values
-			.filter(_ => !_.deleted)
-			.map((_: BitbucketPullRequestComment) => {
-				return this.mapComment(_, request.id);
-			}) as ThirdPartyPullRequestComments<BitbucketPullRequestComment2>;
-
-		const nodes = listToTree(filterComments);
-
 		const directives: Directive[] = [
 			{
 				type: "updatePullRequest",
 				data: {
 					updatedAt: new Date().getTime() as any,
-					timelineItems: { nodes },
+				},
+			},
+			{
+				type: "removeNode",
+				data: {
+					id: request.id,
 				},
 			},
 		];

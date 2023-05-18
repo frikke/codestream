@@ -57,7 +57,6 @@ export const PullRequestCommentMenu = (props: CommentMenuProps) => {
 										isPending: props.isPending,
 										parentId: props.parentId,
 										id: node.id,
-										viewerId: props.pr.viewer.id,
 									},
 								})
 							);
