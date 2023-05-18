@@ -3288,6 +3288,23 @@ export class BitbucketProvider
 						node[key] = directive.data[key];
 					}
 				}
+			} else if (directive.type === "removeNode") {
+				if (!directive.data.id) continue;
+
+				let nodeIndex = 0;
+				let nodeRemoveIndex = -1;
+				for (const node of pr.timelineItems.nodes) {
+					if (node.id === directive.data.id) {
+						// is an outer node
+						nodeRemoveIndex = nodeIndex;
+						break;
+					}
+
+					nodeIndex++;
+				}
+				if (nodeRemoveIndex > -1) {
+					pr.timelineItems.nodes.splice(nodeRemoveIndex, 1);
+				}
 			} else if (directive.type === "addReply") {
 				pr.comments = pr.comments || [];
 				const findParent = function (
