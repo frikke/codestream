@@ -3288,6 +3288,7 @@ export class BitbucketProvider
 						node[key] = directive.data[key];
 					}
 				}
+
 			} else if (directive.type === "removeNode") {
 				if (!directive.data.id) continue;
 
@@ -3305,6 +3306,7 @@ export class BitbucketProvider
 				if (nodeRemoveIndex > -1) {
 					pr.timelineItems.nodes.splice(nodeRemoveIndex, 1);
 				}
+
 			} else if (directive.type === "addReply") {
 				pr.comments = pr.comments || [];
 				const findParent = function (
