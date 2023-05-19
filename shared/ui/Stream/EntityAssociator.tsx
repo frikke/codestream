@@ -21,6 +21,7 @@ interface EntityAssociatorProps {
 	remoteName: string;
 	onSuccess?: (entityGuid: { entityGuid: string }) => void;
 	servicesToExcludeFromSearch?: EntityAccount[];
+	isSidebarView?: boolean;
 }
 
 type SelectOptionType = { label: string; value: string };
@@ -51,7 +52,7 @@ export const EntityAssociator = React.memo((props: PropsWithChildren<EntityAssoc
 	}
 
 	return (
-		<NoContent style={{ marginLeft: "40px" }}>
+		<NoContent style={{ marginLeft: props.isSidebarView ? "20px" : "40px" }}>
 			{props.title && <h3>{props.title}</h3>}
 			{props.label && <p style={{ marginTop: 0 }}>{props.label}</p>}
 			{warningOrErrors && <WarningBox items={warningOrErrors} />}
@@ -72,6 +73,7 @@ export const EntityAssociator = React.memo((props: PropsWithChildren<EntityAssoc
 			</div>
 			<Tooltip placement="bottom" title={`Associate with ${props.remote}`}>
 				<Button
+					style={{ width: "100%" }}
 					isLoading={isLoading}
 					disabled={isLoading || !selected}
 					onClick={e => {
