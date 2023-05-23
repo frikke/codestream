@@ -2519,7 +2519,7 @@ class CodemarkForm extends React.Component<Props, State> {
 					{this.props.currentReviewId && this.renderRequireChange()}
 					{codeBlocks?.length > 0 && (
 						<div style={{ clear: "both", marginTop: 45 }}>
-							<div>ChatGPT</div>
+							<div>Grok</div>
 							<div>
 								<Link onClick={e => this.handleClickSubmit(e, "analyze")}>
 									How do I fix this code?

@@ -1287,7 +1287,7 @@ const BaseCodeError = (props: BaseCodeErrorProps) => {
 						</TourTip>
 						{derivedState.replies.length === 0 && (
 							<Button onClick={props.analyzeClick} isLoading={!!derivedState.isLoading}>
-								Analyze with ChatGPT
+								Analyze with Grok
 							</Button>
 						)}
 					</Meta>
@@ -1538,7 +1538,7 @@ const ReplyInput = (props: { codeError: CSCodeError; analyzeStacktrace: number }
 				return "What is a good commit message for this change?";
 			}
 			case "commit_changes": {
-				return "#chatgpt#Changes Committed";
+				return "#grok#Changes Committed";
 			}
 			default:
 				return text;

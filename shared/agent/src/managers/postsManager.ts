@@ -1938,9 +1938,9 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				);
 				const resolvedChatResponse =
 					submitType === "fix_applied"
-						? `#chatgpt#Code fix applied. A good commit message would be:\n\n ${chatResponse}`
+						? `#grok#Code fix applied. A good commit message would be:\n\n ${chatResponse}`
 						: chatResponse;
-				// Second message is ChatGPT response
+				// Second message is Grok response
 				postMessages.push({ ...request, text: resolvedChatResponse });
 			}
 			for (const finalRequest of postMessages) {
