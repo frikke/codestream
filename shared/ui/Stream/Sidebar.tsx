@@ -128,7 +128,6 @@ export const Sidebar = React.memo(function Sidebar() {
 				_ => _ !== WebviewPanels.OpenReviews && _ !== WebviewPanels.CodemarksForFile
 			);
 		}
-		const nrSignupTestUi = state.session?.nrSignupTestUi;
 		return {
 			repos,
 			sidebarPanes: preferences.sidebarPanes || EMPTY_HASH,
@@ -138,7 +137,6 @@ export const Sidebar = React.memo(function Sidebar() {
 			ideName: state.ide.name,
 			currentRepoId: state.editorContext.scmInfo?.scm?.repoId,
 			textEditorUri: state.editorContext.textEditorUri,
-			nrSignupTestUi,
 		};
 	}, shallowEqual);
 	const { sidebarPanes } = derivedState;

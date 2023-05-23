@@ -15,7 +15,7 @@ import {
 	UpdateNewRelicOrgIdRequestType,
 } from "@codestream/protocols/agent";
 import { CodemarkType, LoginResult } from "@codestream/protocols/api";
-
+import { WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
 import { LogoutRequestType } from "@codestream/protocols/webview";
 import { setBootstrapped } from "@codestream/webview/store/bootstrapped/actions";
 import { withExponentialConnectionRetry } from "@codestream/webview/store/common";
@@ -54,6 +54,7 @@ import { moveCursorToLine } from "../Stream/api-functions";
 import { localStore } from "../utilities/storage";
 import { emptyObject, uuid } from "../utils";
 import { HostApi } from "../webview-api";
+import { setUserPreference } from "../Stream/actions";
 
 export enum SignupType {
 	JoinTeam = "joinTeam",
@@ -298,6 +299,33 @@ export const onLogin =
 				},
 			})
 		);
+
+		if (nrSignupTestUi) {
+			await dispatch(
+				setUserPreference({
+					prefPath: ["sidebarPanes", WebviewPanels.OpenPullRequests, "removed"],
+					value: true,
+				})
+			);
+			await dispatch(
+				setUserPreference({
+					prefPath: ["sidebarPanes", WebviewPanels.OpenReviews, "removed"],
+					value: true,
+				})
+			);
+			await dispatch(
+				setUserPreference({
+					prefPath: ["sidebarPanes", WebviewPanels.Tasks, "removed"],
+					value: true,
+				})
+			);
+			await dispatch(
+				setUserPreference({
+					prefPath: ["sidebarPanes", WebviewPanels.CICD, "removed"],
+					value: true,
+				})
+			);
+		}
 
 		if (response.state.codemarkId) {
 			let { codemarks } = getState();
