@@ -1314,7 +1314,6 @@ export const Observability = React.memo((props: Props) => {
 															remote={repoForEntityAssociator.repoRemote}
 															remoteName={repoForEntityAssociator.repoName}
 														/>
-														{/* Eric Here */}
 														<ObservabilityPreview />
 													</>
 												)}
