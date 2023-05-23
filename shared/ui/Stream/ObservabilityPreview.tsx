@@ -1,23 +1,35 @@
 import React from "react";
 import Icon from "./Icon";
 import { HealthIcon } from "@codestream/webview/src/components/HealthIcon";
+import styled from "styled-components";
 
 interface Props {}
+
+const Container = styled.div`
+	opacity: 0.2;
+	cursor: default;
+	margin-top: 10px;
+`;
+
+const StyledSpan = styled.span`
+	margin-left: 2px;
+	margin-right: 5px;
+`;
 
 export const ObservabilityPreview = React.memo((props: Props) => {
 	return (
 		<>
-			<div style={{ opacity: ".2", cursor: "default", marginTop: "10px" }}>
+			<Container>
 				<div
 					style={{
 						padding: "2px 10px 2px 20px",
 					}}
 				>
 					<Icon name="chevron-down-thin" />
-					<span style={{ marginLeft: "2px", marginRight: "5px" }}>
+					<StyledSpan>
 						<HealthIcon color={"#9FA5A5"} />
 						Sample Service
-					</span>
+					</StyledSpan>
 				</div>
 				<div
 					style={{
@@ -25,7 +37,7 @@ export const ObservabilityPreview = React.memo((props: Props) => {
 					}}
 				>
 					<Icon name="chevron-down-thin" />
-					<span style={{ marginLeft: "2px", marginRight: "5px" }}>Golden Metrics</span>
+					<StyledSpan>Golden Metrics</StyledSpan>
 				</div>
 
 				<div
@@ -36,7 +48,7 @@ export const ObservabilityPreview = React.memo((props: Props) => {
 					}}
 				>
 					<div>
-						<span style={{ marginRight: "5px" }}>Throughput</span>
+						<StyledSpan>Throughput</StyledSpan>
 					</div>
 					<div className="icons">
 						<span className={"details"}>9.35 rpm</span>
@@ -50,7 +62,7 @@ export const ObservabilityPreview = React.memo((props: Props) => {
 					}}
 				>
 					<div>
-						<span style={{ marginRight: "5px" }}>Response Time</span>
+						<StyledSpan>Response Time</StyledSpan>
 					</div>
 					<div className="icons">
 						<span className={"details"}>3,413.34 ms</span>
@@ -64,7 +76,7 @@ export const ObservabilityPreview = React.memo((props: Props) => {
 					}}
 				>
 					<div>
-						<span style={{ marginRight: "5px" }}>Error Rate</span>
+						<StyledSpan>Error Rate</StyledSpan>
 					</div>
 					<div className="icons">
 						<span className={"details"}>0.62 avg</span>
@@ -76,7 +88,7 @@ export const ObservabilityPreview = React.memo((props: Props) => {
 					}}
 				>
 					<Icon name="chevron-right-thin" />
-					<span style={{ marginLeft: "2px", marginRight: "5px" }}>Service Level Objectives</span>
+					<StyledSpan>Service Level Objectives</StyledSpan>
 				</div>
 				<div
 					style={{
@@ -84,7 +96,7 @@ export const ObservabilityPreview = React.memo((props: Props) => {
 					}}
 				>
 					<Icon name="chevron-down-thin" />
-					<span style={{ marginLeft: "2px", marginRight: "5px" }}>Code-Level Metrics</span>
+					<StyledSpan>Code-Level Metrics</StyledSpan>
 				</div>
 				<div
 					style={{
@@ -92,7 +104,7 @@ export const ObservabilityPreview = React.memo((props: Props) => {
 					}}
 				>
 					<Icon name="chevron-right-thin" />
-					<span style={{ marginLeft: "2px", marginRight: "5px" }}>Error Rate Increase</span>
+					<StyledSpan>Error Rate Increase</StyledSpan>
 				</div>
 				<div
 					style={{
@@ -100,7 +112,7 @@ export const ObservabilityPreview = React.memo((props: Props) => {
 					}}
 				>
 					<Icon name="chevron-down-thin" />
-					<span style={{ marginLeft: "2px", marginRight: "5px" }}>Average Duration Increase</span>
+					<StyledSpan>Average Duration Increase</StyledSpan>
 				</div>
 				<div
 					style={{
@@ -110,7 +122,7 @@ export const ObservabilityPreview = React.memo((props: Props) => {
 					}}
 				>
 					<div>
-						<span style={{ marginRight: "5px" }}>api.client.CatFactClient/fetchCatfact</span>
+						<StyledSpan>api.client.CatFactClient/fetchCatfact</StyledSpan>
 					</div>
 					<div className="icons">
 						<span style={{ color: "red" }} className={"details"}>
@@ -126,7 +138,7 @@ export const ObservabilityPreview = React.memo((props: Props) => {
 					}}
 				>
 					<div>
-						<span style={{ marginRight: "5px" }}>clm.PetFactController/getPetFacts</span>
+						<StyledSpan>clm.PetFactController/getPetFacts</StyledSpan>
 					</div>
 					<div className="icons">
 						<span style={{ color: "red" }} className={"details"}>
@@ -142,7 +154,7 @@ export const ObservabilityPreview = React.memo((props: Props) => {
 					}}
 				>
 					<div>
-						<span style={{ marginRight: "5px" }}>clm.clmController/dbMethod</span>
+						<StyledSpan>clm.clmController/dbMethod</StyledSpan>
 					</div>
 					<div style={{ color: "red" }} className="icons">
 						<span className={"details"}>-54%</span>
@@ -154,7 +166,7 @@ export const ObservabilityPreview = React.memo((props: Props) => {
 					}}
 				>
 					<Icon name="chevron-right-thin" />
-					<span style={{ marginLeft: "2px", marginRight: "5px" }}>Vulnerabilities</span>
+					<StyledSpan>Vulnerabilities</StyledSpan>
 				</div>
 				<div
 					style={{
@@ -162,7 +174,7 @@ export const ObservabilityPreview = React.memo((props: Props) => {
 					}}
 				>
 					<Icon name="chevron-right-thin" />
-					<span style={{ marginLeft: "2px", marginRight: "5px" }}>Related Services</span>
+					<StyledSpan>Related Services</StyledSpan>
 				</div>
 				<div
 					style={{
@@ -170,9 +182,9 @@ export const ObservabilityPreview = React.memo((props: Props) => {
 					}}
 				>
 					<Icon name="chevron-right-thin" />
-					<span style={{ marginLeft: "2px", marginRight: "5px" }}>Errors</span>
+					<StyledSpan>Errors</StyledSpan>
 				</div>
-			</div>
+			</Container>
 		</>
 	);
 });

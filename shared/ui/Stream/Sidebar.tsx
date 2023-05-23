@@ -90,19 +90,6 @@ const EMPTY_HASH = {};
 const EMPTY_SIZE = { width: 0, height: 0 };
 export const Sidebar = React.memo(function Sidebar() {
 	const dispatch = useAppDispatch();
-	// For use in A/B test and possibly always
-	const __defaultPaneSettings = {};
-	__defaultPaneSettings[WebviewPanels.OpenPullRequests] = { removed: true };
-	__defaultPaneSettings[WebviewPanels.OpenReviews] = { removed: true };
-	__defaultPaneSettings[WebviewPanels.CodemarksForFile] = {};
-	__defaultPaneSettings[WebviewPanels.Tasks] = { removed: true };
-	__defaultPaneSettings[WebviewPanels.Observability] = {};
-	__defaultPaneSettings[WebviewPanels.CICD] = {
-		removed: true,
-		placeAtBottom: true,
-	};
-
-	const DEFAULT_PANE_SETTINGS_AB = __defaultPaneSettings;
 
 	const derivedState = useAppSelector((state: CodeStreamState) => {
 		const preferences = getPreferences(state);
