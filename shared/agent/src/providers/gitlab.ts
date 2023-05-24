@@ -1115,6 +1115,7 @@ export class GitLabProvider
 		accessRawDiffs?: boolean;
 		force?: boolean;
 	}): Promise<GitLabMergeRequestWrapper> {
+		Logger.log(`gitlab getPullRequest ${JSON.stringify(request)}`);
 		const { projectFullPath, iid } = this.parseId(request.pullRequestId);
 
 		void (await this.ensureConnected());
