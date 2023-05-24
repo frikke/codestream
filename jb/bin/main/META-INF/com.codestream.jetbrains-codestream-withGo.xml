@@ -1,0 +1,12 @@
+<idea-plugin>
+    <actions>
+        <action id="CodeStream.PixieDynamicLogging" class="com.codestream.actions.PixieDynamicLoggingAction" text="Dynamic Logging Using Pixie" icon="/images/pixie.svg">
+            <add-to-group group-id="com.codestream.Actions" />
+        </action>
+    </actions>
+    <project-components>
+        <component>
+            <implementation-class>com.codestream.clm.CLMGoComponent</implementation-class>
+        </component>
+    </project-components>
+</idea-plugin>
