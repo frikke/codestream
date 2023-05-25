@@ -81,6 +81,10 @@ export class TrunkProvider extends ThirdPartyProviderBase {
 				fs.chmodSync(fullyQualifiedExecutable, 0o755);
 			}
 
+			// DESIGN:
+			// May want to split this part into a seperate method call so we can
+			// alternate messaging on the client for each step
+
 			// init the repo
 			if (!fs.existsSync(fullyQualifiedTrunkConfigurationFile)) {
 				await execAsync(`${fullyQualifiedExecutable} init -n --no-progress`, {
@@ -88,8 +92,13 @@ export class TrunkProvider extends ThirdPartyProviderBase {
 				});
 			}
 
-			// TODO: Need an option on the request to check *SPECIFIC* files
-			// An array of file paths relative to repo-root
+			// DESIGN:
+			// Need an option on the request to check *SPECIFIC* files. An array of file
+			// paths relative to repo-root?
+			//
+			// Then, how do we combine multiple distinct file runs with the overall run in a consistent manner?
+			// Is there a time when we get TOO MANY singular run files and we need to force a full run again?
+			//
 			// Trunk command for that is:
 			// await execAsync(
 			//     `${fullyQualifiedExecutable} check <FILES> --no-fix --output-file="<MAYBE DIFFERENT OUTPUT FILE?>" --no-progress`,
@@ -97,6 +106,9 @@ export class TrunkProvider extends ThirdPartyProviderBase {
 			//        cwd: request.cwd,
 			//     }
 			// );
+			//
+			// That should probably be a different method call, maybe overloads for a single file, or a list of files
+			// and be able to modify the cache as necessary
 
 			// run the actual check - or re-check if requested
 			if (request.forceCheck || !fs.existsSync(fullyQualifiedOutputStateFile)) {
@@ -121,6 +133,18 @@ export class TrunkProvider extends ThirdPartyProviderBase {
 			// parse the output and toss it back to the UI
 			const output = fs.readFileSync(fullyQualifiedOutputStateFile, "utf8");
 			const results = JSON.parse(output) as TrunkCheckResults;
+
+			// DESIGN:
+			// Shove results into a cache the agent is managing. Key should be file uri/path.
+			// Content should be an itemized list of the results for that file.
+			// Then when we get partial scans on individual files, we can replace the contents
+			// of the cache by key. When we do another full scan, we can just replace the cache.
+
+			// The client will always want the full results of the cache, not an individual file or
+			// even the full scan results.
+
+			// We may also want a method to pull the results for a specific file from the cache given
+			// a request from the client. This would be a seperate method call.
 
 			return {
 				results,
