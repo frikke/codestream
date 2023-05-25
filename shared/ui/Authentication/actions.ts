@@ -54,7 +54,7 @@ import { moveCursorToLine } from "../Stream/api-functions";
 import { localStore } from "../utilities/storage";
 import { emptyObject, uuid } from "../utils";
 import { HostApi } from "../webview-api";
-import { setUserPreference } from "../Stream/actions";
+import { setUserPreferences } from "../Stream/actions";
 
 export enum SignupType {
 	JoinTeam = "joinTeam",
@@ -289,7 +289,6 @@ export const onLogin =
 					...bootstrapCore.session,
 					userId: response.state.userId,
 					eligibleJoinCompanies: response.loginResponse.user.eligibleJoinCompanies || [],
-					nrSignupTestUi: nrSignupTestUi,
 				},
 				capabilities: response.state.capabilities,
 				context: {
@@ -301,30 +300,30 @@ export const onLogin =
 		);
 
 		if (nrSignupTestUi) {
-			await dispatch(
-				setUserPreference({
-					prefPath: ["sidebarPanes", WebviewPanels.OpenPullRequests, "removed"],
-					value: true,
-				})
-			);
-			await dispatch(
-				setUserPreference({
-					prefPath: ["sidebarPanes", WebviewPanels.OpenReviews, "removed"],
-					value: true,
-				})
-			);
-			await dispatch(
-				setUserPreference({
-					prefPath: ["sidebarPanes", WebviewPanels.Tasks, "removed"],
-					value: true,
-				})
-			);
-			await dispatch(
-				setUserPreference({
-					prefPath: ["sidebarPanes", WebviewPanels.CICD, "removed"],
-					value: true,
-				})
-			);
+			const userIdNumeric = response.state.userId.replace(/\D/g, "").substring(0, 10);
+			const abTestValue = Number(userIdNumeric) % 2;
+
+			if (abTestValue === 0) {
+				setUserPreferences([
+					{
+						prefPath: ["sidebarPanes", WebviewPanels.OpenPullRequests, "removed"],
+						value: true,
+					},
+
+					{
+						prefPath: ["sidebarPanes", WebviewPanels.OpenReviews, "removed"],
+						value: true,
+					},
+					{
+						prefPath: ["sidebarPanes", WebviewPanels.Tasks, "removed"],
+						value: true,
+					},
+					{
+						prefPath: ["sidebarPanes", WebviewPanels.CICD, "removed"],
+						value: true,
+					},
+				]);
+			}
 		}
 
 		if (response.state.codemarkId) {

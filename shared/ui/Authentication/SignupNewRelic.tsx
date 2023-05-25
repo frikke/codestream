@@ -128,8 +128,7 @@ export const SignupNewRelic = () => {
 				});
 			};
 
-			const machineIdNumeric = derivedState.machineId.replace(/\D/g, "").substring(0, 10);
-			const abTestValue = Number(machineIdNumeric) % 2;
+			const nrSignupTestUi: boolean = true;
 
 			switch (status) {
 				// CompanyCreation should handle routing on success
@@ -139,7 +138,7 @@ export const SignupNewRelic = () => {
 						dispatch(
 							completeSignup(email, token!, teamId!, {
 								createdTeam: false,
-								nrSignupTestUi: abTestValue === 0 ? false : true,
+								nrSignupTestUi,
 							})
 						);
 					}
@@ -156,7 +155,7 @@ export const SignupNewRelic = () => {
 								isWebmail,
 								accountIsConnected,
 								provider: "newrelic",
-								nrSignupTestUi: abTestValue === 0 ? false : true,
+								nrSignupTestUi,
 							})
 						);
 					}
