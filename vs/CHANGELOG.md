@@ -1,6 +1,6 @@
 # Change Log
 
-## [14.21.0] - 2023-5-24
+## [14.21.0] - 2023-5-25
 
 ### Fixed
 - Fixed Bitbucket issue for PR Details commit list not loading
