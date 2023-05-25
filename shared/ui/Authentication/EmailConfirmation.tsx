@@ -294,6 +294,7 @@ export const EmailConfirmation = (connect() as any)((props: Props) => {
 											nativeProps={nativeProps}
 											onPaste={event => handlePaste(event)}
 											onChange={value => handleChange(value, digit, index)}
+											baseBorder={true}
 										/>
 									))}
 								</div>
