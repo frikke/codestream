@@ -28,6 +28,10 @@ import styled from "styled-components";
 
 import { ObservabilityRelatedWrapper } from "@codestream/webview/Stream/ObservabilityRelatedWrapper";
 import { ObservabilityPreview } from "@codestream/webview/Stream/ObservabilityPreview";
+import {
+	ObservabilityLoadingServiceEntities,
+	ObservabilityLoadingServiceEntity,
+} from "@codestream/webview/Stream/ObservabilityLoading";
 import { CurrentMethodLevelTelemetry } from "@codestream/webview/store/context/types";
 import { setRefreshAnomalies } from "../store/context/actions";
 
@@ -1028,11 +1032,7 @@ export const Observability = React.memo((props: Props) => {
 						<>
 							<PaneNode>
 								{loadingEntities ? (
-									<ErrorRow
-										isLoading={true}
-										title="Loading..."
-										customPadding={"0 10px 0 20px"}
-									></ErrorRow>
+									<ObservabilityLoadingServiceEntities />
 								) : (
 									<>
 										{genericError && (
@@ -1188,10 +1188,7 @@ export const Observability = React.memo((props: Props) => {
 																			<>
 																				{ea.entityGuid === loadingPane ? (
 																					<>
-																						<ErrorRow
-																							isLoading={true}
-																							title="Loading..."
-																						></ErrorRow>
+																						<ObservabilityLoadingServiceEntity />
 																					</>
 																				) : (
 																					<>
