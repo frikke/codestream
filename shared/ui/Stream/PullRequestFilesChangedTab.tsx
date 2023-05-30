@@ -18,6 +18,7 @@ import {
 	getPullRequestFiles,
 	getPullRequestFilesFromProvider,
 } from "../store/providerPullRequests/thunks";
+import { PullRequestDetailsLoading } from "@codestream/webview/Stream/PullRequestLoading";
 import { useAppDispatch, useAppSelector, useDidMount } from "../utilities/hooks";
 import { HostApi } from "../webview-api";
 import Icon from "./Icon";
@@ -254,12 +255,7 @@ export const PullRequestFilesChangedTab = (props: {
 			</div>
 		);
 
-	if (isLoading && props.sidebarView)
-		return (
-			<div style={{ marginLeft: "45px" }}>
-				Loading... <Icon name="sync" className="spin row-icon" />
-			</div>
-		);
+	if (isLoading && props.sidebarView) return <PullRequestDetailsLoading />;
 
 	if (!filesChanged || !filesChanged.length) return null;
 

@@ -262,7 +262,7 @@ export const Observability = React.memo((props: Props) => {
 			newRelicIsConnected,
 			activeO11y,
 			observabilityRepoEntities: preferences.observabilityRepoEntities || EMPTY_ARRAY,
-			showGoldenSignalsInEditor: state.configs.showGoldenSignalsInEditor,
+			showGoldenSignalsInEditor: state?.configs.showGoldenSignalsInEditor,
 			isVS: state.ide.name === "VS",
 			hideCodeLevelMetricsInstructions: state.preferences.hideCodeLevelMetricsInstructions,
 			currentMethodLevelTelemetry: (state.context.currentMethodLevelTelemetry ||
@@ -1186,7 +1186,7 @@ export const Observability = React.memo((props: Props) => {
 																		</PaneNodeName>
 																		{!collapsed && (
 																			<>
-																				{ea.entityGuid === loadingPane ? (
+																				{ea.entityGuid !== loadingPane ? (
 																					<>
 																						<ObservabilityLoadingServiceEntity />
 																					</>

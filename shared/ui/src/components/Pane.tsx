@@ -81,7 +81,7 @@ export const PaneNodeName = styled((props: PropsWithChildren<PaneNodeNameProps>)
 	return (
 		<div className={props.className} onClick={props.onClick || toggleNode}>
 			<div style={{ display: props.labelIsFlex ? "flex" : "block" }} className="label">
-				{props.isLoading && <Icon name="sync" className="spin" />}
+				{props.isLoading && <Icon name="sync" className="spin" style={{ marginRight: "2px" }} />}
 				{!props.isLoading && (
 					<Icon
 						name={derivedState.collapsed ? "chevron-right-thin" : "chevron-down-thin"}

@@ -9,7 +9,7 @@ import { HostApi } from "../webview-api";
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import Icon from "./Icon";
 import { PullRequestFilesChangedTab } from "./PullRequestFilesChangedTab";
-
+import { PullRequestDetailsLoading } from "@codestream/webview/Stream/PullRequestLoading";
 export const ReviewButton = styled.div`
 	color: white;
 	background-color: #24a100;
@@ -141,9 +141,7 @@ export const PullRequestExpandedSidebar = (props: PullRequestExpandedSidebarProp
 				</div>
 			</Row>
 			{props.loadingThirdPartyPrObject && !props.thirdPartyPrObject && (
-				<div style={{ paddingLeft: "45px" }}>
-					Loading... <Icon className="spin" name="sync" />
-				</div>
+				<PullRequestDetailsLoading />
 			)}
 			{props.thirdPartyPrObject && (
 				<>
