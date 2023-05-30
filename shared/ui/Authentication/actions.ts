@@ -299,17 +299,25 @@ export const onLogin =
 			})
 		);
 
-		if (nrSignupTestUi) {
-			const userIdNumeric = response.state.userId.replace(/\D/g, "").substring(0, 10);
-			const abTestValue = Number(userIdNumeric) % 2;
+		let { companies, teams, context } = getState();
+		console.warn("eric companies", companies);
+		console.warn("eric teams", teams);
 
-			if (abTestValue === 0) {
+		const team = teams[context.currentTeamId];
+		const company = companies[team.companyId];
+
+		if (nrSignupTestUi) {
+			// @TODO - delte this
+			// const userIdNumeric = response.state.userId.replace(/\D/g, "").substring(0, 10);
+			// const abTestValue = Number(userIdNumeric) % 2;
+
+			// if (company.testGroups['simple-ui'] === 'simple') {
+			dispatch(
 				setUserPreferences([
 					{
 						prefPath: ["sidebarPanes", WebviewPanels.OpenPullRequests, "removed"],
 						value: true,
 					},
-
 					{
 						prefPath: ["sidebarPanes", WebviewPanels.OpenReviews, "removed"],
 						value: true,
@@ -322,8 +330,9 @@ export const onLogin =
 						prefPath: ["sidebarPanes", WebviewPanels.CICD, "removed"],
 						value: true,
 					},
-				]);
-			}
+				])
+			);
+			// }
 		}
 
 		if (response.state.codemarkId) {
@@ -344,7 +353,6 @@ export const onLogin =
 			dispatch(setCurrentCodeError(response.state.codeErrorId));
 		}
 
-		const { context } = getState();
 		if (context.pendingProtocolHandlerUrl && !teamCreated) {
 			await dispatch(handlePendingProtocolHandlerUrl(context.pendingProtocolHandlerUrl));
 			dispatch(clearPendingProtocolHandlerUrl());

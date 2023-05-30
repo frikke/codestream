@@ -672,22 +672,28 @@ Usage:
 	);
 */
 export const setUserPreferences = (request: SetUserPreferenceRequest[]) => async dispatch => {
-	const newPreference = {};
-	let newPreferencePointer = newPreference;
-	for (const item of request) {
-		const { prefPath, value } = item;
-		while (prefPath.length > 1) {
-			const part = prefPath.shift()!.replace(/\./g, "*");
-			newPreferencePointer[part] = {};
-			newPreferencePointer = newPreferencePointer[part];
+	const result: any = {};
+
+	for (const preference of request) {
+		let currentObj = result;
+		const { prefPath, value } = preference;
+
+		for (let i = 0; i < prefPath.length; i++) {
+			const key = prefPath[i];
+
+			if (i === prefPath.length - 1) {
+				currentObj[key] = value;
+			} else {
+				currentObj[key] = currentObj[key] || {};
+				currentObj = currentObj[key];
+			}
 		}
-		newPreferencePointer[prefPath[0].replace(/\./g, "*")] = value;
 	}
 	try {
 		// optimistically merge it into current preferences
-		dispatch(updatePreferences(newPreference));
+		dispatch(updatePreferences(result));
 		const response = await HostApi.instance.send(UpdatePreferencesRequestType, {
-			preferences: newPreference,
+			preferences: result,
 		});
 		// update with confirmed server response
 		// To keep consistent with setUserPreference (singular)...

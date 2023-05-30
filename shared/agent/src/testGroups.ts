@@ -20,4 +20,7 @@ export const testGroups: TestGroupDefs = {
 	// "onboard-edu": {
 	// 	choices: ["educate", "sidebar"]
 	// }
+	"simple-ui": {
+		choices: ["simple", "standard"],
+	},
 };
