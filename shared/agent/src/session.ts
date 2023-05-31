@@ -1609,7 +1609,9 @@ export class CodeStreamSession {
 					props["company"]["trialStart_at"] = new Date(company.trialStartDate).toISOString();
 					props["company"]["trialEnd_at"] = new Date(company.trialEndDate).toISOString();
 				}
-				if (company.testGroups) {
+
+				// @TODO: remove isEmpty conditional check when we are done with `simple-ui` AB test
+				if (company.testGroups && !isEmpty(user?.providerInfo?.newrelic?.accessToken)) {
 					props["AB Test"] = Object.keys(company.testGroups).map(
 						key => `${key}|${company.testGroups![key]}`
 					);
