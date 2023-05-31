@@ -119,7 +119,7 @@ class WebViewTheme(val name: String, val stylesheet: String) {
                 appBgColorHover = bg.darken(1.5F)
 
                 baseBgColor = bg.darken(3)
-                baseBorderColor = border.opacity(50).lighten(.3F)
+                baseBorderColor = border.opacity(80).darken(10)
 
                 panelToolBgColor = bg.darken(10)
 

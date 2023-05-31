@@ -632,6 +632,7 @@ export const Signup = (props: Props) => {
 										onValidityChanged={onValidityChanged}
 										validate={isEmailValid}
 										required
+										baseBorder={true}
 									/>
 									{!emailValidity && (
 										<small className="explainer error-message">
@@ -651,6 +652,7 @@ export const Signup = (props: Props) => {
 										validate={isPasswordValid}
 										onValidityChanged={onValidityChanged}
 										required
+										baseBorder={true}
 									/>
 									<small className={cx("explainer", { "error-message": !passwordValidity })}>
 										<FormattedMessage id="signUp.password.help" />
