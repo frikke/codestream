@@ -126,7 +126,7 @@ export const ObservabilityPreview = React.memo((props: Props) => {
 					</div>
 					<div className="icons">
 						<span style={{ color: "red" }} className={"details"}>
-							-72%
+							+72%
 						</span>
 					</div>
 				</div>
@@ -142,7 +142,7 @@ export const ObservabilityPreview = React.memo((props: Props) => {
 					</div>
 					<div className="icons">
 						<span style={{ color: "red" }} className={"details"}>
-							-66%
+							+66%
 						</span>
 					</div>
 				</div>
@@ -157,7 +157,7 @@ export const ObservabilityPreview = React.memo((props: Props) => {
 						<StyledSpan>clm.clmController/dbMethod</StyledSpan>
 					</div>
 					<div style={{ color: "red" }} className="icons">
-						<span className={"details"}>-54%</span>
+						<span className={"details"}>+54%</span>
 					</div>
 				</div>
 				<div
