@@ -145,6 +145,7 @@ export class WebviewController implements Disposable {
 	private _apiVersionCompatibility: ApiVersionCompatibility | undefined;
 	private _missingCapabilities: CSApiCapabilities | undefined;
 	private _providerSessionIds: { [key: string]: string } = {};
+	private _hasShownAfterOnVersionChanged: boolean = false;
 
 	private readonly _notifyActiveEditorChangedDebounced: (e: TextEditor | undefined) => void;
 
@@ -612,8 +613,9 @@ export class WebviewController implements Disposable {
 			this._versionCompatibility = e.compatibility;
 		}
 
-		if (!this.visible) {
+		if (!this.visible && !this._hasShownAfterOnVersionChanged) {
 			await this.show();
+			this._hasShownAfterOnVersionChanged = true;
 		}
 		this._webview!.notify(DidChangeVersionCompatibilityNotificationType, e);
 	}

@@ -439,8 +439,12 @@ export class CodeStreamAgentConnection implements Disposable {
 		return options;
 	}
 
-	async logout(newServerUrl?: string) {
+	async logout(reason: SessionSignedOutReason, newServerUrl?: string) {
 		await this.stop();
+		if (reason === SessionSignedOutReason.UnsupportedVersion) {
+			// don't restart the extension if the version is unsupported
+			return;
+		}
 		await Container.agent.start(newServerUrl);
 	}
 
@@ -1064,7 +1068,11 @@ export class CodeStreamAgentConnection implements Disposable {
 		if (e.reason === LogoutReason.Token) {
 			void Container.session.logout();
 		} else {
-			void Container.session.goOffline(e.reason !== LogoutReason.UnsupportedVersion);
+			if (e.reason === LogoutReason.UnsupportedVersion) {
+				void Container.session.logout(SessionSignedOutReason.UnsupportedVersion);
+			} else {
+				void Container.session.goOffline(true);
+			}
 		}
 	}
 
