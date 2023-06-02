@@ -59,6 +59,11 @@ export class TrunkProvider extends ThirdPartyProviderBase {
 
 			const fullyQualifiedTrunkPath = path.resolve(request.cwd, ".trunk");
 			const fullyQualifiedTrunkConfigurationFile = path.join(fullyQualifiedTrunkPath, "trunk.yaml");
+
+			// DESIGN: We should probably store all the files as random names, maybe
+			// in a subdirectory of the .trunk folder. Then when we do a full scan,
+			// we can just delete the entire directory contents and start over.
+			// Something like .trunk/codestream-cache/<random>.json
 			const fullyQualifiedOutputStateFile = path.join(
 				fullyQualifiedTrunkPath,
 				"codestream-state.json"
