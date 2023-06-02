@@ -93,7 +93,8 @@ export enum SessionSignedOutReason {
 	UserSignedOutFromWebview = "userSignedOutFromWebview",
 	UserSignedOutFromExtension = "userSignedOutFromExtension",
 	UserWentOffline = "userWentOffline",
-	MaintenanceMode = "maintenanceMode"
+	MaintenanceMode = "maintenanceMode",
+	UnsupportedVersion = "unsupportedVersion"
 }
 
 export enum SessionStatus {
@@ -616,7 +617,7 @@ export class CodeStreamSession implements Disposable {
 			}
 
 			if (Container.agent !== undefined) {
-				void (await Container.agent.logout(newServerUrl));
+				void (await Container.agent.logout(reason, newServerUrl));
 			}
 
 			if (this._disposableAuthenticated !== undefined) {
