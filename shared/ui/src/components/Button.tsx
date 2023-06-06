@@ -198,7 +198,7 @@ export const ButtonRoot = styled.button<ButtonProps>(props => {
 	${getPadding(props.size, props.variant)}
 	${getLineHeight(props.size, props.variant)}
 	${props.narrow ? "padding-left: 3px; padding-right: 3px;" : ""}
-	border-radius: 0;
+	border-radius: 2px;
 	border: 1px solid transparent !important;
 	outline: none !important;
 
