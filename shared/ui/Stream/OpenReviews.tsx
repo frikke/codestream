@@ -2,7 +2,7 @@ import { DEFAULT_FR_QUERIES } from "@codestream/webview/store/preferences/reduce
 import { bootstrapReviews } from "@codestream/webview/store/reviews/thunks";
 import { setUserPreference } from "@codestream/webview/Stream/actions";
 import React from "react";
-import { shallowEqual, useDispatch, useSelector } from "react-redux";
+import { shallowEqual, useSelector } from "react-redux";
 import * as reviewSelectors from "../store/reviews/reducer";
 import * as userSelectors from "../store/users/reducer";
 import { CodeStreamState } from "../store";
@@ -32,6 +32,7 @@ import {
 } from "../src/components/Pane";
 import { WebviewModals, WebviewPanels } from "../ipc/webview.protocol.common";
 import { Link } from "./Link";
+import { ReviewsLoading } from "@codestream/webview/Stream/ReviewsLoading";
 
 interface Props {
 	openRepos: ReposScm[];
@@ -134,12 +135,7 @@ export const OpenReviews = React.memo(function OpenReviews(props: Props) {
 			</PaneHeader>
 			{props.paneState !== PaneState.Collapsed && (
 				<PaneBody key={"openreviews"}>
-					{!bootstrapped && (
-						<Row>
-							<Icon name="sync" className="spin margin-right" />
-							<span>Loading...</span>
-						</Row>
-					)}
+					{!bootstrapped && <ReviewsLoading />}
 					{bootstrapped && totalReviews === 0 && (
 						<NoContent>
 							Lightweight, pre-PR code review. Get quick feedback on any code, even pre-commit.{" "}

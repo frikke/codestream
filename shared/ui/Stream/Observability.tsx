@@ -1186,7 +1186,7 @@ export const Observability = React.memo((props: Props) => {
 																		</PaneNodeName>
 																		{!collapsed && (
 																			<>
-																				{ea.entityGuid !== loadingPane ? (
+																				{ea.entityGuid === loadingPane ? (
 																					<>
 																						<ObservabilityLoadingServiceEntity />
 																					</>
