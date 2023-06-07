@@ -1210,8 +1210,9 @@ export const IssueList = React.memo((props: React.PropsWithChildren<IssueListPro
 						!props.loadingMessage &&
 						(props.activeProviders.length > 0 || derivedState.skipConnect) &&
 						cards.length == 0 &&
-						derivedState.initialLoadComplete &&
-						!firstLoad && <FilterMissing>There are no open issues assigned to you.</FilterMissing>
+						derivedState.initialLoadComplete && (
+							<FilterMissing>There are no open issues assigned to you.</FilterMissing>
+						)
 					)}
 					{(fetchCardErrors || []).map(fetchCardError => (
 						<IssueError>
