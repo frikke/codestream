@@ -23,7 +23,6 @@ export const ObservabilityGoldenMetricDropdown = React.memo((props: Props) => {
 	const errorTitle: string | undefined =
 		errors.length === 0 ? undefined : `Last request failed:\n${errors.join("\n")}`;
 
-	console.warn("test");
 	const goldenMetricOutput = () => {
 		return (
 			<>
