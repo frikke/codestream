@@ -24,6 +24,7 @@ import { ResponseError } from "vscode-jsonrpc";
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import Icon from "./Icon";
 import Tooltip from "./Tooltip";
+import { ObservabilityLoadingVulnerabilities } from "@codestream/webview/Stream/ObservabilityLoading";
 
 interface Props {
 	currentRepoId: string;
@@ -350,9 +351,7 @@ export const SecurityIssuesWrapper = React.memo((props: Props) => {
 					/>
 				</InlineMenu>
 			</Row>
-			{loading && expanded && (
-				<ErrorRow isLoading={loading} title="Loading..." customPadding={"0 10px 0 42px"}></ErrorRow>
-			)}
+			{loading && expanded && <ObservabilityLoadingVulnerabilities />}
 			{error && expanded && getErrorDetails(error)}
 			{expanded && !loading && data && data.totalRecords > 0 && (
 				<>

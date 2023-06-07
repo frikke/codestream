@@ -1,11 +1,11 @@
 import { EntityGoldenMetrics, GetAlertViolationsResponse } from "@codestream/protocols/agent";
 import { isEmpty as _isEmpty } from "lodash-es";
 import React, { useState } from "react";
-
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import Icon from "./Icon";
 import { ObservabilityAlertViolations } from "./ObservabilityAlertViolations";
 import Tooltip from "./Tooltip";
+import { ObservabilityLoadingGoldenMetrics } from "@codestream/webview/Stream/ObservabilityLoading";
 
 interface Props {
 	entityGoldenMetrics: EntityGoldenMetrics | undefined;
@@ -100,23 +100,7 @@ export const ObservabilityGoldenMetricDropdown = React.memo((props: Props) => {
 				</>
 			)}
 
-			{expanded && loadingGoldenMetrics && (
-				<Row
-					style={{
-						padding: noDropdown ? "0 10px 0 60px" : "0 10px 0 42px",
-					}}
-					className={"pr-row"}
-				>
-					<Icon
-						style={{
-							marginRight: "5px",
-						}}
-						className="spin"
-						name="sync"
-					/>{" "}
-					Loading...
-				</Row>
-			)}
+			{expanded && loadingGoldenMetrics && <ObservabilityLoadingGoldenMetrics />}
 			{(noDropdown || expanded) &&
 				!loadingGoldenMetrics &&
 				!_isEmpty(entityGoldenMetrics?.metrics) && (

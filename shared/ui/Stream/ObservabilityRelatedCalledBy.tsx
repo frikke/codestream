@@ -10,6 +10,7 @@ import Icon from "./Icon";
 import { ErrorRow } from "./Observability";
 import { ObservabilityRelatedEntity } from "./ObservabilityRelatedEntity";
 import { ObservabilityRelatedSearch } from "./ObservabilityRelatedSearch";
+import { ObservabilityLoadingRelatedServiceEntities } from "@codestream/webview/Stream/ObservabilityLoading";
 
 interface Props {
 	currentRepoId: string;
@@ -69,23 +70,7 @@ export const ObservabilityRelatedCalledBy = React.memo((props: Props) => {
 					searchItems={relatedEntitiesForSearch || []}
 				/>
 			)}
-			{loading && expanded && (
-				<Row
-					style={{
-						padding: "0 10px 0 60px",
-					}}
-					className={"pr-row"}
-				>
-					<Icon
-						style={{
-							marginRight: "5px",
-						}}
-						className="spin"
-						name="sync"
-					/>{" "}
-					Loading...
-				</Row>
-			)}
+			{loading && expanded && <ObservabilityLoadingRelatedServiceEntities />}
 		</>
 	);
 });

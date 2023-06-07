@@ -25,3 +25,8 @@ export const SkeletonLoader = styled.div`
 	animation: ${pulseAnimation} 1.5s ease-in-out infinite;
 	border-radius: 3px;
 `;
+
+export const SkeletonFlexContainer = styled.div`
+	display: flex;
+	justify-content: space-between;
+`;
