@@ -1,6 +1,11 @@
 import createClassString from "classnames";
 import React, { PropsWithChildren } from "react";
 import Icon from "./Icon";
+import styled from "styled-components";
+
+export const RoundedButton = styled.button`
+	border-radius: 2px;
+`;
 
 interface Props extends PropsWithChildren<{}>, React.ButtonHTMLAttributes<HTMLButtonElement> {
 	className?: string;
@@ -18,7 +23,7 @@ export default function Button({
 	...props
 }: Props) {
 	return (
-		<button
+		<RoundedButton
 			{...props}
 			className={createClassString("btn inline-block-tight", className, {
 				"btn-primary": !isSecondary,
@@ -28,6 +33,6 @@ export default function Button({
 			disabled={loading || disabled}
 		>
 			{loading ? <Icon name="sync" className="spin" /> : children}
-		</button>
+		</RoundedButton>
 	);
 }
