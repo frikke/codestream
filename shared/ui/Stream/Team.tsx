@@ -788,8 +788,8 @@ const mapStateToProps = state => {
 	const currentUser = users[session.userId];
 	const invisible = currentUser.status ? currentUser.status.invisible : false;
 
-	const adminIds = team.adminIds;
-	const isCurrentUserAdmin = adminIds.includes(session.userId);
+	const adminIds = team?.adminIds;
+	const isCurrentUserAdmin = adminIds?.includes(session?.userId);
 
 	const invited = mapFilter(memberIds, id => {
 		const user = users[id as string];
