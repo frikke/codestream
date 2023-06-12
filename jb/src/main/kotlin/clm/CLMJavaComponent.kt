@@ -1,5 +1,6 @@
 package com.codestream.clm
 
+import com.codestream.protocols.agent.ClmExperimentResult
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
@@ -72,6 +73,9 @@ class JavaSymbolResolver : SymbolResolver {
         return null
     }
 
+    override fun clmElements(psiFile: PsiFile, clmExperimentResult: ClmExperimentResult?): List<ClmExperimentElements> {
+        return listOf()
+    }
 }
 
 class CLMJavaEditorManager(editor: Editor) : CLMEditorManager(editor, "java", true, false, JavaSymbolResolver()) {

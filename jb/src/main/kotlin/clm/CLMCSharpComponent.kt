@@ -1,5 +1,6 @@
 package com.codestream.clm
 
+import com.codestream.protocols.agent.ClmExperimentResult
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
@@ -78,6 +79,10 @@ class CSharpSymbolResolver : SymbolResolver {
     override fun findTopLevelFunction(psiFile: PsiFile, functionName: String): NavigatablePsiElement? {
         // No top level methods in C#?
         return null
+    }
+
+    override fun clmElements(psiFile: PsiFile, clmExperimentResult: ClmExperimentResult?): List<ClmExperimentElements> {
+        return listOf()
     }
 
     private fun traverseForElementsOfType(element: PsiElement, elementType: String): List<PsiElement> {

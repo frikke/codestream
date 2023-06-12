@@ -6,6 +6,7 @@ import com.codestream.extensions.file
 import com.codestream.extensions.lspPosition
 import com.codestream.extensions.uri
 import com.codestream.git.getCSGitFile
+import com.codestream.protocols.agent.ClmExperimentResult
 import com.codestream.protocols.agent.GetCommitParams
 import com.codestream.review.ReviewDiffVirtualFile
 import com.codestream.sessionService
@@ -51,6 +52,7 @@ interface SymbolResolver {
     ): PsiElement?
 
     fun findTopLevelFunction(psiFile: PsiFile, functionName: String): PsiElement?
+    fun clmElements(psiFile: PsiFile, clmExperimentResult: ClmExperimentResult?): List<ClmExperimentElements>
 }
 
 abstract class CLMLanguageComponent<T : CLMEditorManager>(

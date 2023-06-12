@@ -105,6 +105,9 @@ import {
 	AgentValidateLanguageExtensionRequestType,
 	GetIssuesResponse,
 	GetIssuesQueryResult,
+	GetClmExperimentRequest,
+	GetClmExperimentRequestType,
+	GetClmExperimentResponse,
 } from "@codestream/protocols/agent";
 import {
 	CSBitbucketProviderInfo,
@@ -159,6 +162,7 @@ import semver from "semver";
 import {
 	getMethodLevelTelemetryMockResponse,
 } from "./newrelic/anomalyDetectionMockResults";
+import { ClmExperiment } from "./newrelic/clmExperiment";
 
 const ignoredErrors = [GraphqlNrqlTimeoutError];
 
@@ -1572,6 +1576,43 @@ export class NewRelicProvider
 		};
 
 		this.session.agent.sendNotification(DidChangeCodelensesNotificationType, undefined);
+
+		return response;
+	}
+
+	private _clmExperimentTimedCache = new Cache<GetClmExperimentResponse>({
+		defaultTtl: 120 * 1000,
+	});
+
+	@lspHandler(GetClmExperimentRequestType)
+	@log({
+		timed: true,
+	})
+	async getClmExperiment(request: GetClmExperimentRequest): Promise<GetClmExperimentResponse> {
+		const cached = this._clmExperimentTimedCache.get(request);
+		if (cached) {
+			return cached;
+		}
+
+		let lastEx;
+		const fn = async () => {
+			try {
+				const clmExperiment = new ClmExperiment(request, this);
+				const result = await clmExperiment.execute();
+				this._clmExperimentTimedCache.put(request, result);
+				return true;
+			} catch (ex) {
+				Logger.warn(ex.message);
+				lastEx = ex.message;
+				return false;
+			}
+		};
+		await Functions.withExponentialRetryBackoff(fn, 5, 1000);
+		const response = this._clmExperimentTimedCache.get(request) || {
+			codeLevelMetrics: [],
+			isSupported: false,
+			error: lastEx,
+		};
 
 		return response;
 	}

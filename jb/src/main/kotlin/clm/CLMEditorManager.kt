@@ -6,6 +6,8 @@ import com.codestream.codeStream
 import com.codestream.extensions.file
 import com.codestream.extensions.lspPosition
 import com.codestream.extensions.uri
+import com.codestream.protocols.agent.ClmExperimentParams
+import com.codestream.protocols.agent.ClmExperimentResult
 import com.codestream.protocols.agent.FileLevelTelemetryOptions
 import com.codestream.protocols.agent.FileLevelTelemetryParams
 import com.codestream.protocols.agent.FileLevelTelemetryResult
@@ -28,6 +30,8 @@ import com.codestream.webViewService
 import com.codestream.workaround.HintsPresentationWorkaround
 import com.intellij.codeInsight.hints.InlayPresentationFactory
 import com.intellij.codeInsight.hints.presentation.InlayPresentation
+import com.intellij.codeInsight.hints.presentation.PresentationFactory
+import com.intellij.codeInsight.hints.presentation.PresentationRenderer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
@@ -35,6 +39,7 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.EditorCustomElementRenderer
 import com.intellij.openapi.editor.Inlay
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
@@ -71,6 +76,13 @@ data class RenderElements(
     val range: TextRange,
     val referenceOnHoverPresentation: InlayPresentation,
     val isAnomaly: Boolean
+)
+
+data class ClmExperimentElements(
+    val range: TextRange,
+    val text: String,
+    val isAnomaly: Boolean,
+    val type: String
 )
 
 class Metrics {
@@ -120,7 +132,8 @@ abstract class CLMEditorManager(
     private val path = editor.document.getUserData(LOCAL_PATH) ?: editor.document.file?.path
     private val project = editor.project
     private var metricsBySymbol = mapOf<MethodLevelTelemetrySymbolIdentifier, Metrics>()
-    private val inlays = mutableSetOf<Inlay<CLMCustomRenderer>>()
+    private var clmExperimentResult: ClmExperimentResult? = null
+    private val inlays = mutableSetOf<Inlay<*>>()
     private var lastResult: FileLevelTelemetryResult? = null
     private var currentError: FileLevelTelemetryResultError? = null
     private var analyticsTracked = false
@@ -210,6 +223,7 @@ abstract class CLMEditorManager(
                                 OPTIONS
                             )
                         ) ?: return@launch
+
                         // result guaranteed to be non-null, don't overwrite previous result if we get a NR timeout
                         if (result.error != null) {
                             currentError = result.error
@@ -241,6 +255,11 @@ abstract class CLMEditorManager(
                             metrics.sampleSize = sampleSize
                         }
                         metricsBySymbol = updatedMetrics.toImmutableMap()
+
+                        clmExperimentResult = project.agentService?.clmExperiment(ClmExperimentParams(
+                            result.newRelicEntityGuid!!
+                        ))
+
                         updateInlays()
                     } catch (ex: Exception) {
                         logger.error("Error getting fileLevelTelemetry", ex)
@@ -326,6 +345,9 @@ abstract class CLMEditorManager(
             return
         }
         val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(editor.document) ?: return
+
+        val experimentElements: List<ClmExperimentElements> = symbolResolver.clmElements(psiFile, clmExperimentResult)
+
         val presentationFactory = HintsPresentationWorkaround.newPresentationFactory(editor)
         val since = result.sinceDateFormatted?.replace(" ago", "") ?: "30 minutes"
         val toRender: List<RenderElements> = metricsBySymbol.mapNotNull { (symbolIdentifier, metrics) ->
@@ -375,6 +397,15 @@ abstract class CLMEditorManager(
             RenderElements(range, referenceOnHoverPresentation, anomaly != null)
         }
 
+        val experimentPresentationFactory = PresentationFactory(editor)
+        val toRenderExperiment: List<RenderElements> = experimentElements.map {
+            val textPresentation = experimentPresentationFactory.text(it.text)
+            val smallPresentation = experimentPresentationFactory.roundWithBackgroundAndSmallInset(textPresentation)
+            val insetPresentation = experimentPresentationFactory.inset(smallPresentation)
+            RenderElements(it.range, insetPresentation, false)
+        }
+
+
         ApplicationManager.getApplication().invokeLaterOnWriteThread {
             if (!analyticsTracked && toRender.isNotEmpty()) {
                 val params = TelemetryParams(
@@ -394,6 +425,15 @@ abstract class CLMEditorManager(
                 val inlay = editor.inlayModel.addBlockElement(range.startOffset, false, true, 1, renderer)
 
                 inlay.let {
+                    inlays.add(it)
+                }
+            }
+            for ((range, referenceOnHoverPresentation, isAnomaly) in toRenderExperiment) {
+                val renderer = PresentationRenderer(referenceOnHoverPresentation)
+
+                val inlay = editor.inlayModel.addInlineElement(range.endOffset, true, renderer)
+
+                inlay?.let {
                     inlays.add(it)
                 }
             }

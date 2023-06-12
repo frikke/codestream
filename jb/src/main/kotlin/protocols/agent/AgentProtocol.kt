@@ -635,6 +635,29 @@ class FileLevelTelemetryResult(
     val relativeFilePath: String?
 )
 
+class ClmExperimentParams(
+    val entityGuid: String
+)
+
+class ClmExperimentResult(
+    val codeLevelMetrics: List<CodeLevelMetric>,
+    val isSupported: Boolean,
+    val error: String?
+)
+
+class CodeLevelMetric(
+    val name: String,
+    val codeAttrs: CodeAttributes?,
+    val duration: Float?,
+    val errorRate: Float?
+)
+
+class CodeAttributes(
+    val codeFilepath: String?,
+    val codeNamespace: String?,
+    val codeFunction: String
+)
+
 const val NOT_ASSOCIATED = "NOT_ASSOCIATED"
 const val NR_TIMEOUT = "NR_TIMEOUT"
 const val NOT_CONNECTED = "NOT_CONNECTED"

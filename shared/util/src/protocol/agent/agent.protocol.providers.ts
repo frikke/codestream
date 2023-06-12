@@ -1439,6 +1439,30 @@ export const GetObservabilityAnomaliesRequestType = new RequestType<
 	void
 >("codestream/newrelic/anomalies");
 
+export interface GetClmExperimentRequest {
+	entityGuid: string;
+}
+
+export interface GetClmExperimentResponse {
+	codeLevelMetrics: CodeLevelMetrics[];
+	isSupported: boolean;
+	error?: string;
+}
+
+export interface CodeLevelMetrics {
+	name: string;
+	codeAttrs?: CodeAttributes
+	duration?: number;
+	errorRate?: number;
+}
+
+export const GetClmExperimentRequestType = new RequestType<
+	GetClmExperimentRequest,
+	GetClmExperimentResponse,
+	void,
+	void
+>("codestream/newrelic/clmExperiment");
+
 export interface GetObservabilityResponseTimesRequest {
 	fileUri: string;
 }
