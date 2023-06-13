@@ -98,10 +98,19 @@ export function GrokFeedbackForm(props: GrokFeedbackFormProps) {
 			"Post ID": props.postId,
 			Direction: thumbMap.get(props.feedbackType),
 			Feedback: text,
-			ResponseNotTrue: notTrue,
-			ResponseNotHelpful: notHelpful,
-			ResponseHarmful: isHarmful,
 		};
+
+		// Only want these telemetry parameters if true, otherwise exclude them from payload
+		if (notTrue) {
+			telemetryPayload["ResponseNotTrue"] = notTrue;
+		}
+		if (notHelpful) {
+			telemetryPayload["ResponseNotHelpful"] = notHelpful;
+		}
+		if (isHarmful) {
+			telemetryPayload["ResponseHarmful"] = isHarmful;
+		}
+
 		console.debug(`Grok feedback ${JSON.stringify(telemetryPayload)}`);
 		await HostApi.instance.track("Grok Feedback Submitted", telemetryPayload);
 		setIsLoading(false);
