@@ -328,6 +328,7 @@ import {
 import { CodeStreamPreferences } from "../preferences";
 import { BroadcasterEvents } from "./events";
 import { CodeStreamUnreads } from "./unreads";
+import { clearResolvedFlag } from "@codestream/utils/api/codeErrorCleanup";
 
 @lsp
 export class CodeStreamApiProvider implements ApiProvider {
@@ -1618,6 +1619,8 @@ export class CodeStreamApiProvider implements ApiProvider {
 		});
 		*/
 
+		clearResolvedFlag(response.codeErrors);
+
 		return response;
 	}
 
@@ -1631,6 +1634,10 @@ export class CodeStreamApiProvider implements ApiProvider {
 			},
 			this._token
 		);
+		// Clear out resolved: true from all stack lines (each user has a different local path)
+		if (response.codeError) {
+			clearResolvedFlag([response.codeError]);
+		}
 		Logger.log(`Response to claim code error, objectId=${request.objectId}:`, response);
 		return response;
 	}
@@ -1641,8 +1648,15 @@ export class CodeStreamApiProvider implements ApiProvider {
 	}
 
 	@log()
-	getCodeError(request: GetCodeErrorRequest): Promise<GetCodeErrorResponse> {
-		return this.get<CSGetCodeErrorResponse>(`/code-errors/${request.codeErrorId}`, this._token);
+	async getCodeError(request: GetCodeErrorRequest): Promise<GetCodeErrorResponse> {
+		const response = await this.get<CSGetCodeErrorResponse>(
+			`/code-errors/${request.codeErrorId}`,
+			this._token
+		);
+		if (response.codeError) {
+			clearResolvedFlag([response.codeError]);
+		}
+		return response;
 	}
 
 	@log()

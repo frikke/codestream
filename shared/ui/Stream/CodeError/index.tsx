@@ -1740,6 +1740,8 @@ const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 		getGrokPostLength(state, props.codeError.streamId, props.codeError.postId)
 	);
 
+	const grokLoadingRef = useRef<HTMLDivElement>(null);
+
 	function scrollToNew() {
 		const target = scrollNewTarget?.current;
 		if (target) {
@@ -1749,6 +1751,16 @@ const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 			// console.debug("===--- scrollToNew no target", scrollNewTarget);
 		}
 	}
+
+	useEffect(() => {
+		if (isGrokLoading) {
+			const target = grokLoadingRef.current;
+			if (target) {
+				// console.debug("---=== grokLoadingRef calling scrollIntoView ===---");
+				target.scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" });
+			}
+		}
+	}, [isGrokLoading, grokLoadingRef.current]);
 
 	useEffect(() => {
 		if (isGrokRequested && currentGrokRepliesLength > 0) {
@@ -1809,7 +1821,7 @@ const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 								</DelayedRender>
 							)}
 							{isGrokLoading && (
-								<DelayedRender>
+								<div ref={grokLoadingRef}>
 									<ReplyBody style={{ marginTop: 13 }}>
 										<AuthorInfo style={{ fontWeight: 700 }}>
 											<Headshot
@@ -1825,7 +1837,7 @@ const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 									<LoadingMessage data-testid="grok-loading-message" align={"left"}>
 										{grokMessage}
 									</LoadingMessage>
-								</DelayedRender>
+								</div>
 							)}
 						</>
 					)}

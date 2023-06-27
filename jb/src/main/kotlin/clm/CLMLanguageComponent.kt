@@ -140,7 +140,7 @@ abstract class CLMLanguageComponent<T : CLMEditorManager>(
 
     @RequiresEdt
     private fun copySymbolEdtOperations(virtFile: VirtualFile, namespace: String?, functionName: String): FindSymbolInFileResponse? {
-        val psiFile = virtFile?.let { PsiManager.getInstance(project).findFile(it) } ?: return null
+        val psiFile = virtFile.let { PsiManager.getInstance(project).findFile(it) } ?: return null
         if (!isPsiFileSupported(psiFile)) return null
         val editorManager = FileEditorManager.getInstance(project)
         val editor = editorManager.openTextEditor(OpenFileDescriptor(project, virtFile), false)
