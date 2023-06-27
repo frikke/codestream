@@ -49,6 +49,7 @@ import { Position, Range } from "vscode-languageserver-types";
 import React from "react";
 import { getGrokPostLength } from "@codestream/webview/store/posts/reducer";
 import { URI } from "vscode-uri";
+import { clearResolvedFlag } from "@codestream/utils/api/codeErrorCleanup";
 
 export const updateCodeErrors =
 	(codeErrors: CSCodeError[]) => async (dispatch, getState: () => CodeStreamState) => {
@@ -140,6 +141,7 @@ export const setProviderError =
 export const processCodeErrorsMessage =
 	(codeErrors: CSCodeError[]) => async (dispatch, getState: () => CodeStreamState) => {
 		const newCodeErrors = codeErrors.filter(_ => !_.deactivated);
+		clearResolvedFlag(newCodeErrors);
 		const deleteCodeErrors = codeErrors.filter(_ => _.deactivated);
 		dispatch(addCodeErrors(newCodeErrors));
 		const context = getState().context;
@@ -384,7 +386,9 @@ export const upgradePendingCodeError =
 				});
 
 				// remove the pending codeError
-				dispatch(removeCodeError(codeErrorId));
+				if (isPending) {
+					dispatch(removeCodeError(codeErrorId));
+				}
 
 				dispatch(
 					setCurrentCodeError(response.codeError.id, {
@@ -399,7 +403,7 @@ export const upgradePendingCodeError =
 				);
 				return {
 					codeError: response.codeError as CSCodeError,
-					wasPending: true,
+					wasPending: isPending,
 				};
 			} else {
 				return {

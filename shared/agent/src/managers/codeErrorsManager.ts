@@ -20,6 +20,7 @@ import { CSCodeError } from "@codestream/protocols/api";
 import { MessageType } from "../api/apiProvider";
 import { log, lsp, lspHandler } from "../system";
 import { CachedEntityManagerBase, Id } from "./entityManager";
+import { clearResolvedFlag } from "@codestream/utils/api/codeErrorCleanup";
 
 @lsp
 export class CodeErrorsManager extends CachedEntityManagerBase<CSCodeError> {
@@ -35,6 +36,8 @@ export class CodeErrorsManager extends CachedEntityManagerBase<CSCodeError> {
 				codeErrors = codeErrors.filter(e => request.streamIds!.includes(e.streamId));
 			}
 		}
+
+		clearResolvedFlag(codeErrors);
 
 		return { codeErrors };
 	}
