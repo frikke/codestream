@@ -6,7 +6,6 @@ import { DispatchProp } from "../store/common";
 import { goToLogin, goToSignup } from "../store/context/actions";
 import Button from "../Stream/Button";
 import { Link } from "../Stream/Link";
-import { HostApi } from "../webview-api";
 import { SignupType, SSOAuthInfo, startSSOSignin } from "./actions";
 import { TextInput } from "./TextInput";
 
@@ -42,12 +41,6 @@ export const OktaConfig = (connect() as any)((props: ConnectedProps & DispatchPr
 		if (hostUrl !== "" && hostUrlValidity) {
 			setIsLoading(true);
 			try {
-				if (props.fromSignup) {
-					HostApi.instance.track("Signup Method Selected", {
-						Provider: "Okta",
-						Email: props?.email,
-					});
-				}
 				const info: SSOAuthInfo = props.fromSignup ? { fromSignup: true } : {};
 				info.hostUrl = hostUrl;
 				if (props.inviteCode) {

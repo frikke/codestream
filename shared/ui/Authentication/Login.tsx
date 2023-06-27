@@ -17,7 +17,6 @@ import Button from "../Stream/Button";
 import Icon from "../Stream/Icon";
 import { ModalRoot } from "../Stream/Modal"; // HACK ALERT: including this component is NOT the right way
 import { authenticate, generateLoginCode, startIDESignin, startSSOSignin } from "./actions";
-import { HostApi } from "../webview-api";
 
 const isPasswordInvalid = password => password.length === 0;
 const isEmailInvalid = email => {
@@ -279,11 +278,6 @@ class Login extends React.Component<Props, State> {
 			e.stopPropagation();
 
 			const { email } = this.state;
-
-			HostApi.instance.track("Signup Method Selected", {
-				Provider: "New Relic",
-				Email: email,
-			});
 
 			//@TODO: Change to idp signin page event
 			//this.props.goToNewRelicSignup({});

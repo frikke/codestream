@@ -402,10 +402,6 @@ export const Signup = (props: Props) => {
 	const onClickNewRelicSignup = useCallback(
 		(event: React.SyntheticEvent) => {
 			event.preventDefault();
-			HostApi.instance.track("Signup Method Selected", {
-				Provider: "New Relic",
-				Email: email,
-			});
 			//@TODO: Change to idp signup page event
 			dispatch(startSSOSignin("newrelicidp", buildSignupInfo(false)));
 			//dispatch(goToNewRelicSignup({}));
