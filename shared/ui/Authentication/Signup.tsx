@@ -33,7 +33,10 @@ import { completeSignup, SignupType, startIDESignin, startSSOSignin } from "./ac
 import { PresentTOS } from "./PresentTOS";
 import { TextInput } from "./TextInput";
 
-const isPasswordValid = (password: string) => password.length >= 6;
+const isPasswordValid = (password: string) =>
+	password.length >= 8 &&
+	Boolean(password.match(/[a-zA-Z]/)) &&
+	Boolean(password.match(/[^a-zA-Z]/));
 export const isEmailValid = (email: string) => {
 	const emailRegex = new RegExp(
 		"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
@@ -674,9 +677,14 @@ export const Signup = (props: Props) => {
 										required
 										baseBorder={true}
 									/>
-									<small className={cx("explainer", { "error-message": !passwordValidity })}>
-										<FormattedMessage id="signUp.password.help" />
-									</small>
+									<Tooltip
+										placement="topRight"
+										content={<FormattedMessage id="signUp.password.tip" />}
+									>
+										<small className={cx("explainer", { "error-message": !passwordValidity })}>
+											<FormattedMessage id="signUp.password.help" />
+										</small>
+									</Tooltip>
 								</div>
 
 								<div className="small-spacer" />
