@@ -3,6 +3,7 @@ package com.codestream.agent
 import com.codestream.agent.handlers.ResolveStackTraceHandler
 import com.codestream.agentService
 import com.codestream.appDispatcher
+import com.codestream.authentication.SaveTokenReason
 import com.codestream.authenticationService
 import com.codestream.clmService
 import com.codestream.codeStream
@@ -135,7 +136,7 @@ class CodeStreamLanguageClient(private val project: Project) : LanguageClient {
     fun didLogin(json: JsonElement) {
         val notification = gson.fromJson<DidLoginNotification>(json)
         project.agentService?.onDidStart {
-            project.authenticationService?.completeLogin(notification.data)
+            project.authenticationService?.completeLogin(SaveTokenReason.LOGIN_SUCCESS, notification.data)
         }
     }
 
