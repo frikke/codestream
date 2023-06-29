@@ -51,7 +51,7 @@ export const CodeAnalyzers = (props: Props) => {
 		() => ({
 			fossa,
 		}),
-		[fossa]
+		[fossa],
 	);
 
 	useEffect(() => {
