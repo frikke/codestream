@@ -73,7 +73,7 @@ import Icon from "./Icon";
 import { Provider } from "./IntegrationsPanel";
 import { Link } from "./Link";
 import { ObservabilityAddAdditionalService } from "./ObservabilityAddAdditionalService";
-import { ObservabilityCurrentRepo } from "./ObservabilityCurrentRepo";
+import { CurrentRepoContext } from "./CurrentRepoContext";
 import { ObservabilityErrorWrapper } from "./ObservabilityErrorWrapper";
 import { ObservabilityGoldenMetricDropdown } from "./ObservabilityGoldenMetricDropdown";
 import Timestamp from "./Timestamp";
@@ -321,7 +321,7 @@ export const Observability = React.memo((props: Props) => {
 	const [showCodeLevelMetricsBroadcastIcon, setShowCodeLevelMetricsBroadcastIcon] =
 		useState<boolean>(false);
 	const [currentEntityAccounts, setCurrentEntityAccounts] = useState<EntityAccount[] | undefined>(
-		[]
+		[],
 	);
 	const [currentObsRepo, setCurrentObsRepo] = useState<ObservabilityRepo | undefined>();
 	const [recentAlertViolations, setRecentAlertViolations] = useState<
@@ -482,7 +482,7 @@ export const Observability = React.memo((props: Props) => {
 						fetchAnomalies(e.data.entityGuid, e.data.repoId);
 					}, 2500);
 				}
-			}
+			},
 		);
 
 		return () => {
@@ -544,8 +544,8 @@ export const Observability = React.memo((props: Props) => {
 			`o11y: hasEntities ${hasEntities} and repoForEntityAssociator ${
 				repoForEntityAssociator !== undefined
 			} and currentEntityAccounts ${!_isEmpty(
-				currentEntityAccounts
-			)} and genericError ${JSON.stringify(genericError)}`
+				currentEntityAccounts,
+			)} and genericError ${JSON.stringify(genericError)}`,
 		);
 		if (!hasEntities && !genericError) {
 			telemetryStateValue = "No Entities";
@@ -576,9 +576,8 @@ export const Observability = React.memo((props: Props) => {
 	const callServiceClickedTelemetry = () => {
 		console.debug("o11y: callServiceClickedTelemetry");
 		try {
-			let currentRepoErrors = observabilityErrors?.find(
-				_ => _ && _.repoId === currentRepoId
-			)?.errors;
+			let currentRepoErrors = observabilityErrors?.find(_ => _ && _.repoId === currentRepoId)
+				?.errors;
 			let filteredCurrentRepoErrors = currentRepoErrors?.filter(_ => _.entityId === expandedEntity);
 			let filteredAssigments = observabilityAssignments?.filter(_ => _.entityId === expandedEntity);
 			const hasAnomalies =
@@ -603,7 +602,7 @@ export const Observability = React.memo((props: Props) => {
 	async function fetchObservabilityRepos(force: boolean, repoId?: string, entityGuid?: string) {
 		setLoadingEntities(true);
 		console.debug(
-			`o11y: fetchObservabilityRepos started force ${force} repoId ${repoId} entityGuid ${entityGuid}`
+			`o11y: fetchObservabilityRepos started force ${force} repoId ${repoId} entityGuid ${entityGuid}`,
 		);
 
 		const hasFilter = entityGuid && repoId;
@@ -686,23 +685,23 @@ export const Observability = React.memo((props: Props) => {
 				minimumErrorRate: parseFloat(
 					!_isNil(derivedState?.clmSettings?.minimumErrorRateValue)
 						? derivedState?.clmSettings?.minimumErrorRateValue
-						: DEFAULT_CLM_SETTINGS.minimumErrorRateValue
+						: DEFAULT_CLM_SETTINGS.minimumErrorRateValue,
 				),
 				minimumResponseTime: parseFloat(
 					!_isNil(derivedState?.clmSettings?.minimumAverageDurationValue)
 						? derivedState?.clmSettings?.minimumAverageDurationValue
-						: DEFAULT_CLM_SETTINGS.minimumAverageDurationValue
+						: DEFAULT_CLM_SETTINGS.minimumAverageDurationValue,
 				),
 				minimumSampleRate: parseFloat(
 					!_isNil(derivedState?.clmSettings?.minimumBaselineValue)
 						? derivedState?.clmSettings?.minimumBaselineValue
-						: DEFAULT_CLM_SETTINGS.minimumBaselineValue
+						: DEFAULT_CLM_SETTINGS.minimumBaselineValue,
 				),
 				minimumRatio:
 					parseFloat(
 						!_isNil(derivedState?.clmSettings?.minimumChangeValue)
 							? derivedState?.clmSettings?.minimumChangeValue
-							: DEFAULT_CLM_SETTINGS.minimumChangeValue
+							: DEFAULT_CLM_SETTINGS.minimumChangeValue,
 					) /
 						100 +
 					1,
@@ -725,7 +724,7 @@ export const Observability = React.memo((props: Props) => {
 	const fetchGoldenMetrics = async (
 		entityGuid?: string,
 		noLoadingSpinner?: boolean,
-		force = false
+		force = false,
 	) => {
 		if (entityGuid && currentRepoId) {
 			if (!noLoadingSpinner) {
@@ -743,7 +742,7 @@ export const Observability = React.memo((props: Props) => {
 				// Don't erase previous results on an error
 				if (isNRErrorResponse(response.entityGoldenMetrics)) {
 					errors.push(
-						response.entityGoldenMetrics.error.message ?? response.entityGoldenMetrics.error.type
+						response.entityGoldenMetrics.error.message ?? response.entityGoldenMetrics.error.type,
 					);
 				} else {
 					setEntityGoldenMetrics(response.entityGoldenMetrics);
@@ -752,7 +751,7 @@ export const Observability = React.memo((props: Props) => {
 				if (isNRErrorResponse(response.recentAlertViolations)) {
 					errors.push(
 						response.recentAlertViolations.error.message ??
-							response.recentAlertViolations.error.type
+							response.recentAlertViolations.error.type,
 					);
 				} else {
 					setRecentAlertViolations(response.recentAlertViolations);
@@ -778,7 +777,7 @@ export const Observability = React.memo((props: Props) => {
 
 				if (isNRErrorResponse(response?.error)) {
 					setServiceLevelObjectiveError(
-						response.error?.error?.message ?? response.error?.error?.type
+						response.error?.error?.message ?? response.error?.error?.type,
 					);
 				} else {
 					setServiceLevelObjectiveError(undefined);
@@ -874,7 +873,7 @@ export const Observability = React.memo((props: Props) => {
 		}
 
 		const newPreferences = derivedState.observabilityRepoEntities.filter(
-			_ => _.repoId !== currentRepoId
+			_ => _.repoId !== currentRepoId,
 		);
 		newPreferences.push({
 			repoId: currentRepoId,
@@ -918,8 +917,8 @@ export const Observability = React.memo((props: Props) => {
 
 			console.debug(
 				`o11y: useEffect [currentRepoId, observabilityRepos] calling setCurrentEntityAccounts ${JSON.stringify(
-					_currentEntityAccounts
-				)}`
+					_currentEntityAccounts,
+				)}`,
 			);
 			setCurrentEntityAccounts(_currentEntityAccounts);
 
@@ -944,7 +943,7 @@ export const Observability = React.memo((props: Props) => {
 			didMount: ${didMount} 
 			hasLoadedOnce: ${hasLoadedOnce} 
 			loadingEntities: ${loadingEntities} 
-			currentEntityAccounts: ${JSON.stringify(currentEntityAccounts)}`
+			currentEntityAccounts: ${JSON.stringify(currentEntityAccounts)}`,
 		);
 		if (!hasLoadedOnce && didMount && !loadingEntities && currentEntityAccounts) {
 			hasLoadedOnce = true;
@@ -962,7 +961,7 @@ export const Observability = React.memo((props: Props) => {
 				currentRepo &&
 				(!currentRepo.hasRepoAssociation || currentRepo.entityAccounts.length < 1) &&
 				!observabilityErrors?.find(
-					oe => oe?.repoId === currentRepo?.repoId && oe?.errors.length > 0
+					oe => oe?.repoId === currentRepo?.repoId && oe?.errors.length > 0,
 				)
 			) {
 				setRepoForEntityAssociator(currentRepo);
@@ -985,7 +984,7 @@ export const Observability = React.memo((props: Props) => {
 					.send(GetObservabilityReposRequestType, { force: true })
 					.then((_: GetObservabilityReposResponse) => {
 						console.debug(
-							`o11y: useEffect on scmInfo calling setObservabilityRepos ${JSON.stringify(_.repos)}`
+							`o11y: useEffect on scmInfo calling setObservabilityRepos ${JSON.stringify(_.repos)}`,
 						);
 						setObservabilityRepos(_.repos || []);
 						// updateCurrentEntityAccounts();
@@ -1014,7 +1013,7 @@ export const Observability = React.memo((props: Props) => {
 				title="Observability"
 				id={WebviewPanels.Observability}
 				subtitle={
-					<ObservabilityCurrentRepo
+					<CurrentRepoContext
 						observabilityRepos={observabilityRepos}
 						currentRepoCallback={setCurrentRepoId}
 					/>
@@ -1078,7 +1077,7 @@ export const Observability = React.memo((props: Props) => {
 											observabilityRepos?.find(
 												_ =>
 													!isNRErrorResponse(_.hasCodeLevelMetricSpanData) &&
-													_.hasCodeLevelMetricSpanData
+													_.hasCodeLevelMetricSpanData,
 											) && (
 												<WarningBox
 													style={{ margin: "20px" }}
@@ -1095,7 +1094,7 @@ export const Observability = React.memo((props: Props) => {
 															setUserPreference({
 																prefPath: ["hideCodeLevelMetricsInstructions"],
 																value: true,
-															})
+															}),
 														);
 													}}
 												/>
@@ -1123,7 +1122,7 @@ export const Observability = React.memo((props: Props) => {
 														.filter(_ => _)
 														.map((ea, index) => {
 															const _observabilityRepo = observabilityRepos.find(
-																_ => _.repoId === currentRepoId
+																_ => _.repoId === currentRepoId,
 															);
 
 															if (_observabilityRepo) {
@@ -1233,7 +1232,7 @@ export const Observability = React.memo((props: Props) => {
 																							{ea.domain === "APM" && (
 																								<>
 																									{observabilityErrors?.find(
-																										oe => oe?.repoId === _observabilityRepo?.repoId
+																										oe => oe?.repoId === _observabilityRepo?.repoId,
 																									) && (
 																										<>
 																											<ObservabilityErrorWrapper
@@ -1279,7 +1278,7 @@ export const Observability = React.memo((props: Props) => {
 															<ObservabilityAddAdditionalService
 																onSuccess={async e => {
 																	console.debug(
-																		`o11y: ObservabilityAddAdditionalService calling doRefresh(force)`
+																		`o11y: ObservabilityAddAdditionalService calling doRefresh(force)`,
 																	);
 																	doRefresh(true);
 																}}
