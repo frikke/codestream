@@ -29,24 +29,41 @@ export * from "./providers/trello";
 export * from "./providers/trunk";
 export * from "./providers/youtrack";
 
+function handleFatalError(source: string, err: unknown) {
+	console.error(`===--- ${source} fatal error ---=== `);
+	console.error(err);
+	process.abort(); // Core dump if possible
+}
+
+process.on("uncaughtException", e => handleFatalError("uncaughtException", e));
+process.on("unhandledRejection", e => handleFatalError("unhandledRejection", e));
+
 process.title = "CodeStream";
 
-let logPath;
-process.argv.forEach(function (val, index, array) {
-	if (val && val.indexOf("--log=") === 0) {
-		logPath = val.substring(6);
-	}
-});
-const logger = logPath != null ? new FileLspLogger(logPath) : undefined;
+try {
+	let logPath;
+	process.argv.forEach(function (val, index, array) {
+		if (val && val.indexOf("--log=") === 0) {
+			logPath = val.substring(6);
+		}
+	});
+	const logger = logPath != null ? new FileLspLogger(logPath) : undefined;
 
-const agentConfig = {
-	logger: logger,
-};
+	const agentConfig = {
+		logger: logger,
+	};
 
-// Create a connection for the server. The connection uses Node's IPC as a transport.
-// Also include all preview / proposed LSP features.
-const connection = createConnection(ProposedFeatures.all);
+	// Create a connection for the server. The connection uses Node's IPC as a transport.
+	// Also include all preview / proposed LSP features.
+	const connection = createConnection(ProposedFeatures.all);
 
-new CodeStreamAgent(connection, agentConfig);
+	// Can't use logger here because it's not initialized yet
+	// Can't use log / info here because it's used by lsp
+	console.error("Codestream Starting...");
 
-connection.listen();
+	new CodeStreamAgent(connection, agentConfig);
+
+	connection.listen();
+} catch (error) {
+	handleFatalError("uncaught_main", error);
+}
