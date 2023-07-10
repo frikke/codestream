@@ -44,6 +44,18 @@ const postBuildCopy: CopyStuff[] = [
 		from: `${outputDir}/agent.*`,
 		to: path.resolve(__dirname, "../../vs/src/CodeStream.VisualStudio.Vsix.x64/agent/"),
 	},
+	{
+		from: path.resolve(__dirname, "node_modules/sync-request/**"),
+		to: `${outputDir}/node_modules/sync-request`,
+	},
+	{
+		from: path.resolve(__dirname, "node_modules/sync-rpc/**"),
+		to: `${outputDir}/node_modules/sync-rpc`,
+	},
+	{
+		from: path.resolve(`${outputDir}/node_modules/**`),
+		to: path.resolve(__dirname, "../../vscode/dist/node_modules/"),
+	},
 ];
 
 (async function () {
@@ -54,7 +66,7 @@ const postBuildCopy: CopyStuff[] = [
 			agent: "./src/main.ts",
 			"agent-vs-2019": "./src/main-vs-2019.ts",
 		},
-		external: ["fsevents"],
+		external: ["fsevents", "sync-rpc", "sync-request"],
 		plugins: [
 			graphqlLoaderPlugin(),
 			nativeNodeModulesPlugin,
