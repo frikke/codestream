@@ -27,7 +27,4 @@ fi
 
 pushd "$SCRIPT_DIR/../dist"
 unzip -o "$mytmpdir/extraClientBuildLibs.zip"
-pwd
-# TODO should be in esbuild.ts but the copyPlugin royally messes up directory copies (flattens them)
-cp -R node_modules ../../../vscode/dist/
 popd
