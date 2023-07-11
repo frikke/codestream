@@ -20,4 +20,4 @@ fi
 TARGET_PATH=$(readlink -f "$SCRIPT_DIR/../dist")
 
 echo "Copying extraClientBuildLibs to $TARGET_PATH"
-cp -r "$TCBUILD_SUPPLEMENTAL_SOFTWARE_PATH/node_modules" "$TARGET_PATH"
+cp -rv "$TCBUILD_SUPPLEMENTAL_SOFTWARE_PATH/node_modules" "$TARGET_PATH"
