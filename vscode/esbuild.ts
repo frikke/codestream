@@ -50,7 +50,7 @@ async function extensionBuild(args: Args) {
 
 	const postBuildCopy: CopyStuff[] = [
 		{
-			from: path.resolve(__dirname, "../shared/agent/dist/*"),
+			from: path.resolve(__dirname, "../shared/agent/dist/**"),
 			to: dist
 		},
 		{

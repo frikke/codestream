@@ -1,33 +1,23 @@
 #!/usr/bin/env bash
 
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 mkdir -p "$SCRIPT_DIR/../dist"
-if [ -f "$SCRIPT_DIR/../dist/node_modules/fsevents/fsevents.node" ]; then
-  echo "fsevents already downloaded, skipping extraClientBuildLibs"
+
+if [[ -n "${TCBUILD_BYPASS_SUPPLEMENTAL_SOFTWARE}" ]]; then
+  echo "Warning: TCBUILD_BYPASS_SUPPLEMENTAL_SOFTWARE set, skipping extraClientBuildLibs"
   exit 0
 fi
 
-mytmpdir=$(mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir')
-function cleanup {
-  if [ -n "$mytmpdir" -a "$mytmpdir" != "" ]; then
-    echo "Cleaning up $mytmpdir"
-    rm "$mytmpdir/extraClientBuildLibs.zip"
-    rmdir "$mytmpdir"
+if [[ -z "${TCBUILD_SUPPLEMENTAL_SOFTWARE_PATH}" ]]; then
+  if [[ -n "${TEAMCITY_VERSION}" ]]; then
+    echo "Error: TCBUILD_SUPPLEMENTAL_SOFTWARE_PATH missing in teamcity build"
+    exit 1
   fi
-}
-trap cleanup EXIT
-
-echo "Downloading extraClientBuildLibs to $mytmpdir"
-curl -s --fail -o "$mytmpdir/extraClientBuildLibs.zip" https://assets.codestream.com/lib/extraClientBuildLibs.zip
-exit_code=$?
-if [ $exit_code != 0 ]; then
-  echo "Warning: could not download extraClientBuildLibs.zip. This is OK unless running full package deployment"
+  echo "Warning: TCBUILD_SUPPLEMENTAL_SOFTWARE_PATH not set, skipping extraClientBuildLibs"
   exit 0
 fi
 
-pushd "$SCRIPT_DIR/../dist"
-unzip -o "$mytmpdir/extraClientBuildLibs.zip"
-pwd
-# TODO should be in esbuild.ts but the copyPlugin royally messes up directory copies (flattens them)
-cp -R node_modules ../../../vscode/dist/
-popd
+TARGET_PATH=$(readlink -f "$SCRIPT_DIR/../dist")
+
+echo "Copying extraClientBuildLibs to $TARGET_PATH"
+cp -r "$TCBUILD_SUPPLEMENTAL_SOFTWARE_PATH/node_modules" "$TARGET_PATH"
