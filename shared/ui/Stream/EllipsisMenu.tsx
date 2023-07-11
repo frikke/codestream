@@ -405,25 +405,49 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		});
 	}
 
+	interface SubmenuOption {
+		label: string;
+		action?: () => void;
+	}
+	let accountSubmenu: SubmenuOption[] = [];
+	const { company } = derivedState;
+	if (company.codestreamOnly) {
+		accountSubmenu = [
+			{
+				label: "View Profile",
+				action: () => {
+					dispatch(setProfileUser(derivedState.currentUserId));
+					popup(WebviewModals.Profile);
+				},
+			},
+			{ label: "Change Profile Photo", action: () => popup(WebviewModals.ChangeAvatar) },
+			{ label: "Change Email", action: () => popup(WebviewModals.ChangeEmail) },
+			{ label: "Change Username", action: () => popup(WebviewModals.ChangeUsername) },
+			{ label: "Change Full Name", action: () => popup(WebviewModals.ChangeFullName) },
+			{ label: "-" },
+			{ label: "Sign Out", action: () => handleLogout() },
+		];
+	} else {
+		accountSubmenu = [
+			{
+				label: "View Profile",
+				action: () => {
+					dispatch(setProfileUser(derivedState.currentUserId));
+					popup(WebviewModals.Profile);
+				},
+			},
+			{ label: "Change Profile Photo", action: () => popup(WebviewModals.ChangeAvatar) },
+			{ label: "Change Username", action: () => popup(WebviewModals.ChangeUsername) },
+			{ label: "-" },
+			{ label: "Sign Out", action: () => handleLogout() },
+		];
+	}
+
 	menuItems.push(
 		{
 			label: "Account",
 			action: "account",
-			submenu: [
-				{
-					label: "View Profile",
-					action: () => {
-						dispatch(setProfileUser(derivedState.currentUserId));
-						popup(WebviewModals.Profile);
-					},
-				},
-				{ label: "Change Profile Photo", action: () => popup(WebviewModals.ChangeAvatar) },
-				{ label: "Change Email", action: () => popup(WebviewModals.ChangeEmail) },
-				{ label: "Change Username", action: () => popup(WebviewModals.ChangeUsername) },
-				{ label: "Change Full Name", action: () => popup(WebviewModals.ChangeFullName) },
-				{ label: "-" },
-				{ label: "Sign Out", action: () => handleLogout() },
-			],
+			submenu: accountSubmenu,
 		},
 		{
 			label: "View",

@@ -4,7 +4,7 @@ import { FormattedMessage } from "react-intl";
 import { GetUserInfoRequestType, RegisterUserRequestType } from "@codestream/protocols/agent";
 import { LoginResult } from "@codestream/protocols/api";
 import styled from "styled-components";
-
+import { isEmpty as _isEmpty } from "lodash-es";
 import { CodeStreamState } from "../store";
 import Button from "../Stream/Button";
 import Icon from "../Stream/Icon";
@@ -137,6 +137,7 @@ export const Signup = (props: Props) => {
 			forceRegion,
 			supportsMultiRegion,
 			originalEmail: props.email,
+			pendingProtocolHandlerUrl: state.context.pendingProtocolHandlerUrl,
 		};
 	});
 
@@ -517,86 +518,103 @@ export const Signup = (props: Props) => {
 										)}
 									</>
 								)}
-								<h3 style={{ marginBottom: regionItems || forceRegionName ? "5px" : "0px" }}>
-									{(props.newOrg || props.joinCompanyId) && (
-										<>How will you sign into this organization?</>
-									)}
-									{!props.newOrg && !props.joinCompanyId && (
-										<>Don't have a New Relic account? Sign up for free.</>
-									)}
-								</h3>
-								{regionItems && !forceRegionName && (
+								{_isEmpty(derivedState.pendingProtocolHandlerUrl) && (
 									<>
-										Region:{" "}
-										<Dropdown
-											selectedValue={selectedRegionName ?? ""}
-											items={regionItems}
-											noModal={true}
-										/>
-										<Tooltip
-											placement={"bottom"}
-											title={`Select the region where your CodeStream data should be stored.`}
-										>
-											<TooltipIconWrapper>
-												<Icon name="question" />
-											</TooltipIconWrapper>
-										</Tooltip>
+										<h3 style={{ marginBottom: regionItems || forceRegionName ? "5px" : "0px" }}>
+											{(props.newOrg || props.joinCompanyId) && (
+												<>How will you sign into this organization?</>
+											)}
+											{!props.newOrg && !props.joinCompanyId && (
+												<>Don't have a New Relic account? Sign up for free.</>
+											)}
+										</h3>
+										{regionItems && !forceRegionName && (
+											<>
+												Region:{" "}
+												<Dropdown
+													selectedValue={selectedRegionName ?? ""}
+													items={regionItems}
+													noModal={true}
+												/>
+												<Tooltip
+													placement={"bottom"}
+													title={`Select the region where your CodeStream data should be stored.`}
+												>
+													<TooltipIconWrapper>
+														<Icon name="question" />
+													</TooltipIconWrapper>
+												</Tooltip>
+											</>
+										)}
+										{forceRegionName && <>Region: {forceRegionName}</>}
+										<SignupButtonsContainer>
+											{(!limitAuthentication || authenticationProviders["github*com"]) && (
+												<SignupButtonContainer>
+													<Button
+														className="row-button no-top-margin"
+														onClick={onClickGithubSignup}
+													>
+														<Icon name="mark-github" />
+														<div className="copy">GitHub</div>
+														<Icon name="chevron-right" />
+													</Button>
+												</SignupButtonContainer>
+											)}
+											{(!limitAuthentication || authenticationProviders["gitlab*com"]) && (
+												<SignupButtonContainer>
+													<Button
+														className="row-button no-top-margin"
+														onClick={onClickGitlabSignup}
+													>
+														<Icon name="gitlab" />
+														<div className="copy">GitLab</div>
+														<Icon name="chevron-right" />
+													</Button>
+												</SignupButtonContainer>
+											)}
+											{(!limitAuthentication || authenticationProviders["bitbucket*org"]) && (
+												<SignupButtonContainer>
+													<Button
+														className="row-button no-top-margin"
+														onClick={onClickBitbucketSignup}
+													>
+														<Icon name="bitbucket" />
+														<div className="copy">Bitbucket</div>
+														<Icon name="chevron-right" />
+													</Button>
+												</SignupButtonContainer>
+											)}
+											{derivedState.oktaEnabled && (
+												<SignupButtonContainer>
+													<Button className="row-button no-top-margin" onClick={onClickOktaSignup}>
+														<Icon name="okta" />
+														<div className="copy">Okta</div>
+														<Icon name="chevron-right" />
+													</Button>
+												</SignupButtonContainer>
+											)}
+											{(!limitAuthentication || authenticationProviders["email"]) &&
+												!showEmailForm && (
+													<SignupButtonContainer>
+														<Button
+															className="row-button no-top-margin"
+															onClick={onClickEmailSignup}
+														>
+															<Icon name="codestream" />
+															<div className="copy">Email</div>
+															<Icon name="chevron-right" />
+														</Button>
+													</SignupButtonContainer>
+												)}
+										</SignupButtonsContainer>
+										{showOr && showEmailForm && (
+											<div className="separator-label">
+												<span className="or">
+													<FormattedMessage id="signUp.or" defaultMessage="or" />
+												</span>
+											</div>
+										)}
 									</>
-								)}
-								{forceRegionName && <>Region: {forceRegionName}</>}
-								<SignupButtonsContainer>
-									{(!limitAuthentication || authenticationProviders["github*com"]) && (
-										<SignupButtonContainer>
-											<Button className="row-button no-top-margin" onClick={onClickGithubSignup}>
-												<Icon name="mark-github" />
-												<div className="copy">GitHub</div>
-												<Icon name="chevron-right" />
-											</Button>
-										</SignupButtonContainer>
-									)}
-									{(!limitAuthentication || authenticationProviders["gitlab*com"]) && (
-										<SignupButtonContainer>
-											<Button className="row-button no-top-margin" onClick={onClickGitlabSignup}>
-												<Icon name="gitlab" />
-												<div className="copy">GitLab</div>
-												<Icon name="chevron-right" />
-											</Button>
-										</SignupButtonContainer>
-									)}
-									{(!limitAuthentication || authenticationProviders["bitbucket*org"]) && (
-										<SignupButtonContainer>
-											<Button className="row-button no-top-margin" onClick={onClickBitbucketSignup}>
-												<Icon name="bitbucket" />
-												<div className="copy">Bitbucket</div>
-												<Icon name="chevron-right" />
-											</Button>
-										</SignupButtonContainer>
-									)}
-									{derivedState.oktaEnabled && (
-										<SignupButtonContainer>
-											<Button className="row-button no-top-margin" onClick={onClickOktaSignup}>
-												<Icon name="okta" />
-												<div className="copy">Okta</div>
-												<Icon name="chevron-right" />
-											</Button>
-										</SignupButtonContainer>
-									)}
-									{(!limitAuthentication || authenticationProviders["email"]) && !showEmailForm && (
-										<SignupButtonContainer>
-											<Button className="row-button no-top-margin" onClick={onClickEmailSignup}>
-												<Icon name="codestream" />
-												<div className="copy">Email</div>
-												<Icon name="chevron-right" />
-											</Button>
-										</SignupButtonContainer>
-									)}
-								</SignupButtonsContainer>
-								{showOr && showEmailForm && (
-									<div className="separator-label">
-										<span className="or">
-											<FormattedMessage id="signUp.or" defaultMessage="or" />
-										</span>
-									</div>
 								)}
 							</div>
 						</div>
