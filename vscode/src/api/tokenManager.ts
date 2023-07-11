@@ -33,20 +33,19 @@ export async function addOrUpdate(url: string, email: string, teamId: string, to
 
 	const key = toKey(url, email, teamId);
 
-	if (keychain !== undefined) {
+	const secretApi = Container.context.secrets;
+
+	if (secretApi !== undefined) {
 		try {
-			await keychain.setPassword(CredentialService, key, JSON.stringify(token));
-			return;
+			await secretApi.store(key, JSON.stringify(token));
 		} catch (ex) {
 			Logger.error(ex, "TokenManager.addOrUpdate: Failed to set credentials");
 		}
+	} else {
+		Logger.error(
+			new Error("TokenManager.addOrUpdate: Failed to set credentials: secretApi is undefined")
+		);
 	}
-
-	Logger.log("TokenManager.addOrUpdate: Falling back to use local storage");
-
-	const tokens = getTokenMap();
-	tokens[key] = token;
-	await Container.context.globalState.update(GlobalState.AccessTokens, tokens);
 }
 
 export async function clear(url: string, email: string, teamId?: string) {
@@ -54,24 +53,31 @@ export async function clear(url: string, email: string, teamId?: string) {
 
 	const key = toKey(url, email, teamId);
 
-	if (keychain !== undefined) {
+	const secretApi = Container.context.secrets;
+
+	if (secretApi !== undefined) {
 		try {
-			await keychain.deletePassword(CredentialService, key);
+			await secretApi.delete(key);
 		} catch (ex) {
 			Logger.error(ex, "TokenManager.clear: Failed to clear credentials");
 		}
 	}
 
+	// Keep clearing out legacy tokens
 	const tokens = getTokenMap();
 	if (tokens[key] === undefined) return;
 
 	delete tokens[key];
 	await Container.context.globalState.update(GlobalState.AccessTokens, tokens);
-}
 
-// export async function clearAll() {
-// 	await Container.context.globalState.update(GlobalState.AccessTokens, undefined);
-// }
+	if (keychain) {
+		try {
+			await keychain.deletePassword(CredentialService, key);
+		} catch (e) {
+			Logger.warn(`TokenManager.clear: Failed to cleanup keytar creds ${e.message}`);
+		}
+	}
+}
 
 export async function get(
 	url: string,
@@ -82,43 +88,63 @@ export async function get(
 
 	const key = toKey(url, email, teamId);
 	let migrate = false;
-	if (keychain !== undefined) {
+	const secretApi = Container.context.secrets;
+	if (secretApi !== undefined) {
 		migrate = true;
 		try {
-			const tokenJson = await keychain.getPassword(CredentialService, key);
-			if (tokenJson != null) {
+			const tokenJson = await secretApi.get(key);
+			if (tokenJson) {
 				return JSON.parse(tokenJson) as AccessToken;
 			}
 		} catch (ex) {
+			Logger.error(ex, "TokenManager.get: Failed to get credentials");
 			migrate = false;
 		}
 	}
 
-	Logger.log(`TokenManager.get: Checking local storage; migrate=${migrate}`);
+	let token: undefined | AccessToken = undefined;
+	if (keychain) {
+		Logger.log(`TokenManager.get: Checking keytar storage; migrate=${migrate}`);
+		const tokenJson = (await keychain.getPassword(CredentialService, key)) ?? undefined;
+		token = tokenJson ? (JSON.parse(tokenJson) as AccessToken) : undefined;
+	}
 
-	const tokens = getTokenMap();
-	const token = tokens[key];
+	let tokenMap: TokenMap | undefined = undefined;
+	if (!token) {
+		Logger.log(`TokenManager.get: Checking local storage; migrate=${migrate}`);
+		tokenMap = getTokenMap();
+		token = tokenMap[key];
+	}
 
 	if (migrate && token !== undefined) {
-		await migrateTokenToKeyChain(key, token, tokens);
+		await migrateTokenToSecretStorage(key, token, tokenMap);
 	}
 	return token;
 }
 
-async function migrateTokenToKeyChain(
+// Given a token from keytar or local storage, migrate it to the vscode secret storage
+async function migrateTokenToSecretStorage(
 	key: string,
 	token: AccessToken | undefined,
-	tokens: TokenMap
+	tokens?: TokenMap
 ) {
-	if (keychain === undefined || token === undefined) return;
+	const secretApi = Container.context.secrets;
+	if (secretApi === undefined || token === undefined) return;
 
 	try {
-		await keychain.setPassword(CredentialService, key, JSON.stringify(token));
+		await secretApi.store(key, JSON.stringify(token));
 	} catch (ex) {
 		Logger.error(ex, "TokenManager.migrateTokenToKeyChain: Failed to migrate credentials");
 		return;
 	}
 
-	delete tokens[key];
+	if (tokens) {
+		delete tokens[key];
+	}
+
 	await Container.context.globalState.update(GlobalState.AccessTokens, tokens);
+
+	if (keychain) {
+		await keychain.deletePassword(CredentialService, key);
+	}
 }
