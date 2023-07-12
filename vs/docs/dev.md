@@ -15,7 +15,7 @@ git clone https://github.com/TeamCodeStream/codestream.git
     - .NET Framework 4.8
     - Desktop Development with C++
 - [Git](https://git-scm.com/) >=2.32.0
-- [NodeJS](https://nodejs.org/en/) = 16.13.2
+- [NodeJS](https://nodejs.org/en/) = 16.17.1
 - [npm](https://npmjs.com/) = 9.6.2
 - [DotNetBrowser](https://www.teamdev.com/dotnetbrowser) license. (it must be put into the git-ignored folder `\licenses\{Configuration}` where `{Configuration}` is Debug (dev license) or Release (runtime license)). It will be picked up by msbuild and put into the correct location at build time. These licenses should _not_ be commited to source control.
 
