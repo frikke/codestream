@@ -76,7 +76,7 @@ const postBuildCopy: CopyStuff[] = [
 		],
 		format: "cjs",
 		platform: "node",
-		target: "node16.13",
+		target: "node16.17",
 		outdir: outputDir,
 		sourceRoot: args.ide === "vs" ? path.resolve(__dirname, "../agent/dist") : undefined,
 		sourcesContent: args.mode === "development" && args.ide !== "vs",
