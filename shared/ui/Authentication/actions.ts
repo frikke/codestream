@@ -18,10 +18,7 @@ import { LogoutRequestType } from "@codestream/protocols/webview";
 import { setBootstrapped } from "@codestream/webview/store/bootstrapped/actions";
 import { withExponentialConnectionRetry } from "@codestream/webview/store/common";
 import { reset } from "@codestream/webview/store/session/actions";
-import {
-	BootstrapInHostRequestType,
-	OpenUrlRequestType,
-} from "../ipc/host.protocol";
+import { BootstrapInHostRequestType, OpenUrlRequestType } from "../ipc/host.protocol";
 import { GetActiveEditorContextRequestType } from "../ipc/host.protocol.editor";
 import { logError } from "../logger";
 import { CodeStreamState } from "../store";
@@ -57,6 +54,7 @@ export enum SignupType {
 	JoinTeam = "joinTeam",
 	CreateTeam = "createTeam",
 }
+import { isEmpty as _isEmpty } from "lodash-es";
 
 export interface SSOAuthInfo {
 	fromSignup?: boolean;
@@ -110,6 +108,11 @@ export const startSSOSignin =
 			query.machineId = session.machineId;
 		}
 		query.enableUId = "1"; // operating under Unified Identity
+
+		const anonymousId = await HostApi.instance.getAnonymousId();
+		if (!_isEmpty(anonymousId)) {
+			query.anonUserId = anonymousId;
+		}
 
 		const queryString = Object.keys(query)
 			.map(key => `${key}=${query[key]}`)
