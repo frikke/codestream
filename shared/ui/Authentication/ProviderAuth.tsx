@@ -25,6 +25,7 @@ interface Props extends DispatchProp {
 export const ProviderAuth = (connect(undefined) as any)((props: Props) => {
 	const [isWaiting, setIsWaiting] = useState(true);
 	const [tryAgainDisabled, setTryAgainDisabled] = useState(true);
+	const [alreadyConfirmed, setAlreadyConfirmed] = useState(false);
 	const intl = useIntl();
 	const dispatch = useAppDispatch();
 
@@ -119,6 +120,9 @@ export const ProviderAuth = (connect(undefined) as any)((props: Props) => {
 			if (error !== LoginResult.TokenNotFound) {
 				setIsWaiting(false);
 			}
+			if (error === LoginResult.AlreadyConfirmed) {
+				setAlreadyConfirmed(true);
+			}
 		}
 	}, [props.type]);
 
@@ -168,6 +172,8 @@ export const ProviderAuth = (connect(undefined) as any)((props: Props) => {
 									/>{" "}
 									<LoadingEllipsis />
 								</strong>
+							) : alreadyConfirmed ? (
+								<strong>Already signed up, please sign in.</strong>
 							) : { ideAuthFailure } ? (
 								<strong>
 									<FormattedMessage
