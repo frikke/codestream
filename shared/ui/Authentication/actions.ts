@@ -8,8 +8,6 @@ import {
 	OtcLoginRequestType,
 	PasswordLoginRequest,
 	PasswordLoginRequestType,
-	ProviderTokenRequest,
-	ProviderTokenRequestType,
 	TokenLoginRequest,
 	TokenLoginRequestType,
 	UpdateNewRelicOrgIdRequestType,
@@ -19,11 +17,7 @@ import { LogoutRequestType } from "@codestream/protocols/webview";
 import { setBootstrapped } from "@codestream/webview/store/bootstrapped/actions";
 import { withExponentialConnectionRetry } from "@codestream/webview/store/common";
 import { reset } from "@codestream/webview/store/session/actions";
-import {
-	BootstrapInHostRequestType,
-	ConnectToIDEProviderRequestType,
-	OpenUrlRequestType,
-} from "../ipc/host.protocol";
+import { BootstrapInHostRequestType, OpenUrlRequestType } from "../ipc/host.protocol";
 import { GetActiveEditorContextRequestType } from "../ipc/host.protocol.editor";
 import { logError } from "../logger";
 import { CodeStreamState } from "../store";
@@ -54,7 +48,7 @@ import { localStore } from "../utilities/storage";
 import { emptyObject, uuid } from "../utils";
 import { HostApi } from "../webview-api";
 import { WebviewPanels } from "@codestream/protocols/api";
-
+import { UpdateServerUrlRequestType } from "../ipc/host.protocol";
 export enum SignupType {
 	JoinTeam = "joinTeam",
 	CreateTeam = "createTeam",
@@ -72,6 +66,7 @@ export interface SSOAuthInfo {
 		repoId: string;
 		commitHash: string;
 	};
+	joinCompanyId?: string;
 }
 
 export const ProviderNames = {
@@ -111,6 +106,11 @@ export const startSSOSignin =
 		if (session.machineId) {
 			query.machineId = session.machineId;
 		}
+		if (info && info.joinCompanyId) {
+			query.joinCompanyId = info.joinCompanyId;
+		}
+		query.enableUId = "1"; // operating under Unified Identity
+
 		const queryString = Object.keys(query)
 			.map(key => `${key}=${query[key]}`)
 			.join("&");
@@ -125,10 +125,13 @@ export const startSSOSignin =
 		}
 	};
 
+// NOTE - this functionality is deprecated per Unified Identity
 export const startIDESignin =
 	(provider: SupportedSSOProvider, info?: SSOAuthInfo) =>
 	async (dispatch, getState: () => CodeStreamState) => {
 		try {
+			throw new Error("IDE sign-in is deprecated");
+			/*
 			const { session } = getState();
 			const result = await HostApi.instance.send(ConnectToIDEProviderRequestType, { provider });
 			const request: ProviderTokenRequest = {
@@ -157,6 +160,7 @@ export const startIDESignin =
 				info.gotError = true;
 				return dispatch(goToSSOAuth(provider, { ...(info || emptyObject) }));
 			}
+			*/
 		} catch (error) {
 			logError(error, { detail: `Unable to start VSCode ${provider} sign in` });
 		}
@@ -382,7 +386,7 @@ export const completeSignup =
 
 		const providerName = extra.provider
 			? ProviderNames[extra.provider.toLowerCase()] || extra.provider
-			: "CodeStream";
+			: "Email";
 		HostApi.instance.track("Signup Completed", {
 			"Signup Type": extra.byDomain ? "Domain" : extra.createdTeam ? "Organic" : "Viral",
 			"Auth Provider": providerName,
@@ -449,7 +453,7 @@ export const completeAcceptInvite =
 
 		const providerName = extra.provider
 			? ProviderNames[extra.provider.toLowerCase()] || extra.provider
-			: "CodeStream";
+			: "Email";
 		HostApi.instance.track("Signup Completed", {
 			"Signup Type": extra.byDomain ? "Domain" : extra.createdTeam ? "Organic" : "Viral",
 			"Auth Provider": providerName,
@@ -466,9 +470,7 @@ export const validateSignup =
 			errorGroupGuid: context.pendingProtocolHandlerQuery?.errorGroupGuid,
 		});
 
-		const providerName = provider
-			? ProviderNames[provider.toLowerCase()] || provider
-			: "CodeStream";
+		const providerName = provider ? ProviderNames[provider.toLowerCase()] || provider : "Email";
 
 		if (isLoginFailResponse(response)) {
 			if (session.inMaintenanceMode && response.error !== LoginResult.MaintenanceMode) {
@@ -520,7 +522,19 @@ export const validateSignup =
 				case LoginResult.ExpiredToken:
 					dispatch(setSession({ otc: uuid() }));
 				default:
-					throw response.error;
+					if (
+						response.error === LoginResult.Unknown &&
+						response?.extra?.url &&
+						response?.extra?.code &&
+						response?.extra?.code === "USRC-1032"
+					) {
+						HostApi.instance.send(UpdateServerUrlRequestType, {
+							serverUrl: response?.extra?.url,
+						});
+						return;
+					} else {
+						throw response.error;
+					}
 			}
 		}
 

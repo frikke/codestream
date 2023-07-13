@@ -6,8 +6,8 @@ export default {
 	"signUp.password.label": "Password",
 	"signUp.password.tooShort":
 		"{countNeeded, number} more {countNeeded, plural, one {char} other {chars}} plz",
-	"signUp.password.help": "6+ characters",
-	"signUp.password.tip": "6+ characters",
+	"signUp.password.help": "Check requirements",
+	"signUp.password.tip": "8+ characters, 1 letter, and 1 number or special character",
 	"signUp.email.label": "Email",
 	"signUp.email.invalid": "That looks invalid",
 	"signUp.email.help": "We got this from Git",
