@@ -93,10 +93,11 @@ const RowIcon = ({ name, title, onClick }) => {
 export const ProfilePanel = () => {
 	const dispatch = useAppDispatch();
 	const derivedState = useAppSelector((state: CodeStreamState) => {
-		const { session, users, teams, context } = state;
+		const { session, users, teams, context, companies } = state;
 		const person = users[context.profileUserId!];
 		const me = users[session.userId!];
 		const team = teams[context.currentTeamId];
+		const company = companies[team.companyId];
 
 		return {
 			isInternalUser: isCurrentUserInternal(state),
@@ -109,6 +110,7 @@ export const ProfilePanel = () => {
 			teamId: state.context.currentTeamId,
 			currentUserEmail: me.email,
 			currentUserId: me.id,
+			isNonCsOrg: !company.codestreamOnly,
 		};
 	});
 
@@ -194,7 +196,9 @@ export const ProfilePanel = () => {
 	const title = (
 		<Row style={{ margin: 0 }}>
 			<Value>{person.fullName}</Value>
-			{isMe && <RowIcon name="pencil" title="Edit Name" onClick={editFullName} />}
+			{isMe && derivedState.isNonCsOrg && (
+				<RowIcon name="pencil" title="Edit Name" onClick={editFullName} />
+			)}
 		</Row>
 	);
 
@@ -236,7 +240,9 @@ export const ProfilePanel = () => {
 							value={person.email}
 							style={{ position: "absolute", left: "-9999px" }}
 						/>
-						{isMe && <RowIcon name="pencil" title="Edit Email" onClick={editEmail} />}
+						{isMe && derivedState.isNonCsOrg && (
+							<RowIcon name="pencil" title="Edit Email" onClick={editEmail} />
+						)}
 					</Row>
 					<Row>
 						<MetaLabel>Timezone</MetaLabel>
