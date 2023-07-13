@@ -336,7 +336,6 @@ export class SimpleStream extends PureComponent<Props> {
 				const mappedMe = blameMap[scmEmail.replace(/\./g, "*")];
 				if (addBlameMapEnabled && scmEmail && !mappedMe && !skipGitEmailCheck) {
 					this.addBlameMap(scmEmail, currentUser.id);
-					HostApi.instance.track("Git Email Mismatch", { Mapped: true });
 
 					setUserPreference({ prefPath: ["skipGitEmailCheck"], value: true });
 				}
