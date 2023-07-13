@@ -13,6 +13,7 @@ import { updateConfigs } from "@codestream/webview/store/configs/slice";
 import { setIde } from "@codestream/webview/store/ide/slice";
 import {
 	BootstrapInHostResponse,
+	LogoutRequestType,
 	SignedInBootstrapData,
 	UpdateServerUrlRequestType,
 } from "../ipc/host.protocol";
