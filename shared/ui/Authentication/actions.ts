@@ -13,7 +13,6 @@ import {
 	UpdateNewRelicOrgIdRequestType,
 } from "@codestream/protocols/agent";
 import { CodemarkType, LoginResult } from "@codestream/protocols/api";
-import { WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
 import { LogoutRequestType } from "@codestream/protocols/webview";
 import { setBootstrapped } from "@codestream/webview/store/bootstrapped/actions";
 import { withExponentialConnectionRetry } from "@codestream/webview/store/common";
@@ -48,7 +47,6 @@ import { moveCursorToLine } from "../Stream/api-functions";
 import { localStore } from "../utilities/storage";
 import { emptyObject, uuid } from "../utils";
 import { HostApi } from "../webview-api";
-import { setUserPreferences } from "../Stream/actions";
 import { UpdateServerUrlRequestType } from "../ipc/host.protocol";
 export enum SignupType {
 	JoinTeam = "joinTeam",
@@ -258,12 +256,7 @@ export const generateLoginCode =
 const _bootstrap = () => {};
 
 export const onLogin =
-	(
-		response: LoginSuccessResponse,
-		isFirstPageview?: boolean,
-		teamCreated?: boolean,
-		nrSignupTestUi?: boolean
-	) =>
+	(response: LoginSuccessResponse, isFirstPageview?: boolean, teamCreated?: boolean) =>
 	async (dispatch, getState: () => CodeStreamState) => {
 		const api = HostApi.instance;
 
@@ -303,34 +296,7 @@ export const onLogin =
 			})
 		);
 
-		const { companies, teams, context } = getState();
-		const team = teams[context.currentTeamId];
-		const company = companies[team.companyId];
-
-		if (nrSignupTestUi) {
-			if (company?.testGroups && company?.testGroups["simple-ui"] === "simple") {
-				dispatch(
-					setUserPreferences([
-						{
-							prefPath: ["sidebarPanes", WebviewPanels.OpenPullRequests, "removed"],
-							value: true,
-						},
-						{
-							prefPath: ["sidebarPanes", WebviewPanels.OpenReviews, "removed"],
-							value: true,
-						},
-						{
-							prefPath: ["sidebarPanes", WebviewPanels.Tasks, "removed"],
-							value: true,
-						},
-						{
-							prefPath: ["sidebarPanes", WebviewPanels.CICD, "removed"],
-							value: true,
-						},
-					])
-				);
-			}
-		}
+		const { context } = getState();
 
 		if (response.state.codemarkId) {
 			let { codemarks } = getState();
@@ -366,7 +332,6 @@ export const completeSignup =
 			createdTeam: boolean;
 			provider?: string;
 			byDomain?: boolean;
-			nrSignupTestUi?: boolean;
 			setEnvironment?: { environment: string; serverUrl: string };
 		}
 	) =>
@@ -401,7 +366,7 @@ export const completeSignup =
 			"Signup Type": extra.byDomain ? "Domain" : extra.createdTeam ? "Organic" : "Viral",
 			"Auth Provider": providerName,
 		});
-		dispatch(onLogin(response, true, extra.createdTeam, extra.nrSignupTestUi));
+		dispatch(onLogin(response, true, extra.createdTeam));
 	};
 
 export const completeAcceptInvite =
