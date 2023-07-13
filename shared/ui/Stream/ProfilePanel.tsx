@@ -16,7 +16,6 @@ import { UserStatus } from "../src/components/UserStatus";
 import { UpdateUserRequestType, DeleteUserRequestType } from "@codestream/protocols/agent";
 import Menu from "./Menu";
 import { confirmPopup } from "./Confirm";
-import { Button } from "../src/components/Button";
 import { Dialog } from "../src/components/Dialog";
 import { isCurrentUserInternal } from "../store/users/reducer";
 
@@ -302,13 +301,6 @@ export const ProfilePanel = () => {
 							<MetaLabel>Currently Working On</MetaLabel>
 							<StyledUserStatus user={person} />
 						</Row>
-					)}
-					{isMe && (
-						<div style={{ marginTop: "75px" }}>
-							<Button variant="destructive" onClick={cancelAccount}>
-								Delete your account
-							</Button>
-						</div>
 					)}
 				</div>
 			</Root>
