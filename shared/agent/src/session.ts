@@ -32,6 +32,8 @@ import {
 	ConnectionStatus,
 	DeclineInviteRequest,
 	DeclineInviteRequestType,
+	LogoutCompanyRequest,
+	LogoutCompanyRequestType,
 	DidChangeApiVersionCompatibilityNotificationType,
 	DidChangeConnectionStatusNotification,
 	DidChangeConnectionStatusNotificationType,
@@ -458,6 +460,7 @@ export class CodeStreamSession {
 		this.agent.registerHandler(GetInviteInfoRequestType, e => this.getInviteInfo(e));
 		this.agent.registerHandler(JoinCompanyRequestType, e => this.joinCompany(e));
 		this.agent.registerHandler(DeclineInviteRequestType, e => this.declineInvite(e));
+		this.agent.registerHandler(LogoutCompanyRequestType, e => this.logoutCompany(e));
 		this.agent.registerHandler(ApiRequestType, (e, cancellationToken: CancellationToken) =>
 			this.api.fetch(e.url, e.init, e.token)
 		);
@@ -966,6 +969,9 @@ export class CodeStreamSession {
 		};
 		Logger.log("Got environment from connectivity response:", this._environmentInfo);
 		this.agent.sendNotification(DidSetEnvironmentNotificationType, this._environmentInfo);
+		if (response.capabilities.serviceGatewayAuth) {
+			this._api.setUsingServiceGatewayAuth();
+		}
 		return response;
 	}
 
@@ -1039,6 +1045,11 @@ export class CodeStreamSession {
 		// } else {
 		return this._api!.declineInvite(request);
 		// }
+	}
+
+	@log({ singleLine: true })
+	async logoutCompany(request: LogoutCompanyRequest) {
+		return this._api!.logoutCompany(request);
 	}
 
 	@log({ singleLine: true })
@@ -1179,6 +1190,7 @@ export class CodeStreamSession {
 
 		const token = response.token;
 		this._codestreamAccessToken = token.value;
+		this.api.setAccessToken(token.value, response.accessTokenInfo);
 		this._teamId = (this._options as any).teamId = token.teamId;
 		this._codestreamUserId = response.user.id;
 		this._userId = response.user.id;
@@ -1428,6 +1440,7 @@ export class CodeStreamSession {
 				companies: response.companies,
 				accountIsConnected: response.accountIsConnected,
 				isWebmail: response.isWebmail,
+				forceCreateCompany: response.forceCreateCompany,
 			};
 			if (response.setEnvironment) {
 				Logger.log(
@@ -1593,6 +1606,8 @@ export class CodeStreamSession {
 			"IDE Version": this.versionInfo.ide.version,
 			Deployment: this.isOnPrem ? "OnPrem" : "Cloud",
 			Country: user.countryCode,
+			"NR User ID": user.nrUserId,
+			"NR Tier": user.nrUserInfo && user.nrUserInfo.userTier,
 		};
 
 		if (team != null && companies != null) {
@@ -1621,7 +1636,9 @@ export class CodeStreamSession {
 						key => `${key}|${company.testGroups![key]}`
 					);
 				}
-				props["NR Connected Org"] = !!company.isNRConnected;
+				props["CodeStream Only"] = !!company.codestreamOnly;
+				props["Org Origination"] = company.orgOrigination || "";
+				props["NR Organization ID"] = company.linkedNROrgId || "";
 			}
 		}
 
@@ -1636,20 +1653,6 @@ export class CodeStreamSession {
 		props["First Session"] =
 			!!user.firstSessionStartedAt &&
 			user.firstSessionStartedAt <= Date.now() + FIRST_SESSION_TIMEOUT;
-
-		if (user.providerInfo) {
-			const data =
-				(team && user.providerInfo[team.id]?.newrelic?.data) || user.providerInfo.newrelic?.data;
-			if (data) {
-				if (data.userId) {
-					props["NR User ID"] = data.userId;
-					props["NR Connected Org"] = true;
-				}
-				if (data?.orgIds && data.orgIds?.length) {
-					props["NR Organization ID"] = data?.orgIds[0];
-				}
-			}
-		}
 
 		let userId = this._codestreamUserId || user.id;
 
@@ -1679,7 +1682,6 @@ export class CodeStreamSession {
 		return this.addSuperProps({
 			"NR User ID": userId,
 			"NR Organization ID": orgId,
-			"NR Connected Org": true,
 		});
 	}
 

@@ -118,6 +118,8 @@ import {
 	JoinCompanyRequest,
 	JoinCompanyResponse,
 	JoinStreamRequest,
+	LogoutCompanyRequest,
+	LogoutCompanyResponse,
 	KickUserRequest,
 	KickUserResponse,
 	LeaveStreamRequest,
@@ -181,6 +183,7 @@ import {
 	ERROR_GENERIC_USE_ERROR_MESSAGE,
 } from "@codestream/protocols/agent";
 import {
+	CSAccessTokenInfo,
 	CSAddMarkersRequest,
 	CSAddMarkersResponse,
 	CSAddProviderHostRequest,
@@ -355,11 +358,13 @@ export class CodeStreamApiProvider implements ApiProvider {
 	private _teamId: string | undefined;
 	private _team: CSTeam | undefined;
 	private _token: string | undefined;
+	private _tokenInfo: CSAccessTokenInfo | undefined;
 	private _unreads: CodeStreamUnreads | undefined;
 	private _userId: string | undefined;
 	private _preferences: CodeStreamPreferences | undefined;
 	private _features: CSApiFeatures | undefined;
 	private _messageProcessingPromise: Promise<void> | undefined;
+	private _usingServiceGatewayAuth: boolean = false;
 
 	readonly capabilities: Capabilities = {
 		channelMute: true,
@@ -405,6 +410,10 @@ export class CodeStreamApiProvider implements ApiProvider {
 				this._middleware.splice(i, 1);
 			},
 		};
+	}
+
+	setUsingServiceGatewayAuth() {
+		this._usingServiceGatewayAuth = true;
 	}
 
 	async dispose() {
@@ -690,6 +699,11 @@ export class CodeStreamApiProvider implements ApiProvider {
 
 	getInviteInfo(request: CSGetInviteInfoRequest) {
 		return this.get<CSGetInviteInfoResponse>(`/no-auth/invite-info?code=${request.code}`);
+	}
+
+	setAccessToken(token: string, tokenInfo?: CSAccessTokenInfo) {
+		this._token = token;
+		this._tokenInfo = tokenInfo;
 	}
 
 	@log()
@@ -1989,7 +2003,18 @@ export class CodeStreamApiProvider implements ApiProvider {
 	}
 
 	async joinCompany(request: JoinCompanyRequest): Promise<JoinCompanyResponse> {
-		return this.put(`/join-company/${request.companyId}`, {}, this._token);
+		// if we're connecting to the server through Service Gateway, then use a special path
+		// that allows us to bypass login service (since we don't have a New Relic issued access
+		// token till we join a company) ... note, we only do this if this is a brand new user,
+		// who hasn't yet chosen whether they will create an org or join one, in other words,
+		// they don't yet have a teamId in their session
+		const csAuth = !this.teamId && this._usingServiceGatewayAuth ? "/cs-auth" : "";
+
+		return this.put(`${csAuth}/join-company/${request.companyId}`, {}, this._token);
+	}
+
+	async logoutCompany(request: LogoutCompanyRequest): Promise<LogoutCompanyResponse> {
+		return this.put(`/logout`, {}, this._token);
 	}
 
 	async declineInvite(request: DeclineInviteRequest): Promise<DeclineInviteResponse> {
@@ -2077,7 +2102,14 @@ export class CodeStreamApiProvider implements ApiProvider {
 	@log()
 	@lspHandler(CreateCompanyRequestType)
 	createCompany(request: CreateCompanyRequest) {
-		return this.post("/companies", request, this._token);
+		// if we're connecting to the server through Service Gateway, then use a special path
+		// that allows us to bypass login service (since we don't have a New Relic issued access
+		// token till we join a company) ... note, we only do this if this is a brand new user,
+		// who hasn't yet chosen whether they will create an org or join one, in other words,
+		// they don't yet have a teamId in their session
+		const csAuth = !this.teamId && this._usingServiceGatewayAuth ? "/cs-auth" : "";
+
+		return this.post(`${csAuth}/companies`, request, this._token);
 	}
 
 	@log()
@@ -2389,8 +2421,19 @@ export class CodeStreamApiProvider implements ApiProvider {
 		const cc = Logger.getCorrelationContext();
 
 		try {
-			const url = `/provider-refresh/${providerId}?teamId=${this.teamId}&refreshToken=${providerInfo.refreshToken}`;
-			const response = await this.get<{ user: any }>(url, this._token);
+			// For refresh of token behind Service Gateway, use a separate no-auth request to pass through
+			// Service Gateway without authentication
+			let response;
+			if (providerId === "newrelic" && this._usingServiceGatewayAuth) {
+				const url = "/no-auth/provider-refresh/newrelic";
+				response = await this.put<{ teamId: string; refreshToken: string }, { user: any }>(url, {
+					teamId: this.teamId,
+					refreshToken: providerInfo.refreshToken,
+				});
+			} else {
+				const url = `/provider-refresh/${providerId}?teamId=${this.teamId}&refreshToken=${providerInfo.refreshToken}`;
+				response = await this.get<{ user: any }>(url, this._token);
+			}
 
 			// Since we are dealing with identity auth don't try to resolve this with the users
 			// The "me" user will get updated via the pubnub message
@@ -2655,6 +2698,9 @@ export class CodeStreamApiProvider implements ApiProvider {
 						init.headers.append("Authorization", `Bearer ${token}`);
 					}
 
+					// for Unified Identity, set this header ... eventually we can remove this,
+					// when all clients are updated to the Unified Identity version
+					init.headers.append("X-CS-Enable-UId", "1");
 					init.headers.append("X-CS-Plugin-IDE", this._version.ide.name);
 					init.headers.append("X-CS-Plugin-IDE-Detail", this._version.ide.detail);
 					init.headers.append(

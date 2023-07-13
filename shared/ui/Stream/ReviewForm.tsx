@@ -36,18 +36,18 @@ import { connect } from "react-redux";
 import styled from "styled-components";
 import { Range } from "vscode-languageserver-types";
 import { URI } from "vscode-uri";
-
-import { editReview } from "@codestream/webview/store/reviews/thunks";
+import { ReviewShowLocalDiffRequestType } from "@codestream/protocols/webview";
+import { WebviewPanels } from "@codestream/protocols/api";
+import { LabeledSwitch } from "@codestream/webview/src/components/controls/LabeledSwitch";
+import { Headshot } from "@codestream/webview/src/components/Headshot";
+import HeadshotMenu from "@codestream/webview/src/components/HeadshotMenu";
+import { SelectPeople } from "@codestream/webview/src/components/SelectPeople";
 import {
 	setCurrentRepo,
 	setCurrentReview,
 	setNewPostEntry,
 } from "@codestream/webview/store/context/actions";
-import { SelectPeople } from "@codestream/webview/src/components/SelectPeople";
-import HeadshotMenu from "@codestream/webview/src/components/HeadshotMenu";
-import { Headshot } from "@codestream/webview/src/components/Headshot";
-import { WebviewPanels } from "@codestream/protocols/api";
-import { ReviewShowLocalDiffRequestType } from "@codestream/protocols/webview";
+import { editReview } from "@codestream/webview/store/reviews/thunks";
 import { EditorRevealRangeRequestType } from "../ipc/host.protocol.editor";
 import { logError } from "../logger";
 import { Checkbox } from "../src/components/Checkbox";
@@ -151,6 +151,7 @@ interface ConnectedProps {
 	) => UpdateReviewResponse | undefined;
 	repos: any;
 	shouldShare: boolean;
+	isNonCsOrg: boolean;
 	unsavedFiles: string[];
 	reviewsByCommit: {
 		[commit: string]: CSReview;
@@ -480,6 +481,7 @@ class ReviewForm extends React.Component<Props, State> {
 				inviteUsersOnTheFly,
 				blameMap = {},
 				editingReview,
+				isNonCsOrg,
 			} = this.props;
 			const {
 				includeSaved,
@@ -755,7 +757,7 @@ class ReviewForm extends React.Component<Props, State> {
 						default:
 							reviewerEmails = [];
 					}
-
+					if (isNonCsOrg) reviewerEmails = [];
 					this.setState({ reviewerEmails });
 				}
 
@@ -2220,7 +2222,7 @@ class ReviewForm extends React.Component<Props, State> {
 		}
 
 		const unregisteredAuthorItems = [] as any;
-		if (this.props.inviteUsersOnTheFly) {
+		if (this.props.inviteUsersOnTheFly && !this.props.isNonCsOrg) {
 			Object.keys(authorsBlameData).forEach(email => {
 				if (this.props.teamMembers.find(p => p.email === email)) return;
 				unregisteredAuthorItems.push({
@@ -2525,9 +2527,20 @@ class ReviewForm extends React.Component<Props, State> {
 const EMPTY_OBJECT = {};
 
 const mapStateToProps = (state: CodeStreamState, props): ConnectedProps => {
-	const { context, editorContext, users, teams, session, preferences, repos, documents, ide } =
-		state;
+	const {
+		context,
+		editorContext,
+		users,
+		teams,
+		companies,
+		session,
+		preferences,
+		repos,
+		documents,
+		ide,
+	} = state;
 	const user = users[session.userId!] as CSMe;
+
 	const channel = context.currentStreamId
 		? getStreamForId(state.streams, context.currentTeamId, context.currentStreamId) ||
 		  getStreamForTeam(state.streams, context.currentTeamId)
@@ -2547,6 +2560,7 @@ const mapStateToProps = (state: CodeStreamState, props): ConnectedProps => {
 	const team = teams[context.currentTeamId];
 	const activeMemberIds = getActiveMemberIds(team);
 	const blameMap = team.settings ? team.settings.blameMap : {};
+	const company = companies[team.companyId];
 
 	const skipPostCreationModal = preferences ? preferences.skipPostCreationModal : false;
 
@@ -2580,6 +2594,7 @@ const mapStateToProps = (state: CodeStreamState, props): ConnectedProps => {
 			safe(() => state.preferences[state.context.currentTeamId].shareCodemarkEnabled) || false,
 		channel,
 		teamId: team.id,
+		isNonCsOrg: !company.codestreamOnly,
 		teamMates,
 		teamMembers,
 		activeMemberIds,
