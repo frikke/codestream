@@ -298,6 +298,12 @@ export const TelemetryRequestType = new RequestType<TelemetryRequest, void, void
 	"codestream/telemetry"
 );
 
+export interface GetAnonymousIdRequest {}
+
+export const GetAnonymousIdRequestType = new RequestType<GetAnonymousIdRequest, string, void, void>(
+	"codestream/anonymousId"
+);
+
 export interface ResolveLocalUriRequest {
 	uri: string;
 }

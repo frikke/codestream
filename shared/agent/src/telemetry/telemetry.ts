@@ -131,6 +131,10 @@ export class TelemetryService {
 		}
 	}
 
+	getAnonymousId() {
+		return this._anonymousId;
+	}
+
 	setConsent(hasConsented: boolean) {
 		this._hasOptedOut = !hasConsented;
 	}
