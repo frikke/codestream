@@ -212,7 +212,6 @@ export interface SessionState {
 	acceptedTOS?: boolean;
 	machineId?: string;
 	eligibleJoinCompanies?: CSEligibleJoinCompany[];
-	nrSignupTestUi?: boolean;
 }
 
 export interface EditorContext {
