@@ -54,6 +54,7 @@ import { localStore } from "../utilities/storage";
 import { emptyObject, uuid } from "../utils";
 import { HostApi } from "../webview-api";
 import { WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
+import { setUserPreferences } from "../Stream/actions";
 
 export enum SignupType {
 	JoinTeam = "joinTeam",
@@ -207,7 +208,7 @@ export const authenticate =
 							userId: response.extra.userId,
 							eligibleJoinCompanies: response.extra.eligibleJoinCompanies,
 							accountIsConnected: response.extra.accountIsConnected,
-						})
+						}),
 					);
 				case LoginResult.NotOnTeam:
 					return dispatch(
@@ -217,7 +218,7 @@ export const authenticate =
 							// login is for resuming previous sessions and this error means you haven't ever fully signed into the extension
 							email: (params as PasswordLoginParams).email,
 							token: response.extra.token,
-						})
+						}),
 					);
 				default:
 					throw response.error;
@@ -243,7 +244,7 @@ export const generateLoginCode =
 						username: "",
 						password: "",
 					},
-				})
+				}),
 			);
 		} else {
 			throw response.status;
@@ -271,7 +272,7 @@ export const onLogin =
 					bootstrapCore,
 				};
 			},
-			"bootstrap"
+			"bootstrap",
 		);
 
 		await dispatch(
@@ -290,7 +291,7 @@ export const onLogin =
 					isFirstPageview,
 					currentCodemarkId: response.state.codemarkId,
 				},
-			})
+			}),
 		);
 
 		const { context } = getState();
@@ -330,7 +331,7 @@ export const completeSignup =
 			provider?: string;
 			byDomain?: boolean;
 			setEnvironment?: { environment: string; serverUrl: string };
-		}
+		},
 	) =>
 	async (dispatch, getState: () => CodeStreamState) => {
 		const tokenUrl =
@@ -372,7 +373,7 @@ export const completeSignup =
 					prefPath: ["sidebarPanes", WebviewPanels.CICD, "removed"],
 					value: true,
 				},
-			])
+			]),
 		);
 
 		const providerName = extra.provider
@@ -395,7 +396,7 @@ export const completeAcceptInvite =
 			provider?: string;
 			byDomain?: boolean;
 			setEnvironment?: { environment: string; serverUrl: string };
-		}
+		},
 	) =>
 	async (dispatch, getState: () => CodeStreamState) => {
 		const tokenUrl =
@@ -439,7 +440,7 @@ export const completeAcceptInvite =
 					prefPath: ["sidebarPanes", WebviewPanels.CICD, "removed"],
 					value: true,
 				},
-			])
+			]),
 		);
 
 		const providerName = extra.provider
@@ -495,7 +496,7 @@ export const validateSignup =
 							accountIsConnected: response.extra && response.extra.accountIsConnected,
 							isWebmail: response.extra.isWebmail,
 							provider,
-						})
+						}),
 					);
 				case LoginResult.NotOnTeam:
 					HostApi.instance.track("Account Created", {
@@ -508,7 +509,7 @@ export const validateSignup =
 							email: response.extra && response.extra.email,
 							token: response.extra && response.extra.token,
 							provider,
-						})
+						}),
 					);
 				case LoginResult.ProviderConnectFailed:
 				// @ts-ignore - reset the otc and cascade to the default case

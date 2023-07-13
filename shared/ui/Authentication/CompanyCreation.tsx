@@ -71,6 +71,7 @@ export function CompanyCreation(props: {
 	companies?: CSCompany[];
 	eligibleJoinCompanies?: CSEligibleJoinCompany[];
 	accountIsConnected?: boolean;
+	nrSignupTestUi?: boolean;
 }) {
 	const dispatch = useAppDispatch();
 	const derivedState = useAppSelector((state: CodeStreamState) => {
@@ -201,7 +202,7 @@ export function CompanyCreation(props: {
 					completeSignup(props.email!, props.token!, team.id, {
 						createdTeam: true,
 						provider: props.provider,
-					})
+					}),
 				);
 			} catch (error) {
 				const errorMessage = typeof error === "string" ? error : error.message;
@@ -220,7 +221,7 @@ export function CompanyCreation(props: {
 			if (organization.host) {
 				// now switch environments (i.e., host, region, etc) to join this organization
 				console.log(
-					`Joining company ${organization.name} requires switching host to ${organization.host.name} at ${organization.host.publicApiUrl}`
+					`Joining company ${organization.name} requires switching host to ${organization.host.name} at ${organization.host.publicApiUrl}`,
 				);
 				dispatch(setEnvironment(organization.host.shortName, organization.host.publicApiUrl));
 			}
@@ -241,7 +242,7 @@ export function CompanyCreation(props: {
 			}
 			const result = (await HostApi.instance.send(
 				JoinCompanyRequestType,
-				request
+				request,
 			)) as JoinCompanyResponse;
 
 			const availabilityType = organization?.byInvite ? "Invite" : organization._type;
@@ -266,8 +267,8 @@ export function CompanyCreation(props: {
 									serverUrl: organization.host.publicApiUrl,
 							  }
 							: undefined,
-					}
-				)
+					},
+				),
 			);
 		} catch (error) {
 			const errorMessage = typeof error === "string" ? error : error.message;
