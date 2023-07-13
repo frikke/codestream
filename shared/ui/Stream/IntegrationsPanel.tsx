@@ -1,10 +1,11 @@
+import React, { useState } from "react";
+import styled from "styled-components";
+
 import {
 	configureAndConnectProvider,
 	disconnectProvider,
 	removeEnterpriseProvider,
 } from "@codestream/webview/store/providers/actions";
-import React, { useState } from "react";
-import styled from "styled-components";
 import { Button } from "../src/components/Button";
 import { Dialog } from "../src/components/Dialog";
 import { CodeStreamState } from "../store";
@@ -83,7 +84,10 @@ export const IntegrationsPanel = () => {
 		const user = users[session.userId!];
 		const currentUserIsAdmin = currentUserIsAdminSelector(state);
 
-		const connectedProviders = Object.keys(providers).filter(id => isConnected(state, { id }));
+		const connectedProviders = Object.keys(providers)
+			.filter(id => isConnected(state, { id }))
+			.filter(id => providers[id].name !== "newrelic");
+
 		const observabilityProviders = Object.keys(providers)
 			.filter(id => ["newrelic"].includes(providers[id].name))
 			.filter(id => !connectedProviders.includes(id))
@@ -138,6 +142,7 @@ export const IntegrationsPanel = () => {
 	const renderConnectedProviders = providerIds => {
 		const { providers } = derivedState;
 		return providerIds.map(providerId => {
+			if (providerId === "newrelic*com") return null;
 			const provider = providers[providerId];
 			const { name, isEnterprise, host } = provider;
 			const display = PROVIDER_MAPPINGS[name];
@@ -328,14 +333,17 @@ export const IntegrationsPanel = () => {
 								</IntegrationButtons>
 							</>
 						)}
-						{derivedState.observabilityProviders.length > 0 && (
-							<>
-								<h2>Observability</h2>
-								<IntegrationButtons>
-									{renderProviders(derivedState.observabilityProviders)}
-								</IntegrationButtons>
-							</>
-						)}
+
+						{/* 
+							{derivedState.observabilityProviders.length > 0 && (
+								<>
+									<h2>Observability</h2>
+									<IntegrationButtons>
+										{renderProviders(derivedState.observabilityProviders)}
+									</IntegrationButtons>
+								</>
+							)}
+						*/}
 
 						<h2>Issue Providers</h2>
 						<IntegrationButtons>{renderProviders(derivedState.issueProviders)}</IntegrationButtons>
