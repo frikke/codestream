@@ -52,6 +52,7 @@ export enum SignupType {
 	JoinTeam = "joinTeam",
 	CreateTeam = "createTeam",
 }
+import { isEmpty as _isEmpty } from "lodash-es";
 
 export interface SSOAuthInfo {
 	fromSignup?: boolean;
@@ -109,6 +110,11 @@ export const startSSOSignin =
 			query.joinCompanyId = info.joinCompanyId;
 		}
 		query.enableUId = "1"; // operating under Unified Identity
+
+		const anonymousId = await HostApi.instance.getAnonymousId();
+		if (!_isEmpty(anonymousId)) {
+			query.anonUserId = anonymousId;
+		}
 
 		const queryString = Object.keys(query)
 			.map(key => `${key}=${query[key]}`)

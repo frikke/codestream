@@ -1,4 +1,4 @@
-import { TelemetryRequestType } from "@codestream/protocols/agent";
+import { TelemetryRequestType, GetAnonymousIdRequestType } from "@codestream/protocols/agent";
 import { URI } from "vscode-uri";
 
 import { NotificationType, RequestType } from "vscode-jsonrpc";
@@ -306,6 +306,10 @@ export class HostApi extends EventEmitter {
 			eventName,
 			properties,
 		});
+	}
+
+	getAnonymousId() {
+		return this.send(GetAnonymousIdRequestType, {});
 	}
 }
 
