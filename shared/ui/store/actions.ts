@@ -13,6 +13,7 @@ import { updateConfigs } from "@codestream/webview/store/configs/slice";
 import { setIde } from "@codestream/webview/store/ide/slice";
 import {
 	BootstrapInHostResponse,
+	LogoutRequestType,
 	SignedInBootstrapData,
 	UpdateServerUrlRequestType,
 } from "../ipc/host.protocol";
@@ -76,6 +77,14 @@ export const bootstrap = (data?: SignedInBootstrapData) => async (dispatch, getS
 			"bootstrap"
 		);
 		data = { ...bootstrapData, ...bootstrapCore, editorContext };
+	}
+
+	console.warn("COLIN: BOOTSTRAP DATA:", data);
+	if (!data.preferences.hasDoneNRLogin) {
+		console.warn("COLIN: USER HASNT LOGGED IN USING NR, LOGOUT!!!");
+		dispatch(reset());
+		HostApi.instance.send(LogoutRequestType, {});
+		return;
 	}
 
 	if (
