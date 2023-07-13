@@ -13,7 +13,6 @@ import { updateConfigs } from "@codestream/webview/store/configs/slice";
 import { setIde } from "@codestream/webview/store/ide/slice";
 import {
 	BootstrapInHostResponse,
-	LogoutRequestType,
 	SignedInBootstrapData,
 	UpdateServerUrlRequestType,
 } from "../ipc/host.protocol";
@@ -45,6 +44,7 @@ import {
 	clearPendingProtocolHandlerUrl,
 	handlePendingProtocolHandlerUrl,
 } from "../store/context/actions";
+import { logout } from "@codestream/webview/store/session/thunks";
 
 export const reset = () => action("RESET");
 
@@ -79,11 +79,8 @@ export const bootstrap = (data?: SignedInBootstrapData) => async (dispatch, getS
 		data = { ...bootstrapData, ...bootstrapCore, editorContext };
 	}
 
-	console.warn("COLIN: BOOTSTRAP DATA:", data);
 	if (!data.preferences.hasDoneNRLogin) {
-		console.warn("COLIN: USER HASNT LOGGED IN USING NR, LOGOUT!!!");
-		dispatch(reset());
-		HostApi.instance.send(LogoutRequestType, {});
+		await dispatch(logout());
 		return;
 	}
 
