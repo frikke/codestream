@@ -3,6 +3,7 @@ import {
 	TelemetryRequestType,
 	TelemetrySetAnonymousIdRequest,
 	TelemetrySetAnonymousIdRequestType,
+	GetAnonymousIdRequestType,
 } from "@codestream/protocols/agent";
 
 import { Logger } from "../logger";
@@ -52,6 +53,11 @@ export class TelemetryManager {
 		} catch (ex) {
 			Logger.error(ex, cc);
 		}
+	}
+
+	@lspHandler(GetAnonymousIdRequestType)
+	getAnonymousId() {
+		return this._telemetry.getAnonymousId();
 	}
 
 	@lspHandler(TelemetrySetAnonymousIdRequestType)
