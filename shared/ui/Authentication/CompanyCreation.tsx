@@ -72,6 +72,7 @@ export function CompanyCreation(props: {
 	companies?: CSCompany[];
 	eligibleJoinCompanies?: CSEligibleJoinCompany[];
 	accountIsConnected?: boolean;
+	nrSignupTestUi?: boolean;
 	forceCreateCompany?: boolean;
 }) {
 	const dispatch = useAppDispatch();

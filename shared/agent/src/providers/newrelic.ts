@@ -165,7 +165,6 @@ const ignoredErrors = [GraphqlNrqlTimeoutError];
 export function escapeNrql(nrql: string) {
 	return nrql.replace(/\\/g, "\\\\\\\\").replace(/\n/g, " ");
 }
-
 export interface HttpErrorResponse {
 	response: {
 		status: number;
@@ -423,7 +422,6 @@ export class NewRelicProvider
 			fetch: customFetch,
 		};
 		const client = new GraphQLClient(graphQlBaseUrl, options);
-
 		client.setHeaders(this.headers);
 
 		return client;
