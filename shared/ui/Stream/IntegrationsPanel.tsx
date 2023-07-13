@@ -333,7 +333,6 @@ export const IntegrationsPanel = () => {
 								</IntegrationButtons>
 							</>
 						)}
-
 						{/* 
 							{derivedState.observabilityProviders.length > 0 && (
 								<>
@@ -344,7 +343,6 @@ export const IntegrationsPanel = () => {
 								</>
 							)}
 						*/}
-
 						<h2>Issue Providers</h2>
 						<IntegrationButtons>{renderProviders(derivedState.issueProviders)}</IntegrationButtons>
 

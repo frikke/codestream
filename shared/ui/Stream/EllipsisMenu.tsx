@@ -5,7 +5,6 @@ import {
 import { isEmpty as _isEmpty, sortBy as _sortBy } from "lodash-es";
 import React from "react";
 import styled from "styled-components";
-
 import {
 	WebviewModals,
 	WebviewPanelNames,
@@ -29,7 +28,6 @@ import { MarkdownText } from "./MarkdownText";
 import Menu from "./Menu";
 import { AVAILABLE_PANES, DEFAULT_PANE_SETTINGS } from "./Sidebar";
 import { EMPTY_STATUS } from "./StartWork";
-
 import { getDomainFromEmail } from "@codestream/webview/utils";
 
 const RegionSubtext = styled.div`
@@ -329,6 +327,15 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 					key: "onboarding-settings",
 					action: () => dispatch(openModal(WebviewModals.TeamSetup)),
 					disabled: !derivedState.autoJoinSupported,
+				},
+
+				{ label: "-" },
+
+				{
+					label: "Export Data",
+					key: "export-data",
+					action: () => go(WebviewPanels.Export),
+					disabled: false,
 				},
 
 				{ label: "-" },

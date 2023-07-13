@@ -16,6 +16,7 @@ import { isFeatureEnabled } from "../store/apiVersioning/reducer";
 import { multiStageConfirmPopup } from "./MultiStageConfirm";
 import { DeleteCompanyRequestType } from "@codestream/protocols/agent";
 import { HostApi } from "../webview-api";
+import { WebviewPanels } from "@codestream/protocols/api";
 
 interface TeamMenuProps {
 	menuTarget: any;
@@ -134,7 +135,6 @@ export function TeamMenu(props: TeamMenuProps) {
 		}
 	);
 
-<<<<<<< HEAD
 	if (derivedState.isCurrentUserAdmin) {
 		menuItems.push(
 			{ label: "-" },
@@ -169,8 +169,6 @@ export function TeamMenu(props: TeamMenuProps) {
 		);
 	}
 
-=======
->>>>>>> 0bbe8dcee (Adds UID (reverts the revert))
 	return (
 		<Menu
 			items={menuItems}
