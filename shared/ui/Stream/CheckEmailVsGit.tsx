@@ -68,13 +68,11 @@ export const CheckEmailVsGit = () => {
 	};
 
 	const clickNo = () => {
-		HostApi.instance.track("Git Email Mismatch", { Mapped: false });
 		close();
 	};
 
 	const clickYes = () => {
 		addBlameMap(scmEmail, currentUser.id);
-		HostApi.instance.track("Git Email Mismatch", { Mapped: true });
 		close();
 	};
 
