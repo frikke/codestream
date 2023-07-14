@@ -578,7 +578,6 @@ export class Commands implements Disposable {
 			if (reason === SessionSignedOutReason.UserSignedOutFromExtension) {
 				Container.webview.hide();
 			}
-			Logger.log("COLIN: LOGOUT SESSION");
 			await Container.session.logout(reason, newServerUrl, newEnvironment);
 		} catch (ex) {
 			Logger.error(ex);
