@@ -249,7 +249,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 		const prSupportedProviders = providerSelectors
 			.getSupportedPullRequestHosts(state)
 			.filter(
-				provider => !teamSettings?.limitCodeHost || teamSettings?.codeHostProviders?.[provider.id]
+				provider => !teamSettings?.limitCodeHost || teamSettings?.codeHostProviders?.[provider.id],
 			);
 		const prConnectedProviders = providerSelectors.getConnectedSupportedPullRequestHosts(state);
 		const prConnectedProvidersWithErrors = prConnectedProviders.filter(_ => _.hasAccessTokenError);
@@ -320,11 +320,12 @@ export const OpenPullRequests = React.memo((props: Props) => {
 			...state,
 			[action.provider]: action.error,
 		}),
-		{}
+		{},
 	);
 	const [prCommitsRange, setPrCommitsRange] = React.useState<string[]>([]);
 	const [openRepos, setOpenRepos] = React.useState<ReposScmPlusName[]>([]);
 	const [currentGroupIndex, setCurrentGroupIndex] = React.useState();
+	const [currentIndex, setCurrentIndex] = React.useState();
 	const [prFromUrlLoading, setPrFromUrlLoading] = React.useState(false);
 	const [prFromUrl, setPrFromUrl] = React.useState<
 		FetchThirdPartyPullRequestPullRequest | GitLabMergeRequest | undefined
@@ -339,7 +340,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 				[action.provider]: action.isLoading,
 			};
 		},
-		{}
+		{},
 	);
 	const [isLoadingPRGroup, setIsLoadingPRGroup] = React.useState<number | undefined>(undefined);
 	const [individualLoadingPR, setIndividualLoadingPR] = React.useState("");
@@ -348,15 +349,15 @@ export const OpenPullRequests = React.memo((props: Props) => {
 		{ providerId: string; index: number } | undefined
 	>(undefined);
 	const previousPRConnectedProvidersWithErrorsCount = usePrevious<number>(
-		derivedState.PRConnectedProvidersWithErrorsCount
+		derivedState.PRConnectedProvidersWithErrorsCount,
 	);
 	const previousPRConnectedProvidersCount = usePrevious<number>(
-		derivedState.PRConnectedProvidersCount
+		derivedState.PRConnectedProvidersCount,
 	);
 
 	const saveQueries = (providerId, queries) => {
 		dispatch(
-			setUserPreference({ prefPath: ["pullRequestQueries", providerId], value: [...queries] })
+			setUserPreference({ prefPath: ["pullRequestQueries", providerId], value: [...queries] }),
 		);
 	};
 
@@ -364,7 +365,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 		async (
 			theQueries: FetchProviderDefaultPullResponse,
 			options?: { force?: boolean; alreadyLoading?: boolean },
-			src: string | undefined = undefined
+			src: string | undefined = undefined,
 		) => {
 			let count: number | undefined = undefined;
 			let activePrListedCount = 0;
@@ -386,7 +387,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 					}
 
 					activePrListedIndex = queriesByProvider?.findIndex(
-						_ => _?.name === "Waiting on my Review"
+						_ => _?.name === "Waiting on my Review",
 					);
 					// console.warn("Loading the PRs... in the loop", queryStrings);
 					try {
@@ -405,7 +406,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 							const twoWeekAgoTimestamp = +new Date(Date.now() - 12096e5);
 							if (activePrListedIndex >= 0) {
 								activePrListedCount = response[activePrListedIndex].filter(
-									activePr => activePr.createdAt > twoWeekAgoTimestamp
+									activePr => activePr.createdAt > twoWeekAgoTimestamp,
 								).length;
 							}
 							// Previously called setPullRequestGroups(updatedPullRequestGroups);
@@ -453,7 +454,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 			PRConnectedProviders,
 			derivedState.allRepos,
 			derivedState.myPullRequests,
-		]
+		],
 	);
 
 	useEffect(() => {
@@ -514,7 +515,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 		(async () => {
 			const defaultQueriesResponse: FetchProviderDefaultPullResponse = await HostApi.instance.send(
 				FetchProviderDefaultPullRequestsType,
-				{}
+				{},
 			);
 			if (defaultQueriesResponse) {
 				// Update default queries for users in a non-destructive way
@@ -600,7 +601,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 					throwOnError: true,
 					test: false,
 					index: index,
-				})
+				}),
 			).unwrap();
 			// No longer calling set`PullRequestGroups - updatePullRequestFilter action already does this
 		} catch (ex) {
@@ -648,7 +649,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 			setUserPreference({
 				prefPath: ["pullRequestProviderHidden", providerId],
 				value: !pullRequestProviderHidden[providerId],
-			})
+			}),
 		);
 	};
 
@@ -684,7 +685,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 			openPullRequestByUrl({
 				url,
 				options: { providerId, groupIndex: "-1" },
-			})
+			}),
 		)) as {
 			error?: string;
 		};
@@ -711,7 +712,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 		) {
 			fetchOnePR(
 				derivedState.currentPullRequestFromContext?.providerId,
-				derivedState.currentPullRequestFromContext?.id
+				derivedState.currentPullRequestFromContext?.id,
 			);
 		}
 	}, [derivedState.expandedPullRequestGroupIndex, derivedState.currentPullRequestFromContext]);
@@ -728,7 +729,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 		const myPullRequests = derivedState.myPullRequests;
 		if (myPullRequests) {
 			Object.values(myPullRequests)?.forEach(group =>
-				group.forEach(list => (total += list.length))
+				group.forEach(list => (total += list.length)),
 			);
 		}
 		return total;
@@ -1430,7 +1431,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 					setUserPreference({
 						prefPath: ["pullRequestQueryShowAllRepos"],
 						value: !derivedState.allRepos,
-					})
+					}),
 				),
 		},
 		{
@@ -1442,7 +1443,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 					setUserPreference({
 						prefPath: ["pullRequestQueryHideDescriptions"],
 						value: !derivedState.hideDescriptions,
-					})
+					}),
 				),
 		},
 		{
@@ -1454,7 +1455,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 					setUserPreference({
 						prefPath: ["pullRequestQueryHideLabels"],
 						value: !derivedState.hideLabels,
-					})
+					}),
 				),
 		},
 		// Not using this for now
@@ -1762,7 +1763,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 	function patchQueries(
 		defaultQueries: FetchProviderDefaultPullResponse,
 		pullRequestQueries: FetchProviderDefaultPullResponse,
-		saveQueries: (providerId, queries) => void
+		saveQueries: (providerId, queries) => void,
 	) {
 		Object.keys(pullRequestQueries).forEach(provider => {
 			// Little shimmy to update old default filters to our new syntax
@@ -1809,7 +1810,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 						query.query === "is:pr is:open involves:@me"
 					) {
 						const replacementQuery = defaultQueries[provider].find(
-							_ => _.name === "Waiting on my Review"
+							_ => _.name === "Waiting on my Review",
 						)?.query;
 						if (replacementQuery) {
 							pullRequestQueries![provider][index].query = replacementQuery;
