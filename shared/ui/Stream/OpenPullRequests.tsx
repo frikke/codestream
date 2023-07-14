@@ -735,7 +735,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 		return total;
 	}, [derivedState.myPullRequests]);
 
-	const clickPR = (pr, groupIndex, queryName) => {
+	const clickPR = (pr, index, groupIndex, queryName) => {
 		if (!derivedState.maximized) {
 			dispatch(setPaneMaximized("open-pull-requests", !derivedState.maximized));
 		}
@@ -764,6 +764,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 
 				dispatch(setCurrentPullRequest(pr.providerId, prId, "", "", view, groupIndex));
 				setCurrentGroupIndex(groupIndex);
+				setCurrentIndex(index);
 				fetchOnePR(pr.providerId, prId);
 
 				const nonCustomQueries = [
@@ -976,7 +977,8 @@ export const OpenPullRequests = React.memo((props: Props) => {
 				// it is in.  On -2 group index we ignore matching and just set expanded
 				// @TODO: handle edge case where PR from toast notification is in multiple
 				// query results that are expanded
-				derivedState.expandedPullRequestGroupIndex === "-2");
+				derivedState.expandedPullRequestGroupIndex === "-2") &&
+			index === currentIndex;
 
 		const isLoadingPR = prId === individualLoadingPR;
 		const chevronIcon = derivedState.hideDiffs ? null : expanded ? (
@@ -996,9 +998,9 @@ export const OpenPullRequests = React.memo((props: Props) => {
 			return (
 				<>
 					<Row
-						key={`pr_${prId}_${groupIndex}_${providerId}`}
+						key={`pr_${prId}_${index}_${groupIndex}_${providerId}`}
 						className={selected ? "pr-row selected" : "pr-row"}
-						onClick={() => clickPR(pr, groupIndex, queryName)}
+						onClick={() => clickPR(pr, index, groupIndex, queryName)}
 					>
 						<div style={{ display: "flex" }}>
 							{chevronIcon}
@@ -1125,9 +1127,9 @@ export const OpenPullRequests = React.memo((props: Props) => {
 			return (
 				<>
 					<Row
-						key={`pr_${prId}_${groupIndex}_${providerId}`}
+						key={`pr_${prId}_${index}_${groupIndex}_${providerId}`}
 						className={selected ? "pr-row selected" : "pr-row"}
-						onClick={() => clickPR(pr, groupIndex, queryName)}
+						onClick={() => clickPR(pr, index, groupIndex, queryName)}
 					>
 						<div style={{ display: "flex" }}>
 							{" "}
@@ -1222,7 +1224,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 					</Row>
 					{expanded && (
 						<PullRequestExpandedSidebar
-							key={`pr_detail_row_${prId}_${groupIndex}_${providerId}`}
+							key={`pr_detail_row_${prId}_${index}_${groupIndex}_${providerId}`}
 							pullRequest={pr}
 							thirdPartyPrObject={expandedPR}
 							loadingThirdPartyPrObject={isLoadingPR}
@@ -1244,10 +1246,10 @@ export const OpenPullRequests = React.memo((props: Props) => {
 			return (
 				<>
 					<Row
-						key={`pr_${prId}_${groupIndex}_${providerId}`}
+						key={`pr_${prId}_$${index}_{groupIndex}_${providerId}`}
 						className={selected ? "pr-row selected" : "pr-row"}
 						onClick={e => {
-							clickPR(pr, groupIndex, queryName);
+							clickPR(pr, index, groupIndex, queryName);
 						}}
 					>
 						<div style={{ display: "flex" }}>
