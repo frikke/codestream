@@ -992,7 +992,6 @@ export class WebviewController implements Disposable {
 			}
 			case LogoutRequestType.method: {
 				webview.onIpcRequest(LogoutRequestType, e, async (_type, _params) => {
-					Logger.log("COLIN: LOGOUT REQUEST RECEIVED!!!");
 					await Container.commands.signOut(
 						SessionSignedOutReason.UserSignedOutFromWebview,
 						_params.newServerUrl,
