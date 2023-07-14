@@ -1519,7 +1519,6 @@ export class CodeStreamSession {
 
 	@log()
 	logout(reason: LogoutReason) {
-		Logger.log(`COLIN: Session.logout`);
 		Logger.log(`Session.logout: ${reason}`);
 		this.setStatus(SessionStatus.SignedOut);
 		return this.agent.sendNotification(DidLogoutNotificationType, { reason: reason });
