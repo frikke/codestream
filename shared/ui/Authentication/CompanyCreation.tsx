@@ -71,7 +71,6 @@ export function CompanyCreation(props: {
 	companies?: CSCompany[];
 	eligibleJoinCompanies?: CSEligibleJoinCompany[];
 	accountIsConnected?: boolean;
-	nrSignupTestUi?: boolean;
 }) {
 	const dispatch = useAppDispatch();
 	const derivedState = useAppSelector((state: CodeStreamState) => {
@@ -202,7 +201,6 @@ export function CompanyCreation(props: {
 					completeSignup(props.email!, props.token!, team.id, {
 						createdTeam: true,
 						provider: props.provider,
-						nrSignupTestUi: props.nrSignupTestUi,
 					})
 				);
 			} catch (error) {
@@ -262,7 +260,6 @@ export function CompanyCreation(props: {
 						createdTeam: false,
 						provider: props.provider,
 						byDomain: true,
-						nrSignupTestUi: props.nrSignupTestUi,
 						setEnvironment: organization.host
 							? {
 									environment: organization.host.shortName,

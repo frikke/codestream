@@ -128,8 +128,6 @@ export const SignupNewRelic = () => {
 				});
 			};
 
-			const nrSignupTestUi: boolean = true;
-
 			switch (status) {
 				// CompanyCreation should handle routing on success
 				case LoginResult.Success:
@@ -138,7 +136,6 @@ export const SignupNewRelic = () => {
 						dispatch(
 							completeSignup(email, token!, teamId!, {
 								createdTeam: false,
-								nrSignupTestUi,
 							})
 						);
 					}
@@ -155,7 +152,6 @@ export const SignupNewRelic = () => {
 								isWebmail,
 								accountIsConnected,
 								provider: "newrelic",
-								nrSignupTestUi,
 							})
 						);
 					}
