@@ -60,14 +60,13 @@ export const DragHeaderContext = React.createContext({
 
 const _defaultPaneSettings = {};
 _defaultPaneSettings[WebviewPanels.OpenPullRequests] = {};
-_defaultPaneSettings[WebviewPanels.OpenReviews] = { removed: true };
+_defaultPaneSettings[WebviewPanels.OpenReviews] = {};
 _defaultPaneSettings[WebviewPanels.CodemarksForFile] = {};
 // default this one to not show
-_defaultPaneSettings[WebviewPanels.Tasks] = { removed: true };
+_defaultPaneSettings[WebviewPanels.Tasks] = {};
 _defaultPaneSettings[WebviewPanels.Observability] = {};
 // _defaultPaneSettings[WebviewPanels.Team] = {};
 _defaultPaneSettings[WebviewPanels.CICD] = {
-	removed: true,
 	collapsed: true,
 	placeAtBottom: true,
 };
