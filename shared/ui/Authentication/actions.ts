@@ -48,7 +48,7 @@ import {
 } from "../store/context/actions";
 import { ChatProviderAccess } from "../store/context/types";
 import { setMaintenanceMode, setSession } from "../store/session/actions";
-import { fetchCodemarks } from "../Stream/actions";
+import { fetchCodemarks, setUserPreference } from "../Stream/actions";
 import { moveCursorToLine } from "../Stream/api-functions";
 import { localStore } from "../utilities/storage";
 import { emptyObject, uuid } from "../utils";
@@ -355,6 +355,8 @@ export const completeSignup =
 			throw response.error;
 		}
 
+		dispatch(setUserPreference({ prefPath: ["reviewCreateOnCommit"], value: false }));
+
 		const providerName = extra.provider
 			? ProviderNames[extra.provider.toLowerCase()] || extra.provider
 			: "CodeStream";
@@ -402,6 +404,8 @@ export const completeAcceptInvite =
 			dispatch(goToLogin());
 			throw response.error;
 		}
+
+		dispatch(setUserPreference({ prefPath: ["reviewCreateOnCommit"], value: false }));
 
 		const providerName = extra.provider
 			? ProviderNames[extra.provider.toLowerCase()] || extra.provider
