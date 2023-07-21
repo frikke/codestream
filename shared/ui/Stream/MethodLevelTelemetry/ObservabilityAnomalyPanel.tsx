@@ -463,6 +463,7 @@ export const ObservabilityAnomalyPanel = () => {
 																			occurrenceId: response?.occurrenceId || _.occurrenceId,
 																			pendingErrorGroupGuid: _.errorGroupGuid,
 																			openType: "CLM Details",
+																			remote: _?.remote || undefined,
 																		})
 																	);
 																} catch (ex) {

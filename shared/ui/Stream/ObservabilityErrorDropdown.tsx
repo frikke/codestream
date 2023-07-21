@@ -132,6 +132,7 @@ export const ObservabilityErrorDropdown = React.memo((props: Props) => {
 															occurrenceId: response?.occurrenceId || err.occurrenceId,
 															pendingErrorGroupGuid: err.errorGroupGuid,
 															openType: "Observability Section",
+															remote: err?.remote || undefined,
 														})
 													);
 												} catch (ex) {

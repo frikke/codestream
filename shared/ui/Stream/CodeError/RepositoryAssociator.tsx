@@ -77,6 +77,7 @@ export function RepositoryAssociator(props: {
 	const [multiRemoteRepository, setMultiRemoteRepository] = React.useState(false);
 	const [isLoading, setIsLoading] = React.useState(false);
 	const [hasFetchedRepos, setHasFetchedRepos] = React.useState(false);
+	const [skipRender, setSkipRender] = React.useState(false);
 
 	const fetchRepos = () => {
 		HostApi.instance
@@ -126,6 +127,7 @@ export function RepositoryAssociator(props: {
 				}
 				if (filteredResults.length === 1) {
 					setSelected(filteredResults[0]);
+					setSkipRender(true);
 					//no dropdown required, just go to error and auto select the single result
 					handleOnSubmitWithOneItemInDropdown(filteredResults[0]);
 				} else {
@@ -134,15 +136,18 @@ export function RepositoryAssociator(props: {
 				if (props.isLoadingCallback) {
 					props.isLoadingCallback(false);
 				}
+				setTimeout(() => {
+					setHasFetchedRepos(true);
+				}, 200);
 			})
 			.catch(e => {
 				if (props.isLoadingCallback) {
 					props.isLoadingCallback(false);
 				}
 				logWarning(`could not get repos: ${e.message}`);
-			})
-			.finally(() => {
-				setHasFetchedRepos(true);
+				setTimeout(() => {
+					setHasFetchedRepos(true);
+				}, 200);
 			});
 	};
 
@@ -211,7 +216,7 @@ export function RepositoryAssociator(props: {
 		setIsLoading(false);
 	};
 
-	if (hasFetchedRepos && !props.isLoadingParent) {
+	if (hasFetchedRepos && !props.isLoadingParent && !skipRender) {
 		return (
 			<Dismissable
 				title={repositoryError.title}
