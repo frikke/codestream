@@ -652,7 +652,7 @@ export class NewRelicProvider
 		try {
 			const metricResponse = await this.getMetricData(request.errorGroupGuid);
 			if (!metricResponse) return undefined;
-			//eric - breaks here if no remote data ^^
+
 			const mappedRepoEntities = await this.findMappedRemoteByEntity(metricResponse?.entityGuid);
 			return {
 				entityId: metricResponse?.entityGuid,
