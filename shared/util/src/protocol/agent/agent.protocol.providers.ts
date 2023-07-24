@@ -1460,7 +1460,8 @@ export const GetObservabilityErrorAssignmentsRequestType = new RequestType<
 >("codestream/newrelic/assignments");
 
 export interface GetObservabilityErrorGroupMetadataRequest {
-	errorGroupGuid: string;
+	errorGroupGuid?: string;
+	entityGuid?: string;
 }
 
 export interface GetObservabilityErrorGroupMetadataResponse {

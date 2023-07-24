@@ -643,7 +643,7 @@ function listenForEvents(store) {
 
 						const response = (await HostApi.instance.send(
 							GetObservabilityErrorGroupMetadataRequestType,
-							{ errorGroupGuid: definedQuery.query.errorGroupGuid }
+							{ entityGuid: definedQuery.query.entityId || "" }
 						)) as GetObservabilityErrorGroupMetadataResponse;
 
 						store.dispatch(
