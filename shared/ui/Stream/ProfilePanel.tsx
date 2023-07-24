@@ -196,7 +196,7 @@ export const ProfilePanel = () => {
 	const title = (
 		<Row style={{ margin: 0 }}>
 			<Value>{person.fullName}</Value>
-			{isMe && derivedState.isNonCsOrg && (
+			{isMe && !derivedState.isNonCsOrg && (
 				<RowIcon name="pencil" title="Edit Name" onClick={editFullName} />
 			)}
 		</Row>
@@ -240,7 +240,7 @@ export const ProfilePanel = () => {
 							value={person.email}
 							style={{ position: "absolute", left: "-9999px" }}
 						/>
-						{isMe && derivedState.isNonCsOrg && (
+						{isMe && !derivedState.isNonCsOrg && (
 							<RowIcon name="pencil" title="Edit Email" onClick={editEmail} />
 						)}
 					</Row>
