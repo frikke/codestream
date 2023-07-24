@@ -647,7 +647,7 @@ export class NewRelicProvider
 	async getErrorGroupMetadata(
 		request: GetObservabilityErrorGroupMetadataRequest
 	): Promise<GetObservabilityErrorGroupMetadataResponse | undefined> {
-		if (!request.errorGroupGuid && !request.entityGuid) return undefined;
+		if (_isEmpty(request.errorGroupGuid) && _isEmpty(request.entityGuid)) return undefined;
 
 		try {
 			if (request.errorGroupGuid) {
