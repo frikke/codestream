@@ -204,7 +204,7 @@ class PostCollection {
 	getBetween(
 		after: string | number,
 		before: string | number,
-		inclusive?: boolean
+		inclusive?: boolean,
 	): { posts?: CSPost[] } {
 		let { index: start } = search(this.posts, after);
 		if (start === undefined) {
@@ -230,7 +230,7 @@ class PostCollection {
 	getBefore(
 		before: string | number,
 		limit: number,
-		inclusive?: boolean
+		inclusive?: boolean,
 	): { posts?: CSPost[]; more?: boolean } {
 		let { index: end } = search(this.posts, before);
 		if (end === undefined) {
@@ -260,7 +260,7 @@ class PostCollection {
 	getAfter(
 		after: string | number,
 		limit: number,
-		inclusive?: boolean
+		inclusive?: boolean,
 	): { posts?: CSPost[]; more?: boolean } {
 		let { index: start } = search(this.posts, after);
 		if (start === undefined) {
@@ -466,7 +466,7 @@ class PostsCache extends EntityCache<CSPost> {
 function trackPostCreation(
 	request: CreatePostRequest,
 	textDocuments?: TextDocumentIdentifier[],
-	codemarkId?: string
+	codemarkId?: string,
 ) {
 	process.nextTick(() => {
 		const { session, streams } = SessionContainer.instance();
@@ -561,12 +561,12 @@ function trackPostCreation(
 						telemetry.track({ eventName: "Codemark Created", properties: codemarkProperties });
 					} else if (request.parentPostId) {
 						const parentPost = await SessionContainer.instance().posts.getById(
-							request.parentPostId
+							request.parentPostId,
 						);
 						if (parentPost) {
 							if (parentPost.parentPostId) {
 								const grandParentPost = await SessionContainer.instance().posts.getById(
-									parentPost.parentPostId
+									parentPost.parentPostId,
 								);
 								if (parentPost.codemarkId && grandParentPost && grandParentPost.reviewId) {
 									// reply to a codemark in a review
@@ -615,7 +615,7 @@ function trackPostCreation(
 							} else if (parentPost.codemarkId) {
 								// reply to a standard codemark
 								const codemark = await SessionContainer.instance().codemarks.getById(
-									parentPost.codemarkId
+									parentPost.codemarkId,
 								);
 								const postProperties = {
 									"Parent ID": parentPost.codemarkId,
@@ -640,7 +640,7 @@ export function trackReviewPostCreation(
 	reviewChangesetsSizeInBytes: number,
 	skippedCommitsCount: number,
 	entryPoint?: string,
-	addedUsers?: string[]
+	addedUsers?: string[],
 ) {
 	process.nextTick(() => {
 		try {
@@ -684,7 +684,7 @@ export function trackReviewPostCreation(
 export function trackCodeErrorPostCreation(
 	codeError: CSCodeError,
 	entryPoint?: string,
-	addedUsers?: string[]
+	addedUsers?: string[],
 ) {
 	process.nextTick(() => {
 		try {
@@ -698,11 +698,6 @@ export function trackCodeErrorPostCreation(
 				// rounds to 4 places
 				"Invitee Assignees": addedUsers ? addedUsers.length : 0,
 			};
-
-			telemetry.track({
-				eventName: "Code Error Created",
-				properties: codeErrorProperties,
-			});
 		} catch (ex) {
 			Logger.error(ex);
 		}
@@ -877,7 +872,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				}
 
 				return object;
-			}
+			},
 		);
 
 		records = orderBy(records, r => r.lastActivityAt ?? r.createdAt, "desc");
@@ -921,7 +916,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 		if (post.codemarkId) {
 			try {
 				codemark = await SessionContainer.instance().codemarks.getEnrichedCodemarkById(
-					post.codemarkId
+					post.codemarkId,
 				);
 				hasMarkers = codemark.markers != null && codemark.markers.length !== 0;
 			} catch (ex) {
@@ -979,7 +974,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 		}
 
 		const codemarks = await SessionContainer.instance().codemarks.enrichCodemarksByIds(
-			Arrays.filterMap(posts, post => post.codemarkId)
+			Arrays.filterMap(posts, post => post.codemarkId),
 		);
 
 		return { posts, codemarks };
@@ -988,7 +983,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 	// this is what the webview will call to create codemarks in the sharing model
 	@lspHandler(CreateShareableCodemarkRequestType)
 	async createSharingCodemarkPost(
-		request: CreateShareableCodemarkRequest
+		request: CreateShareableCodemarkRequest,
 	): Promise<CreateShareableCodemarkResponse | CreatePassthroughCodemarkResponse | undefined> {
 		const codemarkRequest: CreateCodemarkRequest = {
 			...request.attributes,
@@ -1055,7 +1050,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 						gitRepo?.path || "",
 						parsedUri.previousFilePath,
 						parsedUri.path,
-						true
+						true,
 					);
 				} else {
 					// get the diff hunk between the two shas
@@ -1063,7 +1058,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 						parsedUri.leftSha,
 						parsedUri.rightSha,
 						path.join(gitRepo ? gitRepo.path : "", parsedUri.path),
-						true
+						true,
 					);
 				}
 
@@ -1074,10 +1069,10 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				}
 
 				const startHunk = diff.hunks.find(
-					_ => startLine >= _.newStart && startLine < _.newStart + _.newLines
+					_ => startLine >= _.newStart && startLine < _.newStart + _.newLines,
 				);
 				const endHunk = diff.hunks.find(
-					_ => endLine >= _.newStart && endLine < _.newStart + _.newLines
+					_ => endLine >= _.newStart && endLine < _.newStart + _.newLines,
 				);
 
 				let fileWithUrl;
@@ -1096,7 +1091,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 							parsedUri.rightSha,
 							codeBlock.scm?.file!,
 							startLine,
-							endLine
+							endLine,
 						);
 
 						if (remoteUrl !== undefined) {
@@ -1118,8 +1113,8 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 					// a "code fence" aka ``` for showing the code comment
 					Logger.warn(
 						`Could not find hunk for startLine=${startLine} or endLine=${endLine} for ${JSON.stringify(
-							parsedUri.context
-						)}`
+							parsedUri.context,
+						)}`,
 					);
 
 					result = await providerRegistry.executeMethod({
@@ -1148,7 +1143,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 						endLine,
 						endHunk,
 					},
-					diff
+					diff,
 				);
 
 				if (request.isProviderReview) {
@@ -1242,7 +1237,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				{ uri: codeBlock.uri },
 				codeBlock.contents,
 				codeBlock.range,
-				codeBlock.scm
+				codeBlock.scm,
 			);
 			codemarkRequest.markers!.push(createMarkerRequest);
 
@@ -1272,7 +1267,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 			}
 		} else if (request.attributes.parentPostId) {
 			const parentPost = await SessionContainer.instance().posts.getById(
-				request.attributes.parentPostId
+				request.attributes.parentPostId,
 			);
 			if (parentPost) {
 				stream = await SessionContainer.instance().streams.getById(parentPost.streamId);
@@ -1306,7 +1301,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 					},
 				},
 				request.attributes.crossPostIssueValues,
-				request.ideName
+				request.ideName,
 			);
 
 			if (cardResponse != undefined) {
@@ -1335,7 +1330,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				addedUsers: request.addedUsers,
 			},
 			request.textDocuments,
-			codemark.id
+			codemark.id,
 		);
 		this.cacheResponse(response!);
 		return {
@@ -1352,7 +1347,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 	@lspHandler(CreateShareableReviewRequestType)
 	@log()
 	async createSharingReviewPost(
-		request: CreateShareableReviewRequest
+		request: CreateShareableReviewRequest,
 	): Promise<CreateShareableReviewResponse> {
 		const reviewRequest: CreateReviewRequest = {
 			...request.attributes,
@@ -1472,7 +1467,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 			reviewChangesetsSizeInBytes,
 			skippedCommitsCount,
 			request.entryPoint,
-			request.addedUsers
+			request.addedUsers,
 		);
 		this.cacheResponse(response!);
 		return {
@@ -1486,7 +1481,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 	@lspHandler(CreateShareableCodeErrorRequestType)
 	@log()
 	async createSharingCodeErrorPost(
-		request: CreateShareableCodeErrorRequest
+		request: CreateShareableCodeErrorRequest,
 	): Promise<CreateShareableCodeErrorResponse> {
 		const codeErrorRequest: CreateCodeErrorRequest = {
 			...request.attributes,
@@ -1533,7 +1528,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 
 	async buildChangeset(
 		repoChange: CSRepoChange,
-		amendingReviewId?: string
+		amendingReviewId?: string,
 	): Promise<CSTransformedReviewChangeset> {
 		// FIXME the logic for amendments became significantly different, so it should be a separate method
 		//  or a builder class similar to MarkersBuilder
@@ -1542,31 +1537,31 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 			throw new ResponseError(
 				ERROR_REVIEW_SCM_NOT_FOUND,
 				"Unable to create review: SCM info not found",
-				scm
+				scm,
 			);
 		if (!scm.remotes?.length)
 			throw new ResponseError(
 				ERROR_REVIEW_NO_REMOTES,
 				"Unable to create review: git repository has no remotes",
-				scm
+				scm,
 			);
 		if (!scm.repoId)
 			throw new ResponseError(
 				ERROR_REVIEW_REPO_NOT_FOUND,
 				"Unable to create review: git repository not found",
-				scm
+				scm,
 			);
 		if (!scm.branch)
 			throw new ResponseError(
 				ERROR_REVIEW_BRANCH_NOT_FOUND,
 				"Unable to create review: branch not found",
-				scm
+				scm,
 			);
 		if (!scm.commits)
 			throw new ResponseError(
 				ERROR_REVIEW_COMMITS_NOT_FOUND,
 				"Unable to create review: commit history not found",
-				scm
+				scm,
 			);
 		const { git, reviews, scm: scmManager } = SessionContainer.instance();
 
@@ -1575,7 +1570,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 			diff.newFileName && !excludedFiles.includes(diff.newFileName);
 
 		const modifiedFilesInCheckpoint = scm.modifiedFiles.filter(
-			f => !excludedFiles.includes(f.file)
+			f => !excludedFiles.includes(f.file),
 		);
 		let modifiedFiles: ModifiedFile[];
 		let startCommit = repoChange.startCommit;
@@ -1585,13 +1580,13 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 		if (amendingReviewId) {
 			const review = await reviews.getById(amendingReviewId);
 			const firstChangesetForThisRepo = review.reviewChangesets.find(
-				rc => rc.repoId === scm.repoId && rc.checkpoint === 0
+				rc => rc.repoId === scm.repoId && rc.checkpoint === 0,
 			);
 
 			if (!firstChangesetForThisRepo) {
 				// FIXME support amending a review including changes from a repo not previously included in this review
 				throw new Error(
-					`Could not find first changeset for review ${amendingReviewId}, repo ${scm.repoId}`
+					`Could not find first changeset for review ${amendingReviewId}, repo ${scm.repoId}`,
 				);
 			}
 
@@ -1603,7 +1598,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 			const firstDiff = diffs[0];
 			if (!firstDiff) {
 				throw new Error(
-					`Cannot find first initial diff for review ${amendingReviewId}, repo ${scm.repoId}`
+					`Cannot find first initial diff for review ${amendingReviewId}, repo ${scm.repoId}`,
 				);
 			}
 			leftBaseShaForFirstChangesetInThisRepo = firstDiff.diff.leftBaseSha;
@@ -1621,7 +1616,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				endCommit,
 			});
 			modifiedFiles = statusFromBeginningOfReview.scm!.modifiedFiles.filter(
-				mf => !excludedFiles.includes(mf.file)
+				mf => !excludedFiles.includes(mf.file),
 			);
 
 			const deletedFiles: string[] = modifiedFilesInCheckpoint
@@ -1631,7 +1626,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				deletedFiles.push(
 					...previousChangeset.modifiedFilesInCheckpoint
 						.filter(mf => mf.status === FileStatus.deleted)
-						.map(mf => mf.oldFile)
+						.map(mf => mf.oldFile),
 				);
 
 				for (const modifiedFileInPreviousChangeset of previousChangeset.modifiedFiles) {
@@ -1685,7 +1680,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 			scm.repoPath,
 			ancestorSearchStartingSha,
 			100,
-			c => c.email !== userEmail
+			c => c.email !== userEmail,
 		);
 
 		if (leftBaseShaForFirstChangesetInThisRepo != null) {
@@ -1707,7 +1702,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 					scm.repoPath,
 					{ includeSaved: false, includeStaged: false },
 					leftBaseShaForFirstChangesetInThisRepo,
-					baseSha // this will be the parent of the first commit in this checkpoint
+					baseSha, // this will be the parent of the first commit in this checkpoint
 				)
 			).filter(removeExcluded);
 		} else {
@@ -1722,7 +1717,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 					scm.repoPath,
 					oldestCommitInReview.sha,
 					1,
-					() => true
+					() => true,
 				);
 				if (firstAncestor) {
 					leftBaseSha = firstAncestor.ref;
@@ -1746,7 +1741,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 					scm.repoPath,
 					oldestCommitInReview.sha,
 					1,
-					() => true
+					() => true,
 				);
 				if (firstAncestor) {
 					leftContentSha = firstAncestor.ref;
@@ -1762,7 +1757,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 					scm.repoPath,
 					{ includeSaved: false, includeStaged: false },
 					leftBaseSha,
-					leftContentSha
+					leftContentSha,
 				)
 			).filter(removeExcluded);
 		}
@@ -1782,7 +1777,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 						newFileDiffs.push(result);
 						newFileReverseDiffs.push(resultReverse);
 					}
-				})
+				}),
 			);
 		}
 
@@ -1807,7 +1802,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				scm.repoPath,
 				{ includeSaved, includeStaged },
 				rightBaseSha,
-				rightContentSha
+				rightContentSha,
 			)
 		).filter(removeExcluded);
 		rightReverseDiffs = (
@@ -1815,7 +1810,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				scm.repoPath,
 				{ includeSaved, includeStaged, reverse: true },
 				rightBaseSha,
-				rightContentSha
+				rightContentSha,
 			)
 		).filter(removeExcluded);
 		rightDiffs.push(...newFileDiffs);
@@ -1826,7 +1821,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				scm.repoPath,
 				{ includeSaved, includeStaged, reverse: true },
 				latestCommitSha,
-				rightContentSha
+				rightContentSha,
 			)
 		).filter(removeExcluded);
 		rightToLatestCommitDiffs.push(...newFileReverseDiffs);
@@ -1838,7 +1833,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 							scm.repoPath,
 							{ includeSaved, includeStaged },
 							latestCommitSha,
-							rightContentSha
+							rightContentSha,
 						)
 				  ).filter(removeExcluded)
 				: [];
@@ -1873,10 +1868,10 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				rightReverseDiffsCompressed: compressToBase64(JSON.stringify(rightReverseDiffs)),
 				latestCommitSha: rightContentSha || latestCommitSha,
 				rightToLatestCommitDiffsCompressed: compressToBase64(
-					JSON.stringify(rightToLatestCommitDiffs)
+					JSON.stringify(rightToLatestCommitDiffs),
 				), // for backtracking
 				latestCommitToRightDiffsCompressed: compressToBase64(
-					JSON.stringify(latestCommitToRightDiffs)
+					JSON.stringify(latestCommitToRightDiffs),
 				),
 			},
 		};
@@ -1885,7 +1880,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 	@lspHandler(CreatePostRequestType)
 	async createPost(
 		request: CreatePostRequest,
-		textDocuments?: TextDocumentIdentifier[]
+		textDocuments?: TextDocumentIdentifier[],
 	): Promise<CreatePostResponse> {
 		let codemarkResponse: CSCreateCodemarkResponse | undefined;
 		let cardResponse;
@@ -1942,7 +1937,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 		if (providerCardRequest && request.codemark && request.crossPostIssueValues) {
 			cardResponse = await this.createProviderCard(
 				providerCardRequest,
-				request.crossPostIssueValues
+				request.crossPostIssueValues,
 			);
 			if (cardResponse) {
 				externalProviderUrl = cardResponse.url;
@@ -2041,7 +2036,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				m.documentId,
 				m.code,
 				m.range,
-				m.source
+				m.source,
 			);
 			codemarkRequest.markers!.push(createMarkerRequest);
 
@@ -2065,7 +2060,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 					entryPoint,
 					crossPostIssueValues,
 				},
-				textDocuments
+				textDocuments,
 			);
 			Logger.log(`createPostWithMarker: post creation completed`);
 
@@ -2142,7 +2137,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 	}
 
 	getCodeDelimiters = (
-		codeDelimiterStyle?: CodeDelimiterStyles
+		codeDelimiterStyle?: CodeDelimiterStyles,
 	): {
 		start: string;
 		end: string;
@@ -2221,7 +2216,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 			remotes?: string[];
 		},
 		attributes: CrossPostIssueValues,
-		ideName?: string
+		ideName?: string,
 	) => {
 		const delimiters = this.getCodeDelimiters(attributes.codeDelimiterStyle);
 		const { linefeed, start, end, escapeFn } = delimiters;
@@ -2256,7 +2251,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 				}
 
 				description += `${linefeed}${linefeed}${start}${linefeed}${escapeFn(
-					marker.code
+					marker.code,
 				)}${linefeed}${end}${linefeed}${linefeed}`;
 
 				if (providerCardRequest.codemark.permalink) {
@@ -2265,7 +2260,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 						url: `${providerCardRequest.codemark.permalink}?marker=${
 							marker.id
 						}&ide=default&src=${encodeURIComponent(
-							providerDisplayNamesByNameKey.get(attributes.issueProvider.name) || ""
+							providerDisplayNamesByNameKey.get(attributes.issueProvider.name) || "",
 						)}`,
 					});
 					if (link) {
@@ -2288,7 +2283,7 @@ export class PostsManager extends EntityManagerBase<CSPost> {
 							marker.commitHashWhenCreated,
 							marker.file,
 							range.start.line + 1,
-							range.end.line + 1
+							range.end.line + 1,
 						);
 
 						if (url !== undefined) {
