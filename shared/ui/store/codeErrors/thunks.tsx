@@ -179,7 +179,7 @@ export const fetchErrorGroup =
 						occurrenceId ||
 						(codeError.stackTraces ? codeError.stackTraces[0].occurrenceId! : undefined),
 					entityGuid: entityGuid,
-				})
+				}),
 			).then((result: GetNewRelicErrorGroupResponse) => {
 				dispatch(_isLoadingErrorGroup(objectId, { isLoading: true }));
 				return dispatch(_setErrorGroup(codeError.objectId!, result.errorGroup));
@@ -204,7 +204,7 @@ export const findErrorGroupByObjectId =
 				const codeError = Object.values(state.codeErrors.codeErrors).find(
 					(_: CSCodeError) =>
 						_.objectId ===
-						oid /*&& (tid ? _.stackTraces.find(st => st.occurrenceId === tid) : true)*/
+						oid /*&& (tid ? _.stackTraces.find(st => st.occurrenceId === tid) : true)*/,
 				);
 				return codeError;
 			};
@@ -337,7 +337,7 @@ export const upgradePendingCodeError =
 		codeErrorId: string,
 		source: "Comment" | "Status Change" | "Assignee Change",
 		codeBlock?: string,
-		analyze = false
+		analyze = false,
 	) =>
 	async (dispatch, getState: () => CodeStreamState) => {
 		// console.debug("===--- upgradePendingCodeError ===---", { codeErrorId: codeErrorId, source });
@@ -380,7 +380,7 @@ export const upgradePendingCodeError =
 					return undefined;
 				}
 				HostApi.instance.track("Error Created", {
-					"Error Group ID": "",
+					"Error Group ID": objectId,
 					"NR Account ID": newCodeError.accountId,
 					Trigger: source,
 				});
@@ -399,7 +399,7 @@ export const upgradePendingCodeError =
 						lineIndex: state.context.currentCodeErrorData?.lineIndex ?? undefined,
 						// same with timestamp
 						timestamp: state.context.currentCodeErrorData?.timestamp ?? undefined,
-					})
+					}),
 				);
 				return {
 					codeError: response.codeError as CSCodeError,
@@ -433,7 +433,7 @@ export const api =
 			updateOnSuccess?: boolean;
 			preventClearError: boolean;
 			preventErrorReporting?: boolean;
-		}
+		},
 	) =>
 	async (dispatch, getState: () => CodeStreamState) => {
 		let providerId = "newrelic*com";
@@ -575,7 +575,7 @@ export const copySymbolFromIde =
 					codeBlock: symbolDetails.text,
 					symbol: stackLine.method,
 					uri: lookupPath,
-				})
+				}),
 			);
 		}
 	};
@@ -588,7 +588,7 @@ export const jumpToStackLine =
 			setCurrentCodeError(state.context.currentCodeErrorId, {
 				...(state.context.currentCodeErrorData || {}),
 				lineIndex: lineIndex || 0,
-			})
+			}),
 		);
 
 		if (!stackLine.fileRelativePath) {
@@ -611,7 +611,7 @@ export const jumpToStackLine =
 		const { line } = ref ? stackLine : currentPosition;
 		const range = Range.create(
 			Position.create(line! - 1, 0),
-			Position.create(line! - 1, 2147483647)
+			Position.create(line! - 1, 2147483647),
 		);
 
 		if (range.start.line === range.end.line && range.start.character === range.end.character) {
