@@ -6,6 +6,7 @@ import {
 	VulnSeverity,
 	VulnerabilityIssue,
 } from "@codestream/protocols/agent";
+import { HostApi } from "@codestream/webview/webview-api";
 import Icon from "../Icon";
 import Tooltip from "../Tooltip";
 import { Link } from "@codestream/webview/Stream/Link";
@@ -80,9 +81,11 @@ const ModalView = (props: {
 	}[];
 	title: string;
 	details: string;
+	trackingData: { "Analyzer Service": string; Category: string };
 	onClose: () => void;
 }) => {
-	const { displays, title, details } = props;
+	const { displays, title, details, trackingData } = props;
+	HostApi.instance.track("Analyzer Result Clicked", trackingData);
 
 	return (
 		<div className="codemark-form-container">
@@ -237,6 +240,7 @@ const VulnerabilityRow = (props: { issue: VulnerabilityIssue }) => {
 					<ModalView
 						title={vuln.title}
 						details={vuln.details}
+						trackingData={{ "Analyzer Service": "FOSSA", Category: "Vulnerability" }}
 						displays={[
 							{ label: "Dependency", description: vuln.source.name },
 							{ label: "Remediation Advice", description: vuln.remediation },
@@ -295,6 +299,7 @@ const LicenseDependencyRow = (props: { issue: LicenseDependencyIssue }) => {
 					<ModalView
 						title={`${capitalize(licenseDependency.source.name)}: ${licenseDependency.license}`}
 						details={licenseDependency.details ?? ""}
+						trackingData={{ "Analyzer Service": "FOSSA", Category: "License Dependency" }}
 						displays={[
 							{ label: "Dependency", description: licenseDependency.source.name },
 							{ label: "Issue Type", description: licenseDependency.type.split("_").join(" ") },
