@@ -515,7 +515,7 @@ export const validateSignup =
 
 			return await dispatch(onLogin(response, true));
 		} else {
-			const signupStatus = response.loginResponse.signupStatus;
+			const signupStatus = response.loginResponse?.signupStatus;
 			const trackingInfo = { "Auth Type": provider };
 			if (signupStatus === "teamCreated") trackingInfo["Org Created"] = true;
 			if (signupStatus === "userCreated") trackingInfo["User Created"] = true;
