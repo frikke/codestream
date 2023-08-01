@@ -575,6 +575,7 @@ export const validateSignup =
 			if (signupStatus === "userCreated") trackingInfo["User Created"] = true;
 			if (!_isEmpty(context.pendingProtocolHandlerUrl)) trackingInfo["Open in IDE Flow"] = true;
 			if (provider === "New Relic") trackingInfo["Auth Type"] = "Email";
+
 			HostApi.instance.track("Signed In", trackingInfo);
 			if (localStore.get("enablingRealTime") === true) {
 				localStore.delete("enablingRealTime");
