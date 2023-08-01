@@ -132,6 +132,7 @@ export interface CSLoginResponse {
 		environment: string;
 		publicApiUrl: string;
 	};
+	signupStatus?: string;
 	forceCreateCompany?: boolean;
 }
 
