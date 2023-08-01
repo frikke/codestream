@@ -233,7 +233,7 @@ export const authenticate =
 			}
 		}
 
-		api.track("Signed In", { "Auth Type": "CodeStream" });
+		api.track("Signed In", { "Auth Type": "Email" });
 
 		return dispatch(onLogin(response));
 	};
@@ -515,7 +515,12 @@ export const validateSignup =
 
 			return await dispatch(onLogin(response, true));
 		} else {
-			HostApi.instance.track("Signed In", { "Auth Type": provider });
+			const signupStatus = response.loginResponse?.signupStatus;
+			const trackingInfo = { "Auth Type": provider };
+			if (signupStatus === "teamCreated") trackingInfo["Org Created"] = true;
+			if (signupStatus === "userCreated") trackingInfo["User Created"] = true;
+			if (!_isEmpty(context.pendingProtocolHandlerUrl)) trackingInfo["Open in IDE Flow"] = true;
+			HostApi.instance.track("Signed In", trackingInfo);
 			if (localStore.get("enablingRealTime") === true) {
 				localStore.delete("enablingRealTime");
 				HostApi.instance.track("Slack Chat Enabled");
