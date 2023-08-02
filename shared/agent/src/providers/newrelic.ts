@@ -1054,28 +1054,33 @@ export class NewRelicProvider
 			}
 		);
 		const result = response.actor.account.nrql.results?.length
-			? await Promise.all(
-					response.actor.account.nrql.results.map(async errorTrace => {
-						const response = await this.getErrorGroupFromNameMessageEntity(
-							errorTrace.errorClass,
-							errorTrace.message,
-							errorTrace.entityGuid
-						);
+			? ((
+					await Promise.all(
+						response.actor.account.nrql.results.map(async errorTrace => {
+							const response = await this.getErrorGroupFromNameMessageEntity(
+								errorTrace.errorClass,
+								errorTrace.message,
+								errorTrace.entityGuid
+							);
 
-						return {
-							entityId: errorTrace.entityGuid,
-							appName: errorTrace.appName,
-							errorClass: errorTrace.errorClass,
-							message: errorTrace.message,
-							remote: remote,
-							errorGroupGuid: response.actor.errorsInbox.errorGroup.id,
-							occurrenceId: errorTrace.occurrenceId,
-							count: errorTrace.length,
-							lastOccurrence: errorTrace.lastOccurrence,
-							errorGroupUrl: response.actor.errorsInbox.errorGroup.url,
-						};
-					})
-			  )
+							if (response?.actor?.errorsInbox?.errorGroup) {
+								return {
+									entityId: errorTrace.entityGuid,
+									appName: errorTrace.appName,
+									errorClass: errorTrace.errorClass,
+									message: errorTrace.message,
+									remote: remote,
+									errorGroupGuid: response.actor.errorsInbox.errorGroup.id,
+									occurrenceId: errorTrace.occurrenceId,
+									count: errorTrace.length,
+									lastOccurrence: errorTrace.lastOccurrence,
+									errorGroupUrl: response.actor.errorsInbox.errorGroup.url,
+								};
+							}
+							return undefined;
+						})
+					)
+			  ).filter(_ => _ !== undefined) as ObservabilityError[])
 			: [];
 		return result;
 	}
@@ -3745,25 +3750,33 @@ export class NewRelicProvider
 		message: string,
 		entityGuid: string
 	) {
-		return this.query(
-			`query getErrorGroupGuid($name: String!, $message:String!, $entityGuid:EntityGuid!) {
-			actor {
-			  errorsInbox {
-				errorGroup(errorEvent: {name: $name,
-				  message: $message,
-				  entityGuid: $entityGuid}) {
-				  id
-				  url
+		try {
+			return this.query(
+				`query getErrorGroupGuid($name: String!, $message:String!, $entityGuid:EntityGuid!) {
+				actor {
+				  errorsInbox {
+					errorGroup(errorEvent: {name: $name,
+					  message: $message,
+					  entityGuid: $entityGuid}) {
+					  id
+					  url
+					}
+				  }
 				}
-			  }
-			}
-		  }`,
-			{
-				name: name,
-				message: message,
-				entityGuid: entityGuid,
-			}
-		);
+			  }`,
+				{
+					name: name,
+					message: message,
+					entityGuid: entityGuid,
+				}
+			);
+		} catch (ex) {
+			ContextLogger.error(ex, "getErrorGroupFromNameMessageEntity", {
+				name,
+				message,
+			});
+			return undefined;
+		}
 	}
 
 	@log({ timed: true })
