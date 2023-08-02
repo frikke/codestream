@@ -560,13 +560,21 @@ export const validateSignup =
 			return await dispatch(onLogin(response, true));
 		} else {
 			const signupStatus = response.loginResponse?.signupStatus;
-			const trackingInfo = {
+
+			let trackingInfo = {
 				"Auth Type": provider,
+				"Org Created": false,
+				"User Created": false,
+				"Open in IDE Flow": false,
 				Source: context.pendingProtocolHandlerQuery?.src,
 			};
-			if (signupStatus === "teamCreated") trackingInfo["Org Created"] = true;
+			if (signupStatus === "teamCreated") {
+				trackingInfo["Org Created"] = true;
+				trackingInfo["User Created"] = true;
+			}
 			if (signupStatus === "userCreated") trackingInfo["User Created"] = true;
 			if (!_isEmpty(context.pendingProtocolHandlerUrl)) trackingInfo["Open in IDE Flow"] = true;
+			if (provider === "New Relic") trackingInfo["Auth Type"] = "Email";
 			HostApi.instance.track("Signed In", trackingInfo);
 			if (localStore.get("enablingRealTime") === true) {
 				localStore.delete("enablingRealTime");
