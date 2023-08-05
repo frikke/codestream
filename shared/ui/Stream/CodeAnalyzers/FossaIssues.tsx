@@ -1,4 +1,5 @@
-import React, { useState, Dispatch, SetStateAction } from "react";
+import React, { useState } from "react";
+import styled from "styled-components";
 import { lowerCase, capitalize } from "lodash-es";
 import {
 	LicenseDependencyIssue,
@@ -13,13 +14,22 @@ import { ErrorRow } from "@codestream/webview/Stream/Observability";
 import { Modal } from "@codestream/webview/Stream/Modal";
 import { MarkdownText } from "@codestream/webview/Stream/MarkdownText";
 import { CardTitle } from "@codestream/webview/Stream/SecurityIssuesWrapper";
+import { VulnLoading } from "./FossaLoading";
 
 interface Props {
 	licDepIssues: LicenseDependencyIssue[];
 	licDepError: string | undefined;
-	vulnIssues: VulnerabilityIssue[];
+	vulnLoading: boolean;
+	vulnPaginatedIssues: VulnerabilityIssue[];
 	vulnError: string | undefined;
+	showMoreVuln: boolean;
+	showMoreVulnResultsCb: () => void;
 }
+
+const StyledSpan = styled.span`
+	margin-left: 2px;
+	margin-right: 5px;
+`;
 
 type LibraryWithVulnRowFunction = (props: { issue: VulnerabilityIssue }) => JSX.Element;
 type LicenseDependencyRowFunction = (props: { issue: LicenseDependencyIssue }) => JSX.Element;
@@ -125,37 +135,25 @@ function ModalView(props: {
 }
 
 const Issues = (props: {
-	cn: string;
 	expanded: boolean;
-	title: string;
 	issueType: string;
 	issues: VulnerabilityIssue[] | LicenseDependencyIssue[];
 	error: string | undefined;
-	setExpanded: Dispatch<SetStateAction<boolean>>;
 	IssueComponent: LibraryWithVulnRowFunction | LicenseDependencyRowFunction;
+	issueLoading?: boolean;
+	showMore?: boolean;
+	showMoreCb?: () => void;
 }) => {
-	const { cn, expanded, title, issueType, issues, error, setExpanded, IssueComponent } = props;
+	const { expanded, issueType, issues, error, IssueComponent } = props;
 	return (
 		<>
-			<Row
-				style={{
-					padding: "2px 10px 2px 20px",
-					alignItems: "baseline",
-				}}
-				className={cn}
-				onClick={() => {
-					setExpanded(!expanded);
-				}}
-			>
-				{expanded && <Icon name="chevron-down-thin" />}
-				{!expanded && <Icon name="chevron-right-thin" />}
-				<span style={{ marginLeft: "2px", marginRight: "5px" }}>{title}</span>
-			</Row>
 			{expanded && issues.length > 0 && (
 				<>
 					{issues.map(issue => {
 						return <IssueComponent issue={issue} />;
 					})}
+					{props.issueLoading && <VulnLoading></VulnLoading>}
+					{props.showMore && props.showMoreCb && <Additional onClick={props.showMoreCb} />}
 				</>
 			)}
 			{expanded && !error && issues.length === 0 && (
@@ -313,32 +311,81 @@ function LicenseDependencyRow(props: { issue: LicenseDependencyIssue }) {
 	);
 }
 
+function Additional(props: { onClick: () => void }) {
+	return (
+		<Row
+			onClick={props.onClick}
+			style={{
+				padding: "0 10px 0 30px",
+			}}
+		>
+			<div>
+				<Icon style={{ transform: "scale(0.9)" }} name="plus" />
+			</div>
+			<div>See additional vulnerabilities</div>
+		</Row>
+	);
+}
+
 export const FossaIssues = React.memo((props: Props) => {
 	const [licenseDepExpanded, setLicenseDepExpanded] = useState<boolean>(false);
-	const [vulnExpanded, setVulnExpanded] = useState<boolean>(false);
-	const { vulnIssues, vulnError, licDepIssues, licDepError } = props;
+	const [vulnExpanded, setVulnExpanded] = useState<boolean>(true);
+	const {
+		vulnLoading,
+		vulnPaginatedIssues,
+		vulnError,
+		showMoreVuln,
+		showMoreVulnResultsCb,
+		licDepIssues,
+		licDepError,
+	} = props;
 
 	return (
 		<>
+			<Row
+				style={{
+					padding: "2px 10px 2px 20px",
+					alignItems: "baseline",
+				}}
+				className={"vuln"}
+				onClick={() => {
+					setVulnExpanded(!vulnExpanded);
+				}}
+			>
+				{vulnExpanded && <Icon name="chevron-down-thin" />}
+				{!vulnExpanded && <Icon name="chevron-right-thin" />}
+				<span style={{ marginLeft: "2px", marginRight: "5px" }}>Vulnerabilities</span>
+			</Row>
 			<Issues
-				cn={"vuln"}
 				expanded={vulnExpanded}
-				title={"Vulnerabilities"}
 				issueType={"vulnerability"}
-				issues={vulnIssues}
+				issues={vulnPaginatedIssues}
 				error={vulnError}
-				setExpanded={setVulnExpanded}
 				IssueComponent={LibraryWithVulnRow}
+				issueLoading={vulnLoading}
+				showMore={showMoreVuln}
+				showMoreCb={showMoreVulnResultsCb}
 			></Issues>
 
+			<Row
+				style={{
+					padding: "2px 10px 2px 20px",
+					alignItems: "baseline",
+				}}
+				className={"licenseDep"}
+				onClick={() => {
+					setLicenseDepExpanded(!licenseDepExpanded);
+				}}
+			>
+				{licenseDepExpanded && <Icon name="chevron-down-thin" />}
+				{!licenseDepExpanded && <Icon name="chevron-right-thin" />}
+				<span style={{ marginLeft: "2px", marginRight: "5px" }}>License Dependencies</span>
+			</Row>
 			<Issues
-				cn={"licenseDep"}
 				expanded={licenseDepExpanded}
-				title={"License Dependencies"}
 				issueType={"license dependency"}
 				issues={licDepIssues}
 				error={licDepError}
-				setExpanded={setLicenseDepExpanded}
 				IssueComponent={LicenseDependencyRow}
 			></Issues>
 		</>
