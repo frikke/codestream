@@ -171,7 +171,7 @@ export class ThirdPartyProviderRegistry {
 		this._pollingInterval = Functions.repeatInterval(
 			this.pullRequestsStateHandler.bind(this),
 			2000,
-			900000,
+			900000
 		); // every 15 minutes
 		return this;
 	}
@@ -192,7 +192,7 @@ export class ThirdPartyProviderRegistry {
 					name === "gitlab_enterprise" ||
 					name === "bitbucket"
 				);
-			},
+			}
 		);
 		const providersPullRequests: ProviderPullRequests[] = [];
 
@@ -239,7 +239,7 @@ export class ThirdPartyProviderRegistry {
 			toastPrNotify;
 		if (!result) {
 			Logger.log(
-				`Skipping PR toast notify due to user settings notificationDelivery: ${notificationDelivery}, toastPrNotify: ${toastPrNotify}`,
+				`Skipping PR toast notify due to user settings notificationDelivery: ${notificationDelivery}, toastPrNotify: ${toastPrNotify}`
 			);
 		}
 		return result;
@@ -255,7 +255,7 @@ export class ThirdPartyProviderRegistry {
 							return pullRequests[pullRequests.length - 1].createdAt;
 						}
 						return 0;
-					},
+					}
 				);
 				return {
 					providerId: providerPRs.providerId,
@@ -267,7 +267,7 @@ export class ThirdPartyProviderRegistry {
 
 		providersPRs.map(providerPRs => {
 			const previousProviderPRs = this._lastProvidersPRs?.find(
-				_ => _.providerId === providerPRs.providerId,
+				_ => _.providerId === providerPRs.providerId
 			);
 			if (!previousProviderPRs) {
 				return;
@@ -277,19 +277,19 @@ export class ThirdPartyProviderRegistry {
 			providerPRs.queriedPullRequests.map(
 				(pullRequests: GetMyPullRequestsResponse[], index: number) => {
 					const ageLimit = this._queriedPRsAgeLimit?.find(
-						_ => _.providerId === providerPRs.providerId,
+						_ => _.providerId === providerPRs.providerId
 					);
 					const actualPRs = pullRequests.filter(
-						pr => pr.createdAt >= (ageLimit ? ageLimit.ageLimit[index] : 0),
+						pr => pr.createdAt >= (ageLimit ? ageLimit.ageLimit[index] : 0)
 					);
 					queriedPullRequests.push(
 						differenceWith(
 							actualPRs,
 							previousProviderPRs.queriedPullRequests[index],
-							(value, other) => value.id === other.id,
-						),
+							(value, other) => value.id === other.id
+						)
 					);
-				},
+				}
 			);
 
 			newProvidersPRs.push({
@@ -310,9 +310,9 @@ export class ThirdPartyProviderRegistry {
 					...pullRequests.map(pullRequest => ({
 						queryName: PR_QUERIES[_.providerId][queryIndex].name!,
 						pullRequest,
-					})),
+					}))
 				);
-			}),
+			})
 		);
 
 		if (prNotificationMessages.length > 0) {
@@ -328,7 +328,7 @@ export class ThirdPartyProviderRegistry {
 	@log()
 	@lspHandler(ConnectThirdPartyProviderRequestType)
 	async connect(
-		request: ConnectThirdPartyProviderRequest,
+		request: ConnectThirdPartyProviderRequest
 	): Promise<ConnectThirdPartyProviderResponse> {
 		const provider = getProvider(request.providerId);
 		if (provider === undefined) {
@@ -341,7 +341,7 @@ export class ThirdPartyProviderRegistry {
 	@log()
 	@lspHandler(ConfigureThirdPartyProviderRequestType)
 	async configure(
-		request: ConfigureThirdPartyProviderRequest,
+		request: ConfigureThirdPartyProviderRequest
 	): Promise<ConfigureThirdPartyProviderResponse> {
 		const provider = getProvider(request.providerId);
 		if (provider === undefined) {
@@ -355,7 +355,7 @@ export class ThirdPartyProviderRegistry {
 	@log()
 	@lspHandler(AddEnterpriseProviderRequestType)
 	async addEnterpriseProvider(
-		request: AddEnterpriseProviderRequest,
+		request: AddEnterpriseProviderRequest
 	): Promise<AddEnterpriseProviderResponse> {
 		const provider = getProvider(request.providerId);
 		if (provider === undefined) {
@@ -377,7 +377,7 @@ export class ThirdPartyProviderRegistry {
 	@log()
 	@lspHandler(DisconnectThirdPartyProviderRequestType)
 	async disconnect(
-		request: DisconnectThirdPartyProviderRequest,
+		request: DisconnectThirdPartyProviderRequest
 	): Promise<DisconnectThirdPartyProviderResponse> {
 		const provider = getProvider(request.providerId);
 		if (provider === undefined) return {};
@@ -478,7 +478,7 @@ export class ThirdPartyProviderRegistry {
 	@log()
 	@lspHandler(FetchThirdPartyCardWorkflowRequestType)
 	fetchCardWorkflow(
-		request: FetchThirdPartyCardWorkflowRequest,
+		request: FetchThirdPartyCardWorkflowRequest
 	): Promise<FetchThirdPartyCardWorkflowResponse> {
 		const provider = getProvider(request.providerId);
 		if (provider === undefined) {
@@ -541,7 +541,7 @@ export class ThirdPartyProviderRegistry {
 	@log()
 	@lspHandler(FetchThirdPartyChannelsRequestType)
 	async getChannels(
-		request: FetchThirdPartyChannelsRequest,
+		request: FetchThirdPartyChannelsRequest
 	): Promise<FetchThirdPartyChannelsResponse> {
 		const provider = getProvider(request.providerId);
 		if (provider === undefined) {
@@ -563,7 +563,7 @@ export class ThirdPartyProviderRegistry {
 	@log()
 	@lspHandler(UpdateThirdPartyStatusRequestType)
 	async updateStatus(
-		request: UpdateThirdPartyStatusRequest,
+		request: UpdateThirdPartyStatusRequest
 	): Promise<UpdateThirdPartyStatusResponse> {
 		const provider = getProvider(request.providerId);
 		if (provider === undefined) {
@@ -625,7 +625,7 @@ export class ThirdPartyProviderRegistry {
 	}
 
 	async createPullRequest(
-		request: ProviderCreatePullRequestRequest,
+		request: ProviderCreatePullRequestRequest
 	): Promise<ProviderCreatePullRequestResponse | undefined> {
 		const provider = getProvider(request.providerId);
 		if (provider === undefined) {
@@ -761,7 +761,7 @@ export class ThirdPartyProviderRegistry {
 					if (fn && fn({ domain: uri.authority, uri: uri })) {
 						const id = provider.getConfig().id;
 						Logger.log(
-							`queryThirdParty: found matching provider for ${uri.authority}. providerId=${id}`,
+							`queryThirdParty: found matching provider for ${uri.authority}. providerId=${id}`
 						);
 						return {
 							providerId: id,
@@ -808,7 +808,7 @@ export class ThirdPartyProviderRegistry {
 	@log()
 	@lspHandler(FetchThirdPartyLicenseDependenciesRequestType)
 	async fetchLicenseDependencies(
-		request: FetchThirdPartyCodeAnalyzersRequest,
+		request: FetchThirdPartyCodeAnalyzersRequest
 	): Promise<FetchThirdPartyLicenseDependenciesResponse> {
 		const provider = getProvider(request.providerId);
 		if (provider === undefined) {
@@ -836,7 +836,7 @@ export class ThirdPartyProviderRegistry {
 	@log()
 	@lspHandler(FetchThirdPartyVulnerabilitiesRequestType)
 	async fetchVulnerabilities(
-		request: FetchThirdPartyCodeAnalyzersRequest,
+		request: FetchThirdPartyCodeAnalyzersRequest
 	): Promise<FetchThirdPartyVulnerabilitiesResponse> {
 		const provider = getProvider(request.providerId);
 		if (provider === undefined) {
@@ -856,7 +856,7 @@ export class ThirdPartyProviderRegistry {
 			category: "vulnerability",
 			sort: "package_asc",
 			type: "project",
-			page: 1,
+			page: request.pageNumber ?? 1,
 		});
 		return response;
 	}
@@ -864,7 +864,7 @@ export class ThirdPartyProviderRegistry {
 	@log()
 	@lspHandler(FetchThirdPartyRepoMatchToFossaRequestType)
 	async fetchIsRepoMatch(
-		request: FetchThirdPartyRepoMatchToFossaRequest,
+		request: FetchThirdPartyRepoMatchToFossaRequest
 	): Promise<FetchThirdPartyRepoMatchToFossaResponse> {
 		const provider = getProvider(request.providerId);
 		if (provider === undefined) {
@@ -887,7 +887,7 @@ export class ThirdPartyProviderRegistry {
 	@log()
 	@lspHandler(FetchProviderDefaultPullRequestsType)
 	async getProviderDefaultPullRequestQueries(
-		_request: FetchProviderDefaultPullRequest,
+		_request: FetchProviderDefaultPullRequest
 	): Promise<FetchProviderDefaultPullResponse> {
 		const response: FetchProviderDefaultPullResponse = {
 			"github*com": [
@@ -1035,7 +1035,7 @@ export class ThirdPartyProviderRegistry {
 	}
 
 	getPullRequestProvider(
-		provider: ThirdPartyProvider,
+		provider: ThirdPartyProvider
 	): ThirdPartyIssueProvider & ThirdPartyProviderSupportsViewingPullRequests {
 		const pullRequestProvider = provider as ThirdPartyIssueProvider;
 		if (
@@ -1060,14 +1060,14 @@ export class ThirdPartyProviderRegistry {
 	getConnectedProviders(user: CSMe): ThirdPartyProvider[];
 	getConnectedProviders<T extends ThirdPartyProvider>(
 		user: CSMe,
-		predicate: (p: ThirdPartyProvider) => p is T,
+		predicate: (p: ThirdPartyProvider) => p is T
 	): T[];
 	getConnectedProviders<T extends ThirdPartyProvider>(
 		user: CSMe,
-		predicate?: (p: ThirdPartyProvider) => boolean,
+		predicate?: (p: ThirdPartyProvider) => boolean
 	) {
 		return this.getProviders(
-			(p): p is T => p.isConnected(user) && (predicate == null || predicate(p)),
+			(p): p is T => p.isConnected(user) && (predicate == null || predicate(p))
 		);
 	}
 
@@ -1075,7 +1075,7 @@ export class ThirdPartyProviderRegistry {
 		try {
 			if (!providerId) return false;
 			const providers = this.getProviders().filter(
-				(_: ThirdPartyProvider) => _.getConfig().id === providerId,
+				(_: ThirdPartyProvider) => _.getConfig().id === providerId
 			);
 			if (!providers || !providers.length) return false;
 			return this.getPullRequestProvider(providers[0]);
@@ -1091,7 +1091,7 @@ export class ThirdPartyProviderRegistry {
 	 * @param user
 	 */
 	async getConnectedPullRequestProviders(
-		user: CSMe,
+		user: CSMe
 	): Promise<(ThirdPartyProvider & ThirdPartyProviderSupportsPullRequests)[]> {
 		const connectedProviders = this.getConnectedProviders(
 			user,
@@ -1106,7 +1106,7 @@ export class ThirdPartyProviderRegistry {
 					name === "bitbucket" ||
 					name === "bitbucket_server"
 				);
-			},
+			}
 		);
 		return connectedProviders;
 	}

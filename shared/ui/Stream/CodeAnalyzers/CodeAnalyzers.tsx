@@ -21,9 +21,9 @@ import {
 	NoContent,
 } from "@codestream/webview/src/components/Pane";
 import { ErrorRow } from "@codestream/webview/Stream/Observability";
+import { CurrentRepoContext } from "@codestream/webview/Stream/CurrentRepoContext";
 import { ConnectFossa } from "./ConnectFossa";
 import { FossaIssues } from "./FossaIssues";
-import { CurrentRepoContext } from "@codestream/webview/Stream/CurrentRepoContext";
 import { FossaLoading } from "./FossaLoading";
 
 interface Props {
@@ -31,6 +31,11 @@ interface Props {
 	paneState: PaneState;
 	reposLoading: boolean;
 }
+
+const RESULT_PER_PAGE = 20;
+const FIRST_PAGE_NUM = 1;
+const INVALID_PAGE_NUM = 0;
+const PAGINATION_SIZE = 5;
 
 export const CodeAnalyzers = (props: Props) => {
 	const [loading, setLoading] = useState<boolean | undefined>(true);
@@ -43,6 +48,8 @@ export const CodeAnalyzers = (props: Props) => {
 	const [vulnLoading, setVulnLoading] = useState<boolean>(false);
 	const [vulnIssues, setVulnIssues] = useState<VulnerabilityIssue[]>([]);
 	const [vulnError, setVulnError] = useState<string | undefined>(undefined);
+	const [vulnPaginatedIssues, setVulnPaginatedIssues] = useState<VulnerabilityIssue[]>([]);
+	const [vulnPageNum, setVulnPageNum] = useState<number>(INVALID_PAGE_NUM);
 	const [currentRepoId, setCurrentRepoId] = useMemoizedState<string | undefined | null>(null);
 
 	const derivedState = useSelector((state: CodeStreamState) => {
@@ -84,6 +91,30 @@ export const CodeAnalyzers = (props: Props) => {
 		if (!derivedState.showCodeAnalyzers || props.paneState === PaneState.Collapsed) {
 			return;
 		}
+		if (currentRepoId !== null) {
+			setVulnPageNum(FIRST_PAGE_NUM);
+		} else {
+			setLoading(false);
+		}
+	}, [currentRepoId, props.paneState]);
+
+	useEffect(() => {
+		if (vulnPageNum !== FIRST_PAGE_NUM) return;
+
+		const resetVulnArray = () => {
+			setVulnIssues([]);
+			setVulnPaginatedIssues([]);
+		};
+
+		const vulnPagination = (vulns: VulnerabilityIssue[]): void => {
+			if (vulns.length < RESULT_PER_PAGE) {
+				setVulnPageNum(INVALID_PAGE_NUM);
+			}
+			setVulnPaginatedIssues(prevPaginatedRes => [
+				...prevPaginatedRes,
+				...vulns.splice(0, PAGINATION_SIZE),
+			]);
+		};
 
 		const fetchData = async (): Promise<void> => {
 			let error: string | undefined;
@@ -93,12 +124,16 @@ export const CodeAnalyzers = (props: Props) => {
 					const isRepoMatch: boolean | undefined = await fetchMatchRepoToFossa();
 					if (isRepoMatch) {
 						await fetchLicenseDependencies();
-						await fetchVulnerabilities();
+						resetVulnArray();
+						const vulns = await fetchVulnerabilities();
+						vulnPagination(vulns);
 						setLoading(false);
 					} else {
+						setVulnPageNum(INVALID_PAGE_NUM);
 						setLoading(false);
 					}
 				} else {
+					setVulnPageNum(INVALID_PAGE_NUM);
 					setLoading(false);
 				}
 			} catch (err) {
@@ -109,7 +144,7 @@ export const CodeAnalyzers = (props: Props) => {
 			setError(error);
 		};
 		fetchData();
-	}, [currentRepoId, derivedState.providers, props.paneState]);
+	}, [vulnPageNum]);
 
 	const fetchMatchRepoToFossa = async (): Promise<boolean | undefined> => {
 		if (currentRepoId === null) return;
@@ -139,8 +174,8 @@ export const CodeAnalyzers = (props: Props) => {
 		return isRepoMatch;
 	};
 
-	const fetchVulnerabilities = async (): Promise<void> => {
-		if (vulnLoading || !currentRepoId) return;
+	const fetchVulnerabilities = async (): Promise<VulnerabilityIssue[]> => {
+		if (vulnLoading || !currentRepoId || vulnPageNum <= 0) return [];
 		setVulnLoading(true);
 
 		let vulnerabilities: VulnerabilityIssue[] = [];
@@ -150,6 +185,7 @@ export const CodeAnalyzers = (props: Props) => {
 			if (providerId) {
 				const result = await HostApi.instance.send(FetchThirdPartyVulnerabilitiesRequestType, {
 					providerId,
+					pageNumber: vulnPageNum,
 					repoId: currentRepoId,
 				});
 				if (result.issues) {
@@ -166,6 +202,26 @@ export const CodeAnalyzers = (props: Props) => {
 		setVulnIssues(vulnerabilities);
 		setVulnError(error);
 		setVulnLoading(false);
+		setVulnPageNum(vulnPageNum + 1);
+		return vulnerabilities;
+	};
+
+	const showMoreVulnResults = async (): Promise<void> => {
+		if (vulnIssues.length <= 0) {
+			const vulns = await fetchVulnerabilities();
+			if (vulns.length < RESULT_PER_PAGE) {
+				setVulnPageNum(INVALID_PAGE_NUM);
+			}
+			setVulnPaginatedIssues(prevPaginatedRes => [
+				...prevPaginatedRes,
+				...vulns.splice(0, PAGINATION_SIZE),
+			]);
+		} else {
+			setVulnPaginatedIssues(prevPaginatedRes => [
+				...prevPaginatedRes,
+				...vulnIssues.splice(0, PAGINATION_SIZE),
+			]);
+		}
 	};
 
 	const fetchLicenseDependencies = async (): Promise<void> => {
@@ -236,8 +292,11 @@ export const CodeAnalyzers = (props: Props) => {
 						<FossaIssues
 							licDepIssues={licenseDepIssues}
 							licDepError={licDepError}
-							vulnIssues={vulnIssues}
+							vulnPaginatedIssues={vulnPaginatedIssues}
 							vulnError={vulnError}
+							showMoreVuln={vulnPageNum > INVALID_PAGE_NUM}
+							vulnLoading={vulnLoading}
+							showMoreVulnResultsCb={showMoreVulnResults}
 						/>
 					)}
 					{loaded && hasError && <ErrorRow title={hasError} customPadding={"0 10px 0 20px"} />}
