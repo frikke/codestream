@@ -952,6 +952,7 @@ export interface CSMe extends CSUser {
 	mustSetPassword?: boolean;
 	inMaintenanceMode?: boolean;
 	nrUserInfo?: CSNRUserInfo;
+	accessTokens?: { web: { token: string } };
 }
 
 export interface CSApiCapability {

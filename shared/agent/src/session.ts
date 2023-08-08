@@ -688,6 +688,13 @@ export class CodeStreamSession {
 					if (me.inMaintenanceMode) {
 						return this._didEncounterMaintenanceMode();
 					}
+
+					const newToken = me.accessTokens?.web?.token;
+					if (newToken) {
+						this._codestreamAccessToken = newToken;
+						this._api?.setAccessToken(newToken);
+					}
+
 					this._onDidChangeCurrentUser.fire(me as CSMe);
 				}
 
