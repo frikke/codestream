@@ -11,8 +11,9 @@ import {
 import { HostApi } from "@codestream/webview/webview-api";
 import { CodeStreamState } from "@codestream/webview/store";
 import { getUserProviderInfoFromState } from "@codestream/webview/store/providers/utils";
+import { isConnected } from "@codestream/webview/store/providers/reducer";
+import { useMemoizedState, usePrevious } from "@codestream/webview/utilities/hooks";
 import { isFeatureEnabled } from "@codestream/webview/store/apiVersioning/reducer";
-import { useMemoizedState } from "@codestream/webview/utilities/hooks";
 import { WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
 import {
 	PaneBody,
@@ -63,16 +64,20 @@ export const CodeAnalyzers = (props: Props) => {
 				if (userProvider) providerInfo[name] = userProvider;
 			}
 		}
-		const currentRepo = props.openRepos.find(_ => _.id === currentRepoId);
+
 		const fossaProvider = Object.entries(providers).find(prov => {
 			const [, provider] = prov;
-			return Object.keys(providerInfo).includes(provider.name);
+			return (
+				provider.name.toLowerCase() === "fossa" && Object.keys(providerInfo).includes(provider.name)
+			);
 		});
+		const fossaIsConnected = providers["fossa*com"] && isConnected(state, { id: "fossa*com" });
 		const hasActiveFile =
 			!editorContext?.textEditorUri?.includes("terminal") &&
 			editorContext?.activeFile &&
 			editorContext?.activeFile.length > 0;
 
+		const currentRepo = props.openRepos.find(_ => _.id === currentRepoId);
 		const hasRemotes = currentRepo?.remotes && currentRepo?.remotes.length > 0;
 		const hasOpenRepos = props.openRepos.length > 0;
 
@@ -80,12 +85,22 @@ export const CodeAnalyzers = (props: Props) => {
 			bootstrapped: Object.keys(providerInfo).length > 0,
 			providers,
 			fossaProvider,
+			fossaIsConnected,
 			hasActiveFile,
 			hasRemotes,
 			hasOpenRepos,
 			showCodeAnalyzers: isFeatureEnabled(state, "showCodeAnalyzers"),
 		};
 	}, shallowEqual);
+
+	const previousFossaIsConnected = usePrevious(derivedState.fossaIsConnected);
+
+	useEffect(() => {
+		// must use a type check for === false or we might get a double update when previousFossaIsConnected is undefined (before its set)
+		if (derivedState.fossaIsConnected && previousFossaIsConnected === false) {
+			setVulnPageNum(FIRST_PAGE_NUM);
+		}
+	}, [derivedState.fossaIsConnected]);
 
 	useEffect(() => {
 		if (!derivedState.showCodeAnalyzers || props.paneState === PaneState.Collapsed) {
