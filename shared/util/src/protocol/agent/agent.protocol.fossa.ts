@@ -22,6 +22,8 @@ interface BaseIssueType {
 			status: string;
 			depth: number;
 			title: string;
+			scannedAt: string;
+			analyzedAt: string;
 		}
 	];
 	type: string;
@@ -29,7 +31,7 @@ interface BaseIssueType {
 
 export interface LicenseDependencyIssue extends BaseIssueType {
 	details?: string;
-	license: string;
+	license: string | null;
 }
 
 export interface LicenseDependencyIssues {

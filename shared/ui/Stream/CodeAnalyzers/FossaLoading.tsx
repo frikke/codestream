@@ -21,12 +21,18 @@ export const FossaLoading = () => {
 				<SkeletonLoader style={{ width: "55%", margin: "3px 10px 3px 40px" }} />
 				<SkeletonLoader style={{ width: "6%", margin: "3px 10px 3px 0px" }} />
 			</SkeletonFlexContainer>
-			<SkeletonLoader style={{ width: "70%", marginLeft: "20px" }} />
+
+			<SkeletonLoader style={{ width: "45%", marginLeft: "20px" }} />
+			<SkeletonLoader style={{ width: "70%", margin: "3px 10px 3px 40px" }} />
+			<SkeletonLoader style={{ width: "60%", margin: "3px 10px 3px 40px" }} />
+			<SkeletonLoader style={{ width: "50%", margin: "3px 10px 3px 40px" }} />
+			<SkeletonLoader style={{ width: "70%", margin: "3px 10px 3px 40px" }} />
+			<SkeletonLoader style={{ width: "65%", margin: "3px 10px 3px 40px" }} />
 		</>
 	);
 };
 
-export const VulnLoading = () => {
+export const IssuesLoading = () => {
 	return (
 		<>
 			<SkeletonFlexContainer>

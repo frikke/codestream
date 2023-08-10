@@ -494,7 +494,7 @@ export const FetchThirdPartyBuildsRequestType = new RequestType<
 
 export interface FetchThirdPartyCodeAnalyzersRequest {
 	providerId: string;
-	pageNumber?: number; // MAKE IT NON OPTIONAL IF WE COMPLETE FEATURE FOR LIC DEP
+	pageNumber: number;
 	repoId?: string;
 }
 export interface FetchThirdPartyLicenseDependenciesResponse {

@@ -827,7 +827,7 @@ export class ThirdPartyProviderRegistry {
 		const response = await codeAnalyzersProvider.fetchLicenseDependencies(request, {
 			category: "licensing",
 			type: "project",
-			page: 1,
+			page: request.pageNumber,
 		});
 
 		return response;
@@ -856,7 +856,7 @@ export class ThirdPartyProviderRegistry {
 			category: "vulnerability",
 			sort: "package_asc",
 			type: "project",
-			page: request.pageNumber ?? 1,
+			page: request.pageNumber,
 		});
 		return response;
 	}
