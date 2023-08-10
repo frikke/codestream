@@ -34,8 +34,8 @@ const StyledSpan = styled.span`
 	margin-right: 5px;
 `;
 
-type LibraryWithVulnRowComponent = (props: { issue: VulnerabilityIssue }) => JSX.Element;
-type LicenseDependencyRowComponent = (props: { issue: LicenseDependencyIssue }) => JSX.Element;
+type VulnRowComponent = (props: { issue: VulnerabilityIssue }) => JSX.Element;
+type LicDepRowComponent = (props: { issue: LicenseDependencyIssue }) => JSX.Element;
 type VulnLoadingComponent = () => JSX.Element;
 type LicDepLoadingComponent = () => JSX.Element;
 
@@ -160,7 +160,7 @@ const Issues = (props: {
 	issueType: string[];
 	issues: LicenseDependencyIssue[] | VulnerabilityIssue[];
 	error: string | undefined;
-	IssueComponent: LicenseDependencyRowComponent | LibraryWithVulnRowComponent;
+	IssueComponent: LicDepRowComponent | VulnRowComponent;
 	IssuesLoading: LicDepLoadingComponent | VulnLoadingComponent;
 	loading: boolean;
 	showMore: boolean;
@@ -201,20 +201,31 @@ const Issues = (props: {
 	);
 };
 
-const VulnRow = (props: { vuln: VulnerabilityIssue }) => {
+const VulnerabilityRow = (props: { issue: VulnerabilityIssue }) => {
 	const [expanded, setExpanded] = useState<boolean>(false);
-	const { vuln } = props;
+	const vuln = props.issue;
+
+	const subtleText = vuln.remediation
+		? `${vuln.source.version} -> ${vuln.remediation}`
+		: vuln.source.version;
+	const tooltipText = `Vulnerability: ${vuln.title}`;
+
 	return (
 		<>
 			<Row
-				style={{ padding: "0 10px 0 45px" }}
+				style={{ padding: "0 10px 0 30px" }}
 				className={"pr-row"}
 				onClick={() => {
 					setExpanded(!expanded);
 				}}
 			>
-				<div></div>
-				<div>{props.vuln.title}</div>
+				<Tooltip placement="bottom" title={tooltipText} delay={1}>
+					<div>
+						<span>{vuln.source.name}</span>
+						<span className="subtle">{subtleText}</span>
+					</div>
+				</Tooltip>
+				<Severity severity={criticalityToRiskSeverity(vuln.severity ?? "unknown")} />
 			</Row>
 			{expanded && (
 				<Modal
@@ -252,43 +263,6 @@ const VulnRow = (props: { vuln: VulnerabilityIssue }) => {
 	);
 };
 
-const LibraryWithVulnRow = (props: { issue: VulnerabilityIssue }) => {
-	const [expanded, setExpanded] = useState<boolean>(false);
-	const vuln = props.issue;
-
-	const subtleText = vuln.remediation
-		? `${vuln.source.version} -> ${vuln.remediation}`
-		: `${vuln.source.version}`;
-	const tooltipText = vuln.remediation
-		? `Recommended fix: upgrade ${vuln.source.version} to ${vuln.remediation}`
-		: undefined;
-
-	return (
-		<>
-			<Row
-				style={{ padding: "0 10px 0 30px" }}
-				className={"pr-row"}
-				onClick={() => {
-					setExpanded(!expanded);
-				}}
-			>
-				<div>
-					{expanded && <Icon name="chevron-down-thin" />}
-					{!expanded && <Icon name="chevron-right-thin" />}
-				</div>
-				<div>
-					{vuln.source.name}{" "}
-					<Tooltip placement="bottom" title={tooltipText} delay={1}>
-						<span className="subtle">{subtleText}</span>
-					</Tooltip>
-				</div>
-				<Severity severity={criticalityToRiskSeverity(vuln.severity ?? "unknown")} />
-			</Row>
-			{expanded && <VulnRow vuln={vuln} />}
-		</>
-	);
-};
-
 const LicenseDependencyRow = (props: { issue: LicenseDependencyIssue }) => {
 	const [expanded, setExpanded] = useState<boolean>(false);
 	const licenseDependency = props.issue;
@@ -305,7 +279,6 @@ const LicenseDependencyRow = (props: { issue: LicenseDependencyIssue }) => {
 					setExpanded(!expanded);
 				}}
 			>
-				<div></div>
 				<div>
 					<Tooltip placement="bottom" title={licenseIssueText} delay={1}>
 						<span>{licenseIssueText}</span>
@@ -381,7 +354,7 @@ export const FossaIssues = React.memo((props: Props) => {
 				issueType={["vulnerability", "vulnerabilities"]}
 				issues={vulnPaginatedIssues}
 				error={vulnError}
-				IssueComponent={LibraryWithVulnRow}
+				IssueComponent={VulnerabilityRow}
 				IssuesLoading={VulnLoading}
 				loading={vulnLoading}
 				showMore={showMoreVuln}
