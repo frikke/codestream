@@ -117,32 +117,32 @@ export const CodeAnalyzers = (props: Props) => {
 		}
 	}, [currentRepoId, props.paneState]);
 
+	const resetIssuesArrays = () => {
+		setLicDepCache([]);
+		setLicDepPaginatedIssues([]);
+		setVulnCache([]);
+		setVulnPaginatedIssues([]);
+	};
+
+	const pagination = (licDeps: LicenseDependencyIssue[], vulns: VulnerabilityIssue[]): void => {
+		if (licDeps.length < RESULTS_PER_PAGE) {
+			setLicDepPageNum(INVALID_PAGE_NUM);
+		}
+		setLicDepPaginatedIssues(prevLicDepPaginatedRes => [
+			...prevLicDepPaginatedRes,
+			...licDeps.splice(0, PAGINATION_SIZE),
+		]);
+		if (vulns.length < RESULTS_PER_PAGE) {
+			setVulnPageNum(INVALID_PAGE_NUM);
+		}
+		setVulnPaginatedIssues(prevVulnPaginatedRes => [
+			...prevVulnPaginatedRes,
+			...vulns.splice(0, PAGINATION_SIZE),
+		]);
+	};
+
 	useEffect(() => {
 		if (!(vulnPageNum === FIRST_PAGE_NUM && licDepPageNum === FIRST_PAGE_NUM)) return;
-
-		const resetIssuesArrays = () => {
-			setLicDepCache([]);
-			setLicDepPaginatedIssues([]);
-			setVulnCache([]);
-			setVulnPaginatedIssues([]);
-		};
-
-		const pagination = (licDeps: LicenseDependencyIssue[], vulns: VulnerabilityIssue[]): void => {
-			if (licDeps.length < RESULTS_PER_PAGE) {
-				setLicDepPageNum(INVALID_PAGE_NUM);
-			}
-			setLicDepPaginatedIssues(prevLicDepPaginatedRes => [
-				...prevLicDepPaginatedRes,
-				...licDeps.splice(0, PAGINATION_SIZE),
-			]);
-			if (vulns.length < RESULTS_PER_PAGE) {
-				setVulnPageNum(INVALID_PAGE_NUM);
-			}
-			setVulnPaginatedIssues(prevVulnPaginatedRes => [
-				...prevVulnPaginatedRes,
-				...vulns.splice(0, PAGINATION_SIZE),
-			]);
-		};
 
 		const fetchData = async (): Promise<void> => {
 			let error: string | undefined;
@@ -152,8 +152,10 @@ export const CodeAnalyzers = (props: Props) => {
 					const isRepoMatch: boolean | undefined = await fetchMatchRepoToFossa();
 					if (isRepoMatch) {
 						resetIssuesArrays();
-						const licDeps = await fetchLicenseDependencies();
-						const vulns = await fetchVulnerabilities();
+						const [licDeps, vulns] = await Promise.all([
+							fetchLicenseDependencies(),
+							fetchVulnerabilities(),
+						]);
 						pagination(licDeps, vulns);
 						setLoading(false);
 					} else {
