@@ -46,12 +46,22 @@ export const FossaLoading = () => {
 	);
 };
 
-export const IssuesLoading = () => {
+export const VulnLoading = () => {
 	return (
 		<>
 			<SkeletonFlexContainer>
 				<SkeletonLoader style={{ width: "55%", margin: "3px 10px 3px 30px" }} />
 				<SkeletonLoader style={{ width: "6%", margin: "3px 10px 3px 0px" }} />
+			</SkeletonFlexContainer>
+		</>
+	);
+};
+
+export const LicDepLoading = () => {
+	return (
+		<>
+			<SkeletonFlexContainer>
+				<SkeletonLoader style={{ width: "70%", margin: "3px 10px 3px 30px" }} />
 			</SkeletonFlexContainer>
 		</>
 	);

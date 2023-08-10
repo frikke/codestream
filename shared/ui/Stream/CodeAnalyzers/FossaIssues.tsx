@@ -14,7 +14,7 @@ import { ErrorRow } from "@codestream/webview/Stream/Observability";
 import { Modal } from "@codestream/webview/Stream/Modal";
 import { MarkdownText } from "@codestream/webview/Stream/MarkdownText";
 import { CardTitle } from "@codestream/webview/Stream/SecurityIssuesWrapper";
-import { IssuesLoading } from "./FossaLoading";
+import { VulnLoading, LicDepLoading } from "./FossaLoading";
 
 interface Props {
 	licDepLoading: boolean;
@@ -34,8 +34,10 @@ const StyledSpan = styled.span`
 	margin-right: 5px;
 `;
 
-type LibraryWithVulnRowFunction = (props: { issue: VulnerabilityIssue }) => JSX.Element;
-type LicenseDependencyRowFunction = (props: { issue: LicenseDependencyIssue }) => JSX.Element;
+type LibraryWithVulnRowComponent = (props: { issue: VulnerabilityIssue }) => JSX.Element;
+type LicenseDependencyRowComponent = (props: { issue: LicenseDependencyIssue }) => JSX.Element;
+type VulnLoadingComponent = () => JSX.Element;
+type LicDepLoadingComponent = () => JSX.Element;
 
 const severityColorMap: Record<VulnSeverity, string> = {
 	critical: "#f52222",
@@ -156,15 +158,25 @@ const Additional = (props: { issueType: string; onClick: () => void }) => {
 const Issues = (props: {
 	expanded: boolean;
 	issueType: string[];
-	issues: VulnerabilityIssue[] | LicenseDependencyIssue[];
+	issues: LicenseDependencyIssue[] | VulnerabilityIssue[];
 	error: string | undefined;
-	IssueComponent: LibraryWithVulnRowFunction | LicenseDependencyRowFunction;
+	IssueComponent: LicenseDependencyRowComponent | LibraryWithVulnRowComponent;
+	IssuesLoading: LicDepLoadingComponent | VulnLoadingComponent;
 	loading: boolean;
 	showMore: boolean;
 	showMoreCb: () => void;
 }) => {
-	const { expanded, issueType, issues, error, IssueComponent, loading, showMore, showMoreCb } =
-		props;
+	const {
+		expanded,
+		issueType,
+		issues,
+		error,
+		IssueComponent,
+		IssuesLoading,
+		loading,
+		showMore,
+		showMoreCb,
+	} = props;
 	const [singularized, pluralized] = issueType;
 	return (
 		<>
@@ -370,6 +382,7 @@ export const FossaIssues = React.memo((props: Props) => {
 				issues={vulnPaginatedIssues}
 				error={vulnError}
 				IssueComponent={LibraryWithVulnRow}
+				IssuesLoading={VulnLoading}
 				loading={vulnLoading}
 				showMore={showMoreVuln}
 				showMoreCb={showMoreVulnCb}
@@ -395,6 +408,7 @@ export const FossaIssues = React.memo((props: Props) => {
 				issues={licDepPaginatedIssues}
 				error={licDepError}
 				IssueComponent={LicenseDependencyRow}
+				IssuesLoading={LicDepLoading}
 				loading={licDepLoading}
 				showMore={showMoreLicDep}
 				showMoreCb={showMoreLicDepCb}
