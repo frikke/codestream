@@ -165,6 +165,7 @@ const Issues = (props: {
 }) => {
 	const { expanded, issueType, issues, error, IssueComponent, loading, showMore, showMoreCb } =
 		props;
+	const [singularized, pluralized] = issueType;
 	return (
 		<>
 			{expanded && issues.length > 0 && (
@@ -173,12 +174,12 @@ const Issues = (props: {
 						return <IssueComponent issue={issue} />;
 					})}
 					{loading && <IssuesLoading></IssuesLoading>}
-					{showMore && <Additional issueType={issueType[1]} onClick={showMoreCb} />}
+					{showMore && <Additional issueType={pluralized} onClick={showMoreCb} />}
 				</>
 			)}
 			{expanded && !error && issues.length === 0 && (
 				<Row style={{ padding: "0 10px 0 30px" }}>
-					<div>👍&nbsp; No {issueType[0]} issues found</div>
+					<div>👍&nbsp; No {singularized} issues found</div>
 				</Row>
 			)}
 			{expanded && error && issues.length === 0 && (
