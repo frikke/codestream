@@ -115,9 +115,13 @@ export const Sidebar = React.memo(function Sidebar() {
 		}
 		if (isFeatureEnabled(state, "PDIdev")) {
 			sidebarPaneOrder = sidebarPaneOrder.filter(
-				_ => _ !== WebviewPanels.OpenReviews && _ !== WebviewPanels.CodemarksForFile,
+				_ => _ !== WebviewPanels.OpenReviews && _ !== WebviewPanels.CodemarksForFile
 			);
 		}
+		if (!isFeatureEnabled(state, "showCodeAnalyzers")) {
+			sidebarPaneOrder = sidebarPaneOrder.filter(_ => _ !== WebviewPanels.CodeAnalyzers);
+		}
+
 		return {
 			repos,
 			sidebarPanes: preferences.sidebarPanes || EMPTY_HASH,
@@ -351,11 +355,11 @@ export const Sidebar = React.memo(function Sidebar() {
 		if (firstIndex === undefined || secondIndex === undefined) return;
 		const firstId = positions[firstIndex].id;
 		dispatch(
-			setUserPreference({ prefPath: ["sidebarPanes", firstId, "size"], value: sizes[firstId] }),
+			setUserPreference({ prefPath: ["sidebarPanes", firstId, "size"], value: sizes[firstId] })
 		);
 		const secondId = positions[secondIndex].id;
 		dispatch(
-			setUserPreference({ prefPath: ["sidebarPanes", secondId, "size"], value: sizes[secondId] }),
+			setUserPreference({ prefPath: ["sidebarPanes", secondId, "size"], value: sizes[secondId] })
 		);
 	};
 
