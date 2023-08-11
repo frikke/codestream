@@ -8,7 +8,7 @@ import { CSMe, CSTeamSettings } from "@codestream/protocols/api";
 import React, { useEffect, useMemo, useState } from "react";
 import styled from "styled-components";
 import { OpenUrlRequestType } from "@codestream/protocols/webview";
-import { WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
+import { WebviewPanels } from "@codestream/protocols/api";
 import { Button } from "@codestream/webview/src/components/Button";
 import { ButtonRow, Dialog } from "@codestream/webview/src/components/Dialog";
 import { Headshot } from "@codestream/webview/src/components/Headshot";
@@ -277,7 +277,7 @@ export default function IssuesPane(props: Props) {
 		// Per https://newrelic.atlassian.net/browse/CDSTRM-1591, the need for the "pre-PR" modal
 		// is discontinued ... if we bring it back, suggest we figure out a way not to repeat the
 		// logic below across all our launch integration points - Colin
-		
+
 		if (
 			(providerInfo.provider.needsConfigure ||
 				(providerInfo.provider.needsConfigureForOnPrem && derivedState.isOnPrem)) &&
@@ -298,7 +298,7 @@ export default function IssuesPane(props: Props) {
 			//		action: () => this.props.openPanel(`configure-enterprise-${name}-${id}`)
 			//		}
 			//	});
-			//	} else 
+			//	} else
 			dispatch(openPanel(`configure-enterprise-${name}-${id}-Issues Section`));
 		} else {
 			const { name } = providerInfo.provider;
@@ -773,7 +773,7 @@ export const IssueList = React.memo((props: React.PropsWithChildren<IssueListPro
 								icon: <Icon name={providerDisplay.icon} />,
 								key: "card-" + card.id,
 								provider,
-							} as CardView)
+							}) as CardView
 					)
 			);
 		});
@@ -933,7 +933,7 @@ export const IssueList = React.memo((props: React.PropsWithChildren<IssueListPro
 				setTestCards(cardsWithProvider);
 			} else {
 				setLoadingTest(false);
-				setTestCards(response.cards.map(card => ({ ...card, key: "card-" + card.id } as CardView)));
+				setTestCards(response.cards.map(card => ({ ...card, key: "card-" + card.id }) as CardView));
 			}
 		}
 	};

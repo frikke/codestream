@@ -14,7 +14,7 @@ import { getUserProviderInfoFromState } from "@codestream/webview/store/provider
 import { isConnected } from "@codestream/webview/store/providers/reducer";
 import { useMemoizedState, usePrevious } from "@codestream/webview/utilities/hooks";
 import { isFeatureEnabled } from "@codestream/webview/store/apiVersioning/reducer";
-import { WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
+import { WebviewPanels } from "@codestream/protocols/api";
 import {
 	PaneBody,
 	PaneHeader,

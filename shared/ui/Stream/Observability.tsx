@@ -43,7 +43,7 @@ import {
 } from "@codestream/protocols/webview";
 import { SecurityIssuesWrapper } from "@codestream/webview/Stream/SecurityIssuesWrapper";
 import { ObservabilityServiceLevelObjectives } from "@codestream/webview/Stream/ObservabilityServiceLevelObjectives";
-import { WebviewPanels } from "../ipc/webview.protocol.common";
+import { WebviewPanels } from "@codestream/protocols/api";
 import { Button } from "../src/components/Button";
 import {
 	NoContent,

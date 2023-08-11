@@ -9,6 +9,44 @@ import {
 } from "./agent.protocol";
 import { CSEligibleJoinCompany, CSReviewCheckpoint } from "./api.protocol";
 
+/* NOTE: there can be dynamic panel names that begin with configure-provider- or configure-enterprise- */
+export enum WebviewPanels {
+	Activity = "activity",
+	Codemarks = "knowledge",
+	CodemarksForFile = "codemarks-for-file",
+	Export = "export",
+	FilterSearch = "filter-search",
+	Invite = "invite",
+	NewComment = "new-comment",
+	NewIssue = "new-issue",
+	NewReview = "new-review",
+	Profile = "profile", // DO NOT USE
+	PullRequest = "pull-request",
+	Review = "review",
+	Status = "status",
+	Tasks = "tasks",
+	LandingRedirect = "landing-redirect", // new customers and signins go here
+	PRInfo = "pr-info",
+	Integrations = "integrations",
+	GettingStarted = "gtting-started", // this is a typo but now baked into user data, so let's just leave it
+	NewPullRequest = "new-pull-request",
+	Flow = "flow",
+	Tester = "tester",
+	Sidebar = "sidebar",
+	OpenReviews = "open-reviews",
+	OpenPullRequests = "open-pull-requests",
+	Onboard = "onboard",
+	OnboardNewRelic = "onboard-newrelic",
+	Commits = "commits",
+	ErrorsInbox = "errorsinbox",
+	CodeError = "code-error",
+	Observability = "observability",
+	PixieDynamicLogging = "pixie-dynamic-logging",
+	MethodLevelTelemetry = "method-level-telemetry",
+	ObservabilityAnomaly = "observability-anomaly",
+	CICD = "ci-cd",
+	CodeAnalyzers = "code-analyzers",
+}
 export interface CSEntity {
 	deactivated?: boolean;
 	createdAt: number;
@@ -765,6 +803,16 @@ export enum CodeErrorTimeWindow {
 	"SevenDays" = "7 days",
 }
 
+export type SidebarPanes = {
+	[P in WebviewPanels]: {
+		id: WebviewPanels;
+		collapsed?: boolean;
+		maximized?: boolean;
+		removed?: boolean;
+		size?: number;
+	}
+}
+
 export interface CSMePreferences {
 	telemetryConsent?: boolean; // legacy
 	telemetryOptOut?: boolean;
@@ -816,8 +864,9 @@ export interface CSMePreferences {
 
 	// whether the user accepted our terms of service
 	acceptedTOS?: boolean;
+	sidebarPanes?: SidebarPanes;
+	sidebarPaneOrder?: WebviewPanels[];
 
-	[key: string]: any;
 	/** teamId to settings */
 	activityFilter?: { [key: string]: ActivityFilter | undefined };
 	demoMode?: boolean;
@@ -829,6 +878,7 @@ export interface CSMePreferences {
 	};
 	codeErrorTimeWindow?: CodeErrorTimeWindow;
 	clmSettings?: CLMSettings;
+	[key: string]: any;
 }
 
 export interface CLMSettings {

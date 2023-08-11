@@ -8,7 +8,7 @@ import Icon from "@codestream/webview/Stream/Icon";
 import { HostApi } from "@codestream/webview/webview-api";
 import { OpenUrlRequestType } from "../../ipc/host.protocol";
 import { CodeStreamState } from "@codestream/webview/store";
-import { WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
+import { WebviewPanels } from "@codestream/protocols/api";
 import { openPanel } from "@codestream/webview/Stream/actions";
 
 const Root = styled.span`

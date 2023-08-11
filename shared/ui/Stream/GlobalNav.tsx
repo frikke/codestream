@@ -5,7 +5,7 @@ import {
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import cx from "classnames";
 import React from "react";
-import { WebviewPanels } from "../ipc/webview.protocol.common";
+import { WebviewPanels } from "@codestream/protocols/api";
 import { HeadshotName } from "../src/components/HeadshotName";
 import { CodeStreamState } from "../store";
 import {

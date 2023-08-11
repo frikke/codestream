@@ -24,8 +24,8 @@ import {
 	EditorMetrics,
 	EditorScrollMode,
 	EditorSelection,
-	WebviewPanels,
 } from "@codestream/webview/ipc/webview.protocol.common";
+import { WebviewPanels } from "@codestream/protocols/api";
 import { Switch } from "../src/components/controls/Switch";
 import { PanelHeader } from "../src/components/PanelHeader";
 import { CodeStreamState } from "../store";

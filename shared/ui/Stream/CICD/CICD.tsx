@@ -10,7 +10,7 @@ import { getUserProviderInfoFromState } from "@codestream/webview/store/provider
 import { HostApi } from "@codestream/webview/webview-api";
 import React, { useEffect, useState } from "react";
 import { shallowEqual, useSelector } from "react-redux";
-import { WebviewPanels } from "../../ipc/webview.protocol.common";
+import { WebviewPanels } from "@codestream/protocols/api";
 import { PaneBody, PaneHeader, PaneState } from "../../src/components/Pane";
 import Icon from "../Icon";
 import { CircleCIBuilds } from "./CircleCIBuilds";

@@ -18,7 +18,7 @@ import {
 	ShowNextChangedFileRequestType,
 	ShowPreviousChangedFileRequestType,
 } from "@codestream/protocols/webview";
-import { WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
+import { WebviewPanels } from "@codestream/protocols/api";
 import { DelayedRender } from "@codestream/webview/Container/DelayedRender";
 import { Loading } from "@codestream/webview/Container/Loading";
 import {
@@ -933,26 +933,29 @@ const BaseReview = (props: BaseReviewProps) => {
 						</Meta>
 					)}
 					{!props.collapsed && checkpoint === undefined && renderCommitList()}
-					{!props.collapsed && props.post && props.post.sharedTo && props.post.sharedTo.length > 0 && (
-						<Meta key="shared-to">
-							<MetaLabel>Shared To</MetaLabel>
-							<MetaDescriptionForAssignees>
-								{props.post.sharedTo.map(target => {
-									const providerDisplay = PROVIDER_MAPPINGS[target.providerId];
-									return (
-										<Link className="external-link" href={target.url}>
-											{providerDisplay && providerDisplay.icon && (
-												<span>
-													<Icon name={providerDisplay.icon} />
-												</span>
-											)}
-											{target.channelName}
-										</Link>
-									);
-								})}
-							</MetaDescriptionForAssignees>
-						</Meta>
-					)}
+					{!props.collapsed &&
+						props.post &&
+						props.post.sharedTo &&
+						props.post.sharedTo.length > 0 && (
+							<Meta key="shared-to">
+								<MetaLabel>Shared To</MetaLabel>
+								<MetaDescriptionForAssignees>
+									{props.post.sharedTo.map(target => {
+										const providerDisplay = PROVIDER_MAPPINGS[target.providerId];
+										return (
+											<Link className="external-link" href={target.url}>
+												{providerDisplay && providerDisplay.icon && (
+													<span>
+														<Icon name={providerDisplay.icon} />
+													</span>
+												)}
+												{target.channelName}
+											</Link>
+										);
+									})}
+								</MetaDescriptionForAssignees>
+							</Meta>
+						)}
 				</MetaSection>
 				{props.collapsed && renderMetaSectionCollapsed(props)}
 			</CardBody>

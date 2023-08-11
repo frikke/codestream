@@ -24,7 +24,7 @@ import KeystrokeDispatcher from "../utilities/keystroke-dispatcher";
 import { getReviewChangeRequests } from "../store/codemarks/reducer";
 import { ReviewForm } from "./ReviewForm";
 import { openPanel } from "../store/context/actions";
-import { WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
+import { WebviewPanels } from "@codestream/protocols/api";
 import { isFeatureEnabled } from "../store/apiVersioning/reducer";
 import { getPRLabel } from "../store/providers/reducer";
 import { getSidebarLocation } from "../store/editorContext/reducer";

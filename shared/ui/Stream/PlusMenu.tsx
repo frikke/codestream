@@ -1,7 +1,7 @@
 import React from "react";
 import { useAppDispatch, useAppSelector, useDidMount } from "../utilities/hooks";
 import { CodeStreamState } from "../store";
-import { WebviewPanels } from "../ipc/webview.protocol.common";
+import { WebviewPanels } from "@codestream/protocols/api";
 import Icon from "./Icon";
 import { openPanel } from "./actions";
 import Menu from "./Menu";

@@ -70,7 +70,7 @@ import {
 	WebviewDidInitializeNotificationType,
 	ViewAnomalyNotificationType,
 } from "./ipc/webview.protocol";
-import { WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
+import { WebviewPanels } from "@codestream/protocols/api";
 import { store } from "./store";
 import { bootstrap, reset } from "./store/actions";
 import {

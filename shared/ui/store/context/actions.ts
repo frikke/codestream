@@ -3,7 +3,7 @@ import {
 	RegisterUserRequest,
 	RepoProjectType,
 } from "@codestream/protocols/agent";
-import { CodemarkType } from "@codestream/protocols/api";
+import { CodemarkType, WebviewPanels } from "@codestream/protocols/api";
 
 import {
 	HostDidReceiveRequestNotificationType,
@@ -18,7 +18,6 @@ import {
 	CodeErrorData,
 	TeamlessContext,
 	WebviewModals,
-	WebviewPanels,
 } from "@codestream/webview/ipc/webview.protocol.common";
 
 export const reset = () => action("RESET");

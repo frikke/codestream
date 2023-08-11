@@ -13,7 +13,7 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import { CSMarker } from "@codestream/protocols/api";
 
-import { WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
+import { WebviewPanels } from "@codestream/protocols/api";
 import { NewCodemarkNotificationType } from "../ipc/webview.protocol";
 import { fetchDocumentMarkers } from "../store/documentMarkers/actions";
 import { ComponentUpdateEmitter, isNotOnDisk, uriToFilePath } from "../utils";

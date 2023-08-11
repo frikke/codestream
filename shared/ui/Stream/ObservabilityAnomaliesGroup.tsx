@@ -6,7 +6,8 @@ import { ErrorRow } from "./Observability";
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import Icon from "./Icon";
 import { HostApi } from "@codestream/webview/webview-api";
-import { EditorRevealSymbolRequestType, WebviewPanels } from "@codestream/protocols/webview";
+import { EditorRevealSymbolRequestType } from "@codestream/protocols/webview";
+import { WebviewPanels } from "@codestream/protocols/api";
 import {
 	closeAllPanels,
 	openPanel,

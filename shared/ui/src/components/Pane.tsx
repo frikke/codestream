@@ -5,7 +5,7 @@ import Draggable from "react-draggable";
 import { shallowEqual } from "react-redux";
 import styled from "styled-components";
 
-import { WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
+import { WebviewPanels } from "@codestream/protocols/api";
 import { CodeStreamState } from "@codestream/webview/store";
 import {
 	setPaneCollapsed,
@@ -480,7 +480,9 @@ const Root = styled.div`
 	width: 100%;
 	left: 1px;
 	.animate-height & {
-		transition: height 0.25s, top 0.25s;
+		transition:
+			height 0.25s,
+			top 0.25s;
 	}
 	.expander {
 		margin: 0 2px 0 -2px;

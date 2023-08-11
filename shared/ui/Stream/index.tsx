@@ -32,7 +32,8 @@ import {
 	NewReviewNotificationType,
 	PixieDynamicLoggingType,
 } from "../ipc/webview.protocol";
-import { WebviewModals, WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
+import { WebviewModals } from "@codestream/webview/ipc/webview.protocol.common";
+import { WebviewPanels } from "@codestream/protocols/api";
 import { isFeatureEnabled } from "../store/apiVersioning/reducer";
 import { canCreateCodemark } from "../store/codemarks/actions";
 import { getCodemark } from "../store/codemarks/reducer";

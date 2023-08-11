@@ -23,7 +23,7 @@ import IssuesPane from "./CrossPostIssueControls/IssuesPane";
 import { Observability } from "./Observability";
 import { OpenPullRequests } from "./OpenPullRequests";
 import { OpenReviews } from "./OpenReviews";
-import { WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
+import { WebviewPanels } from "@codestream/protocols/api";
 import { isFeatureEnabled } from "../store/apiVersioning/reducer";
 
 const Root = styled.div`
@@ -218,7 +218,7 @@ export const Sidebar = React.memo(function Sidebar() {
 	// }, [derivedState.hasPRProvider, openRepos]);
 
 	const panes: {
-		id: WebviewPanels;
+		id: string;
 		removed: boolean;
 		collapsed: boolean;
 		maximized: boolean;

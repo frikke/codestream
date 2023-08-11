@@ -6,11 +6,8 @@ import {
 import { CodemarkType } from "@codestream/protocols/api";
 
 import { NewPullRequestBranch } from "@codestream/protocols/webview";
-import {
-	WebviewContext,
-	WebviewModals,
-	WebviewPanels,
-} from "@codestream/webview/ipc/webview.protocol.common";
+import { WebviewContext, WebviewModals } from "@codestream/webview/ipc/webview.protocol.common";
+import { WebviewPanels } from "@codestream/protocols/api";
 import { AnyObject } from "@codestream/webview/utils";
 
 export enum ContextActionsType {

@@ -31,11 +31,12 @@ import Select from "react-select";
 import { Range } from "vscode-languageserver-types";
 
 import { upgradePendingCodeError } from "@codestream/webview/store/codeErrors/thunks";
-import { EditorSelection, WebviewPanels } from "@codestream/webview/ipc/webview.protocol.common";
+import { EditorSelection } from "@codestream/webview/ipc/webview.protocol.common";
 import {
 	EditorHighlightRangeRequestType,
 	EditorSelectRangeRequestType,
 } from "@codestream/protocols/webview";
+import { WebviewPanels } from "@codestream/protocols/api";
 import { Checkbox } from "../src/components/Checkbox";
 import { LabeledSwitch } from "../src/components/controls/LabeledSwitch";
 import { CSText } from "../src/components/CSText";

@@ -1,7 +1,8 @@
 import { logout } from "@codestream/webview/store/session/thunks";
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import React from "react";
-import { WebviewPanels, WebviewModals } from "../ipc/webview.protocol.common";
+import { WebviewModals } from "../ipc/webview.protocol.common";
+import { WebviewPanels } from "@codestream/protocols/api";
 import Icon from "./Icon";
 import { openModal, openPanel } from "./actions";
 import Menu from "./Menu";

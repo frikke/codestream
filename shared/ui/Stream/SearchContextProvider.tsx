@@ -1,8 +1,7 @@
 import React from "react";
 import { noop } from "../utils";
-import { useDispatch } from "react-redux";
 import { openPanel, setCurrentCodemark } from "../store/context/actions";
-import { WebviewPanels } from "../ipc/webview.protocol.common";
+import { WebviewPanels } from "@codestream/protocols/api";
 import { useAppDispatch, useDidMount } from "../utilities/hooks";
 import { HostApi } from "../webview-api";
 import { HostDidReceiveRequestNotificationType } from "../ipc/host.protocol.notifications";

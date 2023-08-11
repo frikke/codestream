@@ -30,7 +30,8 @@ import {
 	PaneNode,
 	PaneNodeName,
 } from "../src/components/Pane";
-import { WebviewModals, WebviewPanels } from "../ipc/webview.protocol.common";
+import { WebviewModals } from "../ipc/webview.protocol.common";
+import { WebviewPanels } from "@codestream/protocols/api";
 import { Link } from "./Link";
 import { ReviewsLoading } from "@codestream/webview/Stream/ReviewsLoading";
 
