@@ -54,6 +54,7 @@ export const CodeAnalyzers = (props: Props) => {
 	const [vulnError, setVulnError] = useState<string | undefined>(undefined);
 	const [vulnPageNum, setVulnPageNum] = useState<number>(INVALID_PAGE_NUM);
 	const [currentRepoId, setCurrentRepoId] = useMemoizedState<string | undefined | null>(null);
+	const previousCurrentRepoId = usePrevious(currentRepoId);
 
 	const derivedState = useSelector((state: CodeStreamState) => {
 		const { editorContext, providers } = state;
@@ -109,7 +110,7 @@ export const CodeAnalyzers = (props: Props) => {
 		if (!derivedState.showCodeAnalyzers || props.paneState === PaneState.Collapsed) {
 			return;
 		}
-		if (currentRepoId !== null) {
+		if (currentRepoId !== null && previousCurrentRepoId !== currentRepoId) {
 			setLicDepPageNum(FIRST_PAGE_NUM);
 			setVulnPageNum(FIRST_PAGE_NUM);
 		} else {
