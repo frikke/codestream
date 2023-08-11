@@ -2,7 +2,7 @@ import {
 	DeleteCompanyRequestType,
 	UpdateTeamSettingsRequestType,
 } from "@codestream/protocols/agent";
-import { isEmpty as _isEmpty, sortBy as _sortBy } from "lodash-es";
+import { isEmpty as _isEmpty, sortBy as _sortBy, filter as _filter } from "lodash-es";
 import React from "react";
 import styled from "styled-components";
 import { OpenUrlRequestType } from "@codestream/protocols/webview";
@@ -62,9 +62,16 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		const currentHost = environmentHosts?.find(host => host.shortName === environment);
 		const supportsMultiRegion = isFeatureEnabled(state, "multiRegion");
 
+		let sidebarPanes = state.preferences.sidebarPanes || EMPTY_HASH;
+		let sidebarPaneOrder = state.preferences.sidebarPaneOrder || AVAILABLE_PANES;
+		if (!isFeatureEnabled(state, "showCodeAnalyzers")) {
+			sidebarPanes = _filter(sidebarPanes, _ => _ !== WebviewPanels.CodeAnalyzers);
+			sidebarPaneOrder = sidebarPaneOrder.filter(_ => _ !== WebviewPanels.CodeAnalyzers);
+		}
+
 		return {
-			sidebarPanePreferences: state.preferences.sidebarPanes || EMPTY_HASH,
-			sidebarPaneOrder: state.preferences.sidebarPaneOrder || AVAILABLE_PANES,
+			sidebarPanePreferences: sidebarPanes,
+			sidebarPaneOrder: sidebarPaneOrder,
 			userCompanies: _sortBy(Object.values(state.companies), "name"),
 			userTeams: _sortBy(
 				Object.values(state.teams).filter(t => !t.deactivated),
