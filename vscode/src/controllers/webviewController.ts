@@ -24,7 +24,7 @@ import {
 	ReportingMessageType,
 	VersionCompatibility
 } from "@codestream/protocols/agent";
-import { CodemarkType, CSApiCapabilities } from "@codestream/protocols/api";
+import { CodemarkType, CSApiCapabilities, WebviewPanels } from "@codestream/protocols/api";
 import {
 	ActiveEditorInfo,
 	ApplyMarkerRequestType,
@@ -90,8 +90,7 @@ import {
 	WebviewDidInitializeNotificationType,
 	WebviewIpcMessage,
 	WebviewIpcNotificationMessage,
-	WebviewIpcRequestMessage,
-	WebviewPanels
+	WebviewIpcRequestMessage
 } from "@codestream/protocols/webview";
 import {
 	authentication,
@@ -161,7 +160,10 @@ export class WebviewController implements Disposable {
 
 	private readonly _notifyActiveEditorChangedDebounced: (e: TextEditor | undefined) => void;
 
-	constructor(public readonly session: CodeStreamSession, private _webview?: WebviewLike) {
+	constructor(
+		public readonly session: CodeStreamSession,
+		private _webview?: WebviewLike
+	) {
 		this._disposable = Disposable.from(
 			this.session.onDidChangeSessionStatus(this.onSessionStatusChanged, this),
 			window.onDidChangeActiveTextEditor(this.onActiveEditorChanged, this),
