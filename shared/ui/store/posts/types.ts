@@ -1,5 +1,6 @@
 import { CodemarkPlus, PostPlus } from "@codestream/protocols/agent";
 import { Index } from "@codestream/utils/types";
+import { RecombinedStream } from "@codestream/webview/store/posts/recombinedStream";
 
 export interface PendingPost
 	extends Pick<
@@ -30,12 +31,6 @@ export type GrokStreamEvent = {
 	streamId: string;
 	postId: string;
 	content?: string;
-	done: boolean;
-};
-
-export type RecombinedStream = {
-	items: GrokStreamEvent[];
-	content: string;
 	done: boolean;
 };
 

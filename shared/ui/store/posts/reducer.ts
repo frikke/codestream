@@ -4,15 +4,12 @@ import { createSelector } from "reselect";
 import { CodeStreamState } from "..";
 import { ActionType } from "../common";
 import * as actions from "./actions";
-import {
-	GrokStreamEvent,
-	isPending,
-	Post,
-	PostsActionsType,
-	PostsState,
-	RecombinedStream,
-} from "./types";
+import { isPending, Post, PostsActionsType, PostsState } from "./types";
 import { PostPlus } from "@codestream/protocols/agent";
+import {
+	advanceRecombinedStream,
+	RecombinedStream,
+} from "@codestream/webview/store/posts/recombinedStream";
 
 type PostsActions = ActionType<typeof actions>;
 
@@ -159,20 +156,6 @@ export const getPostsForStream = createSelector(
 		];
 	}
 );
-
-function advanceRecombinedStream(recombinedStream: RecombinedStream, payload: GrokStreamEvent[]) {
-	recombinedStream.items = recombinedStream.items.concat(payload);
-	recombinedStream.items.sort((a, b) => a.sequence - b.sequence);
-	recombinedStream.done = payload.find(it => it.done) !== undefined;
-	recombinedStream.content = "";
-	for (let i = 0; i < recombinedStream.items.length; i++) {
-		const item = recombinedStream.items[i];
-		if (item.sequence !== i) {
-			return;
-		}
-		recombinedStream.content = recombinedStream.content + item.content;
-	}
-}
 
 export function isPostPlus(object: unknown): object is PostPlus {
 	const maybeCodeError = object as PostPlus;
