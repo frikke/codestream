@@ -114,15 +114,16 @@ export interface CSAsyncGrokError extends CSAsyncError {
 }
 
 export interface CSGrokStream {
+	sequence: number;
 	content?: {
 		content: string;
 		role: string;
 	},
 	extra: {
-		topmostPostId?: string;
-		codeErrorId?: string;
-		postId?: string;
-		streamId?: string;
+		topmostPostId: string;
+		codeErrorId: string;
+		postId: string;
+		streamId: string;
 		done?: boolean;
 	}
 }

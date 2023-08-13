@@ -4,7 +4,14 @@ import { createSelector } from "reselect";
 import { CodeStreamState } from "..";
 import { ActionType } from "../common";
 import * as actions from "./actions";
-import { isPending, Post, PostsActionsType, PostsState } from "./types";
+import {
+	GrokStreamEvent,
+	isPending,
+	Post,
+	PostsActionsType,
+	PostsState,
+	RecombinedStream,
+} from "./types";
 import { PostPlus } from "@codestream/protocols/agent";
 
 type PostsActions = ActionType<typeof actions>;
@@ -48,13 +55,18 @@ export function reducePosts(state: PostsState = initialState, action: PostsActio
 				byStream: { ...state.byStream },
 				streamingPosts: { ...state.streamingPosts },
 			};
-			const post = nextState.byStream[action.payload.streamId][action.payload.postId];
-			const existingText = nextState.streamingPosts[action.payload.postId] ?? "";
-			const nextText = existingText + action.payload.content;
-			// Post might not exist yet, so we accumulate the text in streamingPosts
-			nextState.streamingPosts[action.payload.postId] = nextText;
-			if (post) {
-				post.text = nextText;
+			const { streamId, postId } = action.payload[0];
+			const recombinedStream: RecombinedStream = nextState.streamingPosts[postId] ?? {
+				items: [],
+				done: false,
+				content: "",
+			};
+			advanceRecombinedStream(recombinedStream, action.payload);
+			// console.debug(`=== recombinedStream ${JSON.stringify(recombinedStream, null, 2)}`);
+			nextState.streamingPosts[postId] = recombinedStream;
+			const post = nextState.byStream[streamId][postId];
+			if (recombinedStream.content && post) {
+				post.text = recombinedStream.content;
 			}
 			return nextState;
 		}
@@ -117,6 +129,23 @@ export function reducePosts(state: PostsState = initialState, action: PostsActio
 	}
 }
 
+// A stream is done if it has a done event and there are no gaps in the sequence
+function isGrokStreamDone(stream: RecombinedStream) {
+	const doneEvent = stream.items.find(it => it.done);
+	return doneEvent && doneEvent.sequence === stream.items.length - 1;
+}
+
+const _isGrokLoading = (state: CodeStreamState) => {
+	// TODO add last stream update timestamp to state and use that as a way to detect incomplete stale streams
+	const recombinedStreams = state.posts.streamingPosts;
+	return Object.keys(recombinedStreams).some(postId => {
+		const stream = recombinedStreams[postId];
+		return !isGrokStreamDone(stream);
+	});
+};
+
+export const isGrokStreamLoading = createSelector(_isGrokLoading, state => state);
+
 export const getPostsForStream = createSelector(
 	(state: CodeStreamState) => state.posts,
 	(_, streamId?: string) => streamId,
@@ -130,6 +159,20 @@ export const getPostsForStream = createSelector(
 		];
 	}
 );
+
+function advanceRecombinedStream(recombinedStream: RecombinedStream, payload: GrokStreamEvent[]) {
+	recombinedStream.items = recombinedStream.items.concat(payload);
+	recombinedStream.items.sort((a, b) => a.sequence - b.sequence);
+	recombinedStream.done = payload.find(it => it.done) !== undefined;
+	recombinedStream.content = "";
+	for (let i = 0; i < recombinedStream.items.length; i++) {
+		const item = recombinedStream.items[i];
+		if (item.sequence !== i) {
+			return;
+		}
+		recombinedStream.content = recombinedStream.content + item.content;
+	}
+}
 
 export function isPostPlus(object: unknown): object is PostPlus {
 	const maybeCodeError = object as PostPlus;

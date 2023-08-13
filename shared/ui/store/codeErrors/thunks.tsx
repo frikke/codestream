@@ -52,6 +52,7 @@ import React from "react";
 import { getGrokPostLength } from "@codestream/webview/store/posts/reducer";
 import { URI } from "vscode-uri";
 import { clearResolvedFlag } from "@codestream/utils/api/codeErrorCleanup";
+import { GrokStreamEvent } from "@codestream/webview/store/posts/types";
 
 export const updateCodeErrors =
 	(codeErrors: CSCodeError[]) => async (dispatch, getState: () => CodeStreamState) => {
@@ -671,20 +672,15 @@ export const handleGrokError = (grokError: CSAsyncGrokError) => async dispatch =
 	}
 };
 
-export const handleGrokChonk = (event: CSGrokStream[]) => async dispatch => {
-	// console.log("chonkEvent", event);
-	if (event.length === 0) return;
-	const postId = event[0].extra.postId;
-	const streamId = event[0].extra.streamId;
-	if (postId && streamId) {
-		const bigChonk = event.reduce((acc, curr) => {
-			acc += curr.content?.content;
-			return acc;
-		}, "");
-		dispatch(appendGrokStreamingResponse({ streamId, postId, content: bigChonk }));
-	}
-	const doneEvent = event.find(e => e.extra.done === true);
-	if (doneEvent) {
-		dispatch(setGrokLoading(false));
-	}
+export const handleGrokChonk = (events: CSGrokStream[]) => async dispatch => {
+	if (events.length === 0) return;
+	const grokStoreEvents: GrokStreamEvent[] = events.map(e => ({
+		sequence: e.sequence,
+		postId: e.extra.postId,
+		streamId: e.extra.streamId,
+		content: e?.content?.content,
+		done: e.extra.done === true,
+	}));
+
+	dispatch(appendGrokStreamingResponse(grokStoreEvents));
 };

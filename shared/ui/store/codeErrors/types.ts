@@ -36,7 +36,6 @@ export type CodeErrorsState = {
 		errorGroup: NewRelicErrorGroup;
 	}>;
 	functionToEdit?: FunctionToEdit;
-	grokLoading: boolean;
 	grokRepliesLength: number;
 	grokError: CSAsyncError | undefined;
 	functionToEditFailed: boolean;

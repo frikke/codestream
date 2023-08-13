@@ -25,13 +25,27 @@ export function isPending(post: object | undefined): post is PendingPost {
 	return (post as PendingPost).pending;
 }
 
+export type GrokStreamEvent = {
+	sequence: number;
+	streamId: string;
+	postId: string;
+	content?: string;
+	done: boolean;
+};
+
+export type RecombinedStream = {
+	items: GrokStreamEvent[];
+	content: string;
+	done: boolean;
+};
+
 export interface PostsState {
 	byStream: {
 		[streamId: string]: Index<PostPlus>;
 	};
 	pending: PendingPost[];
 	streamingPosts: {
-		[postId: string]: string;
+		[postId: string]: RecombinedStream;
 	};
 }
 

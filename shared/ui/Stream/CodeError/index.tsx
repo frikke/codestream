@@ -37,6 +37,7 @@ import {
 	getGrokPostLength,
 	getThreadPosts,
 	getPost,
+	isGrokStreamLoading,
 } from "@codestream/webview/store/posts/reducer";
 import { isConnected } from "@codestream/webview/store/providers/reducer";
 import {
@@ -1180,7 +1181,7 @@ const BaseCodeError = (props: BaseCodeErrorProps) => {
 
 	const functionToEdit = useAppSelector(state => state.codeErrors.functionToEdit);
 	const functionToEditFailed = useAppSelector(state => state.codeErrors.functionToEditFailed);
-	const isGrokLoading = useAppSelector(state => state.codeErrors.grokLoading);
+	const isGrokLoading = useAppSelector(isGrokStreamLoading);
 	const currentGrokRepliesLength = useAppSelector(state =>
 		getGrokPostLength(state, codeError.streamId, codeError.postId)
 	);
@@ -1312,7 +1313,7 @@ const BaseCodeError = (props: BaseCodeErrorProps) => {
 				currentGrokRepliesLength,
 			});
 			if (loadGrokTimeout) {
-				console.debug("loadGrokTimeout", loadGrokTimeout);
+				// console.debug("loadGrokTimeout", loadGrokTimeout);
 				clearTimeout(loadGrokTimeout);
 				setLoadGrokTimeout(undefined);
 			}
@@ -1800,7 +1801,7 @@ const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 		};
 	}, shallowEqual);
 
-	const isGrokLoading = useAppSelector(state => state.codeErrors.grokLoading);
+	const isGrokLoading = useAppSelector(isGrokStreamLoading);
 	const grokError = useAppSelector(state =>
 		state.codeErrors.grokError
 			? { message: state.codeErrors.grokError.errorMessage, type: "warning" }
