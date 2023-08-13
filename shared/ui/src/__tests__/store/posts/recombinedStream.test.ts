@@ -1,12 +1,14 @@
 import { describe, expect, it } from "@jest/globals";
 import {
 	advanceRecombinedStream,
+	GROK_TIMEOUT,
+	isGrokStreamDone,
 	RecombinedStream,
 } from "@codestream/webview/store/posts/recombinedStream";
 
-describe("posts reducer RecombinedStream", () => {
+describe("RecombinedStream", () => {
 	it("should not have content when sequence 0 is missing", () => {
-		const recombinedStream = {
+		const recombinedStream: RecombinedStream = {
 			items: [
 				{
 					sequence: 1,
@@ -17,7 +19,7 @@ describe("posts reducer RecombinedStream", () => {
 				},
 			],
 			content: "",
-			done: false,
+			receivedDoneEvent: false,
 		};
 		advanceRecombinedStream(recombinedStream, [
 			{
@@ -29,12 +31,13 @@ describe("posts reducer RecombinedStream", () => {
 			},
 		]);
 		expect(recombinedStream.content).toBe("");
-		expect(recombinedStream.done).toBe(false);
+		expect(recombinedStream.receivedDoneEvent).toBe(false);
 		expect(recombinedStream.items.length).toBe(2);
+		expect(recombinedStream.lastMessageReceivedAt).toBeDefined();
 	});
 
 	it("should have content when sequence 0 is present", () => {
-		const recombinedStream = {
+		const recombinedStream: RecombinedStream = {
 			items: [
 				{
 					sequence: 0,
@@ -45,7 +48,7 @@ describe("posts reducer RecombinedStream", () => {
 				},
 			],
 			content: "",
-			done: false,
+			receivedDoneEvent: false,
 		};
 		advanceRecombinedStream(recombinedStream, [
 			{
@@ -58,12 +61,12 @@ describe("posts reducer RecombinedStream", () => {
 		]);
 
 		expect(recombinedStream.content).toBe("hot sauce");
-		expect(recombinedStream.done).toBe(false);
+		expect(recombinedStream.receivedDoneEvent).toBe(false);
 		expect(recombinedStream.items.length).toBe(2);
 	});
 
 	it("should include content up to first missing sequence", () => {
-		const recombinedStream = {
+		const recombinedStream: RecombinedStream = {
 			items: [
 				{
 					sequence: 0,
@@ -81,7 +84,7 @@ describe("posts reducer RecombinedStream", () => {
 				},
 			],
 			content: "",
-			done: false,
+			receivedDoneEvent: false,
 		};
 		advanceRecombinedStream(recombinedStream, [
 			{
@@ -94,12 +97,12 @@ describe("posts reducer RecombinedStream", () => {
 		]);
 
 		expect(recombinedStream.content).toBe("hot");
-		expect(recombinedStream.done).toBe(false);
+		expect(recombinedStream.receivedDoneEvent).toBe(false);
 		expect(recombinedStream.items.length).toBe(3);
 	});
 
 	it("should handle out of order sequence", () => {
-		const recombinedStream = {
+		const recombinedStream: RecombinedStream = {
 			items: [
 				{
 					sequence: 0,
@@ -124,7 +127,7 @@ describe("posts reducer RecombinedStream", () => {
 				},
 			],
 			content: "",
-			done: false,
+			receivedDoneEvent: false,
 		};
 		advanceRecombinedStream(recombinedStream, [
 			{
@@ -137,7 +140,7 @@ describe("posts reducer RecombinedStream", () => {
 		]);
 
 		expect(recombinedStream.content).toBe("hot tangy sauce burns");
-		expect(recombinedStream.done).toBe(false);
+		expect(recombinedStream.receivedDoneEvent).toBe(false);
 		expect(recombinedStream.items.length).toBe(4);
 	});
 
@@ -167,7 +170,7 @@ describe("posts reducer RecombinedStream", () => {
 				},
 			],
 			content: "",
-			done: false,
+			receivedDoneEvent: false,
 		};
 
 		advanceRecombinedStream(recombinedStream, [
@@ -181,7 +184,7 @@ describe("posts reducer RecombinedStream", () => {
 		]);
 
 		expect(recombinedStream.content).toBe("tangy hot sauce burns. ");
-		expect(recombinedStream.done).toBe(false);
+		expect(recombinedStream.receivedDoneEvent).toBe(false);
 		expect(recombinedStream.items.length).toBe(4);
 		expect(recombinedStream.lastContentIndex).toBe(3);
 
@@ -211,7 +214,7 @@ describe("posts reducer RecombinedStream", () => {
 
 		// No change yet
 		expect(recombinedStream.content).toBe("tangy hot sauce burns. ");
-		expect(recombinedStream.done).toBe(false);
+		expect(recombinedStream.receivedDoneEvent).toBe(false);
 		expect(recombinedStream.items.length).toBe(7);
 		expect(recombinedStream.lastContentIndex).toBe(3);
 
@@ -249,8 +252,126 @@ describe("posts reducer RecombinedStream", () => {
 		expect(recombinedStream.content).toBe(
 			"tangy hot sauce burns. i ran out of clever comments. Hamburgers are food. "
 		);
-		expect(recombinedStream.done).toBe(false);
+		expect(recombinedStream.receivedDoneEvent).toBe(false);
 		expect(recombinedStream.items.length).toBe(11);
 		expect(recombinedStream.lastContentIndex).toBe(10);
+	});
+
+	it("should report done for completed stream", () => {
+		const recombinedStream: RecombinedStream = {
+			items: [
+				{
+					sequence: 0,
+					streamId: "streamId",
+					postId: "postId",
+					content: "hot",
+					done: false,
+				},
+				{
+					sequence: 1,
+					streamId: "streamId",
+					postId: "postId",
+					content: " sauce",
+					done: false,
+				},
+			],
+			content: "",
+			receivedDoneEvent: false,
+		};
+
+		advanceRecombinedStream(recombinedStream, [
+			{
+				sequence: 2,
+				streamId: "streamId",
+				postId: "postId",
+				content: " tangy",
+				done: false,
+			},
+			{
+				sequence: 3,
+				streamId: "streamId",
+				postId: "postId",
+				done: true,
+			},
+		]);
+
+		expect(recombinedStream.content).toBe("hot sauce tangy");
+		expect(recombinedStream.receivedDoneEvent).toBe(true);
+		expect(recombinedStream.items.length).toBe(4);
+		expect(recombinedStream.lastContentIndex).toBe(2);
+
+		expect(isGrokStreamDone(recombinedStream)).toBe(true);
+	});
+
+	it("should not report done for missing sequence", () => {
+		const recombinedStream: RecombinedStream = {
+			items: [
+				{
+					sequence: 0,
+					streamId: "streamId",
+					postId: "postId",
+					content: "hot",
+					done: false,
+				},
+				{
+					sequence: 1,
+					streamId: "streamId",
+					postId: "postId",
+					content: " sauce",
+					done: false,
+				},
+			],
+			content: "",
+			receivedDoneEvent: false,
+		};
+
+		advanceRecombinedStream(recombinedStream, [
+			{
+				sequence: 3,
+				streamId: "streamId",
+				postId: "postId",
+				content: " tangy",
+				done: false,
+			},
+			{
+				sequence: 4,
+				streamId: "streamId",
+				postId: "postId",
+				done: true,
+			},
+		]);
+
+		expect(recombinedStream.content).toBe("hot sauce");
+		expect(recombinedStream.receivedDoneEvent).toBe(true);
+		expect(recombinedStream.items.length).toBe(4);
+		expect(recombinedStream.lastContentIndex).toBe(1);
+
+		expect(isGrokStreamDone(recombinedStream)).toBe(false);
+	});
+
+	it("should report done for incomplete stream with lastMessageReceivedAt > 2 minutes ago", () => {
+		const recombinedStream: RecombinedStream = {
+			items: [
+				{
+					sequence: 0,
+					streamId: "streamId",
+					postId: "postId",
+					content: "hot",
+					done: false,
+				},
+				{
+					sequence: 2,
+					streamId: "streamId",
+					postId: "postId",
+					content: " sauce",
+					done: false,
+				},
+			],
+			content: "",
+			receivedDoneEvent: false,
+			lastMessageReceivedAt: Date.now() - (GROK_TIMEOUT + 1000),
+		};
+
+		expect(isGrokStreamDone(recombinedStream)).toBe(true);
 	});
 });

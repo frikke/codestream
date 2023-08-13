@@ -8,6 +8,7 @@ import { isPending, Post, PostsActionsType, PostsState } from "./types";
 import { PostPlus } from "@codestream/protocols/agent";
 import {
 	advanceRecombinedStream,
+	isGrokStreamDone,
 	RecombinedStream,
 } from "@codestream/webview/store/posts/recombinedStream";
 
@@ -55,7 +56,7 @@ export function reducePosts(state: PostsState = initialState, action: PostsActio
 			const { streamId, postId } = action.payload[0];
 			const recombinedStream: RecombinedStream = nextState.streamingPosts[postId] ?? {
 				items: [],
-				done: false,
+				receivedDoneEvent: false,
 				content: "",
 			};
 			advanceRecombinedStream(recombinedStream, action.payload);
@@ -126,22 +127,18 @@ export function reducePosts(state: PostsState = initialState, action: PostsActio
 	}
 }
 
-// A stream is done if it has a done event and there are no gaps in the sequence
-function isGrokStreamDone(stream: RecombinedStream) {
-	const doneEvent = stream.items.find(it => it.done);
-	return doneEvent && doneEvent.sequence === stream.items.length - 1;
-}
-
-const _isGrokLoading = (state: CodeStreamState) => {
-	// TODO add last stream update timestamp to state and use that as a way to detect incomplete stale streams
-	const recombinedStreams = state.posts.streamingPosts;
+const _isGrokLoading = (state: PostsState) => {
+	const recombinedStreams = state.streamingPosts;
 	return Object.keys(recombinedStreams).some(postId => {
 		const stream = recombinedStreams[postId];
 		return !isGrokStreamDone(stream);
 	});
 };
 
-export const isGrokStreamLoading = createSelector(_isGrokLoading, state => state);
+export const isGrokStreamLoading = createSelector(
+	(state: CodeStreamState) => state.posts,
+	_isGrokLoading
+);
 
 export const getPostsForStream = createSelector(
 	(state: CodeStreamState) => state.posts,

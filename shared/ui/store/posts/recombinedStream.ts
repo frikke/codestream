@@ -1,28 +1,48 @@
 import { GrokStreamEvent } from "@codestream/webview/store/posts/types";
 
+export const GROK_TIMEOUT = 2 * 60 * 1000; // 2 minutes
+
 export type RecombinedStream = {
 	items: GrokStreamEvent[];
 	content: string;
-	done: boolean;
+	receivedDoneEvent: boolean;
 	lastContentIndex?: number;
+	lastMessageReceivedAt?: number;
 };
 
 export function advanceRecombinedStream(
 	recombinedStream: RecombinedStream,
 	payload: GrokStreamEvent[]
 ) {
+	recombinedStream.lastMessageReceivedAt = Date.now();
 	recombinedStream.items = recombinedStream.items.concat(payload);
 	recombinedStream.items.sort((a, b) => a.sequence - b.sequence);
-	recombinedStream.done = payload.find(it => it.done) !== undefined;
+	recombinedStream.receivedDoneEvent = payload.find(it => it.done) !== undefined;
 	const start = recombinedStream.lastContentIndex ? recombinedStream.lastContentIndex + 1 : 0;
-	// if (start >= recombinedStream.items.length) return;
 	for (let i = start; i < recombinedStream.items.length; i++) {
 		const item = recombinedStream.items[i];
 		if (item.sequence !== i) {
-			// recombinedStream.lastContentIndex = i;
 			return;
 		}
-		recombinedStream.content = recombinedStream.content + item.content;
-		recombinedStream.lastContentIndex = i;
+		if (item.content) {
+			recombinedStream.content = recombinedStream.content + item.content;
+			recombinedStream.lastContentIndex = i;
+		}
 	}
+}
+
+// A stream is done if it has a done event and there are no gaps in the sequence and it is not timed out
+export function isGrokStreamDone(stream: RecombinedStream) {
+	if (stream.lastMessageReceivedAt && Date.now() - stream.lastMessageReceivedAt > GROK_TIMEOUT) {
+		console.warn("Grok stream timed out");
+		return true;
+	}
+	for (let i = 0; i < stream.items.length; i++) {
+		const item = stream.items[i];
+		if (item.sequence !== i) {
+			return false;
+		}
+	}
+	const lastItem = stream.items[stream.items.length - 1];
+	return lastItem && lastItem.done;
 }
