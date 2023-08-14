@@ -18,7 +18,8 @@ export function advanceRecombinedStream(
 	recombinedStream.items = recombinedStream.items.concat(payload);
 	recombinedStream.items.sort((a, b) => a.sequence - b.sequence);
 	recombinedStream.receivedDoneEvent = payload.find(it => it.done) !== undefined;
-	const start = recombinedStream.lastContentIndex ? recombinedStream.lastContentIndex + 1 : 0;
+	const start =
+		recombinedStream.lastContentIndex !== undefined ? recombinedStream.lastContentIndex + 1 : 0;
 	for (let i = start; i < recombinedStream.items.length; i++) {
 		const item = recombinedStream.items[i];
 		if (item.sequence !== i) {

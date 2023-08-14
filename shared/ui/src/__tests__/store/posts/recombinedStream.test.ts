@@ -7,6 +7,38 @@ import {
 } from "@codestream/webview/store/posts/recombinedStream";
 
 describe("RecombinedStream", () => {
+	it("should start from empty without dupes", () => {
+		const recombinedStream: RecombinedStream = {
+			items: [],
+			content: "",
+			receivedDoneEvent: false,
+		};
+
+		advanceRecombinedStream(recombinedStream, [
+			{
+				sequence: 0,
+				streamId: "streamId",
+				postId: "postId",
+				content: "hot",
+				done: false,
+			},
+		]);
+
+		advanceRecombinedStream(recombinedStream, [
+			{
+				sequence: 1,
+				streamId: "streamId",
+				postId: "postId",
+				content: " sauce",
+				done: false,
+			},
+		]);
+		expect(recombinedStream.content).toBe("hot sauce");
+		expect(recombinedStream.receivedDoneEvent).toBe(false);
+		expect(recombinedStream.items.length).toBe(2);
+		expect(recombinedStream.lastMessageReceivedAt).toBeDefined();
+	});
+
 	it("should not have content when sequence 0 is missing", () => {
 		const recombinedStream: RecombinedStream = {
 			items: [
