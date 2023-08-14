@@ -8,6 +8,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.NavigatablePsiElement
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiPolyVariantReference
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.findParentOfType
 import org.jetbrains.kotlin.idea.core.util.range
@@ -159,7 +160,17 @@ class RubySymbolResolver : SymbolResolver {
                 }
                 val variable = rDotReference.receiver as? RInstanceVariable
                 val constant = rDotReference.receiver as? RConstant
-                val className = variable?.type?.name ?: (constant?.reference?.resolve() as? RClass)?.qualifiedName ?: return
+                val multiRef = constant?.reference as? PsiPolyVariantReference
+
+                val oneClassName = variable?.type?.name ?: (constant?.reference?.resolve() as? RClass)?.qualifiedName
+                val manyClassNames = multiRef?.multiResolve(true)?.map { (it.element as? RClass)?.qualifiedName }?.filterNotNull()
+
+                val className = if (oneClassName == model) {
+                    oneClassName
+                } else {
+                    manyClassNames?.find { it == model }
+                }
+
                 if (className != model) return
                 val clazz = RubyClassModuleNameIndex.findOne(psiFile.project, className, projectScope) { it ->
                     (it as RClass).isOrInheritsFrom("ActiveRecord::Base")
