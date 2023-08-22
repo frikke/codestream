@@ -410,11 +410,10 @@ export interface CodeStreamDiffUriData {
 }
 
 export interface UploadFileRequest {
-	path: string;
 	name: string;
 	mimetype: string;
 	size: number;
-	buffer?: any;
+	buffer?: string | ArrayBuffer | null;
 }
 
 export interface UploadFileResponse {

@@ -400,7 +400,7 @@ export interface Attachment {
 	title: string;
 	type: string;
 	url?: string;
-	size?: number;
+	size: number;
 }
 
 export interface CSPost extends CSEntity {

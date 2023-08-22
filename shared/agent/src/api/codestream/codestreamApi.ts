@@ -1,15 +1,15 @@
 "use strict";
 
-import { promises as fs } from "fs";
+import fs from "fs/promises";
+import { Blob } from "node:buffer";
 import { Agent as HttpAgent } from "http";
 import { Agent as HttpsAgent } from "https";
 import * as qs from "querystring";
 import { ParsedUrlQueryInput } from "querystring";
 
 import { isEmpty, isEqual } from "lodash";
-import { BodyInit, Headers, RequestInit, Response } from "undici";
+import { BodyInit, FormData, Headers, RequestInit, Response } from "undici";
 import sanitize from "sanitize-filename";
-import FormData from "form-data";
 
 import { Emitter, Event } from "vscode-languageserver";
 import {
@@ -178,6 +178,7 @@ import {
 	VerifyConnectivityResponse,
 	GenerateMSTeamsConnectCodeRequest,
 	GenerateMSTeamsConnectCodeResponse,
+	ERROR_GENERIC_USE_ERROR_MESSAGE,
 } from "@codestream/protocols/agent";
 import {
 	CSAddMarkersRequest,
@@ -330,6 +331,7 @@ import { CodeStreamPreferences } from "../preferences";
 import { BroadcasterEvents } from "./events";
 import { CodeStreamUnreads } from "./unreads";
 import { clearResolvedFlag } from "@codestream/utils/api/codeErrorCleanup";
+import { ResponseError } from "vscode-jsonrpc/lib/messages";
 
 @lsp
 export class CodeStreamApiProvider implements ApiProvider {
@@ -2512,6 +2514,9 @@ export class CodeStreamApiProvider implements ApiProvider {
 	async uploadFile(request: UploadFileRequest) {
 		const formData = new FormData();
 		if (request.buffer) {
+			if (typeof request.buffer !== "string") {
+				throw new ResponseError(ERROR_GENERIC_USE_ERROR_MESSAGE, "Unsupported buffer type");
+			}
 			const base64String = request.buffer;
 			// string off dataUri / content info from base64 string
 			let bareString = "";
@@ -2521,21 +2526,21 @@ export class CodeStreamApiProvider implements ApiProvider {
 			} else {
 				bareString = base64String.substring(commaIndex + 1);
 			}
-			formData.append("file", Buffer.from(bareString, "base64"), {
-				filename: request.name,
-				contentType: request.mimetype,
-			});
-		} else {
-			formData.append("file", require("fs").createReadStream(request.path));
+			formData.append("file", new Blob([await Buffer.from(bareString, "base64")]), request.name);
 		}
 		const url = `${this.baseUrl}/upload-file/${this.teamId}`;
 		const headers = new Headers({
 			Authorization: `Bearer ${this._token}`,
 		});
 
-		// note, this bypasses the built-in fetch wrapper and calls node fetch directly,
-		// because we're not dealing with json data in the request
 		const response = await customFetch(url, { method: "post", body: formData, headers });
+		if (!response.ok) {
+			const body = await response.text();
+			throw new ResponseError(
+				ERROR_GENERIC_USE_ERROR_MESSAGE,
+				`Error uploading file: ${response.status} ${body}`
+			);
+		}
 		return await response.json();
 	}
 

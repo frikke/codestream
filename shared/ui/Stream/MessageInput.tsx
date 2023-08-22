@@ -6,7 +6,6 @@ import * as codemarkSelectors from "../store/codemarks/reducer";
 import * as actions from "./actions";
 const emojiData = require("../node_modules/markdown-it-emoji-mart/lib/data/full.json");
 import {
-	CSChannelStream,
 	CSPost,
 	CSUser,
 	CSTeam,
@@ -44,6 +43,11 @@ import { isFeatureEnabled } from "../store/apiVersioning/reducer";
 import { getProviderPullRequestCollaborators } from "../store/providerPullRequests/slice";
 import Tooltip from "./Tooltip";
 import { HostApi } from "../webview-api";
+
+type FileAttachmentPair = {
+	file: File;
+	attachment: AttachmentField;
+};
 
 type PopupType = "at-mentions" | "slash-commands" | "channels" | "emojis";
 
@@ -323,43 +327,54 @@ export class MessageInput extends React.Component<Props, State> {
 		if (this.props.setAttachments) this.props.setAttachments(newAttachments);
 	};
 
-	attachFiles = async files => {
+	attachFiles = async (files: FileList) => {
 		if (!files || files.length === 0) return;
 
 		const { attachments = [] } = this.props;
 		let index = attachments.length;
 
-		[...files].forEach(file => {
-			file.status = "uploading";
-		});
-		// add the dropped files to the list of attachments, with uploading state
-		// this.setState({ attachments: [...attachments, ...files] });
-		if (this.props.setAttachments) this.props.setAttachments([...attachments, ...files]);
+		const fileAttachmentPairs: Array<FileAttachmentPair> = [];
 
 		for (const file of files) {
+			const attachment: AttachmentField = {
+				name: file.name,
+				title: file.name,
+				type: file.type,
+				size: file.size,
+				mimetype: file.type,
+				status: "uploading",
+			};
+			fileAttachmentPairs.push({ file, attachment });
+		}
+
+		const newAttachments = fileAttachmentPairs.map(({ attachment }) => attachment);
+
+		// add the dropped files to the list of attachments, with uploading state
+		// this.setState({ attachments: [...attachments, ...files] });
+		if (this.props.setAttachments) this.props.setAttachments([...attachments, ...newAttachments]);
+
+		for (const fileAttachmentPair of fileAttachmentPairs) {
+			const { file, attachment } = fileAttachmentPair;
 			try {
 				const request: UploadFileRequest = {
-					path: file.path,
 					name: file.name,
 					size: file.size,
 					mimetype: file.type,
 				};
-				if (!file.path) {
-					// encode as base64 to send to the agent
-					const toBase64 = file =>
-						new Promise((resolve, reject) => {
-							const reader = new FileReader();
-							reader.readAsDataURL(file);
-							reader.onload = () => resolve(reader.result);
-							reader.onerror = error => reject(error);
-						});
-					request.buffer = await toBase64(file);
-				}
+				// encode as base64 to send to the agent
+				const toBase64 = (file): Promise<string | ArrayBuffer | null> =>
+					new Promise((resolve, reject) => {
+						const reader = new FileReader();
+						reader.readAsDataURL(file);
+						reader.onload = () => resolve(reader.result);
+						reader.onerror = error => reject(error);
+					});
+				request.buffer = await toBase64(file);
 				const response = await HostApi.instance.send(UploadFileRequestType, request);
 				if (response && response.url) {
 					this.replaceAttachment(response, index);
 				} else {
-					file.status = "error";
+					attachment.status = "error";
 					this.replaceAttachment(file, index);
 				}
 				HostApi.instance.track("File Attached", {
@@ -368,8 +383,8 @@ export class MessageInput extends React.Component<Props, State> {
 				});
 			} catch (e) {
 				console.warn("Error uploading file: ", e);
-				file.status = "error";
-				file.error = e;
+				attachment.status = "error";
+				attachment.error = e;
 				this.replaceAttachment(file, index);
 			}
 			index++;
@@ -412,7 +427,7 @@ export class MessageInput extends React.Component<Props, State> {
 		KeystrokeDispatcher.levelDown();
 	};
 
-	addEmoji = (emoji: typeof emojiData[string]) => {
+	addEmoji = (emoji: (typeof emojiData)[string]) => {
 		this.setState({ emojiOpen: false });
 		if (emoji && emoji.colons) {
 			this.focus(() => {
@@ -890,7 +905,9 @@ export class MessageInput extends React.Component<Props, State> {
 		if (!attachElement) return;
 		console.warn("FILES ARE: ", attachElement.files);
 
-		this.attachFiles(attachElement.files);
+		if (attachElement.files) {
+			this.attachFiles(attachElement.files);
+		}
 	};
 
 	buildCodemarkMenu = () => {
