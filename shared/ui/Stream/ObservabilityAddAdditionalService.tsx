@@ -25,7 +25,9 @@ export const ObservabilityAddAdditionalService = React.memo((props: Props) => {
 			>
 				{expanded && <Icon name="chevron-down-thin" />}
 				{!expanded && <Icon name="chevron-right-thin" />}
-				<span style={{ marginLeft: "2px" }}>Add another service</span>
+				<span data-testid={`add-another-service`} style={{ marginLeft: "2px" }}>
+					Add another service
+				</span>
 			</Row>
 			{expanded && (
 				<>

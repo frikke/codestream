@@ -320,7 +320,7 @@ export const SecurityIssuesWrapper = React.memo((props: Props) => {
 			}
 			return unexpectedError;
 		},
-		[error],
+		[error]
 	);
 
 	useEffect(() => {
@@ -346,7 +346,12 @@ export const SecurityIssuesWrapper = React.memo((props: Props) => {
 			>
 				{expanded && <Icon name="chevron-down-thin" />}
 				{!expanded && <Icon name="chevron-right-thin" />}
-				<span style={{ marginLeft: "2px", marginRight: "5px" }}>Vulnerabilities</span>
+				<span
+					data-testid={`vulnerabilities-${props.entityGuid}`}
+					style={{ marginLeft: "2px", marginRight: "5px" }}
+				>
+					Vulnerabilities
+				</span>
 
 				{data && data.totalRecords > 0 && (
 					<Icon
