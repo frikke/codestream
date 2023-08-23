@@ -13,12 +13,19 @@ interface Props {
 	loadingGoldenMetrics: boolean;
 	noDropdown?: boolean;
 	recentAlertViolations?: GetAlertViolationsResponse;
+	entityGuid: string;
 }
 
 export const ObservabilityGoldenMetricDropdown = React.memo((props: Props) => {
 	const [expanded, setExpanded] = useState<boolean>(true);
-	const { errors, entityGoldenMetrics, loadingGoldenMetrics, noDropdown, recentAlertViolations } =
-		props;
+	const {
+		errors,
+		entityGuid,
+		entityGoldenMetrics,
+		loadingGoldenMetrics,
+		noDropdown,
+		recentAlertViolations,
+	} = props;
 
 	const errorTitle: string | undefined =
 		errors.length === 0 ? undefined : `Last request failed:\n${errors.join("\n")}`;
@@ -34,7 +41,7 @@ export const ObservabilityGoldenMetricDropdown = React.memo((props: Props) => {
 							}}
 							className={"pr-row no-shrink"}
 						>
-							<div>
+							<div data-testid={`${gm.name}-${entityGuid}`}>
 								<Tooltip placement="topRight" title={gm.title} delay={1}>
 									<span style={{ marginRight: "5px" }}>{gm.title}</span>
 								</Tooltip>
@@ -71,7 +78,9 @@ export const ObservabilityGoldenMetricDropdown = React.memo((props: Props) => {
 					>
 						{expanded && <Icon name="chevron-down-thin" />}
 						{!expanded && <Icon name="chevron-right-thin" />}
-						<span style={{ margin: "0 5px 0 2px" }}>Golden Metrics</span>
+						<span data-testid={`golden-metrics-${entityGuid}`} style={{ margin: "0 5px 0 2px" }}>
+							Golden Metrics
+						</span>
 						{entityGoldenMetrics?.lastUpdated && (
 							<Icon
 								style={{ transform: "scale(0.8)" }}

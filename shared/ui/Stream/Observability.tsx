@@ -184,6 +184,7 @@ export const ErrorRow = (props: {
 	onClick?: Function;
 	customPadding?: any;
 	icon?: "alert" | "thumbsup";
+	dataTestId?: string;
 }) => {
 	const derivedState = useAppSelector((state: CodeStreamState) => {
 		return {
@@ -198,6 +199,7 @@ export const ErrorRow = (props: {
 				props.onClick && props.onClick();
 			}}
 			style={{ padding: props.customPadding ? props.customPadding : "0 10px 0 40px" }}
+			data-testid={props.dataTestId}
 		>
 			<div>
 				{props.isLoading ? (
@@ -1190,13 +1192,16 @@ export const Observability = React.memo((props: Props) => {
 																				>
 																					<HealthIcon color={alertSeverityColor} />
 																					<div>
-																						<span>{ea.entityName}</span>
+																						<span data-testid={`entity-name-${ea.entityGuid}`}>
+																							{ea.entityName}
+																						</span>
 																						<span
 																							className="subtle"
 																							style={{
 																								fontSize: "11px",
 																								verticalAlign: "bottom",
 																							}}
+																							data-testid={`entity-account-name-${ea.entityGuid}`}
 																						>
 																							{ea.accountName && ea.accountName.length > 25
 																								? ea.accountName.substr(0, 25) + "..."
@@ -1251,6 +1256,7 @@ export const Observability = React.memo((props: Props) => {
 																								recentAlertViolations={
 																									recentAlertViolations ? recentAlertViolations : {}
 																								}
+																								entityGuid={ea.entityGuid}
 																							/>
 																							{hasServiceLevelObjectives && (
 																								<ObservabilityServiceLevelObjectives

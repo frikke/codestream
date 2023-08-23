@@ -1165,7 +1165,7 @@ const BaseCodeError = (props: BaseCodeErrorProps) => {
 			replies: props.collapsed
 				? emptyArray
 				: getThreadPosts(state, codeError.streamId, codeError.postId),
-			showGrok: isFeatureEnabled(state, "showGrok"),
+			showGrok: !isFeatureEnabled(state, "showGrok"),
 		};
 	}, shallowEqual);
 	const renderedFooter = props.renderFooter && props.renderFooter(CardFooter, ComposeWrapper);
@@ -1664,7 +1664,7 @@ const ReplyInput = (props: { codeError: CSCodeError; setGrokRequested: () => voi
 	const [attachments, setAttachments] = useState<AttachmentField[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const teamMates = useAppSelector((state: CodeStreamState) => getTeamMates(state));
-	const showGrok = useAppSelector(state => isFeatureEnabled(state, "showGrok"));
+	const showGrok = useAppSelector(state => !isFeatureEnabled(state, "showGrok"));
 
 	const submit = async () => {
 		// don't create empty replies

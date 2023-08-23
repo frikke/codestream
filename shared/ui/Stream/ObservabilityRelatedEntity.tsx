@@ -153,6 +153,7 @@ export const ObservabilityRelatedEntity = React.memo((props: Props) => {
 						errors={entityGoldenMetricsErrors}
 						loadingGoldenMetrics={loadingGoldenMetrics}
 						noDropdown={true}
+						entityGuid={relatedEntity.guid}
 					/>
 					<ObservabilityAlertViolations
 						alertViolations={recentAlertViolations?.recentAlertViolations}

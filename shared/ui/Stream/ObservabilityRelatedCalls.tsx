@@ -70,6 +70,7 @@ export const ObservabilityRelatedCalls = React.memo((props: Props) => {
 				<ObservabilityRelatedSearch
 					currentRepoId={props.currentRepoId}
 					searchItems={relatedEntitiesForSearch || []}
+					entityGuid={props.entityGuid}
 				/>
 			)}
 			{loading && expanded && <ObservabilityLoadingRelatedServiceEntities />}

@@ -17,6 +17,7 @@ import { ObservabilityGoldenMetricDropdown } from "./ObservabilityGoldenMetricDr
 interface Props {
 	searchItems: RelatedEntitiesByType;
 	currentRepoId: string;
+	entityGuid: string;
 }
 interface SelectedOption {
 	value: string;
@@ -173,6 +174,7 @@ export const ObservabilityRelatedSearch = React.memo((props: Props) => {
 						errors={entityGoldenMetricsErrors}
 						loadingGoldenMetrics={loadingGoldenMetrics}
 						noDropdown={true}
+						entityGuid={props.entityGuid}
 					/>
 				</>
 			)}

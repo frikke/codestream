@@ -54,7 +54,9 @@ export const ObservabilityAssignmentsDropdown = React.memo((props: Props) => {
 			>
 				{expanded && <Icon name="chevron-down-thin" />}
 				{!expanded && <Icon name="chevron-right-thin" />}
-				<span style={{ marginLeft: "2px" }}>Assigned to Me</span>
+				<span data-testid={`assigned-errors-${props.entityGuid}`} style={{ marginLeft: "2px" }}>
+					Assigned to Me
+				</span>
 			</Row>
 			{expanded && (
 				<>
@@ -64,6 +66,7 @@ export const ObservabilityAssignmentsDropdown = React.memo((props: Props) => {
 								customPadding={"0 10px 0 50px"}
 								title={props.errorInboxError ?? "No errors assigned to me"}
 								icon={props.errorInboxError ? "alert" : "thumbsup"}
+								dataTestId={`no-assigned-errors-${props.entityGuid}`}
 							></ErrorRow>
 						</>
 					) : (
