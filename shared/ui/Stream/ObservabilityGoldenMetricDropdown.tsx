@@ -75,6 +75,7 @@ export const ObservabilityGoldenMetricDropdown = React.memo((props: Props) => {
 						}}
 						className={"pr-row"}
 						onClick={() => setExpanded(!expanded)}
+						data-testid={`golden-metrics-dropdown`}
 					>
 						{expanded && <Icon name="chevron-down-thin" />}
 						{!expanded && <Icon name="chevron-right-thin" />}

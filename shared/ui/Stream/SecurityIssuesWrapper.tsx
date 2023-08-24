@@ -343,6 +343,7 @@ export const SecurityIssuesWrapper = React.memo((props: Props) => {
 				onClick={() => {
 					setExpanded(!expanded);
 				}}
+				data-testid={`security-issues-dropdown`}
 			>
 				{expanded && <Icon name="chevron-down-thin" />}
 				{!expanded && <Icon name="chevron-right-thin" />}
@@ -387,7 +388,9 @@ export const SecurityIssuesWrapper = React.memo((props: Props) => {
 				</>
 			)}
 			{expanded && !loading && data && data.totalRecords === 0 && (
-				<Row style={{ padding: "0 10px 0 49px" }}>👍 No vulnerabilities found</Row>
+				<Row data-testid={`no-vulnerabilties-found`} style={{ padding: "0 10px 0 49px" }}>
+					👍 No vulnerabilities found
+				</Row>
 			)}
 		</>
 	);

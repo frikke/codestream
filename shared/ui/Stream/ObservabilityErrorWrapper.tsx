@@ -27,6 +27,7 @@ export const ObservabilityErrorWrapper = React.memo((props: Props) => {
 				}}
 				className={"pr-row"}
 				onClick={() => setExpanded(!expanded)}
+				data-testid={`observabilty-errors-dropdown`}
 			>
 				{expanded && <Icon name="chevron-down-thin" />}
 				{!expanded && <Icon name="chevron-right-thin" />}

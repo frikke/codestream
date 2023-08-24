@@ -90,6 +90,7 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 				}}
 				className={"pr-row"}
 				onClick={() => setExpanded(!expanded)}
+				data-testid={`anomalies-dropdown`}
 			>
 				<span style={{ paddingTop: "3px" }}>
 					{expanded && <Icon name="chevron-down-thin" />}

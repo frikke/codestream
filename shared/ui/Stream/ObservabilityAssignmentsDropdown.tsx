@@ -75,6 +75,7 @@ export const ObservabilityAssignmentsDropdown = React.memo((props: Props) => {
 								const indexedErrorGroupGuid = `${_.errorGroupGuid}_${index}`;
 								return (
 									<ErrorRow
+										dataTestId={`assigned-error-${index}`}
 										key={index}
 										title={_.errorClass}
 										subtle={_.message}

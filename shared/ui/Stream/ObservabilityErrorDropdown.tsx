@@ -114,6 +114,7 @@ export const ObservabilityErrorDropdown = React.memo((props: Props) => {
 									const indexedErrorGroupGuid = `${err.errorGroupGuid}_${index}`;
 									return (
 										<ErrorRow
+											dataTestId={`recent-error-${index}`}
 											title={`${err.errorClass}`}
 											tooltip={err.message}
 											subtle={err.message}
