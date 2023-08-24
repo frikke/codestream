@@ -361,6 +361,7 @@ export const SecurityIssuesWrapper = React.memo((props: Props) => {
 						className="alert"
 						title={warningTooltip}
 						delay={1}
+						data-testid={`vulnerabilities-alert-icon`}
 					/>
 				)}
 				<InlineMenu
