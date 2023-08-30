@@ -81,7 +81,7 @@ import { URI } from "vscode-uri";
 import { SessionContainer } from "../container";
 import { Logger } from "../logger";
 import { CodeStreamSession } from "../session";
-import { Functions, getProvider, getRegisteredProviders, log, lsp, lspHandler } from "../system";
+import { getProvider, getRegisteredProviders, log, lsp, lspHandler } from "../system";
 import { GitLabEnterpriseProvider } from "./gitlabEnterprise";
 import {
 	ProviderCreatePullRequestRequest,
@@ -163,16 +163,10 @@ const RECENT = "Recent";
 export class ThirdPartyProviderRegistry {
 	private _lastProvidersPRs: ProviderPullRequests[] | undefined;
 	private _queriedPRsAgeLimit?: { providerId: string; ageLimit: number[] }[] | undefined;
-	private _pollingInterval: NodeJS.Timer | undefined;
 	private session: CodeStreamSession | undefined = undefined;
 
 	initialize(session: CodeStreamSession) {
 		this.session = session;
-		this._pollingInterval = Functions.repeatInterval(
-			this.pullRequestsStateHandler.bind(this),
-			2000,
-			900000
-		); // every 15 minutes
 		return this;
 	}
 
