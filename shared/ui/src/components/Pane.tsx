@@ -246,7 +246,18 @@ export const PaneHeader = React.memo((props: PropsWithChildren<PaneHeaderProps>)
 				{props.warning && props.warning}
 			</div>
 			{!derivedState.collapsed && (!derivedState.anyMaximized || derivedState.maximized) && (
-				<div className="actions">{props.children}</div>
+				<div className="actions">
+					{props.children}
+					<Icon
+						name={derivedState.maximized ? "minimize" : "maximize"}
+						title={derivedState.maximized ? "Minimize" : "Maximize"}
+						placement={"bottomRight"}
+						delay={1}
+						className="maximize"
+						onClick={maximize}
+						tabIndex={1}
+					/>
+				</div>
 			)}
 			{props.isLoading && (
 				<div className="progress-container">
