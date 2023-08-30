@@ -83,22 +83,11 @@ export const Sidebar = React.memo(function Sidebar() {
 
 		const sidebarPanes = {};
 
-		if (
-			preferences.sidebarPanes &&
-			preferences.sidebarPanes.hasOwnProperty(WebviewPanels.Observability)
-		) {
-			sidebarPanes[WebviewPanels.Observability] =
-				preferences.sidebarPanes[WebviewPanels.Observability];
+		for (const panel of AVAILABLE_PANES) {
+			if (preferences.sidebarPanes && preferences.sidebarPanes.hasOwnProperty(panel)) {
+				sidebarPanes[panel] = preferences.sidebarPanes[panel];
+			}
 		}
-
-		if (
-			preferences.sidebarPanes &&
-			preferences.sidebarPanes.hasOwnProperty(WebviewPanels.CodeAnalyzers)
-		) {
-			sidebarPanes[WebviewPanels.CodeAnalyzers] =
-				preferences.sidebarPanes[WebviewPanels.CodeAnalyzers];
-		}
-
 		return {
 			repos,
 			sidebarPanes,
