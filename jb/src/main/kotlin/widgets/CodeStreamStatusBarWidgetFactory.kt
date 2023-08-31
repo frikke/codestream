@@ -33,6 +33,6 @@ class CodeStreamStatusBarWidgetFactory : StatusBarWidgetFactory {
     }
 
     override fun getDisplayName(): String {
-        return "New Relic CodeStream: GitHub, GitLab, PRs and Code Review"
+        return "New Relic CodeStream"
     }
 }
