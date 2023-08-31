@@ -15,14 +15,9 @@ import { getPreferences } from "../store/users/reducer";
 import { useAppDispatch, useAppSelector, useDidMount } from "../utilities/hooks";
 import { findLastIndex } from "../utils";
 import { setUserPreference } from "./actions";
-import CICD from "./CICD";
-import Codemarks from "./Codemarks";
 import CodeAnalyzers from "./CodeAnalyzers";
 import { CreateCodemarkIcons } from "./CreateCodemarkIcons";
-import IssuesPane from "./CrossPostIssueControls/IssuesPane";
 import { Observability } from "./Observability";
-import { OpenPullRequests } from "./OpenPullRequests";
-import { OpenReviews } from "./OpenReviews";
 import { WebviewPanels } from "@codestream/protocols/api";
 import { isFeatureEnabled } from "../store/apiVersioning/reducer";
 
@@ -60,31 +55,13 @@ export const DragHeaderContext = React.createContext({
 });
 
 const _defaultPaneSettings = {};
-_defaultPaneSettings[WebviewPanels.OpenPullRequests] = {};
-_defaultPaneSettings[WebviewPanels.OpenReviews] = {};
-_defaultPaneSettings[WebviewPanels.CodemarksForFile] = {};
-// default this one to not show
-_defaultPaneSettings[WebviewPanels.Tasks] = {};
 _defaultPaneSettings[WebviewPanels.Observability] = {};
 _defaultPaneSettings[WebviewPanels.CodeAnalyzers] = {};
-// _defaultPaneSettings[WebviewPanels.Team] = {};
-_defaultPaneSettings[WebviewPanels.CICD] = {
-	collapsed: true,
-	placeAtBottom: true,
-};
 export const DEFAULT_PANE_SETTINGS = _defaultPaneSettings;
 
 // We default the panes to a different order when users sign up via NR,
 // but these lists should contain the same entries
-export const AVAILABLE_PANES = [
-	WebviewPanels.Observability,
-	WebviewPanels.OpenPullRequests,
-	WebviewPanels.OpenReviews,
-	WebviewPanels.CodemarksForFile,
-	WebviewPanels.Tasks,
-	WebviewPanels.CodeAnalyzers,
-	WebviewPanels.CICD,
-];
+export const AVAILABLE_PANES = [WebviewPanels.Observability, WebviewPanels.CodeAnalyzers];
 
 export const COLLAPSED_SIZE = 22;
 
@@ -98,33 +75,22 @@ export const Sidebar = React.memo(function Sidebar() {
 		const preferences = getPreferences(state);
 		const repos = getRepos(state);
 		// get the preferences, or use the default
-		let sidebarPaneOrder = preferences.sidebarPaneOrder || AVAILABLE_PANES;
-		// in case someone has customized their pane order, but then we
-		// added a new pane, check to see that all available panes are
-		// represented
-		if (preferences.sidebarPaneOrder) {
-			AVAILABLE_PANES.forEach(pane => {
-				if (!sidebarPaneOrder.includes(pane)) {
-					if (DEFAULT_PANE_SETTINGS[pane].placeAtBottom) {
-						sidebarPaneOrder.push(pane);
-					} else {
-						sidebarPaneOrder.unshift(pane);
-					}
-				}
-			});
-		}
-		if (isFeatureEnabled(state, "PDIdev")) {
-			sidebarPaneOrder = sidebarPaneOrder.filter(
-				_ => _ !== WebviewPanels.OpenReviews && _ !== WebviewPanels.CodemarksForFile
-			);
-		}
+		let sidebarPaneOrder = AVAILABLE_PANES;
+
 		if (!isFeatureEnabled(state, "showCodeAnalyzers")) {
 			sidebarPaneOrder = sidebarPaneOrder.filter(_ => _ !== WebviewPanels.CodeAnalyzers);
 		}
 
+		const sidebarPanes = {};
+
+		for (const panel of AVAILABLE_PANES) {
+			if (preferences.sidebarPanes && preferences.sidebarPanes.hasOwnProperty(panel)) {
+				sidebarPanes[panel] = preferences.sidebarPanes[panel];
+			}
+		}
 		return {
 			repos,
-			sidebarPanes: preferences.sidebarPanes || EMPTY_HASH,
+			sidebarPanes,
 			sidebarPaneOrder,
 			currentUserId: state.session.userId!,
 			hasPRProvider: getConnectedSupportedPullRequestHosts(state).length > 0,
@@ -137,7 +103,6 @@ export const Sidebar = React.memo(function Sidebar() {
 	const [openRepos, setOpenRepos] = useState<ReposScm[]>(EMPTY_ARRAY);
 	const [reposLoading, setReposLoading] = useState<boolean>(true);
 	const [dragCombinedHeight, setDragCombinedHeight] = useState<number | undefined>(undefined);
-	// const [previousSizes, setPreviousSizes] = useState(EMPTY_HASH);
 	const [sizes, setSizes] = useState(EMPTY_HASH);
 	const [firstIndex, setFirstIndex] = useState<number | undefined>(undefined);
 	const [secondIndex, setSecondIndex] = useState<number | undefined>(undefined);
@@ -207,15 +172,6 @@ export const Sidebar = React.memo(function Sidebar() {
 			disposable.dispose();
 		};
 	}, []); // Empty array ensures that effect is only run on mount
-
-	// Currently always showing, regardless of provider (leaving commented out because we might revert in future)
-	// const showPullRequests = useMemo(() => {
-	// 	if (derivedState.hasPRProvider) return true;
-	// 	// FIXME hardcoded github
-	// 	return (
-	// 		openRepos.filter(r => r.providerGuess === "github" || r.providerGuess === "gitlab").length > 0
-	// 	);
-	// }, [derivedState.hasPRProvider, openRepos]);
 
 	const panes: {
 		id: string;
@@ -404,18 +360,8 @@ export const Sidebar = React.memo(function Sidebar() {
 
 	const renderPane = (pane, paneState) => {
 		switch (pane.id) {
-			case WebviewPanels.OpenPullRequests:
-				return <OpenPullRequests openRepos={openRepos} paneState={paneState} />;
-			case WebviewPanels.OpenReviews:
-				return <OpenReviews openRepos={openRepos} paneState={paneState} />;
-			case WebviewPanels.Tasks:
-				return <IssuesPane paneState={paneState} />;
-			case WebviewPanels.CodemarksForFile:
-				return <Codemarks paneState={paneState} />;
 			case WebviewPanels.Observability:
 				return <Observability paneState={paneState} />;
-			case WebviewPanels.CICD:
-				return <CICD openRepos={openRepos} paneState={paneState} />;
 			case WebviewPanels.CodeAnalyzers:
 				return (
 					<CodeAnalyzers openRepos={openRepos} reposLoading={reposLoading} paneState={paneState} />
