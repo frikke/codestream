@@ -807,11 +807,13 @@ class JavaLanguageSupport implements LanguageSupport {
 	}
 
 	get metricNrqlPrefixes() {
-		return ["Java", "Custom"];
+		// return ["Java", "Custom"];
+		return ["Java"];
 	}
 
 	get spanNrqlPrefixes() {
-		return ["Java", "Custom"];
+		// return ["Java", "Custom"];
+		return ["Java"];
 	}
 
 	filterMetrics(metrics: NameValue[], benchmarkSpans: SpanWithCodeAttrs[]): NameValue[] {
@@ -864,7 +866,7 @@ class RubyLanguageSupport implements LanguageSupport {
 	}
 
 	get metricNrqlPrefixes() {
-		return [];
+		return ["Controller", "Nested/Controller", "ActiveJob"];
 	}
 
 	get spanNrqlPrefixes() {
@@ -944,7 +946,7 @@ class PythonLanguageSupport implements LanguageSupport {
 	}
 
 	get metricNrqlPrefixes() {
-		return [];
+		return ["Function", "WebTransaction"];
 	}
 
 	get spanNrqlPrefixes() {
@@ -1012,11 +1014,13 @@ class CSharpLanguageSupport implements LanguageSupport {
 	}
 
 	get metricNrqlPrefixes() {
-		return [];
+		// return ["DotNet", "Custom"];
+		return ["DotNet"];
 	}
 
 	get spanNrqlPrefixes() {
-		return [];
+		// return ["DotNet", "Custom"];
+		return ["DotNet"];
 	}
 
 	filterMetrics(metrics: NameValue[], benchmarkSpans: SpanWithCodeAttrs[]): NameValue[] {
@@ -1069,7 +1073,8 @@ class JavaScriptLanguageSupport implements LanguageSupport {
 	}
 
 	get metricNrqlPrefixes() {
-		return ["WebTransaction", "Custom", "Errors"];
+		// return ["WebTransaction", "Custom", "Errors"];
+		return ["WebTransaction", "Errors"];
 	}
 
 	get spanNrqlPrefixes() {
