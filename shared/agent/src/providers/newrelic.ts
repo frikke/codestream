@@ -109,6 +109,7 @@ import {
 	CSMe,
 	CSNewRelicProviderInfo,
 	DEFAULT_CLM_SETTINGS,
+	REQUIRED_AGENT_VERSIONS,
 } from "@codestream/protocols/api";
 import { GraphQLClient } from "graphql-request";
 import {
@@ -153,6 +154,7 @@ import { ThirdPartyIssueProviderBase } from "./thirdPartyIssueProviderBase";
 import { ClmManager } from "./newrelic/clm/clmManager";
 import * as Dom from "graphql-request/dist/types.dom";
 import { makeHtmlLoggable } from "@codestream/utils/system/string";
+import semver from "semver";
 
 const ignoredErrors = [GraphqlNrqlTimeoutError];
 
@@ -972,6 +974,7 @@ export class NewRelicProvider
 								alertSeverity: entity?.alertSeverity,
 								url: `${this.productUrl}/redirect/entity/${entity.guid}`,
 								distributedTracingEnabled: this.hasStandardOrInfiniteTracing(entity),
+								languageAndVersionValidation: this.languageAndVersionValidation(entity),
 							} as EntityAccount;
 						})
 						.filter(Boolean)
@@ -1006,6 +1009,37 @@ export class NewRelicProvider
 
 		// Values can be either 'standard' for head-based sampling or 'infinite' for tail-based sampling.
 		return tracingValue === "standard" || tracingValue === "infinite";
+	}
+
+	private languageAndVersionValidation(entity?: Entity): object {
+		const tags = entity?.tags || [];
+		const agentVersion = tags.find(tag => tag.key === "agentVersion");
+		const language = tags.find(tag => tag.key === "language");
+
+		if (!agentVersion || !language) {
+			return {};
+		}
+
+		const version = agentVersion.values[0];
+		const languageValue = language.values[0].toLowerCase();
+
+		if (
+			languageValue === "go" ||
+			languageValue === "java" ||
+			languageValue === ".net" ||
+			languageValue === "node.js" ||
+			languageValue === "php" ||
+			languageValue === "python" ||
+			languageValue === "ruby"
+		) {
+			if (version && semver.lt(version, REQUIRED_AGENT_VERSIONS[languageValue])) {
+				return {
+					language: language.values[0],
+					required: REQUIRED_AGENT_VERSIONS[languageValue],
+				};
+			}
+		}
+		return {};
 	}
 
 	/**

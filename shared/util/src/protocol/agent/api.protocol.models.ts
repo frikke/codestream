@@ -810,8 +810,8 @@ export type SidebarPanes = {
 		maximized?: boolean;
 		removed?: boolean;
 		size?: number;
-	}
-}
+	};
+};
 
 export interface CSMePreferences {
 	telemetryConsent?: boolean; // legacy
@@ -899,6 +899,16 @@ export const DEFAULT_CLM_SETTINGS: CLMSettings = {
 	minimumBaselineValue: "30",
 	minimumErrorRateValue: "1",
 	minimumAverageDurationValue: "0.1",
+};
+
+export const REQUIRED_AGENT_VERSIONS = {
+	go: "3.24.0",
+	java: "7.11.0",
+	".net": "10.2.0",
+	"node.js": "10.5.0",
+	php: "10.6.0 ",
+	python: "7.10.0.175",
+	ruby: "  8.10.0 ",
 };
 
 export interface RepoSetting {

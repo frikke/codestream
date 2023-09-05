@@ -1266,6 +1266,9 @@ export const Observability = React.memo((props: Props) => {
 																									distributedTracingEnabled={
 																										ea?.distributedTracingEnabled
 																									}
+																									languageAndVersionValidation={
+																										ea?.languageAndVersionValidation
+																									}
 																								/>
 																							)}
 
