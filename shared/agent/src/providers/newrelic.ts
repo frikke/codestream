@@ -1020,8 +1020,8 @@ export class NewRelicProvider
 			return {};
 		}
 
-		const version = agentVersion.values[0];
-		const languageValue = language.values[0].toLowerCase();
+		const version = agentVersion?.values[0];
+		const languageValue = language?.values[0].toLowerCase();
 
 		if (
 			languageValue === "go" ||
