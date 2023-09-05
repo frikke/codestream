@@ -221,7 +221,7 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 							</div>
 						)}
 
-						{!props.calculatingAnomalies && !props.distributedTracingEnabled && (
+						{!props.calculatingAnomalies && props.distributedTracingEnabled && (
 							<>
 								<ObservabilityAnomaliesGroup
 									observabilityAnomalies={props.observabilityAnomalies.errorRate}
