@@ -2,7 +2,7 @@ import {
 	GetObservabilityAnomaliesResponse,
 	LanguageAndVersionValidation,
 } from "@codestream/protocols/agent";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import Icon from "./Icon";
 import { Link } from "./Link";
@@ -24,10 +24,11 @@ import {
 	MissingRubyExtension,
 	RubyPluginLanguageServer,
 } from "./MethodLevelTelemetry/MissingExtension";
+import { HostApi } from "../webview-api";
+
 interface Props {
 	observabilityAnomalies: GetObservabilityAnomaliesResponse;
 	observabilityRepo: any;
-	// observabilityAssignments: any;
 	entityGuid: string;
 	noAccess?: string;
 	calculatingAnomalies?: boolean;
@@ -85,6 +86,22 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 				break;
 		}
 	}
+
+	useEffect(() => {
+		if (!_isEmpty(props.languageAndVersionValidation)) {
+			HostApi.instance.track("CLM Blocked", {
+				cause: "Unsupported Agent",
+			});
+		}
+	}, [props.languageAndVersionValidation]);
+
+	useEffect(() => {
+		if (!props.distributedTracingEnabled) {
+			HostApi.instance.track("CLM Blocked", {
+				cause: "DT Not Enabled",
+			});
+		}
+	}, [props.distributedTracingEnabled]);
 
 	return (
 		<>
@@ -221,33 +238,35 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 							</div>
 						)}
 
-						{!props.calculatingAnomalies && props.distributedTracingEnabled && (
-							<>
-								<ObservabilityAnomaliesGroup
-									observabilityAnomalies={props.observabilityAnomalies.errorRate}
-									observabilityRepo={props.observabilityRepo}
-									entityGuid={props.entityGuid}
-									title="Error Rate Increase"
-									detectionMethod={props.observabilityAnomalies.detectionMethod}
-								/>
-								<ObservabilityAnomaliesGroup
-									observabilityAnomalies={props.observabilityAnomalies.responseTime}
-									observabilityRepo={props.observabilityRepo}
-									entityGuid={props.entityGuid}
-									title="Average Duration Increase"
-									detectionMethod={props.observabilityAnomalies.detectionMethod}
-								/>
-								<ObservabilityAnomaliesGroup
-									observabilityAnomalies={props.observabilityAnomalies.allOtherAnomalies || []}
-									observabilityRepo={props.observabilityRepo}
-									entityGuid={props.entityGuid}
-									title="All other methods"
-									noAnomaly={true}
-									collapseDefault={true}
-									detectionMethod={props.observabilityAnomalies.detectionMethod}
-								/>
-							</>
-						)}
+						{!props.calculatingAnomalies &&
+							props.distributedTracingEnabled &&
+							_isEmpty(props.languageAndVersionValidation) && (
+								<>
+									<ObservabilityAnomaliesGroup
+										observabilityAnomalies={props.observabilityAnomalies.errorRate}
+										observabilityRepo={props.observabilityRepo}
+										entityGuid={props.entityGuid}
+										title="Error Rate Increase"
+										detectionMethod={props.observabilityAnomalies.detectionMethod}
+									/>
+									<ObservabilityAnomaliesGroup
+										observabilityAnomalies={props.observabilityAnomalies.responseTime}
+										observabilityRepo={props.observabilityRepo}
+										entityGuid={props.entityGuid}
+										title="Average Duration Increase"
+										detectionMethod={props.observabilityAnomalies.detectionMethod}
+									/>
+									<ObservabilityAnomaliesGroup
+										observabilityAnomalies={props.observabilityAnomalies.allOtherAnomalies || []}
+										observabilityRepo={props.observabilityRepo}
+										entityGuid={props.entityGuid}
+										title="All other methods"
+										noAnomaly={true}
+										collapseDefault={true}
+										detectionMethod={props.observabilityAnomalies.detectionMethod}
+									/>
+								</>
+							)}
 					</>
 				))}
 		</>
