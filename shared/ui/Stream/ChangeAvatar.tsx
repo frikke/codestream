@@ -15,7 +15,7 @@ import { closeModal } from "./actions";
 import { ButtonRow } from "./ChangeUsername";
 import { Link } from "./Link";
 
-// @TODO: Candidate for deletion post o11yOnly
+// @TODO: Candidate for deletion post o11y-Only
 
 // profile images can either be blank, in which case we'll fall back to
 // gravatar, and then initials if no gravatar, or they can be a URL
