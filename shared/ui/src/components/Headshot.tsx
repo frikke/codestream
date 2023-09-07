@@ -131,6 +131,29 @@ export const Headshot = styled((props: HeadshotProps) => {
 		(props.className || "") +
 		(props.addThumbsUp && !props.hardRightBorder ? " make-room-for-thumbs-up" : "");
 
+	if (person.username?.toLowerCase() === "grok") {
+		return (
+			<Root
+				size={size}
+				display={display}
+				hardRightBorder={props.hardRightBorder}
+				className={className}
+				onClick={props.onClick}
+			>
+				<Image
+					size={size}
+					src={`https://images.codestream.com/icons/grok-green.png`}
+					onError={() => setImageError(true)}
+				/>
+				{props.addThumbsUp && (
+					<ThumbsUp>
+						<Icon name="thumbsup" />
+					</ThumbsUp>
+				)}
+			</Root>
+		);
+	}
+
 	return (
 		<Root
 			size={size}
