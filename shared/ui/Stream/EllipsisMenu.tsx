@@ -5,10 +5,7 @@ import {
 import { isEmpty as _isEmpty, sortBy as _sortBy } from "lodash-es";
 import React from "react";
 import styled from "styled-components";
-import {
-	WebviewModals,
-	OpenUrlRequestType,
-} from "@codestream/protocols/webview";
+import { WebviewModals, OpenUrlRequestType } from "@codestream/protocols/webview";
 import { multiStageConfirmPopup } from "./MultiStageConfirm";
 import {
 	logout,
@@ -203,24 +200,20 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 					// Skip companys eligible to join by domain and are signed out with no invite
 					const domainJoining = company?.domainJoining;
 					const canJoinByDomain = !_isEmpty(domainJoining);
+					const isInvited = company.byInvite && !company.accessToken;
 					const isSignedOut = !company.byInvite && !company.accessToken;
-					if (canJoinByDomain || isSignedOut) return false;
+					if (canJoinByDomain || isSignedOut || isInvited) return false;
 					return true;
 				})
 				.map(company => {
 					const isCurrentCompany = company.id === currentCompanyId;
-					const isInvited = company.byInvite && !company.accessToken;
 					const companyHost = company.host || currentHost;
 					const companyRegion =
 						supportsMultiRegion && hasMultipleEnvironments && companyHost?.shortName;
 
-					// @TODO: add in for UI phase 2, with "Signed Out" messaging as well
-					// const signedStatusText = isInvited ? "Invited" : "Signed In";
 					let checked: any;
 					if (isCurrentCompany) {
 						checked = true;
-					} else if (isInvited) {
-						checked = "custom";
 					} else {
 						checked = false;
 					}
@@ -240,27 +233,6 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 						},
 					};
 				}) as any;
-
-			items.push(
-				{ label: "-" },
-				{
-					key: "create-company",
-					icon: <Icon name="plus" />,
-					label: "Create New Organization",
-					action: () => {
-						dispatch(openModal(WebviewModals.CreateCompany));
-					},
-				},
-				//@TODO: change action to idp signin
-				{
-					key: "sign-in-other",
-					icon: <Icon name="plus" />,
-					label: "Sign In to Another Organization",
-					action: () => {
-						console.warn("sign in action for idp goes here");
-					},
-				}
-			);
 
 			return items;
 		};
