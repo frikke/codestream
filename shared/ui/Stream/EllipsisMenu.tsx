@@ -7,7 +7,6 @@ import React from "react";
 import styled from "styled-components";
 import {
 	WebviewModals,
-	WebviewPanelNames,
 	OpenUrlRequestType,
 } from "@codestream/protocols/webview";
 import { multiStageConfirmPopup } from "./MultiStageConfirm";
@@ -26,7 +25,7 @@ import { openPanel } from "./actions";
 import Icon from "./Icon";
 import { MarkdownText } from "./MarkdownText";
 import Menu from "./Menu";
-import { AVAILABLE_PANES, DEFAULT_PANE_SETTINGS } from "./Sidebar";
+import { AVAILABLE_PANES } from "./Sidebar";
 import { EMPTY_STATUS } from "./StartWork";
 import { getDomainFromEmail } from "@codestream/webview/utils";
 
@@ -331,14 +330,6 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 
 				{ label: "-" },
 
-				{
-					label: "Export Data",
-					key: "export-data",
-					action: () => go(WebviewPanels.Export),
-					disabled: false,
-				},
-
-				{ label: "-" },
 				{
 					label: "Export Data",
 					key: "export-data",
