@@ -109,7 +109,6 @@ import {
 	CSMe,
 	CSNewRelicProviderInfo,
 	DEFAULT_CLM_SETTINGS,
-	REQUIRED_AGENT_VERSIONS,
 } from "@codestream/protocols/api";
 import { GraphQLClient } from "graphql-request";
 import {
@@ -185,6 +184,16 @@ function isHttpErrorResponse(ex: unknown): ex is HttpErrorResponse {
 }
 
 const ENTITY_CACHE_KEY = "entityCache";
+
+export const REQUIRED_AGENT_VERSIONS = {
+	go: "3.24.0",
+	java: "7.11.0",
+	".net": "10.2.0",
+	"node.js": "10.5.0",
+	php: "10.6.0 ",
+	python: "7.10.0.175",
+	ruby: "8.10.0 ",
+};
 
 export interface INewRelicProvider {
 	getProductUrl: () => string;
@@ -1032,7 +1041,14 @@ export class NewRelicProvider
 			languageValue === "python" ||
 			languageValue === "ruby"
 		) {
-			if (version && semver.lt(version, REQUIRED_AGENT_VERSIONS[languageValue])) {
+			if (
+				version &&
+				semver.lt(
+					semver.coerce(version) || version,
+					semver.coerce(REQUIRED_AGENT_VERSIONS[languageValue]) ||
+						REQUIRED_AGENT_VERSIONS[languageValue]
+				)
+			) {
 				return {
 					language: language.values[0],
 					required: REQUIRED_AGENT_VERSIONS[languageValue],
