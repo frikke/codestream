@@ -20,7 +20,6 @@ import { EllipsisMenu } from "./EllipsisMenu";
 import Icon from "./Icon";
 import { Link } from "./Link";
 import { PlusMenu } from "./PlusMenu";
-import { TeamMenu } from "./TeamMenu";
 import Tooltip, { placeArrowTopRight, TipTitle } from "./Tooltip";
 
 const sum = (total, num) => total + Math.round(num);
@@ -88,10 +87,6 @@ export function GlobalNav() {
 
 	const togglePlusMenu = event => {
 		setPlusMenuOpen(plusMenuOpen ? undefined : event.target.closest("label"));
-	};
-
-	const toggleTeamMenu = event => {
-		setTeamMenuOpen(teamMenuOpen ? undefined : event.target.closest("label"));
 	};
 
 	const go = panel => {
@@ -233,25 +228,7 @@ export function GlobalNav() {
 							</span>
 						</Tooltip>
 					</label>
-					<label
-						className={cx({ active: teamMenuOpen })}
-						onClick={toggleTeamMenu}
-						id="global-nav-people-label"
-					>
-						<span>
-							<Icon
-								name="team"
-								title="My Organization"
-								placement="bottomRight"
-								delay={1}
-								trigger={["hover"]}
-								align={{ offset: [16, 0] }}
-							/>
-						</span>
-						{teamMenuOpen && (
-							<TeamMenu closeMenu={() => setTeamMenuOpen(undefined)} menuTarget={teamMenuOpen} />
-						)}
-					</label>
+
 					<label
 						className={cx({ selected: selected(WebviewPanels.FilterSearch) })}
 						onClick={() => go(WebviewPanels.FilterSearch)}
