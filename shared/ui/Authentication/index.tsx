@@ -30,8 +30,7 @@ export const UnauthenticatedRoutes = () => {
 		case Route.CompanyCreation:
 			return <CompanyCreation {...props.params} />;
 		case Route.Login:
-			return <Login {...props.params} />;
-		// TODO: remove this when New Relic login is fully supported
+			return <Signup {...props.params} />;
 		case Route.OldLogin:
 			return <OldLogin {...props.params} />;
 		case Route.JoinTeam:
