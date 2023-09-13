@@ -1,5 +1,11 @@
 # Change Log
 
+## [14.29.1] - 2023-09-13
+
+### Fixed
+
+- Addresses [#1746](https://github.com/TeamCodeStream/codestream/issues/1746) &mdash; CodeStream panel fails to load in VS Code Insiders
+
 ## [14.29.0] - 2023-09-12
 
 ### Changed
