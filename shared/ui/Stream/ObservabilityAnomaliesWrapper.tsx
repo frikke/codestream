@@ -2,7 +2,7 @@ import {
 	GetObservabilityAnomaliesResponse,
 	LanguageAndVersionValidation,
 } from "@codestream/protocols/agent";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import Icon from "./Icon";
 import { Link } from "./Link";
@@ -24,7 +24,6 @@ import {
 	MissingRubyExtension,
 	RubyPluginLanguageServer,
 } from "./MethodLevelTelemetry/MissingExtension";
-import { HostApi } from "../webview-api";
 
 interface Props {
 	observabilityAnomalies: GetObservabilityAnomaliesResponse;
@@ -87,21 +86,21 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 		}
 	}
 
-	useEffect(() => {
-		if (!_isEmpty(props.languageAndVersionValidation)) {
-			HostApi.instance.track("CLM Blocked", {
-				cause: "Unsupported Agent",
-			});
-		}
-	}, [props.languageAndVersionValidation]);
+	// useEffect(() => {
+	// 	if (!_isEmpty(props.languageAndVersionValidation)) {
+	// 		HostApi.instance.track("CLM Blocked", {
+	// 			cause: "Unsupported Agent",
+	// 		});
+	// 	}
+	// }, [props.languageAndVersionValidation]);
 
-	useEffect(() => {
-		if (!props.distributedTracingEnabled) {
-			HostApi.instance.track("CLM Blocked", {
-				cause: "DT Not Enabled",
-			});
-		}
-	}, [props.distributedTracingEnabled]);
+	// useEffect(() => {
+	// 	if (!props.distributedTracingEnabled) {
+	// 		HostApi.instance.track("CLM Blocked", {
+	// 			cause: "DT Not Enabled",
+	// 		});
+	// 	}
+	// }, [props.distributedTracingEnabled]);
 
 	return (
 		<>
