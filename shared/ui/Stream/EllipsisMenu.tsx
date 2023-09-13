@@ -5,11 +5,7 @@ import {
 import { isEmpty as _isEmpty, sortBy as _sortBy } from "lodash-es";
 import React from "react";
 import styled from "styled-components";
-import {
-	WebviewModals,
-	WebviewPanelNames,
-	OpenUrlRequestType,
-} from "@codestream/protocols/webview";
+import { WebviewModals, OpenUrlRequestType } from "@codestream/protocols/webview";
 import { multiStageConfirmPopup } from "./MultiStageConfirm";
 import {
 	logout,
@@ -26,7 +22,7 @@ import { openPanel } from "./actions";
 import Icon from "./Icon";
 import { MarkdownText } from "./MarkdownText";
 import Menu from "./Menu";
-import { AVAILABLE_PANES, DEFAULT_PANE_SETTINGS } from "./Sidebar";
+import { AVAILABLE_PANES } from "./Sidebar";
 import { EMPTY_STATUS } from "./StartWork";
 import { getDomainFromEmail } from "@codestream/webview/utils";
 
@@ -204,24 +200,20 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 					// Skip companys eligible to join by domain and are signed out with no invite
 					const domainJoining = company?.domainJoining;
 					const canJoinByDomain = !_isEmpty(domainJoining);
+					const isInvited = company.byInvite && !company.accessToken;
 					const isSignedOut = !company.byInvite && !company.accessToken;
-					if (canJoinByDomain || isSignedOut) return false;
+					if (canJoinByDomain || isSignedOut || isInvited) return false;
 					return true;
 				})
 				.map(company => {
 					const isCurrentCompany = company.id === currentCompanyId;
-					const isInvited = company.byInvite && !company.accessToken;
 					const companyHost = company.host || currentHost;
 					const companyRegion =
 						supportsMultiRegion && hasMultipleEnvironments && companyHost?.shortName;
 
-					// @TODO: add in for UI phase 2, with "Signed Out" messaging as well
-					// const signedStatusText = isInvited ? "Invited" : "Signed In";
 					let checked: any;
 					if (isCurrentCompany) {
 						checked = true;
-					} else if (isInvited) {
-						checked = "custom";
 					} else {
 						checked = false;
 					}
@@ -241,27 +233,6 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 						},
 					};
 				}) as any;
-
-			items.push(
-				{ label: "-" },
-				{
-					key: "create-company",
-					icon: <Icon name="plus" />,
-					label: "Create New Organization",
-					action: () => {
-						dispatch(openModal(WebviewModals.CreateCompany));
-					},
-				},
-				//@TODO: change action to idp signin
-				{
-					key: "sign-in-other",
-					icon: <Icon name="plus" />,
-					label: "Sign In to Another Organization",
-					action: () => {
-						console.warn("sign in action for idp goes here");
-					},
-				}
-			);
 
 			return items;
 		};
@@ -317,29 +288,6 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		if (adminIds && adminIds.includes(currentUserId!)) {
 			const submenu = [
 				{
-					label: "Change Organization Name",
-					key: "change-company-name",
-					action: () => dispatch(openModal(WebviewModals.ChangeCompanyName)),
-				},
-				{ label: "-" },
-				{
-					label: "Onboarding Settings...",
-					key: "onboarding-settings",
-					action: () => dispatch(openModal(WebviewModals.TeamSetup)),
-					disabled: !derivedState.autoJoinSupported,
-				},
-
-				{ label: "-" },
-
-				{
-					label: "Export Data",
-					key: "export-data",
-					action: () => go(WebviewPanels.Export),
-					disabled: false,
-				},
-
-				{ label: "-" },
-				{
 					label: "Export Data",
 					key: "export-data",
 					action: () => go(WebviewPanels.Export),
@@ -350,7 +298,6 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 			const emailDomain = getDomainFromEmail(currentUserEmail!);
 			if (emailDomain && VALID_DELETE_ORG_EMAIL_DOMAINS.includes(emailDomain)) {
 				submenu.push.apply(submenu, [
-					{ label: "-" },
 					{
 						label: "Delete Organization",
 						key: "delete-organization",
@@ -393,38 +340,20 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		action?: () => void;
 	}
 	let accountSubmenu: SubmenuOption[] = [];
-	const { company } = derivedState;
-	if (company.codestreamOnly) {
-		accountSubmenu = [
-			{
-				label: "View Profile",
-				action: () => {
-					dispatch(setProfileUser(derivedState.currentUserId));
-					popup(WebviewModals.Profile);
-				},
+
+	accountSubmenu = [
+		{
+			label: "View Profile",
+			action: () => {
+				dispatch(setProfileUser(derivedState.currentUserId));
+				popup(WebviewModals.Profile);
 			},
-			{ label: "Change Profile Photo", action: () => popup(WebviewModals.ChangeAvatar) },
-			{ label: "Change Email", action: () => popup(WebviewModals.ChangeEmail) },
-			{ label: "Change Username", action: () => popup(WebviewModals.ChangeUsername) },
-			{ label: "Change Full Name", action: () => popup(WebviewModals.ChangeFullName) },
-			{ label: "-" },
-			{ label: "Sign Out", action: () => handleLogout() },
-		];
-	} else {
-		accountSubmenu = [
-			{
-				label: "View Profile",
-				action: () => {
-					dispatch(setProfileUser(derivedState.currentUserId));
-					popup(WebviewModals.Profile);
-				},
-			},
-			{ label: "Change Profile Photo", action: () => popup(WebviewModals.ChangeAvatar) },
-			{ label: "Change Username", action: () => popup(WebviewModals.ChangeUsername) },
-			{ label: "-" },
-			{ label: "Sign Out", action: () => handleLogout() },
-		];
-	}
+		},
+		{ label: "Change Profile Photo", action: () => popup(WebviewModals.ChangeAvatar) },
+		{ label: "Change Username", action: () => popup(WebviewModals.ChangeUsername) },
+		{ label: "-" },
+		{ label: "Sign Out", action: () => handleLogout() },
+	];
 
 	menuItems.push(
 		{
@@ -448,6 +377,10 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		{
 			label: "Notifications",
 			action: () => dispatch(openModal(WebviewModals.Notifications)),
+		},
+		{
+			label: "Blame Map",
+			action: () => dispatch(openModal(WebviewModals.BlameMap)),
 		},
 		{ label: "Integrations", action: () => dispatch(openPanel(WebviewPanels.Integrations)) }
 	);
