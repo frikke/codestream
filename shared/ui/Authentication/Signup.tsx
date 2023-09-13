@@ -46,38 +46,42 @@ export const isEmailValid = (email: string) => {
 export const isUsernameValid = (username: string) =>
 	new RegExp("^[-a-zA-Z0-9_.]{1,21}$").test(username);
 
-const OnPremTooltipCopy = styled.span`
-	color: var(--text-color-info);
-	cursor: pointer;
-`;
+const NoBorderBottomBox = styled.div`
+	margin: 0 auto;
+	padding: 20px;
+	max-width: 420px;
+	text-align: left;
 
-const OnPremWrapper = styled.div`
-	padding: 5px 0 0 0;
-	font-size: smaller;
-	text-align: center;
-`;
+	p {
+		margin-top: 0.5em;
+		color: var(--text-color-subtle);
+	}
 
-// all buttons container
-const SignupButtonsContainer = styled.div`
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: space-between;
-	margin: 0 0 10px 0;
-`;
+	h2,
+	h3 {
+		color: var(--text-color-highlight);
+		margin: 0 0 0 0;
+	}
 
-// single button container
-const SignupButtonContainer = styled.div`
-	@media (max-width: 351px) {
-		width: 100%;
+	&::after {
+		content: "";
+		position: absolute;
+		left: 0;
+		right: 0;
+		transform: translateY(19px);
+		z-index: 2;
 	}
-	@media (min-width: 351px) {
-		width: 49%;
+
+	.or {
+		display: inline-block;
+		background: var(--sidebar-background);
+		padding: 0 10px;
 	}
-	.btn {
-		padding: 5px 10px 5px 10px !important;
-	}
-	.icon:not(.spin) {
-		display: inline-block !important;
+
+	.app-or {
+		display: inline-block;
+		background: var(--app-background-color);
+		padding: 0 10px;
 	}
 `;
 
@@ -503,7 +507,7 @@ export const Signup = (props: Props) => {
 				<form className="standard-form">
 					<fieldset className="form-body" style={{ paddingTop: 0, paddingBottom: 0 }}>
 						<div id="controls">
-							<div className="border-bottom-box">
+							<NoBorderBottomBox>
 								{(props.newOrg || props.joinCompanyId) && <h2>Create an account</h2>}
 								{!props.newOrg && !props.joinCompanyId && (
 									<>
@@ -544,7 +548,7 @@ export const Signup = (props: Props) => {
 										)}
 									</>
 								)}
-							</div>
+							</NoBorderBottomBox>
 						</div>
 					</fieldset>
 				</form>
