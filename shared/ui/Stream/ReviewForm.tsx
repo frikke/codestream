@@ -38,7 +38,6 @@ import { Range } from "vscode-languageserver-types";
 import { URI } from "vscode-uri";
 import { ReviewShowLocalDiffRequestType } from "@codestream/protocols/webview";
 import { WebviewPanels } from "@codestream/protocols/api";
-import { LabeledSwitch } from "@codestream/webview/src/components/controls/LabeledSwitch";
 import { Headshot } from "@codestream/webview/src/components/Headshot";
 import HeadshotMenu from "@codestream/webview/src/components/HeadshotMenu";
 import { SelectPeople } from "@codestream/webview/src/components/SelectPeople";
@@ -151,7 +150,6 @@ interface ConnectedProps {
 	) => UpdateReviewResponse | undefined;
 	repos: any;
 	shouldShare: boolean;
-	isNonCsOrg: boolean;
 	unsavedFiles: string[];
 	reviewsByCommit: {
 		[commit: string]: CSReview;
@@ -481,7 +479,6 @@ class ReviewForm extends React.Component<Props, State> {
 				inviteUsersOnTheFly,
 				blameMap = {},
 				editingReview,
-				isNonCsOrg,
 			} = this.props;
 			const {
 				includeSaved,
@@ -757,7 +754,6 @@ class ReviewForm extends React.Component<Props, State> {
 						default:
 							reviewerEmails = [];
 					}
-					if (isNonCsOrg) reviewerEmails = [];
 					this.setState({ reviewerEmails });
 				}
 
@@ -2222,7 +2218,7 @@ class ReviewForm extends React.Component<Props, State> {
 		}
 
 		const unregisteredAuthorItems = [] as any;
-		if (this.props.inviteUsersOnTheFly && !this.props.isNonCsOrg) {
+		if (this.props.inviteUsersOnTheFly) {
 			Object.keys(authorsBlameData).forEach(email => {
 				if (this.props.teamMembers.find(p => p.email === email)) return;
 				unregisteredAuthorItems.push({
@@ -2594,7 +2590,6 @@ const mapStateToProps = (state: CodeStreamState, props): ConnectedProps => {
 			safe(() => state.preferences[state.context.currentTeamId].shareCodemarkEnabled) || false,
 		channel,
 		teamId: team.id,
-		isNonCsOrg: !company.codestreamOnly,
 		teamMates,
 		teamMembers,
 		activeMemberIds,

@@ -122,7 +122,7 @@ interface Props extends ConnectedProps {
 	collapseForm?: Function;
 	onSubmit: (
 		attributes: NewCodemarkAttributes,
-		event?: React.SyntheticEvent,
+		event?: React.SyntheticEvent
 	) => Promise<void> | ReturnType<typeof createPostAndCodemark>;
 	onClickClose(e?: SyntheticEvent): void;
 	openCodemarkForm?(type: string): void;
@@ -151,7 +151,7 @@ interface Props extends ConnectedProps {
 	): ReturnType<ReturnType<typeof markItemRead>>;
 	upgradePendingCodeError(
 		codeErrorId: string,
-		source: "Comment" | "Status Change" | "Assignee Change",
+		source: "Comment" | "Status Change" | "Assignee Change"
 	);
 }
 
@@ -181,7 +181,6 @@ interface ConnectedProps {
 	currentTeamId: string;
 	currentReviewId?: string;
 	currentCodeErrorId?: string;
-	isNonCsOrg: boolean;
 	isCurrentUserAdmin?: boolean;
 	blameMap?: { [email: string]: string };
 	activePanel?: WebviewPanels;
@@ -349,14 +348,14 @@ class CodemarkForm extends React.Component<Props, State> {
 				}))
 				.concat(
 					mapFilter(this.props.editingCodemark!.assignees || [], a =>
-						state.assignableUsers.find(au => au.value === a),
-					),
+						state.assignableUsers.find(au => au.value === a)
+					)
 				);
 		} else if (codemarkAssignees === undefined) {
 			assignees = [];
 		} else if (Array.isArray(codemarkAssignees)) {
 			assignees = mapFilter(codemarkAssignees, a =>
-				state.assignableUsers.find(au => au.value === a),
+				state.assignableUsers.find(au => au.value === a)
 			);
 		}
 		this.state = {
@@ -489,7 +488,7 @@ class CodemarkForm extends React.Component<Props, State> {
 			this.getScmInfoForSelection(
 				textEditorUri!,
 				forceAsLine(textEditorSelection!),
-				textEditorGitSha,
+				textEditorGitSha
 			);
 			this.props.onDidChangeSelection && this.props.onDidChangeSelection(textEditorSelection!);
 			// this.setState({ addingLocation: false });
@@ -529,7 +528,7 @@ class CodemarkForm extends React.Component<Props, State> {
 		uri: string,
 		range: Range,
 		gitSha?: string,
-		callback?: Function,
+		callback?: Function
 	) {
 		const scmInfo = await HostApi.instance.send(GetRangeScmInfoRequestType, {
 			uri: uri,
@@ -595,7 +594,7 @@ class CodemarkForm extends React.Component<Props, State> {
 			this.getScmInfoForSelection(
 				textEditorUri!,
 				forceAsLine(textEditorSelection),
-				textEditorGitSha,
+				textEditorGitSha
 			);
 		}
 	};
@@ -834,7 +833,7 @@ class CodemarkForm extends React.Component<Props, State> {
 
 			const response = await HostApi.instance.send(
 				CreateDocumentMarkerPermalinkRequestType,
-				request,
+				request
 			);
 			this.setState({ linkURI: response.linkUrl, isLoading: false });
 
@@ -853,7 +852,7 @@ class CodemarkForm extends React.Component<Props, State> {
 			csAssignees = mapFilter(assignees, a => {
 				const user = a.value as ThirdPartyProviderUser;
 				const codestreamUser = this.props.teamMembers.find(
-					t => Boolean(user.email) && t.email === user.email,
+					t => Boolean(user.email) && t.email === user.email
 				);
 				if (codestreamUser) return codestreamUser.id;
 				return undefined;
@@ -904,7 +903,7 @@ class CodemarkForm extends React.Component<Props, State> {
 			try {
 				const codeErrorResponse = await this.props.upgradePendingCodeError(
 					this.props.currentCodeErrorId,
-					"Comment",
+					"Comment"
 				);
 				if (codeErrorResponse.wasPending) {
 					// if this codeError was pending, we know that we just created one, use the codeError
@@ -1175,7 +1174,7 @@ class CodemarkForm extends React.Component<Props, State> {
 			},
 			() => {
 				this.handlePrIntersection();
-			},
+			}
 		);
 		if (editingCodemark) {
 			this.setState({
@@ -1876,7 +1875,7 @@ class CodemarkForm extends React.Component<Props, State> {
 		const codeHTML = prettyPrintOne(
 			escapeHtml(codeBlock.contents),
 			extension,
-			range.start.line + 1,
+			range.start.line + 1
 		);
 		return (
 			<div
@@ -2242,11 +2241,10 @@ class CodemarkForm extends React.Component<Props, State> {
 
 	renderEmailAuthors = () => {
 		const { unregisteredAuthors, emailAuthors, isPreviewing } = this.state;
-		const { isNonCsOrg, isCurrentUserAdmin } = this.props;
+		const { isCurrentUserAdmin } = this.props;
 
 		if (isPreviewing) return null;
 		if (unregisteredAuthors.length === 0) return null;
-		if (isNonCsOrg) return null;
 
 		return unregisteredAuthors.map(author => {
 			return (
@@ -2700,7 +2698,6 @@ const mapStateToProps = (state: CodeStreamState): ConnectedProps => {
 		currentTeamId: state.context.currentTeamId,
 		blameMap: blameMap || EMPTY_OBJECT,
 		isCurrentUserAdmin,
-		isNonCsOrg: !company.codestreamOnly,
 		activePanel: context.panelStack[0] as WebviewPanels,
 		shouldShare:
 			safe(() => state.preferences[state.context.currentTeamId].shareCodemarkEnabled) || false,

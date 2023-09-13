@@ -24,7 +24,7 @@ import {
 	goToTeamCreation,
 } from "../store/context/actions";
 import { confirmPopup } from "../Stream/Confirm";
-import { Dropdown, DropdownItem } from "../Stream/Dropdown";
+import { DropdownItem } from "../Stream/Dropdown";
 import { ModalRoot } from "../Stream/Modal"; // HACK ALERT: including this component is NOT the right way
 import Tooltip from "../Stream/Tooltip";
 import { useAppDispatch, useAppSelector, useDidMount } from "../utilities/hooks";
@@ -46,38 +46,42 @@ export const isEmailValid = (email: string) => {
 export const isUsernameValid = (username: string) =>
 	new RegExp("^[-a-zA-Z0-9_.]{1,21}$").test(username);
 
-const OnPremTooltipCopy = styled.span`
-	color: var(--text-color-info);
-	cursor: pointer;
-`;
+const NoBorderBottomBox = styled.div`
+	margin: 0 auto;
+	padding: 20px;
+	max-width: 420px;
+	text-align: left;
 
-const OnPremWrapper = styled.div`
-	padding: 5px 0 0 0;
-	font-size: smaller;
-	text-align: center;
-`;
+	p {
+		margin-top: 0.5em;
+		color: var(--text-color-subtle);
+	}
 
-// all buttons container
-const SignupButtonsContainer = styled.div`
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: space-between;
-	margin: 0 0 10px 0;
-`;
+	h2,
+	h3 {
+		color: var(--text-color-highlight);
+		margin: 0 0 0 0;
+	}
 
-// single button container
-const SignupButtonContainer = styled.div`
-	@media (max-width: 351px) {
-		width: 100%;
+	&::after {
+		content: "";
+		position: absolute;
+		left: 0;
+		right: 0;
+		transform: translateY(19px);
+		z-index: 2;
 	}
-	@media (min-width: 351px) {
-		width: 49%;
+
+	.or {
+		display: inline-block;
+		background: var(--sidebar-background);
+		padding: 0 10px;
 	}
-	.btn {
-		padding: 5px 10px 5px 10px !important;
-	}
-	.icon:not(.spin) {
-		display: inline-block !important;
+
+	.app-or {
+		display: inline-block;
+		background: var(--app-background-color);
+		padding: 0 10px;
 	}
 `;
 
@@ -222,7 +226,7 @@ export const Signup = (props: Props) => {
 	useDidMount(() => {
 		getUserInfo();
 		if (derivedState.webviewFocused) {
-			HostApi.instance.track("Page Viewed", { "Page Name": "Create Account" });
+			HostApi.instance.track("Page Viewed", { "Page Name": "Sign In" });
 		}
 		if (props.teamId) getTeamAuthInfo(props.teamId);
 	});
@@ -503,7 +507,7 @@ export const Signup = (props: Props) => {
 				<form className="standard-form">
 					<fieldset className="form-body" style={{ paddingTop: 0, paddingBottom: 0 }}>
 						<div id="controls">
-							<div className="border-bottom-box">
+							<NoBorderBottomBox>
 								{(props.newOrg || props.joinCompanyId) && <h2>Create an account</h2>}
 								{!props.newOrg && !props.joinCompanyId && (
 									<>
@@ -523,93 +527,18 @@ export const Signup = (props: Props) => {
 								)}
 								{_isEmpty(derivedState.pendingProtocolHandlerUrl) && (
 									<>
-										<h3 style={{ marginBottom: regionItems || forceRegionName ? "5px" : "0px" }}>
+										<div style={{ marginBottom: "5px", textAlign: "center" }}>
 											{(props.newOrg || props.joinCompanyId) && (
 												<>How will you sign into this organization?</>
 											)}
 											{!props.newOrg && !props.joinCompanyId && (
-												<>Don't have a New Relic account? Sign up for free.</>
+												<>
+													Don't have a New Relic account?{" "}
+													<Link href="https://newrelic.com/signup">Sign up for free.</Link>
+												</>
 											)}
-										</h3>
-										{regionItems && !forceRegionName && (
-											<>
-												Region:{" "}
-												<Dropdown
-													selectedValue={selectedRegionName ?? ""}
-													items={regionItems}
-													noModal={true}
-												/>
-												<Tooltip
-													placement={"bottom"}
-													title={`Select the region where your CodeStream data should be stored.`}
-												>
-													<TooltipIconWrapper>
-														<Icon name="question" />
-													</TooltipIconWrapper>
-												</Tooltip>
-											</>
-										)}
-										{forceRegionName && <>Region: {forceRegionName}</>}
-										<SignupButtonsContainer>
-											{(!limitAuthentication || authenticationProviders["github*com"]) && (
-												<SignupButtonContainer>
-													<Button
-														className="row-button no-top-margin"
-														onClick={onClickGithubSignup}
-													>
-														<Icon name="mark-github" />
-														<div className="copy">GitHub</div>
-														<Icon name="chevron-right" />
-													</Button>
-												</SignupButtonContainer>
-											)}
-											{(!limitAuthentication || authenticationProviders["gitlab*com"]) && (
-												<SignupButtonContainer>
-													<Button
-														className="row-button no-top-margin"
-														onClick={onClickGitlabSignup}
-													>
-														<Icon name="gitlab" />
-														<div className="copy">GitLab</div>
-														<Icon name="chevron-right" />
-													</Button>
-												</SignupButtonContainer>
-											)}
-											{(!limitAuthentication || authenticationProviders["bitbucket*org"]) && (
-												<SignupButtonContainer>
-													<Button
-														className="row-button no-top-margin"
-														onClick={onClickBitbucketSignup}
-													>
-														<Icon name="bitbucket" />
-														<div className="copy">Bitbucket</div>
-														<Icon name="chevron-right" />
-													</Button>
-												</SignupButtonContainer>
-											)}
-											{derivedState.oktaEnabled && (
-												<SignupButtonContainer>
-													<Button className="row-button no-top-margin" onClick={onClickOktaSignup}>
-														<Icon name="okta" />
-														<div className="copy">Okta</div>
-														<Icon name="chevron-right" />
-													</Button>
-												</SignupButtonContainer>
-											)}
-											{(!limitAuthentication || authenticationProviders["email"]) &&
-												!showEmailForm && (
-													<SignupButtonContainer>
-														<Button
-															className="row-button no-top-margin"
-															onClick={onClickEmailSignup}
-														>
-															<Icon name="codestream" />
-															<div className="copy">Email</div>
-															<Icon name="chevron-right" />
-														</Button>
-													</SignupButtonContainer>
-												)}
-										</SignupButtonsContainer>
+										</div>
+
 										{showOr && showEmailForm && (
 											<div className="separator-label">
 												<span className="or">
@@ -619,7 +548,7 @@ export const Signup = (props: Props) => {
 										)}
 									</>
 								)}
-							</div>
+							</NoBorderBottomBox>
 						</div>
 					</fieldset>
 				</form>
@@ -720,22 +649,6 @@ export const Signup = (props: Props) => {
 							</div>
 						</div>
 					)}
-					<div id="controls">
-						<div className="footer">
-							<small className="fine-print">
-								<FormattedMessage id="signUp.legal.start" />{" "}
-								<FormattedMessage id="signUp.legal.terms">
-									{text => <Link href="https://codestream.com/terms">{text}</Link>}
-								</FormattedMessage>{" "}
-								<FormattedMessage id="and" />{" "}
-								<FormattedMessage id="signUp.legal.privacyPolicy">
-									{text => (
-										<Link href="https://newrelic.com/termsandconditions/privacy">{text}</Link>
-									)}
-								</FormattedMessage>
-							</small>
-						</div>
-					</div>
 
 					<p style={{ opacity: 0.5, fontSize: ".9em", textAlign: "center" }}>
 						CodeStream Version {derivedState.pluginVersion}
