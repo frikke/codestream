@@ -103,37 +103,14 @@ export function TeamMenu(props: TeamMenuProps) {
 		dispatch(openPanel(panel));
 	};
 
-	const menuItems = [
-		{
-			icon: <Icon name="team" />,
-			label: "My Organization",
-			subtextWide: "View your teammates",
-			action: () => go(WebviewModals.Team),
-			key: "team",
-		},
-	] as any;
-	if (derivedState.company.codestreamOnly) {
-		menuItems.push(
-			{ label: "-" },
-			{
-				icon: <Icon name="add-user" />,
-				label: "Invite Teammates",
-				subtextWide: "Share CodeStream with your team",
-				action: () => go(WebviewModals.Invite),
-				key: "invite",
-			}
-		);
-	}
-	menuItems.push(
-		{ label: "-" },
-		{
-			icon: <Icon name="arrow-right" />,
-			label: "Blame Map",
-			subtextWide: "Reassign code responsibility",
-			action: () => go(WebviewModals.BlameMap),
-			key: "blame",
-		}
-	);
+	const menuItems = [] as any;
+	menuItems.push({
+		icon: <Icon name="add-user" />,
+		label: "Invite Teammates",
+		subtextWide: "Share CodeStream with your team",
+		action: () => go(WebviewModals.Invite),
+		key: "invite",
+	});
 
 	if (derivedState.isCurrentUserAdmin) {
 		menuItems.push(
