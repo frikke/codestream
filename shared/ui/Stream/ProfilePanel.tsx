@@ -110,7 +110,6 @@ export const ProfilePanel = () => {
 			teamId: state.context.currentTeamId,
 			currentUserEmail: me.email,
 			currentUserId: me.id,
-			isNonCsOrg: !company.codestreamOnly,
 		};
 	});
 
@@ -196,7 +195,6 @@ export const ProfilePanel = () => {
 	const title = (
 		<Row style={{ margin: 0 }}>
 			<Value>{person.fullName}</Value>
-			{isMe && <RowIcon name="pencil" title="Edit Name" onClick={editFullName} />}
 		</Row>
 	);
 
@@ -234,7 +232,6 @@ export const ProfilePanel = () => {
 							value={person.email}
 							style={{ position: "absolute", left: "-9999px" }}
 						/>
-						{isMe && <RowIcon name="pencil" title="Edit Email" onClick={editEmail} />}
 					</Row>
 					<Row>
 						<MetaLabel>Timezone</MetaLabel>

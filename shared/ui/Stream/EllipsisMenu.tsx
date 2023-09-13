@@ -288,21 +288,6 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		if (adminIds && adminIds.includes(currentUserId!)) {
 			const submenu = [
 				{
-					label: "Change Organization Name",
-					key: "change-company-name",
-					action: () => dispatch(openModal(WebviewModals.ChangeCompanyName)),
-				},
-				{ label: "-" },
-				{
-					label: "Onboarding Settings...",
-					key: "onboarding-settings",
-					action: () => dispatch(openModal(WebviewModals.TeamSetup)),
-					disabled: !derivedState.autoJoinSupported,
-				},
-
-				{ label: "-" },
-
-				{
 					label: "Export Data",
 					key: "export-data",
 					action: () => go(WebviewPanels.Export),
@@ -313,7 +298,6 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 			const emailDomain = getDomainFromEmail(currentUserEmail!);
 			if (emailDomain && VALID_DELETE_ORG_EMAIL_DOMAINS.includes(emailDomain)) {
 				submenu.push.apply(submenu, [
-					{ label: "-" },
 					{
 						label: "Delete Organization",
 						key: "delete-organization",
@@ -356,38 +340,20 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		action?: () => void;
 	}
 	let accountSubmenu: SubmenuOption[] = [];
-	const { company } = derivedState;
-	if (company.codestreamOnly) {
-		accountSubmenu = [
-			{
-				label: "View Profile",
-				action: () => {
-					dispatch(setProfileUser(derivedState.currentUserId));
-					popup(WebviewModals.Profile);
-				},
+
+	accountSubmenu = [
+		{
+			label: "View Profile",
+			action: () => {
+				dispatch(setProfileUser(derivedState.currentUserId));
+				popup(WebviewModals.Profile);
 			},
-			{ label: "Change Profile Photo", action: () => popup(WebviewModals.ChangeAvatar) },
-			{ label: "Change Email", action: () => popup(WebviewModals.ChangeEmail) },
-			{ label: "Change Username", action: () => popup(WebviewModals.ChangeUsername) },
-			{ label: "Change Full Name", action: () => popup(WebviewModals.ChangeFullName) },
-			{ label: "-" },
-			{ label: "Sign Out", action: () => handleLogout() },
-		];
-	} else {
-		accountSubmenu = [
-			{
-				label: "View Profile",
-				action: () => {
-					dispatch(setProfileUser(derivedState.currentUserId));
-					popup(WebviewModals.Profile);
-				},
-			},
-			{ label: "Change Profile Photo", action: () => popup(WebviewModals.ChangeAvatar) },
-			{ label: "Change Username", action: () => popup(WebviewModals.ChangeUsername) },
-			{ label: "-" },
-			{ label: "Sign Out", action: () => handleLogout() },
-		];
-	}
+		},
+		{ label: "Change Profile Photo", action: () => popup(WebviewModals.ChangeAvatar) },
+		{ label: "Change Username", action: () => popup(WebviewModals.ChangeUsername) },
+		{ label: "-" },
+		{ label: "Sign Out", action: () => handleLogout() },
+	];
 
 	menuItems.push(
 		{
