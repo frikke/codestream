@@ -378,6 +378,10 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 			label: "Notifications",
 			action: () => dispatch(openModal(WebviewModals.Notifications)),
 		},
+		{
+			label: "Blame Map",
+			action: () => dispatch(openModal(WebviewModals.BlameMap)),
+		},
 		{ label: "Integrations", action: () => dispatch(openPanel(WebviewPanels.Integrations)) }
 	);
 
