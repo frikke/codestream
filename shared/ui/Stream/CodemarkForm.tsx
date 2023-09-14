@@ -2239,40 +2239,6 @@ class CodemarkForm extends React.Component<Props, State> {
 		this.setState({ emailAuthors: { ...emailAuthors, [email]: !emailAuthors[email] } });
 	};
 
-	renderEmailAuthors = () => {
-		const { unregisteredAuthors, emailAuthors, isPreviewing } = this.state;
-		const { isCurrentUserAdmin } = this.props;
-
-		if (isPreviewing) return null;
-		if (unregisteredAuthors.length === 0) return null;
-
-		return unregisteredAuthors.map(author => {
-			return (
-				<div className="checkbox-row">
-					<Checkbox
-						name={"email-" + author.email}
-						checked={emailAuthors[author.email]}
-						onChange={() => this.toggleEmail(author.email)}
-					>
-						Send to {author.username || author.email}&nbsp;&nbsp;
-						<Icon
-							name="info"
-							title={
-								<>
-									Retrieved from git blame.
-									{isCurrentUserAdmin && <p>Configure Blame Map under My Organization.</p>}
-								</>
-							}
-							placement="top"
-							delay={1}
-							align={{ offset: [0, 5] }}
-						/>
-					</Checkbox>
-				</div>
-			);
-		});
-	};
-
 	handleDragEnter = () => this.setState({ isDragging: this.state.isDragging + 1 });
 	handleDragLeave = () => this.setState({ isDragging: this.state.isDragging - 1 });
 	handleDrop = () => this.setState({ isDragging: 0 });
@@ -2512,7 +2478,6 @@ class CodemarkForm extends React.Component<Props, State> {
 					{this.renderTags()}
 					{!this.state.isPreviewing && this.renderCodeBlocks()}
 					{this.props.multiLocation && <div style={{ height: "10px" }} />}
-					{commentType !== "link" && this.renderEmailAuthors()}
 					{commentType !== "link" && this.renderSharingControls()}
 					{this.props.currentReviewId && this.renderRequireChange()}
 					{!this.state.isPreviewing && (
