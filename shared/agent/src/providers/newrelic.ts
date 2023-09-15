@@ -1672,111 +1672,126 @@ export class NewRelicProvider
 				}
 			);
 
-			if (errorGroupFullResponse?.actor?.errorsInbox?.errorGroups?.results?.length) {
-				const errorGroupResponse = errorGroupFullResponse.actor.errorsInbox.errorGroups.results[0];
-				entityGuid = errorGroupResponse.entityGuid;
-				errorGroup = {
-					entity: {},
-					accountId: accountId,
-					entityGuid: entityGuid,
-					guid: errorGroupResponse.id,
-					title: errorGroupResponse.name,
-					message: errorGroupResponse.message,
-
-					errorGroupUrl: `${this.productUrl}/redirect/errors-inbox/${errorGroupGuid}`,
-					entityUrl: `${this.productUrl}/redirect/entity/${errorGroupResponse.entityGuid}`,
-				};
-
-				if (errorGroupResponse.eventsQuery) {
-					const timestampRange = this.generateTimestampRange(request.timestamp);
-					if (timestampRange) {
-						const escapedEventsQuery = Strings.escapeNrql(errorGroupResponse.eventsQuery);
-						const nrql = `${escapedEventsQuery} since ${timestampRange?.startTime} until ${timestampRange?.endTime} LIMIT 1`;
-						try {
-							const result = await this.runNrql<{
-								"tags.releaseTag": string;
-								"tags.commit": string;
-							}>(accountId, nrql);
-							if (result.length) {
-								errorGroup.releaseTag = result[0]["tags.releaseTag"];
-								errorGroup.commit = result[0]["tags.commit"];
-							}
-						} catch (e) {
-							// This query is fragile with invalid nrql escape characters - Strings.escapeNrql
-							// catches some but not all of these cases
-							Logger.warn(e);
-						}
-					}
-				}
+			if (errorGroupFullResponse) {
+				let errorGroupResponse;
 
 				if (
-					errorGroupFullResponse.actor?.entity?.exception?.stackTrace ||
-					errorGroupFullResponse.actor?.entity?.crash?.stackTrace
+					!errorGroupFullResponse?.actor?.errorsInbox?.errorGroups?.results?.length &&
+					//@ts-ignore
+					errorGroupFullResponse?.actor?.errorsInbox?.errorGroup
 				) {
-					errorGroup.errorTrace = {
-						path: errorGroupFullResponse.actor.entity.name,
-						stackTrace: errorGroupFullResponse.actor.entity.crash
-							? errorGroupFullResponse.actor.entity.crash.stackTrace.frames
-							: errorGroupFullResponse.actor.entity.exception?.stackTrace?.frames || [],
-					};
-					errorGroup.hasStackTrace = true;
+					errorGroupResponse =
+						//@ts-ignore
+						errorGroupFullResponse.actor.errorsInbox.errorGroup;
 				}
-
-				errorGroup.attributes = {
-					// TODO fix me
-					// Timestamp: { type: "timestamp", value: errorGroup.timestamp }
-					// "Host display name": { type: "string", value: "11.11.11.11:11111" },
-					// "URL host": { type: "string", value: "value" },
-					// "URL path": { type: "string", value: "value" }
-				};
-				if (!errorGroup.hasStackTrace) {
-					errorGroup.attributes["Account"] = {
-						type: "string",
-						value: errorGroupFullResponse.actor.account.name,
-					};
-					errorGroup.attributes["Entity"] = {
-						type: "string",
-						value: errorGroupFullResponse.actor.entity.name,
-					};
+				if (errorGroupFullResponse?.actor?.errorsInbox?.errorGroups?.results?.length) {
+					errorGroupResponse = errorGroupFullResponse?.actor?.errorsInbox?.errorGroups?.results[0];
 				}
+				if (errorGroupResponse) {
+					entityGuid = errorGroupResponse.entityGuid;
+					errorGroup = {
+						entity: {},
+						accountId: accountId,
+						entityGuid: entityGuid,
+						guid: errorGroupResponse.id,
+						title: errorGroupResponse.name,
+						message: errorGroupResponse.message,
 
-				let states;
-				if (errorGroupFullResponse.actor.errorsInbox.errorGroupStateTypes) {
-					states = errorGroupFullResponse.actor.errorsInbox.errorGroupStateTypes.map(
-						(_: ErrorGroupStateType) => _.type
+						errorGroupUrl: `${this.productUrl}/redirect/errors-inbox/${errorGroupGuid}`,
+						entityUrl: `${this.productUrl}/redirect/entity/${errorGroupResponse.entityGuid}`,
+					};
+
+					if (errorGroupResponse.eventsQuery) {
+						const timestampRange = this.generateTimestampRange(request.timestamp);
+						if (timestampRange) {
+							const escapedEventsQuery = Strings.escapeNrql(errorGroupResponse.eventsQuery);
+							const nrql = `${escapedEventsQuery} since ${timestampRange?.startTime} until ${timestampRange?.endTime} LIMIT 1`;
+							try {
+								const result = await this.runNrql<{
+									"tags.releaseTag": string;
+									"tags.commit": string;
+								}>(accountId, nrql);
+								if (result.length) {
+									errorGroup.releaseTag = result[0]["tags.releaseTag"];
+									errorGroup.commit = result[0]["tags.commit"];
+								}
+							} catch (e) {
+								// This query is fragile with invalid nrql escape characters - Strings.escapeNrql
+								// catches some but not all of these cases
+								Logger.warn(e);
+							}
+						}
+					}
+
+					if (
+						errorGroupFullResponse.actor?.entity?.exception?.stackTrace ||
+						errorGroupFullResponse.actor?.entity?.crash?.stackTrace
+					) {
+						errorGroup.errorTrace = {
+							path: errorGroupFullResponse.actor.entity.name,
+							stackTrace: errorGroupFullResponse.actor.entity.crash
+								? errorGroupFullResponse.actor.entity.crash.stackTrace.frames
+								: errorGroupFullResponse.actor.entity.exception?.stackTrace?.frames || [],
+						};
+						errorGroup.hasStackTrace = true;
+					}
+
+					errorGroup.attributes = {
+						// TODO fix me
+						// Timestamp: { type: "timestamp", value: errorGroup.timestamp }
+						// "Host display name": { type: "string", value: "11.11.11.11:11111" },
+						// "URL host": { type: "string", value: "value" },
+						// "URL path": { type: "string", value: "value" }
+					};
+					if (!errorGroup.hasStackTrace) {
+						errorGroup.attributes["Account"] = {
+							type: "string",
+							value: errorGroupFullResponse.actor.account.name,
+						};
+						errorGroup.attributes["Entity"] = {
+							type: "string",
+							value: errorGroupFullResponse.actor.entity.name,
+						};
+					}
+
+					let states;
+					if (errorGroupFullResponse.actor.errorsInbox.errorGroupStateTypes) {
+						states = errorGroupFullResponse.actor.errorsInbox.errorGroupStateTypes.map(
+							(_: ErrorGroupStateType) => _.type
+						);
+					}
+					errorGroup.states =
+						states && states.length ? states : ["UNRESOLVED", "RESOLVED", "IGNORED"];
+					errorGroup.errorGroupUrl = errorGroupResponse.url;
+					errorGroup.entityName = errorGroupFullResponse.actor.entity.name;
+					errorGroup.entityAlertingSeverity = errorGroupFullResponse.actor.entity.alertSeverity;
+					errorGroup.state = errorGroupResponse.state || "UNRESOLVED";
+
+					const assignee = errorGroupResponse.assignment;
+					if (assignee) {
+						errorGroup.assignee = {
+							email: assignee.email,
+							id: assignee.userInfo?.id,
+							name: assignee.userInfo?.name,
+							gravatar: assignee.userInfo?.gravatar,
+						};
+					}
+
+					const relatedRepos = this.findRelatedReposFromServiceEntity(
+						errorGroupFullResponse.actor.entity.relatedEntities.results
 					);
-				}
-				errorGroup.states =
-					states && states.length ? states : ["UNRESOLVED", "RESOLVED", "IGNORED"];
-				errorGroup.errorGroupUrl = errorGroupResponse.url;
-				errorGroup.entityName = errorGroupFullResponse.actor.entity.name;
-				errorGroup.entityAlertingSeverity = errorGroupFullResponse.actor.entity.alertSeverity;
-				errorGroup.state = errorGroupResponse.state || "UNRESOLVED";
+					if (errorGroup.entity && relatedRepos) {
+						errorGroup.entity["relatedRepos"] = relatedRepos;
+					}
 
-				const assignee = errorGroupResponse.assignment;
-				if (assignee) {
-					errorGroup.assignee = {
-						email: assignee.email,
-						id: assignee.userInfo?.id,
-						name: assignee.userInfo?.name,
-						gravatar: assignee.userInfo?.gravatar,
-					};
+					ContextLogger.log("ErrorGroup found", {
+						errorGroupGuid: errorGroup.guid,
+						occurrenceId: request.occurrenceId,
+						entityGuid: entityGuid,
+						hasErrorGroup: errorGroup != null,
+						hasStackTrace: errorGroup?.hasStackTrace === true,
+					});
 				}
-
-				const relatedRepos = this.findRelatedReposFromServiceEntity(
-					errorGroupFullResponse.actor.entity.relatedEntities.results
-				);
-				if (errorGroup.entity && relatedRepos) {
-					errorGroup.entity["relatedRepos"] = relatedRepos;
-				}
-
-				ContextLogger.log("ErrorGroup found", {
-					errorGroupGuid: errorGroup.guid,
-					occurrenceId: request.occurrenceId,
-					entityGuid: entityGuid,
-					hasErrorGroup: errorGroup != null,
-					hasStackTrace: errorGroup?.hasStackTrace === true,
-				});
 			} else {
 				ContextLogger.warn(
 					`No errorGroup results errorGroupGuid (${errorGroupGuid}) in account (${accountId})`,
@@ -3102,7 +3117,62 @@ export class NewRelicProvider
 					ids: [errorGroupGuid],
 				}
 			);
-			return response?.actor?.errorsInbox?.errorGroups?.results[0] || undefined;
+			if (response?.actor?.errorsInbox?.errorGroups?.results[0]) {
+				return response?.actor?.errorsInbox?.errorGroups?.results[0];
+			}
+			//try with no timestamp info
+			try {
+				const response = await this.query<{
+					actor: {
+						errorsInbox: {
+							errorGroup: ErrorGroup[];
+						};
+					};
+				}>(
+					`query errorGroupById($id: ID!) {
+							actor {
+							  user {
+								name
+							  }
+							  errorsInbox {
+								errorGroup(
+								  id: $id
+								) {
+									id
+									message
+									name
+									state
+									entityGuid
+									eventsQuery
+									lastSeenAt
+								}
+							  }
+							}
+					  }`,
+					{
+						id: errorGroupGuid,
+					}
+				);
+				//@ts-ignore
+				return response.actor.errorsInbox.errorGroup;
+			} catch (ex) {
+				ContextLogger.warn("fetchErrorGroupDataById failure", {
+					errorGroupGuid,
+					error: ex,
+				});
+				const accessTokenError = ex as {
+					message: string;
+					innerError?: { message: string };
+					isAccessTokenError: boolean;
+				};
+				if (
+					accessTokenError &&
+					accessTokenError.innerError &&
+					accessTokenError.isAccessTokenError
+				) {
+					throw new Error(accessTokenError.message);
+				}
+			}
 		} catch (ex) {
 			ContextLogger.warn("fetchErrorGroupDataById failure", {
 				errorGroupGuid,
@@ -3223,6 +3293,7 @@ export class NewRelicProvider
 		timestamp?: number
 	): Promise<ErrorGroupResponse> {
 		const timestampRange = this.generateTimestampRange(timestamp);
+
 		const q = `query getErrorGroup($accountId: Int!, $errorGroupGuids: [ID!], $entityGuid: EntityGuid!) {
 			actor {
 			  account(id: $accountId) {
@@ -3289,11 +3360,92 @@ export class NewRelicProvider
 			}
 		  }`;
 
-		return this.query(q, {
-			accountId: accountId,
-			errorGroupGuids: [errorGroupGuid],
-			entityGuid: entityGuid,
-		});
+		const q2 = `query getErrorGroup($accountId: Int!, $errorGroupGuid: ID!, $entityGuid: EntityGuid!) {
+			actor {
+			  account(id: $accountId) {
+				name
+			  }
+			  entity(guid: $entityGuid) {
+				alertSeverity
+				name
+				relatedEntities(
+				  filter: {direction: BOTH, relationshipTypes: {include: BUILT_FROM}}
+				) {
+				  results {
+					source {
+					  entity {
+						name
+						guid
+						type
+						entityType
+					  }
+					}
+					target {
+					  entity {
+						name
+						guid
+						type
+						entityType
+						tags {
+						  key
+						  values
+						}
+					  }
+					}
+					type
+				  }
+				}
+			  }
+			  errorsInbox {
+				errorGroupStateTypes {
+				  type
+				}
+				errorGroup(
+					id: $errorGroupGuid
+				) {
+				  url
+				  id
+				  message
+				  name
+				  state
+				  entityGuid
+				  assignment {
+					email
+					userInfo {
+					  gravatar
+					  id
+					  name
+					}
+				  }
+				  eventsQuery
+				}
+			  }
+			}
+		  }`;
+
+		let response;
+
+		try {
+			response = this.query(q, {
+				accountId: accountId,
+				errorGroupGuids: [errorGroupGuid],
+				entityGuid: entityGuid,
+			});
+		} catch (ex) {
+			Logger.error(ex);
+		}
+
+		try {
+			response = this.query(q2, {
+				accountId: accountId,
+				errorGroupGuid: errorGroupGuid,
+				entityGuid: entityGuid,
+			});
+		} catch (ex) {
+			Logger.error(ex);
+		}
+
+		return response;
 	}
 
 	@log()
@@ -3325,11 +3477,16 @@ export class NewRelicProvider
 			entityGuid,
 			timestamp
 		);
-		if (response?.actor?.errorsInbox?.errorGroups?.results?.length === 0) {
-			ContextLogger.warn("fetchErrorGroup (retrying without timestamp)", {
-				entityGuid: entityGuid,
-				occurrenceId: occurrenceId,
-			});
+		if (
+			response?.actor?.errorsInbox?.errorGroups?.results?.length === 0 ||
+			response?.actor?.errorsInbox?.errorGroups?.results?.length === undefined
+		) {
+			//@ts-ignore
+			if (!response?.actor?.errorsInbox?.errorGroup)
+				ContextLogger.warn("fetchErrorGroup (retrying without timestamp)", {
+					entityGuid: entityGuid,
+					occurrenceId: occurrenceId,
+				});
 			response = await this._fetchErrorGroup(accountId, errorGroupGuid, entityGuid);
 		}
 
