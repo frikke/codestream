@@ -1527,6 +1527,8 @@ export const GetObservabilityErrorAssignmentsRequestType = new RequestType<
 export interface GetObservabilityErrorGroupMetadataRequest {
 	errorGroupGuid?: string;
 	entityGuid?: string;
+	timestamp?: number;
+	lastActivityAt?: number;
 }
 
 export interface GetObservabilityErrorGroupMetadataResponse {

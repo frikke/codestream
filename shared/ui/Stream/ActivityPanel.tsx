@@ -11,7 +11,6 @@ import { CodeStreamState } from "../store";
 import {
 	setCurrentCodemark,
 	setCurrentReview,
-	setCurrentCodeError,
 	closeAllPanels,
 } from "../store/context/actions";
 import { getActivity } from "../store/activityFeed/reducer";
@@ -27,6 +26,9 @@ import {
 	DirectoryTree,
 	ChangeDataType,
 	DidChangeDataNotificationType,
+	GetObservabilityErrorGroupMetadataRequestType,
+	GetObservabilityErrorGroupMetadataResponse,
+	CodeErrorPlus,
 } from "@codestream/protocols/agent";
 import { savePosts } from "../store/posts/actions";
 import { addOlderActivity } from "../store/activityFeed/actions";
@@ -40,6 +42,7 @@ import {
 	RepoSetting,
 	CSCodeError,
 	CSPost,
+	CodeErrorTimeWindow,
 } from "@codestream/protocols/api";
 import { resetLastReads } from "../store/unreads/actions";
 import { PanelHeader } from "../src/components/PanelHeader";
@@ -56,6 +59,8 @@ import { LoadingMessage } from "../src/components/LoadingMessage";
 import { Headshot } from "../src/components/Headshot";
 import { ProfileLink } from "../src/components/ProfileLink";
 import { Dialog } from "../src/components/Dialog";
+import { openErrorGroup } from "../store/codeErrors/thunks";
+import { shallowEqual } from "react-redux";
 
 interface MenuItem {
 	label: any;
@@ -89,6 +94,17 @@ export const ActivityPanel = () => {
 	const derivedState = useAppSelector(state => {
 		const usernames = userSelectors.getUsernames(state);
 		const { preferences } = state;
+		const timeWindowState = useAppSelector((state: CodeStreamState) => {
+			const timeWindow =
+				state.preferences.codeErrorTimeWindow &&
+				Object.values(CodeErrorTimeWindow).includes(state.preferences.codeErrorTimeWindow)
+					? state.preferences.codeErrorTimeWindow
+					: CodeErrorTimeWindow.ThreeDays;
+			return {
+				sessionStart: state.context.sessionStart,
+				timeWindow,
+			};
+		}, shallowEqual);
 		return {
 			usernames,
 			users: state.users,
@@ -103,6 +119,7 @@ export const ActivityPanel = () => {
 			umis: state.umis,
 			webviewFocused: state.context.hasFocus,
 			repos: state.repos,
+			timeWindowState: timeWindowState,
 			activityFilter:
 				preferences[state.context.currentTeamId]?.activityFilter || DEFAULT_ACTIVITY_FILTER,
 		};
@@ -121,6 +138,7 @@ export const ActivityPanel = () => {
 	const [maximized, setMaximized] = React.useState(false);
 	const [lastFetchedActivity, setLastFetchedActivity] = React.useState<string>();
 	const [lastFilteredActivity, setLastFilteredActivity] = React.useState<string>();
+	const [isLoadingErrorGroupGuid, setIsLoadingErrorGroupGuid] = React.useState<string>("");
 
 	const setActivityPreferences = (
 		data: ActivityFilter,
@@ -645,9 +663,10 @@ export const ActivityPanel = () => {
 					return null;
 
 				const repo = null;
+				const codeError = record as CodeErrorPlus;
 
 				return (
-					<ActivityWrapper key={record.id}>
+					<ActivityWrapper key={codeError.id}>
 						<ActivityVerb>
 							<ProfileLink id={person.id}>
 								<Headshot size={24} person={person} />
@@ -657,17 +676,17 @@ export const ActivityPanel = () => {
 								<span className="verb">
 									started a conversation about a code error {repo && <>in {repo}</>}
 								</span>{" "}
-								<Timestamp relative time={record.createdAt} className="no-padding" />
+								<Timestamp relative time={codeError.createdAt} className="no-padding" />
 							</div>
 						</ActivityVerb>
-						<ActivityItem streamId={record.streamId} postId={record.postId}>
+						<ActivityItem streamId={codeError.streamId} postId={codeError.postId}>
 							{({ className, post }) => (
 								<CodeError
 									className={className}
 									codeError={record as CSCodeError}
 									collapsed
 									hoverEffect
-									onClick={e => {
+									onClick={async e => {
 										const target = e.target;
 										if (
 											target &&
@@ -675,11 +694,37 @@ export const ActivityPanel = () => {
 											(target.closest(".emoji-mart") || target.closest(".reactions"))
 										)
 											return;
-										dispatch(
-											setCurrentCodeError(record.id, {
-												openType: "Activity Feed",
-											})
-										);
+
+										try {
+											setIsLoadingErrorGroupGuid(record.objectId);
+											const response = (await HostApi.instance.send(
+												GetObservabilityErrorGroupMetadataRequestType,
+												{
+													errorGroupGuid: record.objectId,
+													entityGuid: record.objectInfo.entityId,
+													timestamp: record.createdAt,
+													lastActivityAt: record.lastActivityAt,
+												}
+											)) as GetObservabilityErrorGroupMetadataResponse;
+											await dispatch(
+												openErrorGroup(record.objectId, record.stackTraces[0].occurrenceId, {
+													multipleRepos: response?.relatedRepos?.length > 1,
+													relatedRepos: response?.relatedRepos || undefined,
+													timestamp: record.createdAt,
+													sessionStart: derivedState.timeWindowState.sessionStart,
+													pendingEntityId: response?.entityId || record.objectInfo.entityId,
+													occurrenceId:
+														response?.occurrenceId || record.stackTraces[0].occurrenceId,
+													pendingErrorGroupGuid: record.errorGroupGuid,
+													openType: "Activity Feed",
+													remote: record?.objectInfo.remote || undefined,
+												})
+											);
+										} catch (ex) {
+											console.error(ex);
+										} finally {
+											setIsLoadingErrorGroupGuid("");
+										}
 									}}
 									renderFooter={Footer => (
 										<Footer
