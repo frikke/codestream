@@ -14,11 +14,14 @@ import {
 	MessageItem,
 	Uri,
 	version as vscodeVersion,
+	WebviewViewProvider,
 	window,
 	workspace
 } from "vscode";
 import { WebviewLike } from "./webviews/webviewLike";
 import { CodeStreamWebviewSidebar } from "./webviews/webviewSidebar";
+import { WebviewEditor } from "webviews/webviewEditor";
+import { promises as fs } from "fs";
 
 import { CodemarkType } from "@codestream/protocols/api";
 
@@ -151,16 +154,31 @@ export async function activate(context: ExtensionContext) {
 		Logger.warn(`no NewRelic telemetry - ${ex.message}`);
 	}
 
-	let webviewLikeSidebar: (WebviewLike & CodeStreamWebviewSidebar) | undefined = undefined;
+	let webviewSidebar: (WebviewLike & CodeStreamWebviewSidebar) | undefined = undefined;
+	let webviewEditor: (WebviewViewProvider & WebviewEditor) | undefined = undefined;
+
 	// this plumping lives here rather than the WebviewController as it needs to get activated here
-	webviewLikeSidebar = new CodeStreamWebviewSidebar(Container.session, context.extensionUri);
+	webviewSidebar = new CodeStreamWebviewSidebar(Container.session, context.extensionUri);
+
+	const editorHtml = await getHtml(context.extensionUri);
+	webviewEditor = new WebviewEditor(Container.session, context.extensionUri, editorHtml);
+
 	context.subscriptions.push(
-		window.registerWebviewViewProvider(CodeStreamWebviewSidebar.viewType, webviewLikeSidebar, {
+		window.registerWebviewViewProvider(CodeStreamWebviewSidebar.viewType, webviewSidebar, {
 			webviewOptions: {
 				retainContextWhenHidden: true
 			}
 		})
 	);
+
+	context.subscriptions.push(
+		window.registerWebviewViewProvider(WebviewEditor.viewType, webviewEditor, {
+			webviewOptions: {
+				retainContextWhenHidden: true
+			}
+		})
+	);
+
 	// const codelensProvider = new CodelensProvider();
 
 	// languages.registerCodeLensProvider("*", codelensProvider);
@@ -189,7 +207,7 @@ export async function activate(context: ExtensionContext) {
 			traceLevel: Logger.level,
 			machineId: env.machineId
 		},
-		webviewLikeSidebar,
+		webviewSidebar,
 		telemetryOptions
 	);
 
@@ -200,7 +218,7 @@ export async function activate(context: ExtensionContext) {
 	showStartupUpgradeMessage(extensionVersion, previousVersion);
 	if (previousVersion === undefined) {
 		// show CS on initial install
-		await Container.webview.show();
+		await Container.sidebar.show();
 	}
 
 	context.globalState.update(GlobalState.Version, extensionVersion);
@@ -247,7 +265,7 @@ export async function activate(context: ExtensionContext) {
 			const preferences = Container.session.user.preferences;
 			if (!preferences || preferences.reviewCreateOnCommit !== false) {
 				Logger.log(`User committed ${e.sha} - opening feedback request form`);
-				Container.webview.newReviewRequest(undefined, "VSC Commit Detected", true);
+				Container.sidebar.newReviewRequest(undefined, "VSC Commit Detected", true);
 			}
 		}),
 		Container.session.onDidChangeSessionStatus(event => {
@@ -281,10 +299,20 @@ export async function activate(context: ExtensionContext) {
 	);
 }
 
+async function getHtml(extensionUri: Uri) {
+	const webviewPath = Uri.joinPath(extensionUri, "editor.html");
+
+	const data = await fs.readFile(webviewPath.fsPath, {
+		encoding: "utf8"
+	});
+
+	return data;
+}
+
 function runGitLensHoverCommand(context: HoverCommandsActionContext) {
 	if (!context) return;
 
-	Container.webview.newCodemarkRequest(
+	Container.sidebar.newCodemarkRequest(
 		CodemarkType.Comment,
 		context.file
 			? ({
@@ -389,7 +417,7 @@ async function registerGitLensIntegration() {
 
 						const isGitHub = providerName === "GitHub";
 						if (isGitHub) {
-							Container.webview.openPullRequestByUrl(context.pullRequest.url, "VSC GitLens");
+							Container.sidebar.openPullRequestByUrl(context.pullRequest.url, "VSC GitLens");
 						} else {
 							Logger.log(`GitLens: openPullRequest. No provider for ${providerName}`);
 						}
@@ -408,7 +436,7 @@ async function registerGitLensIntegration() {
 					try {
 						if (context.branch) {
 							const editor = window.activeTextEditor;
-							Container.webview.newPullRequestRequest(
+							Container.sidebar.newPullRequestRequest(
 								editor && editor.selection && !editor.selection.isEmpty ? editor : undefined,
 								"VSC GitLens",
 								{

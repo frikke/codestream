@@ -4,7 +4,7 @@ import {
 	EditorCopySymbolResponse,
 	EditorReplaceSymbolRequest,
 	EditorReplaceSymbolResponse
-} from "@codestream/protocols/webview";
+} from "@codestream/protocols/sidebar";
 import { Editor } from "extensions";
 import { Uri, commands, Range } from "vscode";
 import { CancellationTokenSource } from "vscode-languageclient";

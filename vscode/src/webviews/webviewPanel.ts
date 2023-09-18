@@ -7,7 +7,7 @@ import {
 	WebviewIpcNotificationMessage,
 	WebviewIpcRequestMessage,
 	WebviewIpcResponseMessage
-} from "@codestream/protocols/webview";
+} from "@codestream/protocols/sidebar";
 import {
 	Disposable,
 	Event,

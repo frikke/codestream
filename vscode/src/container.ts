@@ -15,7 +15,7 @@ import {
 } from "./configuration";
 import { NotificationsController } from "./controllers/notificationsController";
 import { StatusBarController } from "./controllers/statusBarController";
-import { WebviewController } from "./controllers/webviewController";
+import { SidebarController } from "./controllers/webviewController";
 import { Logger, TraceLevel } from "./logger";
 import { CodeStreamCodeActionProvider } from "./providers/codeActionProvider";
 import { CodemarkDecorationProvider } from "./providers/markerDecorationProvider";
@@ -30,7 +30,7 @@ export class Container {
 		context: ExtensionContext,
 		config: Config,
 		agentOptions: BaseAgentOptions,
-		webviewLike?: WebviewLike,
+		sidebar?: WebviewLike,
 		telemetryOptions?: TelemetryOptions
 	) {
 		this._context = context;
@@ -61,7 +61,7 @@ export class Container {
 		context.subscriptions.push(new CodemarkPatchContentProvider());
 		context.subscriptions.push((this._statusBar = new StatusBarController()));
 
-		context.subscriptions.push((this._webview = new WebviewController(this._session, webviewLike)));
+		context.subscriptions.push((this._sidebar = new SidebarController(this._session, sidebar)));
 		context.subscriptions.push(configuration.onWillChange(this.onConfigurationChanging, this));
 		context.subscriptions.push(configuration.onDidChangeAny(this.onConfigurationChangeAny, this));
 
@@ -104,7 +104,7 @@ export class Container {
 		});
 		if (needReload) {
 			Logger.log(`Config value ${needReload} changed, prompting IDE reload...`);
-			this._webview!.onConfigChangeReload();
+			this._sidebar!.onConfigChangeReload();
 		}
 	}
 
@@ -123,7 +123,7 @@ export class Container {
 			item.value = newValue as any;
 		}
 		if (requiresUpdate) {
-			void this.webview.layoutChanged();
+			void this.sidebar.layoutChanged();
 		}
 	}
 
@@ -205,9 +205,9 @@ export class Container {
 		return this._versionFormatted;
 	}
 
-	private static _webview: WebviewController;
-	static get webview() {
-		return this._webview;
+	private static _sidebar: SidebarController;
+	static get sidebar() {
+		return this._sidebar;
 	}
 
 	private static _pendingServerUrl: string | undefined;

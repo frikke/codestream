@@ -1082,22 +1082,22 @@ export class CodeStreamAgentConnection implements Disposable {
 
 	@log()
 	private async onVersionCompatibilityChanged(e: DidChangeVersionCompatibilityNotification) {
-		await Container.webview.onVersionChanged(e);
+		await Container.sidebar.onVersionChanged(e);
 	}
 
 	@log()
 	private async onApiVersionCompatibilityChanged(e: DidChangeApiVersionCompatibilityNotification) {
-		await Container.webview.onApiVersionChanged(e);
+		await Container.sidebar.onApiVersionChanged(e);
 	}
 
 	@log()
 	private async onServerUrlChanged(e: DidChangeServerUrlNotification) {
-		await Container.webview.onServerUrlChanged(e);
+		await Container.sidebar.onServerUrlChanged(e);
 	}
 
 	@log()
 	private async onProcessBufferNotificationChanged(e: DidChangeProcessBufferNotification) {
-		await Container.webview.onProcessBufferChanged(e);
+		await Container.sidebar.onProcessBufferChanged(e);
 	}
 
 	@started

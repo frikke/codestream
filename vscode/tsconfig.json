@@ -16,7 +16,7 @@
 		"paths": {
 			"@codestream/protocols/agent": ["../../shared/util/src/protocol/agent/agent.protocol.ts"],
 			"@codestream/protocols/api": ["../../shared/util/src/protocol/agent/api.protocol.ts"],
-			"@codestream/protocols/webview": ["../../shared/ui/ipc/webview.protocol.ts"],
+			"@codestream/protocols/sidebar": ["../../shared/webviews/sidebar/ipc/sidebar.protocol.ts"],
 			"@codestream/utils/*": ["../../shared/util/src/utils/*"]
 		},
 		"preserveSymlinks": true,
@@ -29,6 +29,6 @@
 		"tsBuildInfoFile": ".tsbuildinfo",
 		"useUnknownInCatchVariables": false
 	},
-	"exclude": ["node_modules", "src/webviews/app", ".vscode-test"],
+	"exclude": ["node_modules", "src/webviews/sidebar", "src/webviews/editor", ".vscode-test"],
 	"include": ["src/**/*.ts", "../shared/util/src/**/*", "../shared/build/src/**/*", "esbuild.ts"]
 }

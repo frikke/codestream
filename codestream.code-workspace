@@ -4,9 +4,6 @@
 			"path": "./vscode"
 		},
 		{
-			"path": "./shared/ui"
-		},
-		{
 			"path": "./shared/agent"
 		},
 		{
@@ -17,6 +14,12 @@
 		},
 		{
 			"path": "./shared/util"
+		},
+		{
+			"path": "shared/build"
+		},
+		{
+			"path": "shared/webviews"
 		}
 	],
 	"launch": {

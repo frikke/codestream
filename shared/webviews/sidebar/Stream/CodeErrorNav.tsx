@@ -1,0 +1,1031 @@
+import {
+	GetNewRelicErrorGroupRequestType,
+	GetNewRelicErrorGroupResponse,
+	MatchReposRequestType,
+	MatchReposResponse,
+	NormalizeUrlRequestType,
+	NormalizeUrlResponse,
+	ResolveStackTraceResponse,
+	WarningOrError,
+} from "@codestream/protocols/agent";
+import { CSCodeError, CSStackTraceInfo } from "@codestream/protocols/api";
+import {
+	addCodeErrors,
+	bootstrapCodeErrors,
+	fetchCodeError,
+	PENDING_CODE_ERROR_ID_PREFIX,
+	resolveStackTrace,
+} from "@codestream/sidebar/store/codeErrors/actions";
+import {
+	api,
+	fetchErrorGroup,
+	openErrorGroup,
+	setErrorGroup,
+	updateCodeError,
+} from "@codestream/sidebar/store/codeErrors/thunks";
+import { closeAllPanels, setCurrentCodeError } from "@codestream/sidebar/store/context/actions";
+import {
+	useAppDispatch,
+	useAppSelector,
+	useDidMount,
+	usePrevious,
+} from "@codestream/sidebar/utilities/hooks";
+import { isSha } from "@codestream/sidebar/utilities/strings";
+import { HostApi } from "@codestream/sidebar/sidebar-api";
+import React, { useEffect } from "react";
+import { shallowEqual, useSelector } from "react-redux";
+import styled from "styled-components";
+import { DelayedRender } from "../Container/DelayedRender";
+import { logError, logWarning } from "../logger";
+import { Button } from "../src/components/Button";
+import { LoadingMessage } from "../src/components/LoadingMessage";
+import { TourTip } from "../src/components/TourTip";
+import { CodeStreamState } from "../store";
+import { isFeatureEnabled } from "../store/apiVersioning/reducer";
+import { getCodeError, getErrorGroup } from "../store/codeErrors/reducer";
+import { getSidebarLocation } from "../store/editorContext/reducer";
+import { isConnected } from "../store/providers/reducer";
+import KeystrokeDispatcher from "../utilities/keystroke-dispatcher";
+import { markItemRead, setUserPreference } from "./actions";
+import { BaseCodeErrorHeader, CodeError, Description, ExpandedAuthor } from "./CodeError";
+import { RepositoryAssociator } from "./CodeError/RepositoryAssociator";
+import { BigTitle, Header, Meta } from "./Codemark/BaseCodemark";
+import ConfigureNewRelic from "./ConfigureNewRelic";
+import Dismissable from "./Dismissable";
+import Icon from "./Icon";
+import { ClearModal, ComposeArea, Step, Subtext, Tip } from "./ReviewNav";
+import ScrollBox from "./ScrollBox";
+import { WarningBox } from "./WarningBox";
+
+const NavHeader = styled.div`
+	// flex-grow: 0;
+	// flex-shrink: 0;
+	// display: flex;
+	// align-items: flex-start;
+	padding: 15px 10px 10px 15px;
+	// justify-content: center;
+	width: 100%;
+	${Header} {
+		margin-bottom: 0;
+	}
+	${BigTitle} {
+		font-size: 16px;
+	}
+`;
+
+export const StyledCodeError = styled.div``;
+
+const Root = styled.div`
+	max-height: 100%;
+	display: flex;
+	flex-direction: column;
+	&.tour-on {
+		${Meta},
+		${Description},
+		${ExpandedAuthor},
+		${Header},
+		.replies-to-review {
+			opacity: 0.25;
+		}
+	}
+	#stack-trace {
+		transition: opacity 0.2s;
+	}
+	.pulse #stack-trace {
+		opacity: 1;
+		box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+		background: var(--app-background-color-hover);
+	}
+
+	.resolution {
+		transition: opacity 0.2s;
+	}
+
+	.pulse .resolution {
+		opacity: 1;
+		box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+		background: var(--app-background-color-hover);
+		padding: 5px;
+	}
+
+	.scroll-container {
+		flex-grow: 1;
+		width: 100%;
+		overflow: auto;
+		zindex: 1;
+	}
+
+	// prefer icons to text
+	@media only screen and (max-width: 430px) {
+		.btn-group {
+			button {
+				.narrow-icon {
+					display: block;
+					margin: 0;
+				}
+				padding: 3px 5px;
+				line-height: 1em;
+			}
+		}
+		.wide-text {
+			display: none;
+		}
+	}
+`;
+
+const ShowInstructionsContainer = styled.div`
+	margin-top: 50px;
+	float: right;
+	cursor: pointer;
+	font-size: smaller;
+	opacity: 0.5;
+`;
+
+export type Props = React.PropsWithChildren<{ codeErrorId: string; composeOpen: boolean }>;
+
+/**
+ * Called from InlineCodemarks it is what allows the commenting on lines of code
+ *
+ * @export
+ * @param {Props} props
+ * @return {*}
+ */
+export function CodeErrorNav(props: Props) {
+	const dispatch = useAppDispatch();
+	const derivedState = useAppSelector((state: CodeStreamState) => {
+		const codeError = state.context.currentCodeErrorId
+			? getCodeError(state.codeErrors, state.context.currentCodeErrorId)
+			: undefined;
+		const errorGroup = getErrorGroup(state.codeErrors, codeError);
+
+		const result = {
+			demoMode: state.preferences.demoMode,
+			codeErrorStateBootstrapped: state.codeErrors.bootstrapped,
+			currentCodeErrorId: state.context.currentCodeErrorId,
+			currentCodeErrorData: state.context.currentCodeErrorData,
+			currentMethodLevelTelemetry: state.context.currentMethodLevelTelemetry,
+			currentObservabilityAnomaly: state.context.currentObservabilityAnomaly,
+			sessionStart: state.context.sessionStart,
+			hideCodeErrorInstructions: state.preferences.hideCodeErrorInstructions,
+			codeError: codeError,
+			currentCodemarkId: state.context.currentCodemarkId,
+			isConnectedToNewRelic: isConnected(state, { id: "newrelic*com" }),
+			errorGroup: errorGroup,
+			repos: state.repos,
+			sidebarLocation: getSidebarLocation(state),
+		};
+		return result;
+	}, shallowEqual);
+
+	const [requiresConnection, setRequiresConnection] = React.useState<boolean | undefined>(
+		undefined
+	);
+	const [isEditing, setIsEditing] = React.useState(false);
+	const [isLoading, setIsLoading] = React.useState(true);
+	const [error, setError] = React.useState<
+		{ title?: string; description: string; details?: any } | undefined
+	>(undefined);
+
+	const [repoAssociationError, setRepoAssociationError] = React.useState<
+		{ title: string; description: string } | undefined
+	>(undefined);
+	const [multiRepoDetectedError, setMultiRepoDetectedError] = React.useState<
+		{ title: string; description: string } | undefined
+	>(undefined);
+	const [repoWarning, setRepoWarning] = React.useState<WarningOrError | undefined>(undefined);
+	const [repoError, setRepoError] = React.useState<string | undefined>(undefined);
+	const { errorGroup } = derivedState;
+	const [isResolved, setIsResolved] = React.useState(false);
+	const [parsedStack, setParsedStack] = React.useState<ResolveStackTraceResponse | undefined>(
+		undefined
+	);
+	const [hoverButton, setHoverButton] = React.useState(
+		derivedState.hideCodeErrorInstructions ? "" : "stacktrace"
+	);
+
+	// TODO rename these "pending" properties -- they might _always_ be pending creation
+	const pendingErrorGroupGuid = derivedState.currentCodeErrorData?.pendingErrorGroupGuid;
+	const pendingEntityId = derivedState.currentCodeErrorData?.pendingEntityId;
+	const occurrenceId = derivedState.currentCodeErrorData?.occurrenceId;
+	const remote = derivedState.currentCodeErrorData?.remote;
+	const ref = derivedState.currentCodeErrorData?.commit || derivedState.currentCodeErrorData?.tag;
+	const multipleRepos = derivedState.currentCodeErrorData?.multipleRepos;
+	const sidebarLocation = derivedState.sidebarLocation;
+	const claimWhenConnected = derivedState.currentCodeErrorData?.claimWhenConnected;
+
+	const previousIsConnectedToNewRelic = usePrevious(derivedState.isConnectedToNewRelic);
+
+	const pendingRequiresConnection = derivedState.currentCodeErrorData?.pendingRequiresConnection;
+
+	const exit = async () => {
+		// clear out the current code error (set to blank) in the webview
+		await dispatch(setCurrentCodeError(undefined, undefined));
+	};
+
+	const unreadEnabled = useSelector((state: CodeStreamState) =>
+		isFeatureEnabled(state, "readItem")
+	);
+
+	const markRead = () => {
+		if (derivedState.codeError && unreadEnabled)
+			dispatch(markItemRead(derivedState.codeError.id, derivedState.codeError.numReplies || 0));
+	};
+
+	useEffect(() => {
+		if (
+			derivedState.sessionStart &&
+			derivedState.currentCodeErrorData?.sessionStart &&
+			derivedState.currentCodeErrorData?.sessionStart !== derivedState.sessionStart
+		) {
+			logWarning("preventing reload from creating a codeError, sessionStart mismatch", {
+				currentCodeErrorDataSessionStart: derivedState.currentCodeErrorData?.sessionStart,
+				sessionStart: derivedState.sessionStart,
+			});
+			dispatch(setCurrentCodeError(undefined, undefined));
+			dispatch(closeAllPanels());
+			return;
+		}
+
+		if (pendingRequiresConnection) {
+			setRequiresConnection(pendingRequiresConnection);
+		} else if (pendingErrorGroupGuid) {
+			onConnected(undefined);
+		} else {
+			const onDidMount = () => {
+				if (derivedState.codeError) {
+					onConnected(derivedState.codeError);
+					markRead();
+				} else {
+					dispatch(fetchCodeError(derivedState.currentCodeErrorId!))
+						.then(_ => {
+							if (!_ || !_.payload.length) {
+								const title = "Cannot open Code Error";
+								const description =
+									"This code error was not found. Perhaps it was deleted by the author, or you don't have permission to view it.";
+								setError({
+									title,
+									description,
+								});
+								logError(`${title}, description: ${description}`, {
+									currentCodeErrorId: derivedState.currentCodeErrorId!,
+								});
+							} else {
+								onConnected(_.payload[0]);
+								markRead();
+							}
+						})
+						.catch(ex => {
+							const title = "Error";
+							const description = ex.message ? ex.message : ex.toString();
+							setError({
+								title,
+								description,
+							});
+							logError(`${title}, description: ${description}`, {
+								currentCodeErrorId: derivedState.currentCodeErrorId!,
+							});
+						})
+						.finally(() => {
+							setIsLoading(false);
+						});
+				}
+			};
+			if (!derivedState.codeErrorStateBootstrapped) {
+				dispatch(bootstrapCodeErrors()).then(() => {
+					onDidMount();
+				});
+			} else {
+				onDidMount();
+			}
+		}
+	}, [derivedState.currentCodeErrorId]);
+
+	useEffect(() => {
+		if (
+			!derivedState.codeError ||
+			!derivedState.codeError.objectId ||
+			!derivedState.isConnectedToNewRelic ||
+			errorGroup
+		) {
+			return;
+		}
+
+		setIsLoading(true);
+		dispatch(fetchErrorGroup(derivedState.codeError)).then(_ => {
+			setIsLoading(false);
+		});
+	}, [derivedState.codeError, derivedState.isConnectedToNewRelic, errorGroup]);
+
+	const onConnected = async (
+		codeErrorArg: CSCodeError | undefined,
+		newRemote?: string,
+		isConnected?: boolean
+	) => {
+		console.log("onConnected starting...");
+
+		// don't always have the codeError from the state
+		// sometimes we have to load it here (happens when you load the IDE with an existing codeError open)
+		const codeError = codeErrorArg || derivedState.codeError;
+		let isExistingCodeError;
+
+		let errorGroupGuidToUse: string | undefined;
+		let occurrenceIdToUse: string | undefined;
+		let refToUse: string | undefined;
+		let entityIdToUse: string | undefined;
+
+		if (claimWhenConnected) {
+			// we get here if the code error is not yet claimed by the current team,
+			// in which case we need to circle back and "reopen" it again
+			dispatch(closeAllPanels());
+			return dispatch(
+				openErrorGroup(pendingErrorGroupGuid!, occurrenceId, derivedState.currentCodeErrorData)
+			);
+		} else if (pendingErrorGroupGuid) {
+			errorGroupGuidToUse = pendingErrorGroupGuid;
+			occurrenceIdToUse = occurrenceId;
+			refToUse = ref;
+			entityIdToUse = pendingEntityId;
+		} else if (codeError) {
+			isExistingCodeError = true;
+			errorGroupGuidToUse = codeError?.objectId;
+
+			const existingStackTrace =
+				codeError.stackTraces && codeError.stackTraces[0] ? codeError.stackTraces[0] : undefined;
+			if (existingStackTrace) {
+				occurrenceIdToUse = existingStackTrace.occurrenceId;
+				refToUse = existingStackTrace.sha;
+			}
+			entityIdToUse = codeError?.objectInfo?.entityId;
+		}
+		if (!errorGroupGuidToUse) {
+			console.error("missing error group guid");
+			return;
+		}
+
+		console.log(`onConnected started isExistingCodeError=${isExistingCodeError}`);
+		if (
+			previousIsConnectedToNewRelic === false &&
+			(derivedState.isConnectedToNewRelic || isConnected)
+		) {
+			setIsLoading(true);
+		}
+		setRepoAssociationError(undefined);
+		setMultiRepoDetectedError(undefined);
+		setError(undefined);
+
+		try {
+			let errorGroupResult: GetNewRelicErrorGroupResponse | undefined = undefined;
+			if (isConnected || derivedState.isConnectedToNewRelic) {
+				errorGroupResult = await HostApi.instance.send(GetNewRelicErrorGroupRequestType, {
+					errorGroupGuid: errorGroupGuidToUse,
+					occurrenceId: occurrenceIdToUse,
+					entityGuid: entityIdToUse,
+					timestamp: derivedState.currentCodeErrorData?.timestamp,
+				});
+
+				if (!errorGroupResult || errorGroupResult?.error?.message) {
+					const title = "Unexpected Error";
+					const description = errorGroupResult?.error?.message || "unknown error";
+					setError({
+						title,
+						description,
+						details: errorGroupResult?.error?.details,
+					});
+					logError(`${title}, description: ${description}`, {
+						currentCodeErrorId: derivedState.currentCodeErrorId!,
+						errorGroupGuid: errorGroupGuidToUse,
+						occurrenceId: occurrenceIdToUse,
+						entityGuid: entityIdToUse,
+						timestamp: derivedState.currentCodeErrorData?.timestamp,
+					});
+					return;
+				}
+			}
+
+			let repoId: string | undefined = undefined;
+			let stackInfo: ResolveStackTraceResponse | undefined = undefined;
+			let targetRemote;
+			const hasStackTrace =
+				errorGroupResult?.errorGroup?.hasStackTrace || !!codeError?.stackTraces?.length;
+			if (!hasStackTrace) {
+				setIsResolved(true);
+				setRepoWarning({ message: "There is no stack trace associated with this error." });
+			} else {
+				if (errorGroupResult?.errorGroup?.entity?.relationship?.error?.message != null) {
+					const title = "Repository Relationship Error";
+					// @ts-ignore
+					const description = errorGroupResult.errorGroup.entity.relationship.error.message!;
+					setError({
+						title,
+						description,
+					});
+					logError(`${title}, description: ${description}`, {
+						errorGroupGuid: errorGroupGuidToUse,
+						occurrenceId: occurrenceIdToUse,
+						entityGuid: entityIdToUse,
+						timestamp: derivedState.currentCodeErrorData?.timestamp,
+					});
+					return;
+				}
+
+				targetRemote = newRemote || remote;
+				if (multipleRepos && !targetRemote && derivedState.isConnectedToNewRelic) {
+					setMultiRepoDetectedError({
+						title: "Select a Repository",
+						description: `The ${
+							errorGroup ? errorGroup.entityName + " " : "selected "
+						}stack trace is associated with multiple repositories. Please select the one required for investigating this error.`,
+					});
+					return;
+				}
+
+				if (errorGroupResult?.errorGroup?.entity?.relatedRepos?.length === 1 && !multipleRepos) {
+					targetRemote = errorGroupResult?.errorGroup?.entity?.relatedRepos[0]?.url!;
+				} else if (codeError?.objectInfo?.remote) {
+					targetRemote = codeError?.objectInfo?.remote;
+				}
+				if (!targetRemote) {
+					if (derivedState.isConnectedToNewRelic) {
+						setRepoAssociationError({
+							title: "Which Repository?",
+							description: `Select the repository that this error is associated with so that we can take you to the code. If the repository doesn't appear in the list, open it in your IDE.`,
+						});
+						HostApi.instance.track("Page Viewed", { "Page Name": "NR Repo Association" });
+						return;
+					}
+				}
+
+				if (targetRemote) {
+					// we have a remote, try to find a repo.
+					const normalizationResponse = (await HostApi.instance.send(NormalizeUrlRequestType, {
+						url: targetRemote,
+					})) as NormalizeUrlResponse;
+					if (!normalizationResponse || !normalizationResponse.normalizedUrl) {
+						const title = "Error";
+						const description = `Could not find a matching repo for the remote ${targetRemote}`;
+						setError({
+							title: "Error",
+							description: `Could not find a matching repo for the remote ${targetRemote}`,
+						});
+						logError(`${title}, description: ${description}`, {
+							errorGroupGuid: errorGroupGuidToUse,
+							occurrenceId: occurrenceIdToUse,
+							entityGuid: entityIdToUse,
+							targetRemote,
+							timestamp: derivedState.currentCodeErrorData?.timestamp,
+						});
+						return;
+					}
+
+					const reposResponse = (await HostApi.instance.send(MatchReposRequestType, {
+						repos: [
+							{
+								remotes: [normalizationResponse.normalizedUrl],
+								knownCommitHashes: refToUse && isSha(refToUse) ? [refToUse] : [],
+							},
+						],
+					})) as MatchReposResponse;
+
+					if (reposResponse?.repos?.length === 0) {
+						const title = "Repo Not Found";
+						const description = `Please open the following repository: ${targetRemote}`;
+						setError({
+							title: "Repo Not Found",
+							description: `Please open the following repository: ${targetRemote}`,
+						});
+						logError(`${title}, description: ${description}`, {
+							errorGroupGuid: errorGroupGuidToUse,
+							occurrenceId: occurrenceIdToUse,
+							entityGuid: entityIdToUse,
+							targetRemote,
+							timestamp: derivedState.currentCodeErrorData?.timestamp,
+						});
+						HostApi.instance.track("Page Viewed", { "Page Name": "NR Repo Not Open" });
+						return;
+					}
+					repoId = reposResponse.repos[0].id!;
+				}
+				if (!repoId) {
+					// no targetRemote, try to get a repo from existing stackTrace
+					repoId =
+						codeError?.stackTraces && codeError?.stackTraces.length > 0
+							? codeError.stackTraces[0].repoId
+							: "";
+				}
+				// YUCK
+				const stack =
+					errorGroupResult?.errorGroup?.errorTrace?.stackTrace?.map(_ => _.formatted) ||
+					(codeError?.stackTraces && codeError.stackTraces.length > 0
+						? codeError.stackTraces[0].text?.split("\n")
+						: []);
+
+				if (!refToUse && errorGroupResult?.errorGroup) {
+					refToUse = errorGroupResult.errorGroup.commit || errorGroupResult.errorGroup.releaseTag;
+				}
+				if (stack) {
+					stackInfo = (await resolveStackTrace(
+						errorGroupGuidToUse!,
+						repoId!,
+						refToUse!,
+						occurrenceIdToUse!,
+						stack!,
+						derivedState.currentCodeErrorId!
+					)) as ResolveStackTraceResponse;
+				}
+			}
+
+			if (errorGroupResult && errorGroupResult.errorGroup != null) {
+				dispatch(setErrorGroup(errorGroupGuidToUse, errorGroupResult.errorGroup!));
+			}
+
+			const actualStackInfo: CSStackTraceInfo[] = stackInfo
+				? stackInfo.error
+					? [{ ...stackInfo, lines: [] }]
+					: [stackInfo.parsedStackInfo!]
+				: [];
+
+			if (errorGroupResult) {
+				if (
+					derivedState.currentCodeErrorId &&
+					derivedState.currentCodeErrorId?.indexOf(PENDING_CODE_ERROR_ID_PREFIX) === 0
+				) {
+					await dispatch(
+						addCodeErrors([
+							{
+								accountId: errorGroupResult.accountId,
+								id: derivedState.currentCodeErrorId!,
+								createdAt: new Date().getTime(),
+								modifiedAt: new Date().getTime(),
+								// @ts-ignore
+								postId: undefined,
+								// these don't matter
+								assignees: [],
+								teamId: "",
+								streamId: "",
+								fileStreamIds: [],
+								status: "open",
+								numReplies: 0,
+								lastActivityAt: 0,
+								creatorId: "",
+								objectId: errorGroupGuidToUse,
+								objectType: "errorGroup",
+								title: errorGroupResult.errorGroup?.title || "",
+								text: errorGroupResult.errorGroup?.message || undefined,
+								// storing the permanently parsed stack info
+								stackTraces: actualStackInfo,
+								objectInfo: {
+									repoId: repoId!,
+									remote: targetRemote,
+									accountId: errorGroupResult.accountId.toString(),
+									entityId: errorGroupResult?.errorGroup?.entityGuid || "",
+									entityName: errorGroupResult?.errorGroup?.entityName || "",
+								},
+							},
+						])
+					);
+				} else if (derivedState.codeError && !derivedState.codeError.objectInfo) {
+					// codeError has an currentCodeErrorId, but isn't pending... it also doesn't have an objectInfo,
+					// so update it with one
+					await dispatch(
+						updateCodeError({
+							...derivedState.codeError,
+							accountId: errorGroupResult.accountId,
+							title: errorGroupResult.errorGroup?.title || "",
+							text: errorGroupResult.errorGroup?.message || undefined,
+							// storing the permanently parsed stack info
+							stackTraces: actualStackInfo,
+							objectInfo: {
+								repoId: repoId,
+								remote: targetRemote,
+								accountId: errorGroupResult.accountId.toString(),
+								entityId: errorGroupResult?.errorGroup?.entityGuid || "",
+								entityName: errorGroupResult?.errorGroup?.entityName || "",
+							},
+						})
+					);
+				}
+			}
+			if (stackInfo) {
+				setParsedStack(stackInfo);
+				setRepoError(stackInfo.error);
+				setRepoWarning(stackInfo.warning);
+			}
+
+			setIsResolved(true);
+
+			let trackingData = {
+				"Error Group ID": errorGroupResult?.errorGroup?.guid || codeError?.objectInfo?.entityId,
+				"NR Account ID": errorGroupResult?.accountId || codeError?.objectInfo?.accountId || "0",
+				"Entry Point": derivedState.currentCodeErrorData?.openType || "Open in IDE Flow",
+				"Stack Trace": !!(stackInfo && !stackInfo.error),
+			};
+			if (trackingData["Stack Trace"]) {
+				trackingData["Build ref"] = !refToUse
+					? "Missing"
+					: stackInfo?.warning
+					? "Warning"
+					: "Populated";
+			}
+			HostApi.instance.track("Error Opened", trackingData);
+		} catch (ex) {
+			console.warn(ex);
+			const title = "Unexpected Error";
+			const description = ex.message ? ex.message : ex.toString();
+			setError({
+				title,
+				description,
+			});
+			logError(`${title}, description: ${description}`, {
+				errorGroupGuid: errorGroupGuidToUse,
+				occurrenceId: occurrenceIdToUse,
+				entityGuid: entityIdToUse,
+			});
+		} finally {
+			setRequiresConnection(false);
+			setIsLoading(false);
+		}
+		return true;
+	};
+
+	const tryBuildWarningsOrErrors = () => {
+		if (derivedState.demoMode) return null;
+
+		const items: WarningOrError[] = [];
+		if (repoError) {
+			items.push({ message: repoError });
+		}
+		if (repoWarning) {
+			items.push(repoWarning);
+		}
+
+		if (!items.length) return null;
+
+		return <WarningBox items={items} />;
+	};
+
+	useDidMount(() => {
+		// Kind of a HACK leaving this here, BUT...
+		// since <CancelButton /> uses the OLD version of Button.js
+		// and not Button.tsx (below), there's no way to keep the style.
+		// if Buttons can be consolidated, this could go away
+		const disposable = KeystrokeDispatcher.onKeyDown(
+			"Escape",
+			event => {
+				if (event.key === "Escape" && event.target.id !== "input-div") exit();
+			},
+			{ source: "CodeErrorNav.tsx", level: -1 }
+		);
+
+		return () => {
+			disposable && disposable.dispose();
+		};
+	});
+
+	const toggleInstructions = () => {
+		dispatch(
+			setUserPreference({
+				prefPath: ["hideCodeErrorInstructions"],
+				value: !derivedState.hideCodeErrorInstructions,
+			})
+		);
+	};
+
+	const tourDone = () => {
+		setHoverButton("");
+		toggleInstructions();
+	};
+
+	const stackTraceTip =
+		hoverButton === "stacktrace" ? (
+			<Tip>
+				<Step>1</Step>
+				<div>
+					Investigate the stack trace
+					<Subtext>By clicking on each frame to go to the specific file and line number</Subtext>
+					<Button onClick={() => setHoverButton("comment")}>Next &gt;</Button>
+				</div>
+			</Tip>
+		) : undefined;
+
+	const commentTip =
+		hoverButton === "comment" ? (
+			<Tip>
+				<Step>2</Step>
+				<div>
+					Comment by selecting code in the editor
+					<Subtext>CodeStream will automatically mention the code author</Subtext>
+					<Button
+						onClick={() => {
+							const el = document.getElementById("code-error-nav-header");
+							if (el) el.scrollIntoView(true);
+							setHoverButton("resolution");
+						}}
+					>
+						Next &gt;
+					</Button>
+				</div>
+			</Tip>
+		) : undefined;
+
+	const resolutionTip =
+		hoverButton === "resolution" ? (
+			<Tip>
+				<Step>3</Step>
+				<div>
+					Explore CodeStream!
+					<Subtext>
+						Once you're done with the error, close it and see how you can discover other errors,
+						discuss code, and review pull requests from your IDE.
+					</Subtext>
+					<Button onClick={tourDone}>Done</Button>
+				</div>
+			</Tip>
+		) : undefined;
+
+	// if for some reason we have a codemark, don't render anything
+	if (derivedState.currentCodemarkId) return null;
+
+	if (error) {
+		// essentially a roadblock
+		logError(`${error?.title || "Error"}, Description: Internal Debugging Variables`, {
+			currentCodeErrorId: derivedState.currentCodeErrorId!,
+			errorGroupGuid: derivedState.codeError?.objectId || pendingErrorGroupGuid!,
+			parseableAccountId: derivedState.codeError?.objectId || pendingErrorGroupGuid!,
+			occurrenceId: occurrenceId,
+			entityGuid: derivedState.codeError?.objectInfo?.entityId,
+			timestamp: derivedState.currentCodeErrorData?.timestamp,
+		});
+		return (
+			<Dismissable
+				title={error.title || "Error"}
+				buttons={[
+					{
+						text: "Dismiss",
+						onClick: e => {
+							e.preventDefault();
+							exit();
+						},
+					},
+				]}
+			>
+				<p>{error.description}</p>
+				{error?.details?.settings && (
+					<div>
+						<b>Internal Debugging Variables</b>
+						<dl style={{ overflow: "auto" }}>
+							{Object.keys(error.details.settings).map(_ => {
+								return (
+									<>
+										<dt>{_}</dt>
+										<dd>{error.details.settings[_]}</dd>
+									</>
+								);
+							})}
+						</dl>
+					</div>
+				)}
+			</Dismissable>
+		);
+	}
+	if (multiRepoDetectedError) {
+		return (
+			<RepositoryAssociator
+				error={multiRepoDetectedError}
+				buttonText={"Select"}
+				onCancelled={e => {
+					exit();
+				}}
+				isLoadingCallback={setIsLoading}
+				isLoadingParent={isLoading}
+				onSubmit={(r, skipTracking: boolean = false) => {
+					setIsLoading(true);
+					return new Promise((resolve, reject) => {
+						const payload = {
+							url: r.remote,
+							errorGroupGuid: derivedState.codeError?.objectId || pendingErrorGroupGuid!,
+						};
+						if (!skipTracking) {
+							HostApi.instance.track("NR Multi Repo Selected", {
+								"Error Group ID": payload.errorGroupGuid,
+							});
+						}
+						onConnected(undefined, r.remote);
+					});
+				}}
+			/>
+		);
+	}
+	if (repoAssociationError) {
+		// essentially a roadblock
+		return (
+			<RepositoryAssociator
+				error={repoAssociationError}
+				onCancelled={e => {
+					exit();
+				}}
+				isLoadingCallback={setIsLoading}
+				isLoadingParent={isLoading}
+				onSubmit={r => {
+					return new Promise((resolve, reject) => {
+						const payload = {
+							url: r.remote,
+							name: r.name,
+							entityId: pendingEntityId,
+							errorGroupGuid: derivedState.codeError?.objectId || pendingErrorGroupGuid!,
+							parseableAccountId: derivedState.codeError?.objectId || pendingErrorGroupGuid!,
+						};
+						dispatch(api("assignRepository", payload)).then(_ => {
+							setIsLoading(true);
+							if (_?.directives) {
+								console.log("assignRepository", {
+									directives: _?.directives,
+								});
+								setRepoAssociationError(undefined);
+								resolve(true);
+
+								HostApi.instance.track("NR Repo Association", {
+									"Error Group ID": payload.errorGroupGuid,
+								});
+
+								let remoteForOnConnected;
+								let repoFromAssignDirective = _.directives.find(
+									_ => _.type === "assignRepository"
+								).data;
+								if (repoFromAssignDirective.repo?.relatedRepos?.length > 0) {
+									remoteForOnConnected = repoFromAssignDirective.repo?.relatedRepos[0]?.url;
+								} else {
+									remoteForOnConnected = repoFromAssignDirective?.repo?.urls[0];
+								}
+
+								onConnected(undefined, remoteForOnConnected);
+							} else {
+								console.log("Could not find directive", {
+									payload: payload,
+								});
+								resolve(true);
+								const title = "Failed to associate repository";
+								const description = _?.error;
+								setError({
+									title,
+									description,
+								});
+								logError(`${title}, description: ${description}`, {
+									url: r.remote,
+									name: r.name,
+									entityId: pendingEntityId,
+									errorGroupGuid: derivedState.codeError?.objectId || pendingErrorGroupGuid!,
+									parseableAccountId: derivedState.codeError?.objectId || pendingErrorGroupGuid!,
+								});
+							}
+						});
+					});
+				}}
+			/>
+		);
+	}
+
+	if (requiresConnection) {
+		return (
+			<Root>
+				<div
+					style={{
+						display: "flex",
+						alignItems: "center",
+						width: "100%",
+					}}
+				>
+					<div
+						style={{ marginLeft: "auto", marginRight: "13px", whiteSpace: "nowrap", flexGrow: 0 }}
+					>
+						<Icon
+							className="clickable"
+							name="x"
+							onClick={exit}
+							title="Close View"
+							placement="bottomRight"
+							delay={1}
+						/>
+					</div>
+				</div>
+
+				<div className="embedded-panel">
+					<ConfigureNewRelic
+						headerChildren={
+							<>
+								<div className="panel-header" style={{ background: "none" }}>
+									<span className="panel-title">Connect to New Relic</span>
+								</div>
+								<div style={{ textAlign: "center" }}>
+									Working with errors requires a connection to your New Relic account.
+								</div>
+							</>
+						}
+						disablePostConnectOnboarding={true}
+						showSignupUrl={false}
+						providerId={"newrelic*com"}
+						onClose={e => {
+							dispatch(closeAllPanels());
+						}}
+						onSubmited={e => {
+							return onConnected(undefined, undefined, true);
+						}}
+						originLocation={"Open in IDE Flow"}
+					/>
+				</div>
+			</Root>
+		);
+	}
+	if (isLoading) {
+		return (
+			<DelayedRender>
+				<div style={{ display: "flex", height: "100vh", alignItems: "center" }}>
+					<LoadingMessage>Loading Error Group...</LoadingMessage>
+				</div>
+			</DelayedRender>
+		);
+	}
+	if (derivedState.codeError == null) return null;
+
+	return (
+		<Root
+			id="code-error-nav-header"
+			className={derivedState.hideCodeErrorInstructions ? "" : "tour-on"}
+		>
+			{!derivedState.hideCodeErrorInstructions && <ClearModal onClick={() => tourDone()} />}
+			<div
+				style={{
+					display: "flex",
+					alignItems: "center",
+					width: "100%",
+				}}
+			>
+				{/* <div
+					style={{
+						width: "1px",
+						height: "16px",
+						background: "var(--base-border-color)",
+						display: "inline-block",
+						margin: "0 10px 0 0",
+						flexGrow: 0
+					}}
+				/> */}
+				<div
+					className={hoverButton === "resolution" ? "pulse" : ""}
+					style={{ marginLeft: "auto", marginRight: "13px", whiteSpace: "nowrap", flexGrow: 0 }}
+				>
+					<TourTip align={{ offset: [-10, 5] }} title={resolutionTip} placement="bottomLeft">
+						<Icon
+							className="clickable resolution"
+							name="x"
+							onClick={exit}
+							title="Close View"
+							placement="bottomRight"
+							delay={1}
+						/>
+					</TourTip>
+				</div>
+			</div>
+			<NavHeader id="nav-header">
+				<BaseCodeErrorHeader
+					codeError={derivedState.codeError!}
+					errorGroup={errorGroup}
+					collapsed={false}
+					setIsEditing={setIsEditing}
+				></BaseCodeErrorHeader>
+			</NavHeader>
+			{props.composeOpen ? null : (
+				<div className="scroll-container">
+					<ScrollBox>
+						<div
+							className="vscroll"
+							id="code-error-container"
+							style={{
+								padding: "0 20px 60px 40px",
+								width: "100%",
+							}}
+						>
+							{/* TODO perhaps consolidate these? */}
+							{tryBuildWarningsOrErrors()}
+
+							<StyledCodeError className={hoverButton == "stacktrace" ? "pulse" : ""}>
+								<CodeError
+									parsedStack={parsedStack}
+									codeError={derivedState.codeError!}
+									errorGroup={errorGroup}
+									stackFrameClickDisabled={!!repoError}
+									stackTraceTip={stackTraceTip}
+								/>
+							</StyledCodeError>
+						</div>
+					</ScrollBox>
+				</div>
+			)}
+			<TourTip title={commentTip} placement={sidebarLocation === "right" ? "right" : "left"}>
+				<ComposeArea
+					side={sidebarLocation === "right" ? "right" : "left"}
+					className={hoverButton == "comment" ? "pulse" : ""}
+				/>
+			</TourTip>
+		</Root>
+	);
+}

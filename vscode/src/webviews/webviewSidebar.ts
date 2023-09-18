@@ -11,7 +11,7 @@ import {
 	WebviewIpcNotificationMessage,
 	WebviewIpcRequestMessage,
 	WebviewIpcResponseMessage
-} from "@codestream/protocols/webview";
+} from "@codestream/protocols/sidebar";
 import {
 	CancellationToken,
 	commands,
@@ -79,7 +79,10 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 	private _disposable: Disposable | undefined;
 	private _ipcReadyDeferred = new Deferred<boolean>();
 
-	constructor(public readonly session: CodeStreamSession, private readonly _extensionUri: Uri) {
+	constructor(
+		public readonly session: CodeStreamSession,
+		private readonly _extensionUri: Uri
+	) {
 		this._ipcPending = new Map();
 	}
 
@@ -108,7 +111,7 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 			window.onDidChangeWindowState(this.onWindowStateChanged, this)
 		);
 
-		Container.webview.onWebviewInitialized();
+		Container.sidebar.onWebviewInitialized();
 		await this.triggerIpc();
 		Logger.log("resolveWebviewView completed");
 		await this.triggerIpc();
@@ -117,14 +120,14 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 	private _html: string | undefined;
 
 	private async getHtml(): Promise<string> {
-		// NOTE: if you use workspace.openTextDocument, it will put the webview.html into
+		// NOTE: if you use workspace.openTextDocument, it will put the primary.html into
 		// the lsp document cache, use fs.readFile instead
 
 		if (!Logger.isDebugging && this._html) {
 			return this._html;
 		}
 
-		const webviewPath = Container.context.asAbsolutePath("webview.html");
+		const webviewPath = Container.context.asAbsolutePath("sidebar.html");
 
 		const data = await fs.readFile(webviewPath, {
 			encoding: "utf8"
@@ -326,7 +329,7 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 	}
 
 	private async flushIpcQueueCore() {
-		Logger.log("WebviewPanel: Flushing pending queue");
+		Logger.log("WebviewSidebar: Flushing pending queue");
 
 		while (this._ipcQueue.length !== 0) {
 			const msg = this._ipcQueue.shift();
@@ -335,12 +338,12 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 			if (!(await this.postMessageCore(msg))) {
 				this._ipcQueue.unshift(msg);
 
-				Logger.log("WebviewPanel: FAILED flushing pending queue");
+				Logger.log("WebviewSidebar: FAILED flushing pending queue");
 				return false;
 			}
 		}
 
-		Logger.log("WebviewPanel: Completed flushing pending queue");
+		Logger.log("WebviewSidebar: Completed flushing pending queue");
 		return true;
 	}
 
@@ -367,9 +370,9 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 			}
 
 			Logger.log(
-				`WebviewPanel: FAILED posting ${toLoggableIpcMessage(
+				`WebviewSidebar: FAILED posting ${toLoggableIpcMessage(
 					msg
-				)} to the webview; Webview is invisible and can't receive messages`
+				)} to the sidebar; The Sidebar is invisible and can't receive messages`
 			);
 
 			return false;
@@ -378,7 +381,7 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 		// If there is a pending flush operation, wait until it completes
 		if (this._flushingPromise !== undefined) {
 			if (!(await this._flushingPromise)) {
-				Logger.log(`WebviewPanel: FAILED posting ${toLoggableIpcMessage(msg)} to the webview`);
+				Logger.log(`WebviewSidebar: FAILED posting ${toLoggableIpcMessage(msg)} to the webview`);
 
 				return false;
 			}
@@ -410,9 +413,9 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 		}
 
 		Logger.log(
-			`WebviewPanel: ${success ? "Completed" : "FAILED"} posting ${toLoggableIpcMessage(
+			`WebviewSidebar: ${success ? "Completed" : "FAILED"} posting ${toLoggableIpcMessage(
 				msg
-			)} to the webview`
+			)} to the sidebar`
 		);
 
 		return success;
@@ -423,7 +426,7 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 
 		this._ipcPaused = false;
 		if (this._ipcQueue.length > CodeStreamWebviewPanel.IpcQueueThreshold) {
-			Logger.log("WebviewPanel: Too out of date; reloading...");
+			Logger.log("WebviewSidebar: Too out of date; reloading...");
 
 			this._ipcQueue.length = 0;
 			await this.reload();
@@ -431,7 +434,7 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 			return false;
 		}
 
-		Logger.log("WebviewPanel: Resuming communication...");
+		Logger.log("WebviewSidebar: Resuming communication...");
 
 		return this.flushIpcQueue();
 	}
@@ -468,7 +471,7 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 		let timer: NodeJS.Timer | undefined = undefined;
 		if (Logger.level !== TraceLevel.Debug && !Logger.isDebugging) {
 			timer = setTimeout(() => {
-				Logger.warn("WebviewPanel: FAILED waiting for webview ready event; closing webview...");
+				Logger.warn("WebviewSidebar: FAILED waiting for webview ready event; closing webview...");
 				this.dispose();
 				this._ipcReadyDeferred.resolve(true);
 			}, 30000);
@@ -481,7 +484,7 @@ export class CodeStreamWebviewSidebar implements WebviewLike, Disposable, Webvie
 		}
 
 		if (cancelled) {
-			Logger.log("WebviewPanel: CANCELLED waiting for webview ready event");
+			Logger.log("WebviewSidebar: CANCELLED waiting for webview ready event");
 			this.clearIpc();
 		} else {
 			this._ipcReady = true;

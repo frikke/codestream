@@ -5,10 +5,9 @@ import {
 	WebviewIpcNotificationMessage,
 	WebviewIpcRequestMessage,
 	WebviewIpcResponseMessage
-} from "@codestream/protocols/webview";
+} from "@codestream/protocols/sidebar";
 import { Event, ViewColumn } from "vscode";
 import { NotificationType, RequestType } from "vscode-languageclient";
-
 
 export type NotificationParamsOf<NT> = NT extends NotificationType<infer N, any> ? N : never;
 export type RequestParamsOf<RT> = RT extends RequestType<infer R, any, any, any> ? R : never;
