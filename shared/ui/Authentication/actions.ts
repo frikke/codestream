@@ -168,6 +168,8 @@ export const authenticate =
 	(params: PasswordLoginParams | TokenLoginRequest | ConfirmLoginCodeRequest) =>
 	async (dispatch, getState: () => CodeStreamState) => {
 		const api = HostApi.instance;
+		const { context } = getState();
+
 		let response;
 		if ((params as any).password) {
 			response = await api.send(PasswordLoginRequestType, {
@@ -224,7 +226,10 @@ export const authenticate =
 			}
 		}
 
-		api.track("Signed In", { "Auth Type": "CodeStream" });
+		api.track("Signed In", {
+			"Auth Type": "CodeStream",
+			Source: context.pendingProtocolHandlerQuery?.src,
+		});
 
 		return dispatch(onLogin(response));
 	};
@@ -534,7 +539,10 @@ export const validateSignup =
 
 			return await dispatch(onLogin(response, true));
 		} else {
-			HostApi.instance.track("Signed In", { "Auth Type": provider });
+			HostApi.instance.track("Signed In", {
+				"Auth Type": provider,
+				Source: context.pendingProtocolHandlerQuery?.src,
+			});
 			if (localStore.get("enablingRealTime") === true) {
 				localStore.delete("enablingRealTime");
 				HostApi.instance.track("Slack Chat Enabled");
