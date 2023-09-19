@@ -1685,7 +1685,8 @@ export type MetricTimesliceNameMapping = {
 };
 
 export interface FileLevelTelemetryMetric {
-	metricTimesliceName: string;
+	// metricTimesliceName: string;
+	facet: string[];
 	namespace?: string;
 	className?: string;
 	lineno?: number;
