@@ -8,11 +8,7 @@ import * as userSelectors from "../store/users/reducer";
 import styled from "styled-components";
 import { last as _last } from "lodash-es";
 import { CodeStreamState } from "../store";
-import {
-	setCurrentCodemark,
-	setCurrentReview,
-	closeAllPanels,
-} from "../store/context/actions";
+import { setCurrentCodemark, setCurrentReview, closeAllPanels } from "../store/context/actions";
 import { getActivity } from "../store/activityFeed/reducer";
 import { useDidMount, useIntersectionObserver, usePrevious } from "../utilities/hooks";
 import { HostApi } from "../webview-api";
@@ -703,7 +699,6 @@ export const ActivityPanel = () => {
 													errorGroupGuid: record.objectId,
 													entityGuid: record.objectInfo.entityId,
 													timestamp: record.createdAt,
-													lastActivityAt: record.lastActivityAt,
 												}
 											)) as GetObservabilityErrorGroupMetadataResponse;
 											await dispatch(

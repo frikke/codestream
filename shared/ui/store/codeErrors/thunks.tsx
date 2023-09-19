@@ -182,6 +182,7 @@ export const fetchErrorGroup =
 						occurrenceId ||
 						(codeError.stackTraces ? codeError.stackTraces[0].occurrenceId! : undefined),
 					entityGuid: entityGuid,
+					timestamp: codeError?.createdAt,
 				})
 			).then((result: GetNewRelicErrorGroupResponse) => {
 				dispatch(_isLoadingErrorGroup(objectId, { isLoading: true }));

@@ -1528,7 +1528,6 @@ export interface GetObservabilityErrorGroupMetadataRequest {
 	errorGroupGuid?: string;
 	entityGuid?: string;
 	timestamp?: number;
-	lastActivityAt?: number;
 }
 
 export interface GetObservabilityErrorGroupMetadataResponse {

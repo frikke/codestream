@@ -722,11 +722,7 @@ export class NewRelicProvider
 
 		try {
 			if (request.errorGroupGuid) {
-				const metricResponse = await this.getMetricData(
-					request.errorGroupGuid,
-					request.timestamp,
-					request.lastActivityAt
-				);
+				const metricResponse = await this.getMetricData(request.errorGroupGuid, request.timestamp);
 				if (!metricResponse) return undefined;
 
 				const mappedRepoEntities = await this.findMappedRemoteByEntity(metricResponse?.entityGuid);
@@ -3118,75 +3114,12 @@ export class NewRelicProvider
 
 	private async fetchErrorGroupById(
 		errorGroupGuid: string,
-		timestamp?: number,
-		lastActivityAt?: number
+		timestamp?: number
 	): Promise<ErrorGroup | undefined> {
-		if (lastActivityAt) {
-			try {
-				const response = await this.query<{
-					actor: {
-						errorsInbox: {
-							errorGroups: {
-								results: ErrorGroup[];
-							};
-						};
-					};
-				}>(
-					`query errorGroupById($ids: [ID!]) {
-					actor {
-					  errorsInbox {
-						errorGroups(filter: {ids: $ids}${`, timeWindow: {startTime: ${timestamp}, endTime: ${lastActivityAt}}`}) {
-						  results {
-							id
-							message
-							name
-							state
-							entityGuid
-							eventsQuery
-							lastSeenAt
-						  }
-						}
-					  }
-					}
-				  }`,
-					{
-						ids: [errorGroupGuid],
-					}
-				);
-				return response?.actor?.errorsInbox?.errorGroups?.results[0] || undefined;
-			} catch (ex) {
-				ContextLogger.warn("fetchErrorGroupDataById failure", {
-					errorGroupGuid,
-					error: ex,
-				});
-				const accessTokenError = ex as {
-					message: string;
-					innerError?: { message: string };
-					isAccessTokenError: boolean;
-				};
-				if (
-					accessTokenError &&
-					accessTokenError.innerError &&
-					accessTokenError.isAccessTokenError
-				) {
-					throw new Error(accessTokenError.message);
-				}
-			}
-
-			return undefined;
-		} else {
-			try {
-				const timestampRange = this.generateTimestampRange(timestamp);
-				const response = await this.query<{
-					actor: {
-						errorsInbox: {
-							errorGroups: {
-								results: ErrorGroup[];
-							};
-						};
-					};
-				}>(
-					`query errorGroupById($ids: [ID!]) {
+		try {
+			const timestampRange = this.generateTimestampRange(timestamp);
+			if (timestampRange) {
+				const query = `query errorGroupById($ids: [ID!]) {
 					actor {
 					  errorsInbox {
 						errorGroups(filter: {ids: $ids}${
@@ -3206,33 +3139,64 @@ export class NewRelicProvider
 						}
 					  }
 					}
-				  }`,
-					{
-						ids: [errorGroupGuid],
-					}
-				);
-				return response?.actor?.errorsInbox?.errorGroups?.results[0] || undefined;
-			} catch (ex) {
-				ContextLogger.warn("fetchErrorGroupDataById failure", {
-					errorGroupGuid,
-					error: ex,
-				});
-				const accessTokenError = ex as {
-					message: string;
-					innerError?: { message: string };
-					isAccessTokenError: boolean;
-				};
-				if (
-					accessTokenError &&
-					accessTokenError.innerError &&
-					accessTokenError.isAccessTokenError
-				) {
-					throw new Error(accessTokenError.message);
-				}
-			}
+				  }`;
 
-			return undefined;
+				const response = await this.query<{
+					actor: {
+						errorsInbox: {
+							errorGroups: {
+								results: ErrorGroup[];
+							};
+						};
+					};
+				}>(query, {
+					ids: [errorGroupGuid],
+				});
+				let result = response?.actor?.errorsInbox?.errorGroups?.results[0];
+				if (result) return result;
+			}
+			const query = `query errorGroupById($id: ID!) {
+					actor {
+					  errorsInbox {
+						errorGroup(id: $id) {						  
+							id
+							message
+							name
+							state
+							entityGuid
+							eventsQuery
+							lastSeenAt						  
+						}
+					  }
+					}
+				  }`;
+
+			const response = await this.query<{
+				actor: {
+					errorsInbox: {
+						errorGroup: ErrorGroup;
+					};
+				};
+			}>(query, {
+				id: errorGroupGuid,
+			});
+			return response?.actor?.errorsInbox?.errorGroup || undefined;
+		} catch (ex) {
+			ContextLogger.warn("fetchErrorGroupDataById failure", {
+				errorGroupGuid,
+				error: ex,
+			});
+			const accessTokenError = ex as {
+				message: string;
+				innerError?: { message: string };
+				isAccessTokenError: boolean;
+			};
+			if (accessTokenError && accessTokenError.innerError && accessTokenError.isAccessTokenError) {
+				throw new Error(accessTokenError.message);
+			}
 		}
+
+		return undefined;
 	}
 
 	@log()
@@ -3981,8 +3945,7 @@ export class NewRelicProvider
 	 */
 	private async getMetricData(
 		errorGroupGuid: string,
-		timestamp?: number,
-		lastActivityAt?: number
+		timestamp?: number
 	): Promise<
 		| {
 				entityGuid: string;
@@ -3998,11 +3961,7 @@ export class NewRelicProvider
 
 			const accountId = NewRelicProvider.parseId(errorGroupGuid)?.accountId!;
 
-			const errorGroupResponse = await this.fetchErrorGroupById(
-				errorGroupGuid,
-				timestamp,
-				lastActivityAt
-			);
+			const errorGroupResponse = await this.fetchErrorGroupById(errorGroupGuid, timestamp);
 
 			if (!errorGroupResponse) {
 				ContextLogger.warn("fetchErrorGroupDataById missing errorGroupGuid");
@@ -4296,7 +4255,7 @@ export class NewRelicProvider
 	 */
 	private generateTimestampRange(
 		timestampInMilliseconds?: number,
-		plusOrMinusInMinutes: number = 5
+		plusOrMinusInMinutes: number = 500
 	): { startTime: number; endTime: number } | undefined {
 		try {
 			if (!timestampInMilliseconds || isNaN(timestampInMilliseconds)) return undefined;
