@@ -8,6 +8,7 @@ export async function validateExtension(language: string) {
 	await Container.agent.sendRequest(AgentValidateLanguageExtensionRequestType, {
 		language: languageValidationString
 	});
+	return languageValidationString;
 }
 
 function checkPlugin(languageId: string): string | undefined {

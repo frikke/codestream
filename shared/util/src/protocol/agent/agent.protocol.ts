@@ -322,15 +322,26 @@ export const AgentOpenUrlRequestType = new RequestType<AgentOpenUrlRequest, void
 );
 
 export interface AgentValidateLanguageExtensionRequest {
-	language: string;
+	language?: string;
+}
+
+export interface AgentValidateLanguageExtensionResponse {
+	languageValidationString?: string;
 }
 
 export const AgentValidateLanguageExtensionRequestType = new RequestType<
 	AgentValidateLanguageExtensionRequest,
-	void,
+	AgentValidateLanguageExtensionResponse,
 	void,
 	void
 >("codestream/language/validate");
+
+// export const ResolveStackTracePathsRequestType = new RequestType<
+// 	ResolveStackTracePathsRequest,
+// 	ResolveStackTracePathsResponse,
+// 	void,
+// 	void
+// >("codestream/stackTrace/resolvePaths");
 
 export interface AgentFileSearchRequest {
 	basePath: string;

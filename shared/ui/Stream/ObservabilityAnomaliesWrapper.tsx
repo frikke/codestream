@@ -102,6 +102,8 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 	// 	}
 	// }, [props.distributedTracingEnabled]);
 
+	console.warn(props);
+
 	return (
 		<>
 			<Row

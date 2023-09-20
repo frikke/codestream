@@ -230,7 +230,9 @@ export class CodeStreamSession implements Disposable {
 			}),
 			Container.agent.onValidateLanguageExtension(
 				async (params: AgentValidateLanguageExtensionRequest) => {
-					await validateExtension(params.language);
+					if (params.language) {
+						await validateExtension(params?.language);
+					}
 				}
 			),
 			Container.agent.onDidRestart(async () => {
@@ -782,7 +784,9 @@ export class CodeStreamSession implements Disposable {
 			Container.agent.onDidChangeCodelenses(this.onCodelensesChanged, this),
 			Container.agent.onValidateLanguageExtension(
 				async (params: AgentValidateLanguageExtensionRequest) => {
-					await validateExtension(params.language);
+					if (params.language) {
+						await validateExtension(params.language);
+					}
 				}
 			),
 			Container.agent.onDidChangeDocumentMarkers(this.onDocumentMarkersChanged, this),

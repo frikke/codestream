@@ -988,36 +988,36 @@ export class NewRelicProvider
 						}
 					}
 				}
-				// const hasCodeLevelMetricSpanData = await this.checkHasCodeLevelMetricSpanData(
-				// 	hasRepoAssociation === true,
-				// 	uniqueEntities
-				// );
+				let mappedUniqueEntities = await Promise.all(
+					uniqueEntities.map(async entity => {
+						const languageAndVersionValidation = await this.languageAndVersionValidation(entity);
+
+						return {
+							accountId: entity.account?.id,
+							accountName: entity.account?.name || "Account",
+							entityGuid: entity.guid,
+							entityName: entity.name,
+							tags: entity.tags,
+							domain: entity.domain,
+							alertSeverity: entity?.alertSeverity,
+							url: `${this.productUrl}/redirect/entity/${entity.guid}`,
+							distributedTracingEnabled: this.hasStandardOrInfiniteTracing(entity),
+							languageAndVersionValidation: languageAndVersionValidation,
+							extensionValidation: this.extensionValidationString,
+						} as EntityAccount;
+					})
+				);
+				mappedUniqueEntities = mappedUniqueEntities.filter(Boolean);
+				mappedUniqueEntities.sort((a, b) =>
+					`${a?.accountName}-${a?.entityName}`.localeCompare(`${b?.accountName}-${b?.entityName}`)
+				);
 				response.repos?.push({
 					repoId: repo.id!,
 					repoName: folderName,
 					repoRemote: remote,
 					hasRepoAssociation,
 					hasCodeLevelMetricSpanData: true,
-					entityAccounts: uniqueEntities
-						.map(entity => {
-							return {
-								accountId: entity.account?.id,
-								accountName: entity.account?.name || "Account",
-								entityGuid: entity.guid,
-								entityName: entity.name,
-								tags: entity.tags,
-								domain: entity.domain,
-								alertSeverity: entity?.alertSeverity,
-								url: `${this.productUrl}/redirect/entity/${entity.guid}`,
-								distributedTracingEnabled: this.hasStandardOrInfiniteTracing(entity),
-								languageAndVersionValidation: this.languageAndVersionValidation(entity),
-								extensionValidation: this.extensionValidationString,
-							} as EntityAccount;
-						})
-						.filter(Boolean)
-						.sort((a, b) =>
-							`${a.accountName}-${a.entityName}`.localeCompare(`${b.accountName}-${b.entityName}`)
-						),
+					entityAccounts: mappedUniqueEntities,
 				});
 				ContextLogger.log(`getObservabilityRepos hasRepoAssociation=${hasRepoAssociation}`, {
 					repoId: repo.id,
@@ -1059,6 +1059,12 @@ export class NewRelicProvider
 
 		const version = agentVersion?.values[0];
 		const languageValue = language?.values[0].toLowerCase();
+		const extensionValidationResponse = await SessionContainer.instance().session.agent.sendRequest(
+			AgentValidateLanguageExtensionRequestType,
+			{
+				language: languageValue,
+			}
+		);
 
 		if (
 			languageValue === "go" ||
@@ -1069,13 +1075,6 @@ export class NewRelicProvider
 			languageValue === "python" ||
 			languageValue === "ruby"
 		) {
-			await SessionContainer.instance().session.agent.sendRequest(
-				AgentValidateLanguageExtensionRequestType,
-				{
-					language: languageValue,
-				}
-			);
-
 			if (
 				version &&
 				semver.lt(
@@ -1086,11 +1085,12 @@ export class NewRelicProvider
 			) {
 				return {
 					language: language.values[0],
+					languageExtensionValidation: extensionValidationResponse.languageValidationString,
 					required: REQUIRED_AGENT_VERSIONS[languageValue],
 				};
 			}
 		}
-		return {};
+		return { languageExtensionValidation: extensionValidationResponse.languageValidationString };
 	}
 
 	/**

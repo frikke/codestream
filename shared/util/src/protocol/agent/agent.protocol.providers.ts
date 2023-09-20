@@ -1478,6 +1478,7 @@ export interface EntityAccount {
 export interface LanguageAndVersionValidation {
 	language?: string;
 	required?: string;
+	languageExtensionValidation?: string;
 }
 
 export interface GetObservabilityReposResponse {
