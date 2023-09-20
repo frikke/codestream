@@ -11,6 +11,7 @@ import {
 	isLoginFailResponse,
 	LoginSuccessResponse,
 	AgentOpenUrlRequest,
+	AgentValidateLanguageExtensionRequest,
 	PasswordLoginRequestType,
 	TokenLoginRequestType,
 	Unreads
@@ -26,6 +27,7 @@ import {
 import { ConfigurationTarget, Disposable, Event, EventEmitter, Uri } from "vscode";
 
 import { openUrl } from "../urlHandler";
+import { validateExtension } from "../extensionValidationHandler";
 import { WorkspaceState } from "../common";
 import { configuration } from "../configuration";
 import { Container } from "../container";
@@ -226,6 +228,11 @@ export class CodeStreamSession implements Disposable {
 			Container.agent.onOpenUrl(async (params: AgentOpenUrlRequest) => {
 				await openUrl(params.url);
 			}),
+			Container.agent.onValidateLanguageExtension(
+				async (params: AgentValidateLanguageExtensionRequest) => {
+					await validateExtension(params.language);
+				}
+			),
 			Container.agent.onDidRestart(async () => {
 				Logger.log("Agent restarted unexpectedly, waiting for it to reinitialize...");
 				delete this._loginPromise;
@@ -773,6 +780,11 @@ export class CodeStreamSession implements Disposable {
 
 		this._disposableAuthenticated = Disposable.from(
 			Container.agent.onDidChangeCodelenses(this.onCodelensesChanged, this),
+			Container.agent.onValidateLanguageExtension(
+				async (params: AgentValidateLanguageExtensionRequest) => {
+					await validateExtension(params.language);
+				}
+			),
 			Container.agent.onDidChangeDocumentMarkers(this.onDocumentMarkersChanged, this),
 			Container.agent.onDidChangePullRequestComments(this.onPullRequestCommentsChanged, this),
 			Container.agent.onDidChangeData(this.onDataChanged, this)

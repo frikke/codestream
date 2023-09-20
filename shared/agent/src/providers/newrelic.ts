@@ -103,6 +103,8 @@ import {
 	UpdateNewRelicOrgIdRequest,
 	UpdateNewRelicOrgIdResponse,
 	DidChangeCodelensesNotificationType,
+	AgentValidateLanguageExtensionRequest,
+	AgentValidateLanguageExtensionRequestType,
 } from "@codestream/protocols/agent";
 import {
 	CSBitbucketProviderInfo,
@@ -230,6 +232,7 @@ export class NewRelicProvider
 	private _newRelicUserId: number | undefined = undefined;
 	private _accountIds: number[] | undefined = undefined;
 	private _memoizedBuildRepoRemoteVariants: any;
+	private _extensionValidationString: any;
 	private _clmSpanDataExistsCache = new Cache<ClmSpanData>({
 		defaultTtl: 120 * 1000,
 	});
@@ -253,6 +256,7 @@ export class NewRelicProvider
 			this.buildRepoRemoteVariants,
 			(remotes: string[]) => remotes
 		);
+		this._extensionValidationString = "VALID";
 	}
 
 	get displayName() {
@@ -285,6 +289,14 @@ export class NewRelicProvider
 	set sessionServiceContainer(value: SessionServiceContainer) {
 		this._sessionServiceContainer = value;
 		this._clmManager.sessionServiceContainer = value;
+	}
+
+	get extensionValidationString() {
+		return this._extensionValidationString;
+	}
+
+	set extensionValidationString(validationSring) {
+		this._extensionValidationString = validationSring;
 	}
 
 	get productUrl() {
@@ -808,6 +820,21 @@ export class NewRelicProvider
 		return response;
 	}
 
+	@lspHandler(AgentValidateLanguageExtensionRequestType)
+	@log({
+		timed: true,
+	})
+	async validateLanguageExtension(request: AgentValidateLanguageExtensionRequest) {
+		const cc = Logger.getCorrelationContext();
+		this.extensionValidationString = request.language;
+		console.warn("here here agent newrelic.ts", this.extensionValidationString);
+		// try {
+		// 	await openUrl(request.url);
+		// } catch (ex) {
+		// 	Logger.error(ex, cc);
+		// }
+	}
+
 	/**
 	 * Returns a list of git repos, along with any NR entity associations.
 	 *
@@ -984,6 +1011,7 @@ export class NewRelicProvider
 								url: `${this.productUrl}/redirect/entity/${entity.guid}`,
 								distributedTracingEnabled: this.hasStandardOrInfiniteTracing(entity),
 								languageAndVersionValidation: this.languageAndVersionValidation(entity),
+								extensionValidation: this.extensionValidationString,
 							} as EntityAccount;
 						})
 						.filter(Boolean)
@@ -1020,7 +1048,7 @@ export class NewRelicProvider
 		return tracingValue === "standard" || tracingValue === "infinite";
 	}
 
-	private languageAndVersionValidation(entity?: Entity): object {
+	private async languageAndVersionValidation(entity?: Entity): Promise<object> {
 		const tags = entity?.tags || [];
 		const agentVersion = tags.find(tag => tag.key === "agentVersion");
 		const language = tags.find(tag => tag.key === "language");
@@ -1041,6 +1069,13 @@ export class NewRelicProvider
 			languageValue === "python" ||
 			languageValue === "ruby"
 		) {
+			await SessionContainer.instance().session.agent.sendRequest(
+				AgentValidateLanguageExtensionRequestType,
+				{
+					language: languageValue,
+				}
+			);
+
 			if (
 				version &&
 				semver.lt(

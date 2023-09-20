@@ -39,6 +39,8 @@ import {
 	AgentInitializeResult,
 	AgentOpenUrlRequest,
 	AgentOpenUrlRequestType,
+	AgentValidateLanguageExtensionRequest,
+	AgentValidateLanguageExtensionRequestType,
 	ApiRequestType,
 	ArchiveStreamRequestType,
 	BaseAgentOptions,
@@ -277,6 +279,11 @@ export class CodeStreamAgentConnection implements Disposable {
 	private _onOpenUrl = new EventEmitter<AgentOpenUrlRequest>();
 	get onOpenUrl(): Event<AgentOpenUrlRequest> {
 		return this._onOpenUrl.event;
+	}
+
+	private _onValidateLanguageExtension = new EventEmitter<AgentValidateLanguageExtensionRequest>();
+	get onValidateLanguageExtension(): Event<AgentValidateLanguageExtensionRequest> {
+		return this._onValidateLanguageExtension.event;
 	}
 
 	private _onAgentInitialized = new EventEmitter<void>();
@@ -1327,6 +1334,10 @@ export class CodeStreamAgentConnection implements Disposable {
 			this._onDidChangeCodelenses.fire(e)
 		);
 		this._client.onRequest(AgentOpenUrlRequestType, e => this._onOpenUrl.fire(e));
+
+		this._client.onRequest(AgentValidateLanguageExtensionRequestType, e =>
+			this._onValidateLanguageExtension.fire(e)
+		);
 		this._client.onRequest(AgentFileSearchRequestType, async e => {
 			try {
 				const files = await workspace.findFiles(`**/${e.path}`);

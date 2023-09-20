@@ -321,6 +321,17 @@ export const AgentOpenUrlRequestType = new RequestType<AgentOpenUrlRequest, void
 	"codestream/url/open"
 );
 
+export interface AgentValidateLanguageExtensionRequest {
+	language: string;
+}
+
+export const AgentValidateLanguageExtensionRequestType = new RequestType<
+	AgentValidateLanguageExtensionRequest,
+	void,
+	void,
+	void
+>("codestream/language/validate");
+
 export interface AgentFileSearchRequest {
 	basePath: string;
 	path: string;
