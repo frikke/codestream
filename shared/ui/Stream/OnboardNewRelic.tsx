@@ -1161,7 +1161,7 @@ const ProviderButtons = (props: { providerIds: string[]; setShowNextMessagingSte
 								if (connected) return;
 								if (provider.id == "msteams") {
 									HostApi.instance.send(OpenUrlRequestType, {
-										url: "https://docs.newrelic.com/docs/codestream/codestream-integrations/msteams-integration/",
+										url: "https://docs.newrelic.com/docs/codestream/code-discussion/msteams-integration/",
 									});
 									HostApi.instance.send(TelemetryRequestType, {
 										eventName: "Service Connected",

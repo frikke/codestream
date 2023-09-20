@@ -823,7 +823,7 @@ export class SimpleFilterSearchPanel extends Component<Props, State> {
 				key: "view",
 				action: () =>
 					HostApi.instance.send(OpenUrlRequestType, {
-						url: "https://docs.newrelic.com/docs/codestream/how-use-codestream/ui-overview/#filter-search",
+						url: "https://docs.newrelic.com/docs/codestream/code-discussion/activity-feed-search/#advanced-search",
 					}),
 			},
 		].filter(item => this.props.lightningCodeReviewsEnabled || !item.lightningOnly);

@@ -86,9 +86,9 @@ const StackTraceParsers: { [key: string]: Parser } = {
 const MISSING_REF_MESSAGE =
 	"Your version of the code may not match the environment that triggered the error. Fetch the following reference to better investigate the error.\n${ref}";
 const MISSING_REF_HELP_URL =
-	"https://docs.newrelic.com/docs/codestream/how-use-codestream/performance-monitoring/#buildsha";
+	"https://docs.newrelic.com/docs/codestream/observability/error-investigation/#buildsha";
 const CONFIGURE_ERROR_REF_HELP_URL =
-	"https://docs.newrelic.com/docs/codestream/how-use-codestream/performance-monitoring/#buildsha";
+	"https://docs.newrelic.com/docs/codestream/observability/error-investigation/#buildsha";
 
 @lsp
 export class NRManager {

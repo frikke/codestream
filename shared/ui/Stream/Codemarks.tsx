@@ -292,7 +292,7 @@ export class SimpleCodemarksForFile extends Component<Props, State> {
 				<NoContent>
 					<p>
 						Open a source file to start discussing code with your teammates{" "}
-						<a href="https://docs.newrelic.com/docs/codestream/how-use-codestream/discuss-code/">
+						<a href="https://docs.newrelic.com/docs/codestream/code-discussion/discuss-code/">
 							Learn more.
 						</a>
 					</p>
@@ -346,7 +346,7 @@ export class SimpleCodemarksForFile extends Component<Props, State> {
 			return (
 				<NoContent>
 					Discuss code by selecting a range, and optionally share to Slack or Teams.{" "}
-					<Link href="https://docs.newrelic.com/docs/codestream/how-use-codestream/discuss-code/">
+					<Link href="https://docs.newrelic.com/docs/codestream/code-discussion/discuss-code/">
 						Learn more.
 					</Link>
 				</NoContent>

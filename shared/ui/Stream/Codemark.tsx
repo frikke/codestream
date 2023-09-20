@@ -2024,28 +2024,28 @@ export class Codemark extends React.Component<Props, State> {
 					<li>
 						Codemarks are <b>branch-agnostic</b>. That means this codemark will appear "in the right
 						place" even for your teammates who are checked out to a different version of this file.{" "}
-						<a href="https://docs.newrelic.com/docs/codestream/how-use-codestream/discuss-code/">
+						<a href="https://docs.newrelic.com/docs/codestream/code-discussion/discuss-code/">
 							learn more
 						</a>
 					</li>
 					<li>
 						Codemarks <b>move with the code</b>, so your conversation remains connected to the right
 						code block even as your code changes.{" "}
-						<a href="https://docs.newrelic.com/docs/codestream/how-use-codestream/discuss-code/">
+						<a href="https://docs.newrelic.com/docs/codestream/code-discussion/discuss-code/">
 							learn about comment drift
 						</a>
 					</li>
 					<li>
 						Codemarks <b>can be managed</b> by archiving or deleting them if they're no longer
 						relevant.{" "}
-						<a href="https://docs.newrelic.com/docs/codestream/how-use-codestream/discuss-code/">
+						<a href="https://docs.newrelic.com/docs/codestream/code-discussion/discuss-code/">
 							see how
 						</a>
 					</li>
 					<li>
 						<b>Replies can be promoted</b> with a <Icon name="star" /> so the best answer surfaces
 						to the top, like in stack overflow.{" "}
-						<a href="https://docs.newrelic.com/docs/codestream/how-use-codestream/discuss-code/">
+						<a href="https://docs.newrelic.com/docs/codestream/code-discussion/discuss-code/">
 							see how
 						</a>
 					</li>
