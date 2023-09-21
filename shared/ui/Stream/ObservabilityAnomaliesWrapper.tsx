@@ -63,7 +63,7 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 	if (!_isEmpty(props.languageAndVersionValidation?.languageExtensionValidation)) {
 		switch (props.languageAndVersionValidation?.languageExtensionValidation) {
 			case "NO_RUBY_VSCODE_EXTENSION":
-				missingExtension = <MissingRubyExtension sidebarView={true} />;
+				missingExtension = <MissingRubyExtension sidebarView />;
 				break;
 			case "NO_JAVA_VSCODE_EXTENSION":
 				missingExtension = <MissingJavaExtension sidebarView />;
