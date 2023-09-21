@@ -23,8 +23,7 @@ export class WebviewEditor implements WebviewViewProvider {
 
 	constructor(
 		public readonly session: CodeStreamSession,
-		public readonly extensionUri: Uri,
-		public readonly html: string
+		public readonly extensionUri: Uri
 	) {
 		this._codestreamSession = session;
 		this._extensionUri = extensionUri;
@@ -47,7 +46,13 @@ export class WebviewEditor implements WebviewViewProvider {
 			.asWebviewUri(Uri.file(this._extensionUri.fsPath))
 			.toString();
 
-		this.panel.webview.html = html.replace(/{{root}}/g, pathToExt);
+		const webviewPath = Uri.joinPath(this._extensionUri, "editor.html");
+
+		fs.readFile(webviewPath.fsPath, {
+			encoding: "utf8"
+		}).then(data => {
+			this.panel.webview.html = data.replace(/{{root}}/g, pathToExt);
+		});
 	}
 
 	public async resolveWebviewView(

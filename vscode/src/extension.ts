@@ -21,7 +21,6 @@ import {
 import { WebviewLike } from "./webviews/webviewLike";
 import { CodeStreamWebviewSidebar } from "./webviews/webviewSidebar";
 import { WebviewEditor } from "webviews/webviewEditor";
-import { promises as fs } from "fs";
 
 import { CodemarkType } from "@codestream/protocols/api";
 
@@ -159,9 +158,7 @@ export async function activate(context: ExtensionContext) {
 
 	// this plumping lives here rather than the WebviewController as it needs to get activated here
 	webviewSidebar = new CodeStreamWebviewSidebar(Container.session, context.extensionUri);
-
-	const editorHtml = await getHtml(context.extensionUri);
-	webviewEditor = new WebviewEditor(Container.session, context.extensionUri, editorHtml);
+	webviewEditor = new WebviewEditor(Container.session, context.extensionUri);
 
 	context.subscriptions.push(
 		window.registerWebviewViewProvider(CodeStreamWebviewSidebar.viewType, webviewSidebar, {
@@ -208,6 +205,7 @@ export async function activate(context: ExtensionContext) {
 			machineId: env.machineId
 		},
 		webviewSidebar,
+		webviewEditor,
 		telemetryOptions
 	);
 
@@ -297,16 +295,6 @@ export async function activate(context: ExtensionContext) {
 			}
 		})
 	);
-}
-
-async function getHtml(extensionUri: Uri) {
-	const webviewPath = Uri.joinPath(extensionUri, "editor.html");
-
-	const data = await fs.readFile(webviewPath.fsPath, {
-		encoding: "utf8"
-	});
-
-	return data;
 }
 
 function runGitLensHoverCommand(context: HoverCommandsActionContext) {
