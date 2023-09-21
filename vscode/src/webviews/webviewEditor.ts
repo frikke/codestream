@@ -44,7 +44,7 @@ export class WebviewEditor implements WebviewViewProvider {
 		this.panel.iconPath = Uri.joinPath(this._extensionUri, "assets/images/codestream.png");
 
 		const pathToExt = this.panel.webview
-			.asWebviewUri(Uri.file(this._extensionUri.toString()))
+			.asWebviewUri(Uri.file(this._extensionUri.fsPath))
 			.toString();
 
 		this.panel.webview.html = html.replace(/{{root}}/g, pathToExt);
