@@ -5,8 +5,12 @@ import styled from "styled-components";
 import Icon from "./Icon";
 import { Link } from "./Link";
 
-export const WarningBoxRoot = styled.div`
-	margin: 10px 10px 20px 0;
+interface WarningBoxRootProps {
+	customMargin?: string;
+}
+
+export const WarningBoxRoot = styled.div<WarningBoxRootProps>`
+	margin: ${props => props.customMargin || "10px 10px 20px 0"};
 	border: 1px solid rgba(249, 197, 19, 0.6);
 	background: rgba(255, 223, 0, 0.1);
 	border-radius: 5px;

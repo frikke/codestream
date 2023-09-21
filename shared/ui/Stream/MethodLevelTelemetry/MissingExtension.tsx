@@ -4,6 +4,9 @@ import styled from "styled-components";
 import { closePanel } from "../actions";
 import CancelButton from "../CancelButton";
 import { Link } from "../Link";
+import { WarningBoxRoot } from "../WarningBox";
+import Icon from "../Icon";
+
 const Root = styled.div``;
 
 interface MissingExtensionBaseProps {
@@ -41,21 +44,28 @@ export function MissingRubyExtension({ sidebarView = false }) {
 	return (
 		<MissingExtensionBase sidebarView={sidebarView}>
 			{!sidebarView && <h3>Code-Level Metrics</h3>}
-			<p style={{ marginTop: 0 }}>
-				To see code-level metrics you'll need to install one of the following extensions for VS Code
-				that allow CodeStream to identify the methods in your Ruby code.
-			</p>
-			<br />
-			<p>
-				<Link href={"vscode:extension/rebornix.Ruby"}>Ruby</Link> - Be sure to add{" "}
-				<pre>"ruby.useLanguageServer": true</pre> and <pre>"ruby.intellisense": "rubyLocate"</pre>{" "}
-				to your settings file.
-			</p>
-			<p>
-				<Link href={"vscode:extension/castwide.solargraph"}>Ruby Solargraph</Link> - Be sure to have
-				ruby / gems installed and run <pre>gem install solargraph</pre> (might require sudo
-				depending on your setup)
-			</p>
+
+			<WarningBoxRoot style={{ margin: "0px 1px 0px 0px" }}>
+				<Icon name="alert" className="alert" />
+				<div className="message">
+					<div>
+						To see code-level metrics you'll need to install one of the following extensions for VS
+						Code that allow CodeStream to identify the methods in your Ruby code.
+					</div>
+					<div style={{ marginTop: "4px" }}>
+						<Link href={"vscode:extension/rebornix.Ruby"}>Ruby</Link> - Be sure to add the following
+						to your settings file:{" "}
+						<pre style={{ margin: "4px 0 0 2px" }}>"ruby.useLanguageServer": true</pre>
+						<pre style={{ margin: "2px 0 4px 2px" }}>"ruby.intellisense": "rubyLocate"</pre>
+					</div>
+					<div style={{ marginTop: "4px" }}>
+						<Link href={"vscode:extension/castwide.solargraph"}>Ruby Solargraph</Link> - Be sure to
+						have ruby / gems installed and run:{" "}
+						<pre style={{ margin: "4px 0 4px 2px" }}>gem install solargraph</pre> (might require
+						sudo depending on your setup)
+					</div>
+				</div>
+			</WarningBoxRoot>
 		</MissingExtensionBase>
 	);
 }

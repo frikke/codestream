@@ -63,7 +63,7 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 	if (!_isEmpty(props.languageAndVersionValidation?.languageExtensionValidation)) {
 		switch (props.languageAndVersionValidation?.languageExtensionValidation) {
 			case "NO_RUBY_VSCODE_EXTENSION":
-				missingExtension = <MissingRubyExtension sidebarView />;
+				missingExtension = <MissingRubyExtension sidebarView={true} />;
 				break;
 			case "NO_JAVA_VSCODE_EXTENSION":
 				missingExtension = <MissingJavaExtension sidebarView />;
@@ -204,7 +204,7 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 			{expanded && !props.calculatingAnomalies && showExtensionWarning && (
 				<Row
 					style={{
-						padding: "2px 10px 2px 40px",
+						padding: "0px 0px 0px 0px",
 					}}
 					className={"pr-row"}
 				>
