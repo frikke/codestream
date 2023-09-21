@@ -836,7 +836,6 @@ function listenForEvents(store) {
 	api.on(ViewMethodLevelTelemetryNotificationType, async e => {
 		store.dispatch(closeAllPanels());
 		store.dispatch(setCurrentMethodLevelTelemetry(e));
-		store.dispatch(openPanel(WebviewPanels.MethodLevelTelemetry));
 	});
 
 	api.on(ViewAnomalyNotificationType, async e => {
