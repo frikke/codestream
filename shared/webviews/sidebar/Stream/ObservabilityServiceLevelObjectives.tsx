@@ -34,7 +34,7 @@ export const ObjectiveRow = (props: {
 					onClick={e => {
 						e.preventDefault();
 						e.stopPropagation();
-						HostApi.instance.send(OpenUrlRequestType, {
+						HostApi.sidebarInstance.send(OpenUrlRequestType, {
 							url: `${props.url}`,
 						});
 					}}

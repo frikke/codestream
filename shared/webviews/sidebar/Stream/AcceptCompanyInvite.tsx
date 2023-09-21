@@ -96,12 +96,12 @@ export function AcceptCompanyInvite() {
 					toServerUrl: currentOrganizationInvite.host.publicApiUrl,
 				};
 			}
-			const result = (await HostApi.instance.send(
+			const result = (await HostApi.sidebarInstance.send(
 				JoinCompanyRequestType,
 				request
 			)) as JoinCompanyResponse;
 
-			HostApi.instance.track("Joined Organization", {
+			HostApi.sidebarInstance.track("Joined Organization", {
 				Availability: "Invite",
 				"Auth Provider": "CodeStream",
 				Location: "In-product",
@@ -151,7 +151,7 @@ export function AcceptCompanyInvite() {
 			};
 		}
 
-		const result = (await HostApi.instance.send(
+		const result = (await HostApi.sidebarInstance.send(
 			DeclineInviteRequestType,
 			request
 		)) as DeclineInviteResponse;

@@ -73,7 +73,7 @@ export const connectProvider =
 			return;
 		}
 		try {
-			const api = HostApi.instance;
+			const api = HostApi.sidebarInstance;
 			if (ide.name === "VSC" && name === "github") {
 				const result = await api.send(ConnectToIDEProviderRequestType, { provider: name });
 				dispatch(
@@ -132,7 +132,7 @@ export const sendIssueProviderConnected =
 		const provider = providers[providerId];
 		if (!provider) return;
 		const { name, host, isEnterprise } = provider;
-		const api = HostApi.instance;
+		const api = HostApi.sidebarInstance;
 		api.send(TelemetryRequestType, {
 			eventName: "Service Connected",
 			properties: {
@@ -150,7 +150,7 @@ export const sendBuildProviderConnected =
 		const provider = providers[providerId];
 		if (!provider) return;
 		const { name, host, isEnterprise } = provider;
-		const api = HostApi.instance;
+		const api = HostApi.sidebarInstance;
 		api.send(TelemetryRequestType, {
 			eventName: "Service Connected",
 			properties: {
@@ -168,7 +168,7 @@ export const sendMessagingServiceConnected =
 		const provider = providers[providerId];
 		if (!provider) return;
 
-		HostApi.instance.send(TelemetryRequestType, {
+		HostApi.sidebarInstance.send(TelemetryRequestType, {
 			eventName: "Service Connected",
 			properties: {
 				Service: provider.name,
@@ -192,7 +192,7 @@ export const configureProvider =
 		const provider = providers[providerId];
 		if (!provider) return;
 		try {
-			const api = HostApi.instance;
+			const api = HostApi.sidebarInstance;
 			await api.send(ConfigureThirdPartyProviderRequestType, { providerId, data, verify });
 
 			// for some providers (YouTrack and enterprise providers with PATs), configuring is as good as connecting,
@@ -222,7 +222,7 @@ export const addEnterpriseProvider =
 		const provider = providers[providerId];
 		if (!provider) return;
 		try {
-			const api = HostApi.instance;
+			const api = HostApi.sidebarInstance;
 			const response = await api.send(AddEnterpriseProviderRequestType, { providerId, host, data });
 
 			return response.providerId;
@@ -237,7 +237,7 @@ export const removeEnterpriseProvider = (providerId: string) => async (dispatch,
 	const provider = providers[providerId];
 	if (!provider) return;
 	try {
-		HostApi.instance.send(RemoveEnterpriseProviderRequestType, {
+		HostApi.sidebarInstance.send(RemoveEnterpriseProviderRequestType, {
 			providerId,
 		});
 	} catch (error) {
@@ -252,7 +252,7 @@ export const disconnectProvider =
 			const { context, providers, ide } = getState();
 			const provider = providers[providerId];
 			if (!provider) return;
-			const api = HostApi.instance;
+			const api = HostApi.sidebarInstance;
 			await api.send(DisconnectThirdPartyProviderRequestType, { providerId, providerTeamId });
 			if (ide.name === "VSC" && provider.name === "github") {
 				await api.send(DisconnectFromIDEProviderRequestType, { provider: provider.name });

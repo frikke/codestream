@@ -116,7 +116,7 @@ export const Sidebar = React.memo(function Sidebar() {
 	}, [derivedState.ideName]);
 
 	const fetchOpenRepos = async () => {
-		const response = await HostApi.instance.send(GetReposScmRequestType, {
+		const response = await HostApi.sidebarInstance.send(GetReposScmRequestType, {
 			inEditorOnly: true,
 			includeCurrentBranches: true,
 			includeProviders: true,
@@ -132,7 +132,7 @@ export const Sidebar = React.memo(function Sidebar() {
 
 	useDidMount(() => {
 		fetchOpenRepos();
-		HostApi.instance.track("Sidebar Rendered", {
+		HostApi.sidebarInstance.track("Sidebar Rendered", {
 			Width: window.innerWidth,
 			Height: window.innerHeight,
 		});
@@ -161,9 +161,12 @@ export const Sidebar = React.memo(function Sidebar() {
 		// Call handler right away so state gets updated with initial window size
 		handleResize();
 
-		const disposable = HostApi.instance.on(HostDidChangeWorkspaceFoldersNotificationType, () => {
-			fetchOpenRepos();
-		});
+		const disposable = HostApi.sidebarInstance.on(
+			HostDidChangeWorkspaceFoldersNotificationType,
+			() => {
+				fetchOpenRepos();
+			}
+		);
 
 		return () => {
 			// Remove event listener on cleanup

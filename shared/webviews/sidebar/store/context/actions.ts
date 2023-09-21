@@ -371,7 +371,7 @@ export const goToOktaConfig = params =>
 
 export const handlePendingProtocolHandlerUrl =
 	(url: string | undefined) => (dispatch, getState) => {
-		HostApi.instance.emit(HostDidReceiveRequestNotificationType.method, { url: url });
+		HostApi.sidebarInstance.emit(HostDidReceiveRequestNotificationType.method, { url: url });
 	};
 
 export const setPendingProtocolHandlerUrl = (params: { url?: string; query?: any } = {}) =>

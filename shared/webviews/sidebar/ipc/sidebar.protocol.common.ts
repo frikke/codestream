@@ -225,13 +225,18 @@ export interface IpcHost {
 	onmessage: any;
 }
 
-declare function acquireCodestreamHost(): IpcHost;
+declare function acquireCodestreamHostForEditor(): IpcHost;
+declare function acquireCodestreamHostForSidebar(): IpcHost;
 
 let host: IpcHost;
-export const findHost = (): IpcHost => {
+export const findHost = (webview: string): IpcHost => {
 	if (host) return host;
 	try {
-		host = acquireCodestreamHost();
+		if (webview === "editor") {
+			host = acquireCodestreamHostForEditor();
+		} else if (webview === "sidebar") {
+			host = acquireCodestreamHostForSidebar();
+		}
 	} catch (e) {
 		throw new Error("Host needs to provide global `acquireCodestreamHost` function");
 	}

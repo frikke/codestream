@@ -18,7 +18,7 @@ export const _bootstrapCodeErrors = (codeErrors: CSCodeError[]) =>
 	action(CodeErrorsActionsTypes.Bootstrap, codeErrors);
 
 export const bootstrapCodeErrors = () => async dispatch => {
-	const { codeErrors } = await HostApi.instance.send(FetchCodeErrorsRequestType, {});
+	const { codeErrors } = await HostApi.sidebarInstance.send(FetchCodeErrorsRequestType, {});
 	dispatch(_bootstrapCodeErrors(codeErrors));
 };
 
@@ -74,7 +74,7 @@ export const _deleteCodeError = (id: string) => action(CodeErrorsActionsTypes.De
 
 export const deleteCodeError = (id: string) => async dispatch => {
 	try {
-		await HostApi.instance.send(DeleteCodeErrorRequestType, {
+		await HostApi.sidebarInstance.send(DeleteCodeErrorRequestType, {
 			id,
 		});
 		dispatch(_deleteCodeError(id));
@@ -98,7 +98,7 @@ export type EditableAttributes = Partial<
 >;
 
 export const fetchCodeError = (codeErrorId: string) => async dispatch => {
-	const response = await HostApi.instance.send(GetCodeErrorRequestType, { codeErrorId });
+	const response = await HostApi.sidebarInstance.send(GetCodeErrorRequestType, { codeErrorId });
 
 	if (response.codeError) return dispatch(saveCodeErrors([response.codeError]));
 };
@@ -125,7 +125,7 @@ export const resolveStackTrace = (
 	stackTrace: string[],
 	codeErrorId: string
 ) => {
-	return HostApi.instance.send(ResolveStackTraceRequestType, {
+	return HostApi.sidebarInstance.send(ResolveStackTraceRequestType, {
 		errorGroupGuid,
 		stackTrace,
 		repoId,
@@ -136,7 +136,7 @@ export const resolveStackTrace = (
 };
 
 export const claimCodeError = async request => {
-	return await HostApi.instance.send(ClaimCodeErrorRequestType, request);
+	return await HostApi.sidebarInstance.send(ClaimCodeErrorRequestType, request);
 };
 
 export const handleDirectives = (id: string, data: any) =>

@@ -573,7 +573,7 @@ export const StartWork = (props: Props) => {
 	};
 
 	const fetchBranchCommitsStatus = async () => {
-		const commitsStatus = await HostApi.instance.send(FetchBranchCommitsStatusRequestType, {
+		const commitsStatus = await HostApi.sidebarInstance.send(FetchBranchCommitsStatusRequestType, {
 			repoId: currentRepoId,
 			branchName: fromBranch || currentBranch,
 		});
@@ -582,7 +582,7 @@ export const StartWork = (props: Props) => {
 	};
 
 	const getBranches = async (uri?: string): Promise<{ openRepos?: ReposScm[] }> => {
-		const response = await HostApi.instance.send(GetReposScmRequestType, {
+		const response = await HostApi.sidebarInstance.send(GetReposScmRequestType, {
 			inEditorOnly: true,
 			includeCurrentBranches: true,
 			includeProviders: true,
@@ -595,7 +595,7 @@ export const StartWork = (props: Props) => {
 			setRepoUri(uri);
 		}
 
-		let branchInfo = await HostApi.instance.send(GetBranchesRequestType, {
+		let branchInfo = await HostApi.sidebarInstance.send(GetBranchesRequestType, {
 			uri: uri || derivedState.textEditorUri || "",
 		});
 
@@ -603,7 +603,7 @@ export const StartWork = (props: Props) => {
 		// try to get it from one of the open repos in your editor
 		if (!branchInfo.scm || branchInfo.error) {
 			if (response.repositories && response.repositories.length) {
-				branchInfo = await HostApi.instance.send(GetBranchesRequestType, {
+				branchInfo = await HostApi.sidebarInstance.send(GetBranchesRequestType, {
 					uri: response.repositories[0].folder.uri,
 				});
 				setRepoUri(response.repositories[0].folder.uri);
@@ -635,10 +635,13 @@ export const StartWork = (props: Props) => {
 			const repoName = derivedState.repos[repoId] ? derivedState.repos[repoId].name : "repo";
 			setCurrentRepoName(repoName);
 
-			const commitsStatus = await HostApi.instance.send(FetchBranchCommitsStatusRequestType, {
-				repoId: branchInfo.scm.repoId,
-				branchName: defaultBranch,
-			});
+			const commitsStatus = await HostApi.sidebarInstance.send(
+				FetchBranchCommitsStatusRequestType,
+				{
+					repoId: branchInfo.scm.repoId,
+					branchName: defaultBranch,
+				}
+			);
 
 			setCommitsBehindOrigin(+commitsStatus.commitsBehindOrigin);
 		}
@@ -679,7 +682,7 @@ export const StartWork = (props: Props) => {
 			}
 		}
 
-		const disposable = HostApi.instance.on(DidChangeDataNotificationType, async (e: any) => {
+		const disposable = HostApi.sidebarInstance.on(DidChangeDataNotificationType, async (e: any) => {
 			if (e.type === ChangeDataType.Workspace) {
 				await getBranches();
 			}
@@ -746,7 +749,7 @@ export const StartWork = (props: Props) => {
 				const request = branches.includes(branch)
 					? SwitchBranchRequestType
 					: CreateBranchRequestType;
-				const result = await HostApi.instance.send(request, {
+				const result = await HostApi.sidebarInstance.send(request, {
 					branch,
 					uri,
 					fromBranch: fromBranch || currentBranch,
@@ -772,7 +775,7 @@ export const StartWork = (props: Props) => {
 						})
 					);
 				}
-				await HostApi.instance.send(MoveThirdPartyCardRequestType, {
+				await HostApi.sidebarInstance.send(MoveThirdPartyCardRequestType, {
 					providerId: card.providerId,
 					cardId: card.id,
 					listId: moveCardDestinationId,
@@ -780,7 +783,7 @@ export const StartWork = (props: Props) => {
 			}
 
 			if (slackConfig && updateSlackNow) {
-				const response = await HostApi.instance.send(UpdateThirdPartyStatusRequestType, {
+				const response = await HostApi.sidebarInstance.send(UpdateThirdPartyStatusRequestType, {
 					providerId: slackConfig.id,
 					providerTeamId: derivedState.selectedShareTarget.teamId,
 					text: "Working on: " + label,
@@ -790,7 +793,7 @@ export const StartWork = (props: Props) => {
 		} catch (e) {
 			console.warn("ERROR: " + e);
 		} finally {
-			HostApi.instance.track("Work Started", {
+			HostApi.sidebarInstance.track("Work Started", {
 				"Branch Created": createTheBranchNow,
 				"Ticket Selected": card ? card.providerIcon : "",
 				"Ticket Moved": moveTheCardNow ? true : false,
@@ -909,7 +912,7 @@ export const StartWork = (props: Props) => {
 		setPullSubmitting(true);
 
 		try {
-			await HostApi.instance.send(FetchRemoteBranchRequestType, {
+			await HostApi.sidebarInstance.send(FetchRemoteBranchRequestType, {
 				repoId: currentRepoId,
 				branchName: fromBranch || currentBranch,
 			});
@@ -932,7 +935,7 @@ export const StartWork = (props: Props) => {
 					{
 						label: "Contact Support",
 						action: () => {
-							HostApi.instance.send(OpenUrlRequestType, {
+							HostApi.sidebarInstance.send(OpenUrlRequestType, {
 								url: "https://docs.newrelic.com/docs/codestream/",
 							});
 						},
@@ -972,7 +975,7 @@ export const StartWork = (props: Props) => {
 														className="link-to-ticket"
 														onClick={() => {
 															if (card.url) {
-																HostApi.instance.send(OpenUrlRequestType, {
+																HostApi.sidebarInstance.send(OpenUrlRequestType, {
 																	url: card.url,
 																});
 															}

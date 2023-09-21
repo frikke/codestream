@@ -39,7 +39,7 @@ export const PullRequestExpandedSidebar = (props: PullRequestExpandedSidebarProp
 		const { pullRequest, thirdPartyPrObject } = props;
 
 		if (thirdPartyPrObject) {
-			HostApi.instance.track("PR Details Viewed", {
+			HostApi.sidebarInstance.track("PR Details Viewed", {
 				Host: thirdPartyPrObject?.providerId,
 				"Host Version": thirdPartyPrObject?.supports?.version?.version || "0.0.0",
 			});
@@ -72,7 +72,7 @@ export const PullRequestExpandedSidebar = (props: PullRequestExpandedSidebarProp
 		e.preventDefault();
 		e.stopPropagation();
 		setSubmittingReview(true);
-		HostApi.instance.track("PR Review Finished", {
+		HostApi.sidebarInstance.track("PR Review Finished", {
 			Host: props?.thirdPartyPrObject?.providerId,
 			"Review Type": "APPROVE",
 		});

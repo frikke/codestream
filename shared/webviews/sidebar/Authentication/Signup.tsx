@@ -186,7 +186,7 @@ export const Signup = (props: Props) => {
 	}
 
 	const getUserInfo = async () => {
-		const response = await HostApi.instance.send(GetUserInfoRequestType, {});
+		const response = await HostApi.sidebarInstance.send(GetUserInfoRequestType, {});
 		// only set this if it exists, in case there is no git configured email
 		// and the user was invited, in which case we'll use props.email
 		// turn off the suggestion for now.....
@@ -214,7 +214,7 @@ export const Signup = (props: Props) => {
 	useDidMount(() => {
 		getUserInfo();
 		if (derivedState.webviewFocused) {
-			HostApi.instance.track("Page Viewed", { "Page Name": "Create Account" });
+			HostApi.sidebarInstance.track("Page Viewed", { "Page Name": "Create Account" });
 		}
 		if (props.teamId) getTeamAuthInfo(props.teamId);
 	});
@@ -267,10 +267,13 @@ export const Signup = (props: Props) => {
 				repoId: props.repoId,
 				teamId: props.commitHash ? props.teamId : undefined,
 			};
-			const { status, token } = await HostApi.instance.send(RegisterUserRequestType, attributes);
+			const { status, token } = await HostApi.sidebarInstance.send(
+				RegisterUserRequestType,
+				attributes
+			);
 
 			const sendTelemetry = () => {
-				HostApi.instance.track("Account Created", {
+				HostApi.sidebarInstance.track("Account Created", {
 					email: email,
 					"Git Email Match?": email === scmEmail,
 					Source: derivedState.pendingProtocolHandlerQuerySource,
@@ -394,7 +397,7 @@ export const Signup = (props: Props) => {
 	const onClickNewRelicSignup = useCallback(
 		(event: React.SyntheticEvent) => {
 			event.preventDefault();
-			HostApi.instance.track("Provider Auth Selected", {
+			HostApi.sidebarInstance.track("Provider Auth Selected", {
 				Provider: "New Relic",
 			});
 			dispatch(goToNewRelicSignup({}));
@@ -405,7 +408,7 @@ export const Signup = (props: Props) => {
 	const onClickGithubSignup = useCallback(
 		(event: React.SyntheticEvent) => {
 			event.preventDefault();
-			HostApi.instance.track("Provider Auth Selected", {
+			HostApi.sidebarInstance.track("Provider Auth Selected", {
 				Provider: "GitHub",
 			});
 			if (derivedState.isInVSCode) {
@@ -420,7 +423,7 @@ export const Signup = (props: Props) => {
 	const onClickGitlabSignup = useCallback(
 		(event: React.SyntheticEvent) => {
 			event.preventDefault();
-			HostApi.instance.track("Provider Auth Selected", {
+			HostApi.sidebarInstance.track("Provider Auth Selected", {
 				Provider: "GitLab",
 			});
 			return dispatch(startSSOSignin("gitlab", buildSignupInfo()));
@@ -431,7 +434,7 @@ export const Signup = (props: Props) => {
 	const onClickBitbucketSignup = useCallback(
 		(event: React.SyntheticEvent) => {
 			event.preventDefault();
-			HostApi.instance.track("Provider Auth Selected", {
+			HostApi.sidebarInstance.track("Provider Auth Selected", {
 				Provider: "Bitbucket",
 			});
 			return dispatch(startSSOSignin("bitbucket", buildSignupInfo()));

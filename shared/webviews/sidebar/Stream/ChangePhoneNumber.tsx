@@ -32,8 +32,8 @@ export const ChangePhoneNumber = props => {
 
 		setLoading(true);
 		try {
-			await HostApi.instance.send(UpdateUserRequestType, { phoneNumber });
-			HostApi.instance.track("fullName Changed", {});
+			await HostApi.sidebarInstance.send(UpdateUserRequestType, { phoneNumber });
+			HostApi.sidebarInstance.track("fullName Changed", {});
 			dispatch(closeModal());
 		} catch (error) {
 			logError(error, { detail: `Unexpected error during change fullName`, phoneNumber });

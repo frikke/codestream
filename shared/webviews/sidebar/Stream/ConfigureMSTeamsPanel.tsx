@@ -41,7 +41,7 @@ export default function ConfigureMSTeamsPanel(props: Props) {
 
 	const generateConnectCode = () => {
 		setIsLoading(true);
-		HostApi.instance
+		HostApi.sidebarInstance
 			.send(GenerateMSTeamsConnectCodeRequestType, {})
 			.then((response: GenerateMSTeamsConnectCodeResponse) => {
 				setConnectCode(response.connectCode);

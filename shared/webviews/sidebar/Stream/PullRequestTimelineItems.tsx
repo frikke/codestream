@@ -379,9 +379,12 @@ export const PullRequestTimelineItems = (props: PropsWithChildren<Props>) => {
 											const openFile = async filePath => {
 												let repoRoot = currentRepoRoot;
 												if (!repoRoot) {
-													const response = await HostApi.instance.send(GetReposScmRequestType, {
-														inEditorOnly: false,
-													});
+													const response = await HostApi.sidebarInstance.send(
+														GetReposScmRequestType,
+														{
+															inEditorOnly: false,
+														}
+													);
 													if (!response.repositories) return;
 													const currentRepoInfo = response.repositories.find(
 														r => r.id === derivedState.prRepoId
@@ -392,16 +395,19 @@ export const PullRequestTimelineItems = (props: PropsWithChildren<Props>) => {
 													}
 												}
 
-												const result = await HostApi.instance.send(EditorRevealRangeRequestType, {
-													uri: path.join("file://", repoRoot, filePath),
-													range: Range.create(startLine, 0, startLine, 0),
-												});
+												const result = await HostApi.sidebarInstance.send(
+													EditorRevealRangeRequestType,
+													{
+														uri: path.join("file://", repoRoot, filePath),
+														range: Range.create(startLine, 0, startLine, 0),
+													}
+												);
 
 												// if (!result.success) {
 												// 	setErrorMessage("Could not open file");
 												// }
 
-												HostApi.instance.track("PR File Viewed From Timeline", {
+												HostApi.sidebarInstance.track("PR File Viewed From Timeline", {
 													Host: props.pr && props.pr.providerId,
 												});
 											};
@@ -426,7 +432,7 @@ export const PullRequestTimelineItems = (props: PropsWithChildren<Props>) => {
 												};
 
 												try {
-													await HostApi.instance.send(CompareLocalFilesRequestType, request);
+													await HostApi.sidebarInstance.send(CompareLocalFilesRequestType, request);
 												} catch (err) {}
 											};
 

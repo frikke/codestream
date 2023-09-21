@@ -290,7 +290,7 @@ export const PullRequest = () => {
 		setIsLoadingBranch(true);
 
 		const repoId = derivedState.prRepoId || "";
-		const result = await HostApi.instance.send(SwitchBranchRequestType, {
+		const result = await HostApi.sidebarInstance.send(SwitchBranchRequestType, {
 			branch: pr!.headRefName,
 			repoId: repoId,
 		});
@@ -331,20 +331,23 @@ export const PullRequest = () => {
 	useEffect(() => {
 		if (!pr) return;
 
-		const _didChangeDataNotification = HostApi.instance.on(DidChangeDataNotificationType, e => {
-			if (e.type === ChangeDataType.Commits) {
-				getOpenRepos().then(_ => {
-					const currentOpenRepo = openRepos.find(
-						_ =>
-							_?.name.toLowerCase() === pr.repository?.name?.toLowerCase() ||
-							_?.folder?.name?.toLowerCase() === pr.repository?.name?.toLowerCase()
-					);
-					setCurrentRepoChanged(
-						!!(e.data.repo && currentOpenRepo && currentOpenRepo.currentBranch == pr.headRefName)
-					);
-				});
+		const _didChangeDataNotification = HostApi.sidebarInstance.on(
+			DidChangeDataNotificationType,
+			e => {
+				if (e.type === ChangeDataType.Commits) {
+					getOpenRepos().then(_ => {
+						const currentOpenRepo = openRepos.find(
+							_ =>
+								_?.name.toLowerCase() === pr.repository?.name?.toLowerCase() ||
+								_?.folder?.name?.toLowerCase() === pr.repository?.name?.toLowerCase()
+						);
+						setCurrentRepoChanged(
+							!!(e.data.repo && currentOpenRepo && currentOpenRepo.currentBranch == pr.headRefName)
+						);
+					});
+				}
 			}
-		});
+		);
 
 		return () => {
 			_didChangeDataNotification && _didChangeDataNotification.dispose();
@@ -384,7 +387,7 @@ export const PullRequest = () => {
 
 	const getOpenRepos = async () => {
 		const { reposState } = derivedState;
-		const response = await HostApi.instance.send(GetReposScmRequestType, {
+		const response = await HostApi.sidebarInstance.send(GetReposScmRequestType, {
 			inEditorOnly: true,
 			includeCurrentBranches: true,
 		});

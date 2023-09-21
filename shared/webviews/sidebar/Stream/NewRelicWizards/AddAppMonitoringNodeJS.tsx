@@ -60,7 +60,7 @@ export const AddAppMonitoringNodeJS = (props: {
 	useEffect(() => {
 		(async () => {
 			if (repoPath) {
-				const response = (await HostApi.instance.send(FindCandidateMainFilesRequestType, {
+				const response = (await HostApi.sidebarInstance.send(FindCandidateMainFilesRequestType, {
 					type: RepoProjectType.NodeJS,
 					path: repoPath,
 				})) as FindCandidateMainFilesResponse;
@@ -90,7 +90,7 @@ export const AddAppMonitoringNodeJS = (props: {
 	const onInstallLibrary = async (event: React.SyntheticEvent) => {
 		event.preventDefault();
 		setInstallingLibrary(true);
-		const response = (await HostApi.instance.send(InstallNewRelicRequestType, {
+		const response = (await HostApi.sidebarInstance.send(InstallNewRelicRequestType, {
 			type: RepoProjectType.NodeJS,
 			cwd: repoPath!,
 		})) as InstallNewRelicResponse;
@@ -107,7 +107,7 @@ export const AddAppMonitoringNodeJS = (props: {
 	const onCreateConfigFile = async (event: React.SyntheticEvent) => {
 		event.preventDefault();
 		setCreatingConfig(true);
-		const response = (await HostApi.instance.send(CreateNewRelicConfigFileRequestType, {
+		const response = (await HostApi.sidebarInstance.send(CreateNewRelicConfigFileRequestType, {
 			type: RepoProjectType.NodeJS,
 			filePath: repoPath!,
 			appName,
@@ -126,7 +126,7 @@ export const AddAppMonitoringNodeJS = (props: {
 	const onRequireNewRelic = async (event: React.SyntheticEvent) => {
 		event.preventDefault();
 		setInsertingRequire(true);
-		const response = (await HostApi.instance.send(AddNewRelicIncludeRequestType, {
+		const response = (await HostApi.sidebarInstance.send(AddNewRelicIncludeRequestType, {
 			type: RepoProjectType.NodeJS,
 			file: selectedFile || files[0],
 			dir: repoPath!,

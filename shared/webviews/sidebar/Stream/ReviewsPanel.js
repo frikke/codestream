@@ -66,7 +66,7 @@ export class SimpleReviewsPanel extends Component {
 
 	componentDidMount() {
 		if (this.props.webviewFocused)
-			HostApi.instance.track("Page Viewed", { "Page Name": "Reviews" });
+			HostApi.sidebarInstance.track("Page Viewed", { "Page Name": "Reviews" });
 		if (false && this.props.reviews.length === 0)
 			this.props.fetchReviews().then(() => {
 				this.setState({ isLoading: false });

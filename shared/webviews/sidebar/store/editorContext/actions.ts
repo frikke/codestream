@@ -13,7 +13,7 @@ export const setEditorLayout = (payload: Partial<EditorLayout>) =>
 	action(EditorContextActionsType.SetEditorLayout, payload);
 
 export const changeSelection = (uri: string, range: EditorSelection) => async dispatch => {
-	await HostApi.instance.send(EditorSelectRangeRequestType, {
+	await HostApi.sidebarInstance.send(EditorSelectRangeRequestType, {
 		uri,
 		selection: range,
 		preserveFocus: true,

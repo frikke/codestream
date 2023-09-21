@@ -89,7 +89,7 @@ export const CurrentRepoContext = React.memo((props: Props) => {
 		// case: no file open, or non-file document open, and no previous repo set
 		if (textEditorUri === undefined || isNotOnDisk(textEditorUri)) {
 			if (currentRepoName === "[repository]") {
-				const reposResponse = await HostApi.instance.send(GetReposScmRequestType, {
+				const reposResponse = await HostApi.sidebarInstance.send(GetReposScmRequestType, {
 					inEditorOnly: true,
 				});
 				if (reposResponse.repositories) {
@@ -103,12 +103,12 @@ export const CurrentRepoContext = React.memo((props: Props) => {
 		// case: file opened from different repo
 		if (!scmInfo || scmInfo.uri !== textEditorUri || checkBranchUpdate || currentRepoName) {
 			if (textEditorUri) {
-				scmInfo = await HostApi.instance.send(GetFileScmInfoRequestType, {
+				scmInfo = await HostApi.sidebarInstance.send(GetFileScmInfoRequestType, {
 					uri: textEditorUri,
 				});
 			}
 
-			const reposResponse = await HostApi.instance.send(GetReposScmRequestType, {
+			const reposResponse = await HostApi.sidebarInstance.send(GetReposScmRequestType, {
 				inEditorOnly: true,
 			});
 			const currentRepo = reposResponse.repositories?.find(

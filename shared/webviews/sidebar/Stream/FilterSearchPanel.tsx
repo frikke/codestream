@@ -220,7 +220,7 @@ export class SimpleFilterSearchPanel extends Component<Props, State> {
 
 	componentDidMount() {
 		if (this.props.webviewFocused)
-			HostApi.instance.track("Page Viewed", { "Page Name": "Search Tab" });
+			HostApi.sidebarInstance.track("Page Viewed", { "Page Name": "Search Tab" });
 
 		this.applyQuery(this.props.query);
 		// if (false && this.props.reviews.length === 0)
@@ -822,7 +822,7 @@ export class SimpleFilterSearchPanel extends Component<Props, State> {
 				label: "View advanced search syntax",
 				key: "view",
 				action: () =>
-					HostApi.instance.send(OpenUrlRequestType, {
+					HostApi.sidebarInstance.send(OpenUrlRequestType, {
 						url: "https://docs.newrelic.com/docs/codestream/how-use-codestream/ui-overview/#filter-search",
 					}),
 			},

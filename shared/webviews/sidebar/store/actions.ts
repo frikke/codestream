@@ -44,7 +44,7 @@ export const reset = () => action("RESET");
 
 export const bootstrap = (data?: SignedInBootstrapData) => async (dispatch, getState) => {
 	if (data == undefined) {
-		const api = HostApi.instance;
+		const api = HostApi.sidebarInstance;
 		const bootstrapCore = await api.send(BootstrapInHostRequestType, undefined);
 		if (bootstrapCore.session.userId === undefined) {
 			dispatch(
@@ -83,7 +83,7 @@ export const bootstrap = (data?: SignedInBootstrapData) => async (dispatch, getS
 		console.log(
 			`This org uses a different server URL (${data.configs.serverUrl}), switching to ${data.companies[0].switchToServerUrl}...`
 		);
-		HostApi.instance.send(UpdateServerUrlRequestType, {
+		HostApi.sidebarInstance.send(UpdateServerUrlRequestType, {
 			serverUrl: data.companies[0].switchToServerUrl,
 			copyToken: true,
 			currentTeamId: data.teams[0].id,

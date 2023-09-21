@@ -354,7 +354,7 @@ class ReviewForm extends React.Component<Props, State> {
 		this.setState({ isLoadingScm: true });
 
 		let firstRepoUri: string = "";
-		const openRepos = await HostApi.instance.send(GetReposScmRequestType, {
+		const openRepos = await HostApi.sidebarInstance.send(GetReposScmRequestType, {
 			inEditorOnly: true,
 		});
 		if (openRepos && openRepos.repositories) {
@@ -367,7 +367,7 @@ class ReviewForm extends React.Component<Props, State> {
 		}
 
 		if (uri) {
-			const scmInfo = await HostApi.instance.send(GetFileScmInfoRequestType, {
+			const scmInfo = await HostApi.sidebarInstance.send(GetFileScmInfoRequestType, {
 				uri: uri,
 			});
 			if (scmInfo.scm) {
@@ -399,7 +399,7 @@ class ReviewForm extends React.Component<Props, State> {
 		this.setState({ isLoadingScm: true });
 		const { editingReview } = this.props;
 
-		const openRepos = await HostApi.instance.send(GetReposScmRequestType, {
+		const openRepos = await HostApi.sidebarInstance.send(GetReposScmRequestType, {
 			inEditorOnly: true,
 		});
 		if (editingReview && openRepos && openRepos.repositories) {
@@ -442,7 +442,7 @@ class ReviewForm extends React.Component<Props, State> {
 			const currentRepoUri = currentRepoPath ? path.join("file://", currentRepoPath) : undefined;
 			this.getScmInfoForURI(currentRepoUri || textEditorUri, () => {
 				this.props.setCurrentRepo();
-				//HostApi.instance.send(TelemetryRequestType, {
+				//HostApi.sidebarInstance.send(TelemetryRequestType, {
 				//	eventName: "Review Form Opened",
 				//	properties: {
 				//		"Repo Open": this.state.openRepos && this.state.openRepos.length > 0,
@@ -499,7 +499,7 @@ class ReviewForm extends React.Component<Props, State> {
 			const uri = repoUri || this.state.repoUri;
 			let statusInfo: GetRepoScmStatusResponse;
 			try {
-				statusInfo = await HostApi.instance.send(GetRepoScmStatusRequestType, {
+				statusInfo = await HostApi.sidebarInstance.send(GetRepoScmStatusRequestType, {
 					uri,
 					startCommit,
 					endCommit,
@@ -561,7 +561,7 @@ class ReviewForm extends React.Component<Props, State> {
 				self.handleRepoChange();
 			}, 100);
 
-			this._disposableDidChangeDataNotification = HostApi.instance.on(
+			this._disposableDidChangeDataNotification = HostApi.sidebarInstance.on(
 				DidChangeDataNotificationType,
 				(e: any) => {
 					// if we have a change to scm OR a file has been saved, update
@@ -767,7 +767,7 @@ class ReviewForm extends React.Component<Props, State> {
 						this.setState(state => ({ excludedFiles: { ...state.excludedFiles, [f.file]: true } }));
 				});
 
-				const response = await HostApi.instance.send(IgnoreFilesRequestType, {
+				const response = await HostApi.sidebarInstance.send(IgnoreFilesRequestType, {
 					repoPath: statusInfo.scm.repoPath,
 				});
 				if (response && response.paths) {
@@ -810,7 +810,10 @@ class ReviewForm extends React.Component<Props, State> {
 		if (!scm) return;
 		const { repoPath } = scm;
 
-		return await HostApi.instance.send(AddIgnoreFilesRequestType, { repoPath, path: filename });
+		return await HostApi.sidebarInstance.send(AddIgnoreFilesRequestType, {
+			repoPath,
+			path: filename,
+		});
 	}
 
 	focus = () => {
@@ -1278,7 +1281,7 @@ class ReviewForm extends React.Component<Props, State> {
 	};
 
 	addBlameMap = async (author: string, assigneeId: string) => {
-		await HostApi.instance.send(UpdateTeamSettingsRequestType, {
+		await HostApi.sidebarInstance.send(UpdateTeamSettingsRequestType, {
 			teamId: this.props.teamId,
 			// we need to replace . with * to allow for the creation of deeply-nested
 			// team settings, since that's how they're stored in mongo
@@ -1436,7 +1439,7 @@ class ReviewForm extends React.Component<Props, State> {
 						label: "Open Ignore File",
 						className: "cancel",
 						action: () => {
-							HostApi.instance.send(EditorRevealRangeRequestType, {
+							HostApi.sidebarInstance.send(EditorRevealRangeRequestType, {
 								uri: "file://" + ignoreFile,
 								range: Range.create(0, 0, 0, 0),
 								atTop: true,
@@ -1894,7 +1897,7 @@ class ReviewForm extends React.Component<Props, State> {
 			endCommit = this.getRowIdentifier(topSelectionIndex);
 		}
 
-		HostApi.instance.send(ReviewShowLocalDiffRequestType, {
+		HostApi.sidebarInstance.send(ReviewShowLocalDiffRequestType, {
 			path,
 			oldPath,
 			repoId,

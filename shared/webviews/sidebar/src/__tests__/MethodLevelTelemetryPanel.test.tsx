@@ -31,7 +31,7 @@ beforeEach(() => {
 	container = document.createElement("div");
 	document.body.appendChild(container);
 
-	MockedHostApi.instance = {};
+	MockedHostApi.sidebarInstance = {};
 	MockedHostApi.mockClear();
 });
 
@@ -101,7 +101,7 @@ it("renders default state", async () => {
 		return mockHostApi;
 	});
 	// YUCK yuck yuck, static singletons are bad bad bad for testing
-	MockedHostApi.instance = mockHostApi;
+	MockedHostApi.sidebarInstance = mockHostApi;
 
 	const mockStore = configureStore();
 

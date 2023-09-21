@@ -119,7 +119,7 @@ export function GrokFeedbackForm(props: GrokFeedbackFormProps) {
 		}
 
 		console.debug(`Grok feedback ${JSON.stringify(telemetryPayload)}`);
-		await HostApi.instance.track("Grok Feedback Submitted", telemetryPayload);
+		await HostApi.sidebarInstance.track("Grok Feedback Submitted", telemetryPayload);
 		setIsLoading(false);
 		props.onSuccess();
 	};

@@ -33,8 +33,8 @@ export const ChangeWorksOn = props => {
 
 		setLoading(true);
 		try {
-			await HostApi.instance.send(UpdateUserRequestType, { iWorkOn });
-			HostApi.instance.track("fullName Changed", {});
+			await HostApi.sidebarInstance.send(UpdateUserRequestType, { iWorkOn });
+			HostApi.sidebarInstance.track("fullName Changed", {});
 			dispatch(closeModal());
 		} catch (error) {
 			logError(error, { detail: `Unexpected error during change fullName`, iWorkOn });

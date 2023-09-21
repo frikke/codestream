@@ -243,7 +243,7 @@ export const RightActionBar = (props: {
 
 	useDidMount(() => {
 		(async () => {
-			const defaultQueriesResponse: any = (await HostApi.instance.send(
+			const defaultQueriesResponse: any = (await HostApi.sidebarInstance.send(
 				FetchProviderDefaultPullRequestsType,
 				{}
 			)) as any;
@@ -254,7 +254,7 @@ export const RightActionBar = (props: {
 	});
 
 	const close = () => {
-		HostApi.instance.send(LocalFilesCloseDiffRequestType, {});
+		HostApi.sidebarInstance.send(LocalFilesCloseDiffRequestType, {});
 		dispatch(closeAllModals());
 	};
 
@@ -534,7 +534,7 @@ export const RightActionBar = (props: {
 				{
 					label: "Manage Labels",
 					action: () => {
-						HostApi.instance.send(OpenUrlRequestType, {
+						HostApi.sidebarInstance.send(OpenUrlRequestType, {
 							url: `${pr.repository.url}/-/labels`,
 						});
 						setAvailableLabels(undefined);
@@ -920,7 +920,7 @@ export const RightActionBar = (props: {
 												{
 													label: "Learn more",
 													action: () => {
-														HostApi.instance.send(OpenUrlRequestType, {
+														HostApi.sidebarInstance.send(OpenUrlRequestType, {
 															url: `${props.pr.baseWebUrl}/help/user/project/time_tracking.md`,
 														});
 													},

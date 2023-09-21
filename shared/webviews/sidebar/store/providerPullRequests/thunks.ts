@@ -49,7 +49,7 @@ const _getPullRequestConversationsFromProvider = async (
 	id: string,
 	src: string
 ) => {
-	const response1 = await HostApi.instance.send(FetchThirdPartyPullRequestRequestType, {
+	const response1 = await HostApi.sidebarInstance.send(FetchThirdPartyPullRequestRequestType, {
 		providerId: providerId,
 		pullRequestId: id,
 		src: src,
@@ -70,7 +70,7 @@ const _getPullRequestConversationsFromProvider = async (
 		boardId = encodeURIComponent((response1 as any).project.mergeRequest.repository.nameWithOwner);
 	}
 	if (boardId) {
-		response2 = await HostApi.instance.send(FetchAssignableUsersRequestType, {
+		response2 = await HostApi.sidebarInstance.send(FetchAssignableUsersRequestType, {
 			providerId: providerId,
 			boardId: boardId,
 		});
@@ -227,7 +227,7 @@ export const getPullRequestFiles = createAppAsyncThunk<
 		let response: GetCommitsFilesResponse[] | undefined;
 
 		if (repoId && commits.length > 0) {
-			response = await HostApi.instance.send(GetCommitsFilesRequestType, {
+			response = await HostApi.sidebarInstance.send(GetCommitsFilesRequestType, {
 				repoId,
 				commits,
 			});
@@ -328,7 +328,7 @@ export const getMyPullRequests = createAppAsyncThunk<
 			any,
 			any
 		>("codestream/provider/generic");
-		const response = await HostApi.instance.send(apiRequest, {
+		const response = await HostApi.sidebarInstance.send(apiRequest, {
 			method: "getMyPullRequests",
 			providerId: providerId,
 			params: {
@@ -367,7 +367,7 @@ export const getPullRequestCommitsFromProvider = createAppAsyncThunk<
 >("providerPullRequests/getPullRequestCommitsFromProvider", async (request, { dispatch }) => {
 	const { id, providerId } = request;
 	try {
-		const response = await HostApi.instance.send(FetchThirdPartyPullRequestCommitsType, {
+		const response = await HostApi.sidebarInstance.send(FetchThirdPartyPullRequestCommitsType, {
 			providerId,
 			pullRequestId: id,
 		});
@@ -403,13 +403,11 @@ export const getPullRequestCommits = createAppAsyncThunk<
 				return pr.commits;
 			}
 		}
-		const response: FetchThirdPartyPullRequestCommitsResponse[] = await HostApi.instance.send(
-			FetchThirdPartyPullRequestCommitsType,
-			{
+		const response: FetchThirdPartyPullRequestCommitsResponse[] =
+			await HostApi.sidebarInstance.send(FetchThirdPartyPullRequestCommitsType, {
 				providerId: providerId,
 				pullRequestId: id,
-			}
-		);
+			});
 		dispatch(
 			addPullRequestCommits({
 				providerId,
@@ -450,13 +448,13 @@ export const openPullRequestByUrl = createAppAsyncThunk<
 	let response;
 	let providerInfo;
 	try {
-		providerInfo = await HostApi.instance.send(QueryThirdPartyRequestType, {
+		providerInfo = await HostApi.sidebarInstance.send(QueryThirdPartyRequestType, {
 			url: url,
 		});
 	} catch (error) {}
 	try {
 		if (providerInfo && providerInfo.providerId) {
-			const id = await HostApi.instance.send(ExecuteThirdPartyRequestUntypedType, {
+			const id = await HostApi.sidebarInstance.send(ExecuteThirdPartyRequestUntypedType, {
 				method: "getPullRequestIdFromUrl",
 				providerId: providerInfo.providerId,
 				params: { url },
@@ -611,7 +609,7 @@ export const api = createAppAsyncThunk<any, ApiRequest>(
 			}
 
 			// TODO restore generics
-			const response = (await HostApi.instance.send(new ExecuteThirdPartyTypedType(), {
+			const response = (await HostApi.sidebarInstance.send(new ExecuteThirdPartyTypedType(), {
 				method: method,
 				providerId: providerId,
 				params: params,
@@ -670,7 +668,7 @@ export const api = createAppAsyncThunk<any, ApiRequest>(
 			);
 			logError(error, { providerId, pullRequestId, method, message: errorString });
 
-			HostApi.instance.track("PR Error", {
+			HostApi.sidebarInstance.track("PR Error", {
 				Host: providerId,
 				Operation: method,
 				Error: errorString,

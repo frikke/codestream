@@ -111,7 +111,7 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		derivedState.eligibleJoinCompanies.some(company => company.byInvite && !company.accessToken);
 
 	const trackSwitchOrg = (isCurrentCompany, company) => {
-		HostApi.instance.track("Switched Organizations", {});
+		HostApi.sidebarInstance.track("Switched Organizations", {});
 		// slight delay so tracking call completes
 		setTimeout(() => {
 			const { eligibleJoinCompanies } = derivedState;
@@ -237,11 +237,11 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 	const popup = (modal: WebviewModals) => dispatch(openModal(modal));
 
 	const openUrl = url => {
-		HostApi.instance.send(OpenUrlRequestType, { url });
+		HostApi.sidebarInstance.send(OpenUrlRequestType, { url });
 	};
 
 	const changeXray = async value => {
-		await HostApi.instance.send(UpdateTeamSettingsRequestType, {
+		await HostApi.sidebarInstance.send(UpdateTeamSettingsRequestType, {
 			teamId: derivedState.team.id,
 			settings: { xray: value },
 		});
@@ -280,7 +280,7 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 							className: "delete",
 							wait: true,
 							action: async () => {
-								await HostApi.instance.send(DeleteCompanyRequestType, {
+								await HostApi.sidebarInstance.send(DeleteCompanyRequestType, {
 									companyId: currentCompanyId,
 								});
 								dispatch(logout());

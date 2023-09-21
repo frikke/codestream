@@ -116,7 +116,7 @@ export const startSSOSignin =
 			.join("&");
 
 		try {
-			await HostApi.instance.send(OpenUrlRequestType, {
+			await HostApi.sidebarInstance.send(OpenUrlRequestType, {
 				url: encodeURI(`${configs.serverUrl}/web/provider-auth/${provider}?${queryString}`),
 			});
 			return dispatch(goToSSOAuth(provider, { ...(info || emptyObject), mode: access }));
@@ -130,7 +130,9 @@ export const startIDESignin =
 	async (dispatch, getState: () => CodeStreamState) => {
 		try {
 			const { session } = getState();
-			const result = await HostApi.instance.send(ConnectToIDEProviderRequestType, { provider });
+			const result = await HostApi.sidebarInstance.send(ConnectToIDEProviderRequestType, {
+				provider,
+			});
 			const request: ProviderTokenRequest = {
 				provider,
 				token: result.accessToken,
@@ -151,7 +153,7 @@ export const startIDESignin =
 					info!.gotError = error;
 					return dispatch(goToSSOAuth(provider, { ...(info || emptyObject) }));
 				};
-				HostApi.instance.send(ProviderTokenRequestType, request, { alternateReject: fail });
+				HostApi.sidebarInstance.send(ProviderTokenRequestType, request, { alternateReject: fail });
 				return dispatch(goToSSOAuth(provider, { ...(info || emptyObject) }));
 			} catch (tokenError) {
 				info.gotError = true;
@@ -167,7 +169,7 @@ export type PasswordLoginParams = Pick<PasswordLoginRequest, "email" | "password
 export const authenticate =
 	(params: PasswordLoginParams | TokenLoginRequest | ConfirmLoginCodeRequest) =>
 	async (dispatch, getState: () => CodeStreamState) => {
-		const api = HostApi.instance;
+		const api = HostApi.sidebarInstance;
 		const { context } = getState();
 
 		let response;
@@ -236,7 +238,7 @@ export const authenticate =
 
 export const generateLoginCode =
 	(email: string) => async (dispatch, getState: () => CodeStreamState) => {
-		const api = HostApi.instance;
+		const api = HostApi.sidebarInstance;
 		const response = await api.send(GenerateLoginCodeRequestType, { email });
 		if (response.status === LoginResult.Success) {
 			dispatch(
@@ -260,7 +262,7 @@ const _bootstrap = () => {};
 export const onLogin =
 	(response: LoginSuccessResponse, isFirstPageview?: boolean, teamCreated?: boolean) =>
 	async (dispatch, getState: () => CodeStreamState) => {
-		const api = HostApi.instance;
+		const api = HostApi.sidebarInstance;
 
 		const { bootstrapData, editorContext, bootstrapCore } = await withExponentialConnectionRetry(
 			dispatch,
@@ -340,7 +342,7 @@ export const completeSignup =
 	async (dispatch, getState: () => CodeStreamState) => {
 		const tokenUrl =
 			(extra.setEnvironment && extra.setEnvironment.serverUrl) || getState().configs.serverUrl;
-		const response = await HostApi.instance.send(TokenLoginRequestType, {
+		const response = await HostApi.sidebarInstance.send(TokenLoginRequestType, {
 			token: {
 				value: token,
 				email,
@@ -352,7 +354,7 @@ export const completeSignup =
 		});
 
 		if (extra.provider === "newrelic") {
-			await HostApi.instance.send(UpdateNewRelicOrgIdRequestType, { teamId });
+			await HostApi.sidebarInstance.send(UpdateNewRelicOrgIdRequestType, { teamId });
 		}
 
 		if (isLoginFailResponse(response)) {
@@ -383,7 +385,7 @@ export const completeSignup =
 		const providerName = extra.provider
 			? ProviderNames[extra.provider.toLowerCase()] || extra.provider
 			: "CodeStream";
-		HostApi.instance.track("Signup Completed", {
+		HostApi.sidebarInstance.track("Signup Completed", {
 			"Signup Type": extra.byDomain ? "Domain" : extra.createdTeam ? "Organic" : "Viral",
 			"Auth Provider": providerName,
 		});
@@ -409,9 +411,9 @@ export const completeAcceptInvite =
 		dispatch(setBootstrapped(false));
 		dispatch(reset());
 
-		await HostApi.instance.send(LogoutRequestType, {});
+		await HostApi.sidebarInstance.send(LogoutRequestType, {});
 
-		const response = await HostApi.instance.send(TokenLoginRequestType, {
+		const response = await HostApi.sidebarInstance.send(TokenLoginRequestType, {
 			token: {
 				value: token,
 				email,
@@ -450,7 +452,7 @@ export const completeAcceptInvite =
 		const providerName = extra.provider
 			? ProviderNames[extra.provider.toLowerCase()] || extra.provider
 			: "CodeStream";
-		HostApi.instance.track("Signup Completed", {
+		HostApi.sidebarInstance.track("Signup Completed", {
 			"Signup Type": extra.byDomain ? "Domain" : extra.createdTeam ? "Organic" : "Viral",
 			"Auth Provider": providerName,
 		});
@@ -461,7 +463,7 @@ export const validateSignup =
 	(provider: string, authInfo?: SSOAuthInfo) =>
 	async (dispatch, getState: () => CodeStreamState) => {
 		const { context, session } = getState();
-		const response = await HostApi.instance.send(OtcLoginRequestType, {
+		const response = await HostApi.sidebarInstance.send(OtcLoginRequestType, {
 			code: session.otc!,
 			errorGroupGuid: context.pendingProtocolHandlerQuery?.errorGroupGuid,
 		});
@@ -486,7 +488,7 @@ export const validateSignup =
 				case LoginResult.AlreadySignedIn:
 					return dispatch(bootstrap());
 				case LoginResult.NotInCompany:
-					HostApi.instance.track("Account Created", {
+					HostApi.sidebarInstance.track("Account Created", {
 						email: response.extra.email,
 						"Auth Provider": providerName,
 						Source: context.pendingProtocolHandlerQuery?.src,
@@ -503,7 +505,7 @@ export const validateSignup =
 						})
 					);
 				case LoginResult.NotOnTeam:
-					HostApi.instance.track("Account Created", {
+					HostApi.sidebarInstance.track("Account Created", {
 						email: response.extra.email,
 						"Auth Provider": providerName,
 						Source: context.pendingProtocolHandlerQuery?.src,
@@ -525,13 +527,13 @@ export const validateSignup =
 		}
 
 		if (authInfo && authInfo.fromSignup) {
-			HostApi.instance.track("Account Created", {
+			HostApi.sidebarInstance.track("Account Created", {
 				email: response.loginResponse.user.email,
 				"Auth Provider": providerName,
 				Source: context.pendingProtocolHandlerQuery?.src,
 			});
 
-			HostApi.instance.track("Signup Completed", {
+			HostApi.sidebarInstance.track("Signup Completed", {
 				// i don't think there's any way of reaching here unless user is already on a company/team by invite
 				"Signup Type": "Viral", // authInfo.type === SignupType.CreateTeam ? "Organic" : "Viral",
 				"Auth Provider": providerName,
@@ -539,13 +541,13 @@ export const validateSignup =
 
 			return await dispatch(onLogin(response, true));
 		} else {
-			HostApi.instance.track("Signed In", {
+			HostApi.sidebarInstance.track("Signed In", {
 				"Auth Type": provider,
 				Source: context.pendingProtocolHandlerQuery?.src,
 			});
 			if (localStore.get("enablingRealTime") === true) {
 				localStore.delete("enablingRealTime");
-				HostApi.instance.track("Slack Chat Enabled");
+				HostApi.sidebarInstance.track("Slack Chat Enabled");
 				const result = await dispatch(onLogin(response));
 				dispatch(setContext({ chatProviderAccess: "permissive" }));
 				return result;

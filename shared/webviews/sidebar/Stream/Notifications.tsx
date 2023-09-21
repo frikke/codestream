@@ -39,7 +39,7 @@ export const Notifications = props => {
 
 	const handleChange = async (value: string) => {
 		setLoading(true);
-		HostApi.instance.track("Notification Preference Changed", { Value: value });
+		HostApi.sidebarInstance.track("Notification Preference Changed", { Value: value });
 		dispatch(setUserPreference({ prefPath: ["notifications"], value }));
 		setLoading(false);
 	};
@@ -52,14 +52,14 @@ export const Notifications = props => {
 
 	const handleChangeDelivery = async (value: string) => {
 		setLoadingDelivery(true);
-		HostApi.instance.track("Notification Delivery Preference Changed", { Value: value });
+		HostApi.sidebarInstance.track("Notification Delivery Preference Changed", { Value: value });
 		dispatch(setUserPreference({ prefPath: ["notificationDelivery"], value }));
 		setLoadingDelivery(false);
 	};
 
 	const handleChangeNotifyPerformanceIssues = async (value: boolean) => {
 		setLoadingNotifyPerformanceIssues(true);
-		HostApi.instance.track("Notify Performance Issues Changed", { Value: value });
+		HostApi.sidebarInstance.track("Notify Performance Issues Changed", { Value: value });
 		dispatch(setUserPreference({ prefPath: ["notifyPerformanceIssues"], value }));
 		setLoadingNotifyPerformanceIssues(false);
 	};

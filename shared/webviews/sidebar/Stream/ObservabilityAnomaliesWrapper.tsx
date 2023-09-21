@@ -88,7 +88,7 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 
 	// useEffect(() => {
 	// 	if (!_isEmpty(props.languageAndVersionValidation)) {
-	// 		HostApi.instance.track("CLM Blocked", {
+	// 		HostApi.sidebarInstance.track("CLM Blocked", {
 	// 			cause: "Unsupported Agent",
 	// 		});
 	// 	}
@@ -96,7 +96,7 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 
 	// useEffect(() => {
 	// 	if (!props.distributedTracingEnabled) {
-	// 		HostApi.instance.track("CLM Blocked", {
+	// 		HostApi.sidebarInstance.track("CLM Blocked", {
 	// 			cause: "DT Not Enabled",
 	// 		});
 	// 	}

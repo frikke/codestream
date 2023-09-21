@@ -119,7 +119,7 @@ export const ObservabilityAnomalyPanel = () => {
 			const anomaly = derivedState.currentObservabilityAnomaly;
 			const isPlural = anomaly.totalDays > 1 ? "s" : "";
 			const since = `${anomaly.totalDays} day${isPlural} ago`;
-			const response = await HostApi.instance.send(GetMethodLevelTelemetryRequestType, {
+			const response = await HostApi.sidebarInstance.send(GetMethodLevelTelemetryRequestType, {
 				newRelicEntityGuid: newRelicEntityGuid,
 				metricTimesliceNameMapping: {
 					source: "metric",
@@ -180,7 +180,7 @@ export const ObservabilityAnomalyPanel = () => {
 	};
 
 	useDidMount(() => {
-		// HostApi.instance.track("MLT Codelens Clicked", {
+		// HostApi.sidebarInstance.track("MLT Codelens Clicked", {
 		// 	"NR Account ID": derivedState.currentObservabilityAnomaly?.newRelicAccountId + "",
 		// 	Language: derivedState.currentObservabilityAnomaly.languageId,
 		// });
@@ -228,11 +228,11 @@ export const ObservabilityAnomalyPanel = () => {
 						title="Code-Level Metrics"
 						label="Select the service on New Relic that is built from this repository to see how it's performing."
 						onSuccess={async e => {
-							// HostApi.instance.track("MLT Repo Association", {
+							// HostApi.sidebarInstance.track("MLT Repo Association", {
 							// 	"NR Account ID": derivedState.currentMethodLevelTelemetry.newRelicAccountId + "",
 							// });
-							HostApi.instance.send(RefreshEditorsCodeLensRequestType, {});
-							HostApi.instance.emit(DidChangeObservabilityDataNotificationType.method, {
+							HostApi.sidebarInstance.send(RefreshEditorsCodeLensRequestType, {});
+							HostApi.sidebarInstance.emit(DidChangeObservabilityDataNotificationType.method, {
 								type: "RepositoryAssociation",
 							});
 							dispatch(closeAllPanels());
@@ -250,7 +250,7 @@ export const ObservabilityAnomalyPanel = () => {
 								type="checkbox"
 								checked={!showGoldenSignalsInEditor}
 								onClick={e => {
-									HostApi.instance.send(UpdateConfigurationRequestType, {
+									HostApi.sidebarInstance.send(UpdateConfigurationRequestType, {
 										name: "showGoldenSignalsInEditor",
 										value: !showGoldenSignalsInEditor,
 									});
@@ -374,9 +374,9 @@ export const ObservabilityAnomalyPanel = () => {
 									{/*				// 			}*/}
 									{/*				//*/}
 									{/*				// 			// update the IDEs*/}
-									{/*				// 			HostApi.instance.send(RefreshEditorsCodeLensRequestType, {});*/}
+									{/*				// 			HostApi.sidebarInstance.send(RefreshEditorsCodeLensRequestType, {});*/}
 									{/*				// 			// tell other parts of the webview that we updated this*/}
-									{/*				// 			HostApi.instance.emit(*/}
+									{/*				// 			HostApi.sidebarInstance.emit(*/}
 									{/*				// 				DidChangeObservabilityDataNotificationType.method,*/}
 									{/*				// 				{*/}
 									{/*				// 					type: "Entity",*/}
@@ -408,10 +408,10 @@ export const ObservabilityAnomalyPanel = () => {
 									{/*					<Link*/}
 									{/*						onClick={e => {*/}
 									{/*							e.preventDefault();*/}
-									{/*							HostApi.instance.track("Open Service Summary on NR", {*/}
+									{/*							HostApi.sidebarInstance.track("Open Service Summary on NR", {*/}
 									{/*								Section: "Code-level Metrics",*/}
 									{/*							});*/}
-									{/*							HostApi.instance.send(OpenUrlRequestType, {*/}
+									{/*							HostApi.sidebarInstance.send(OpenUrlRequestType, {*/}
 									{/*								url: telemetryResponse.newRelicUrl!,*/}
 									{/*							});*/}
 									{/*						}}*/}
@@ -452,7 +452,7 @@ export const ObservabilityAnomalyPanel = () => {
 															onClick={async e => {
 																try {
 																	setIsLoadingErrorGroupGuid(indexedErrorGroupGuid);
-																	const response = (await HostApi.instance.send(
+																	const response = (await HostApi.sidebarInstance.send(
 																		GetObservabilityErrorGroupMetadataRequestType,
 																		{ errorGroupGuid: _.errorGroupGuid }
 																	)) as GetObservabilityErrorGroupMetadataResponse;

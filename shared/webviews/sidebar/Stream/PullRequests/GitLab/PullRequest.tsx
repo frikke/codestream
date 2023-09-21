@@ -384,9 +384,12 @@ export const PullRequest = () => {
 
 	const getOpenRepos = async () => {
 		const { reposState } = derivedState;
-		const response: GetReposScmResponse = await HostApi.instance.send(GetReposScmRequestType, {
-			includeCurrentBranches: true,
-		});
+		const response: GetReposScmResponse = await HostApi.sidebarInstance.send(
+			GetReposScmRequestType,
+			{
+				includeCurrentBranches: true,
+			}
+		);
 		if (response && response.repositories) {
 			const repos = response.repositories.map(repo => {
 				const id = repo.id || "";
@@ -414,7 +417,7 @@ export const PullRequest = () => {
 		let _didChangeDataNotification;
 		getOpenRepos();
 		initialFetch().then((_: FetchThirdPartyPullRequestResponse | { error: Error } | undefined) => {
-			_didChangeDataNotification = HostApi.instance.on(DidChangeDataNotificationType, e => {
+			_didChangeDataNotification = HostApi.sidebarInstance.on(DidChangeDataNotificationType, e => {
 				if (e.type === ChangeDataType.Commits) {
 					reload("Updating...");
 				}
@@ -689,7 +692,7 @@ export const PullRequest = () => {
 		if (href && dataset?.referenceType === "user" && dataset?.user) {
 			event.preventDefault();
 			const url = href.toLowerCase().startsWith("http") ? href : `${pr.baseWebUrl}/${href}`;
-			HostApi.instance.send(OpenUrlRequestType, { url });
+			HostApi.sidebarInstance.send(OpenUrlRequestType, { url });
 		}
 	};
 

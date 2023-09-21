@@ -57,7 +57,7 @@ export function AzureDevOpsCardControls(
 		let isValid = true;
 
 		const fetchBoards = async () => {
-			let response = await HostApi.instance.send(FetchThirdPartyBoardsRequestType, {
+			let response = await HostApi.sidebarInstance.send(FetchThirdPartyBoardsRequestType, {
 				providerId: props.provider.id,
 			});
 
@@ -113,7 +113,7 @@ export function AzureDevOpsCardControls(
 		async (inputValue: string) => {
 			if (!data.currentProject) return [];
 
-			const { users } = await HostApi.instance.send(FetchAssignableUsersRequestType, {
+			const { users } = await HostApi.sidebarInstance.send(FetchAssignableUsersRequestType, {
 				providerId: props.provider.id,
 				boardId: data.currentProject.id,
 			});

@@ -222,7 +222,7 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 		});
 
 		this.disposables.push(
-			HostApi.instance.on(DidChangeDocumentMarkersNotificationType, ({ textDocument }) => {
+			HostApi.sidebarInstance.on(DidChangeDocumentMarkersNotificationType, ({ textDocument }) => {
 				if (this.props.textEditorUri === textDocument.uri) {
 					this.props.fetchDocumentMarkers(textDocument.uri);
 				}
@@ -232,14 +232,14 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 					mutationObserver.disconnect();
 				},
 			},
-			HostApi.instance.on(NewCodemarkNotificationType, e => {
+			HostApi.sidebarInstance.on(NewCodemarkNotificationType, e => {
 				this.currentPostEntryPoint = e.source as PostEntryPoint;
 				if (!this._mounted) {
 					console.debug(
 						`<InlineCodemarks/>: notification ${NewCodemarkNotificationType.method} received but the component is not mounted yet so the notification will be re-emitted`
 					);
 					Promise.resolve().then(() => {
-						HostApi.instance.emit(NewCodemarkNotificationType.method, e);
+						HostApi.sidebarInstance.emit(NewCodemarkNotificationType.method, e);
 					});
 				}
 			})
@@ -437,7 +437,7 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 		let scmInfo = this.props.scmInfo;
 		if (!scmInfo) {
 			this.setState({ isLoading: true });
-			scmInfo = await HostApi.instance.send(GetFileScmInfoRequestType, {
+			scmInfo = await HostApi.sidebarInstance.send(GetFileScmInfoRequestType, {
 				uri: textEditorUri,
 			});
 			setEditorContext({ scmInfo });
@@ -1091,7 +1091,7 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 		// Update our tracking as the events will be too slow
 		this._wheelingState.topLine = topLine;
 
-		HostApi.instance.notify(EditorScrollToNotificationType, {
+		HostApi.sidebarInstance.notify(EditorScrollToNotificationType, {
 			uri: this.props.textEditorUri!,
 			position: Position.create(topLine, 0),
 			deltaPixels: deltaPixels,
@@ -1161,10 +1161,10 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 			currentPullRequestProviderId,
 		} = this.props;
 		if (currentReviewId) {
-			HostApi.instance.send(ReviewCloseDiffRequestType, {});
+			HostApi.sidebarInstance.send(ReviewCloseDiffRequestType, {});
 			this.props.closeAllModals();
 		} else if (currentPullRequestId) {
-			HostApi.instance.send(LocalFilesCloseDiffRequestType, {});
+			HostApi.sidebarInstance.send(LocalFilesCloseDiffRequestType, {});
 			// this.props.closeAllModals();
 			this.props.closePrDetailModal(
 				currentPullRequestProviderId,
@@ -1324,7 +1324,7 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 					!this.hiddenCodemarks[this.docMarkersByStartLine[line].id]
 				) {
 					lineNum = Math.max(0, lineNum);
-					HostApi.instance.send(EditorRevealRangeRequestType, {
+					HostApi.sidebarInstance.send(EditorRevealRangeRequestType, {
 						uri: this.props.textEditorUri!,
 						range: Range.create(lineNum, 0, lineNum, 0),
 						preserveFocus: true,
@@ -1349,7 +1349,7 @@ export class SimpleInlineCodemarks extends Component<Props, State> {
 					!this.hiddenCodemarks[this.docMarkersByStartLine[line].id]
 				) {
 					lineNum = Math.max(0, lineNum);
-					HostApi.instance.send(EditorRevealRangeRequestType, {
+					HostApi.sidebarInstance.send(EditorRevealRangeRequestType, {
 						uri: textEditorUri!,
 						range: Range.create(lineNum, 0, lineNum, 0),
 						preserveFocus: true,

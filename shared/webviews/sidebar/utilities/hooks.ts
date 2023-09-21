@@ -84,7 +84,7 @@ export function useRequestType<RT extends RequestType<any, any, any, any>, E = R
 		if (enabled) {
 			try {
 				setLoading(true);
-				const response = (await HostApi.instance.send(
+				const response = (await HostApi.sidebarInstance.send(
 					requestType,
 					payload
 				)) as RequestResponseOf<RT>;

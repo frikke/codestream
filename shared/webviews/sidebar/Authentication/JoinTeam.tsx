@@ -32,7 +32,7 @@ export const JoinTeam = (props: React.PropsWithChildren<JoinTeamProps>) => {
 
 	// called when we have an invite code, and for on-prem, when we know the server url has been set
 	const checkInviteInfo = async code => {
-		const { status, info } = await HostApi.instance.send(GetInviteInfoRequestType, {
+		const { status, info } = await HostApi.sidebarInstance.send(GetInviteInfoRequestType, {
 			code,
 		});
 
@@ -40,11 +40,11 @@ export const JoinTeam = (props: React.PropsWithChildren<JoinTeamProps>) => {
 			let tosType;
 			const picker = Math.random();
 			picker < 0.5 ? (tosType = "Interstitial") : (tosType = "Links");
-			HostApi.instance.track("Reg Path Selected", {
+			HostApi.sidebarInstance.track("Reg Path Selected", {
 				"Reg Path": "Join Team",
 				"TOS Type": tosType,
 			});
-			// HostApi.instance.track("Joined Organization", {
+			// HostApi.sidebarInstance.track("Joined Organization", {
 			// 	Availability: ""
 			// });
 			dispatch(goToSignup({ ...info, inviteCode: code, type: SignupType.JoinTeam, tosType }));
@@ -112,7 +112,7 @@ export const JoinTeam = (props: React.PropsWithChildren<JoinTeamProps>) => {
 				setError(LoginResult.Timeout);
 			}, 5000);
 			setWaitingForServerUrlTimeout(timeout);
-			HostApi.instance.send(UpdateServerUrlRequestType, {
+			HostApi.sidebarInstance.send(UpdateServerUrlRequestType, {
 				serverUrl,
 				disableStrictSSL,
 			});

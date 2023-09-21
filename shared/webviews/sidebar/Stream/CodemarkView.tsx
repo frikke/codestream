@@ -29,7 +29,7 @@ export function CodemarkView() {
 
 	useDidMount(() => {
 		if (store.getState().context.hasFocus)
-			HostApi.instance.track("Page Viewed", { "Page Name": "Codemark View" });
+			HostApi.sidebarInstance.track("Page Viewed", { "Page Name": "Codemark View" });
 
 		if (codemark == undefined) {
 			// TODO: fetch it when we have the api for that

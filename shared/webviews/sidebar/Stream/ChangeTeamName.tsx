@@ -42,12 +42,12 @@ export const ChangeTeamName = props => {
 
 		setLoading(true);
 		try {
-			await HostApi.instance.send(UpdateTeamRequestType, {
+			await HostApi.sidebarInstance.send(UpdateTeamRequestType, {
 				teamId: derivedState.team.id,
 				name: teamName,
 			});
 
-			HostApi.instance.track("teamName Changed", {});
+			HostApi.sidebarInstance.track("teamName Changed", {});
 			dispatch(closeModal());
 		} catch (error) {
 			logError(error, { detail: `Unexpected error during change teamName`, teamName });

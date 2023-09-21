@@ -85,7 +85,7 @@ export const CICD = (props: Props) => {
 			if (!Object.keys(derivedState.providerInfo).includes(provider.name)) continue;
 			for (const remote of remotes) {
 				try {
-					const result = await HostApi.instance.send(FetchThirdPartyBuildsRequestType, {
+					const result = await HostApi.sidebarInstance.send(FetchThirdPartyBuildsRequestType, {
 						providerId,
 						remote,
 						branch: derivedState.currentBranch || "",
@@ -195,7 +195,7 @@ export const CICD = (props: Props) => {
 						onClick={e => {
 							e.preventDefault();
 							e.stopPropagation();
-							HostApi.instance.send(OpenUrlRequestType, { url: dashboardUrls.circleci });
+							HostApi.sidebarInstance.send(OpenUrlRequestType, { url: dashboardUrls.circleci });
 						}}
 					/>
 				)}

@@ -27,7 +27,7 @@ export const Attachments = (props: Props) => {
 						className="attachment clickable"
 						onClick={e => {
 							e.preventDefault();
-							HostApi.instance.send(OpenUrlRequestType, { url });
+							HostApi.sidebarInstance.send(OpenUrlRequestType, { url });
 						}}
 					>
 						<span>

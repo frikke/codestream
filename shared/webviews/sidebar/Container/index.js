@@ -99,7 +99,7 @@ const Root = connect(mapStateToProps)(props => {
 					{
 						text: "Retry",
 						onClick: () => {
-							HostApi.instance.send(RestartRequestType);
+							HostApi.sidebarInstance.send(RestartRequestType);
 						},
 					},
 				]}
@@ -122,7 +122,7 @@ const Root = connect(mapStateToProps)(props => {
 
 	if (props.configChangeReloadRequired) {
 		if (props.ide === "VSC") {
-			HostApi.instance.send(RestartRequestType);
+			HostApi.sidebarInstance.send(RestartRequestType);
 			return (
 				<RoadBlock title="Reload Required">
 					<p>This configuration change requires your IDE to reload.</p>
@@ -137,7 +137,7 @@ const Root = connect(mapStateToProps)(props => {
 					<Button
 						onClick={e => {
 							e.preventDefault();
-							HostApi.instance.send(RestartRequestType);
+							HostApi.sidebarInstance.send(RestartRequestType);
 						}}
 					>
 						OK
@@ -269,7 +269,7 @@ export default class Container extends React.Component {
 
 	static getDerivedStateFromError(error) {
 		// note, the Error object itself doesn't seem to survive lsp
-		HostApi.instance.send(WebviewErrorRequestType, {
+		HostApi.sidebarInstance.send(WebviewErrorRequestType, {
 			error: {
 				message: error.message,
 				stack: error.stack,
@@ -311,7 +311,7 @@ export default class Container extends React.Component {
 		// reset view state in case the error was tied to a piece of bad data
 		this.props.store.dispatch(closeAllPanels());
 
-		HostApi.instance.send(ReloadWebviewRequestType);
+		HostApi.sidebarInstance.send(ReloadWebviewRequestType);
 	};
 
 	render() {

@@ -226,7 +226,7 @@ class Team extends React.Component<Props, State> {
 		// for now, suggested invitees are only available to admins
 		if (!this.props.isCurrentUserAdmin) return;
 
-		const result = await HostApi.instance.send(GetLatestCommittersRequestType, {});
+		const result = await HostApi.sidebarInstance.send(GetLatestCommittersRequestType, {});
 		const committers = result ? result.scm : undefined;
 		if (!committers) return;
 
@@ -290,7 +290,7 @@ class Team extends React.Component<Props, State> {
 					}, 1000);
 				}
 			});
-		HostApi.instance.track("Teammate Invited", {
+		HostApi.sidebarInstance.track("Teammate Invited", {
 			"Invitee Email Address": newMemberEmail,
 			"Invitee Name": newMemberName,
 			"Invitation Method": "Manual",
@@ -316,7 +316,7 @@ class Team extends React.Component<Props, State> {
 					this.setState({ invitingEmails: { ...this.state.invitingEmails, [email]: 0 } });
 				}, 3000);
 			});
-		HostApi.instance.track("Teammate Invited", {
+		HostApi.sidebarInstance.track("Teammate Invited", {
 			"Invitee Email Address": user.email,
 			"Invitee Name": user.fullName,
 			"Invitation Method": type === "reinvite" ? "Reinvite" : "Suggested",
@@ -460,12 +460,12 @@ class Team extends React.Component<Props, State> {
 
 	revoke(user: CSUser) {
 		const { teamId } = this.props;
-		HostApi.instance.send(UpdateTeamAdminRequestType, { teamId, remove: user.id });
+		HostApi.sidebarInstance.send(UpdateTeamAdminRequestType, { teamId, remove: user.id });
 	}
 
 	promote(user: CSUser) {
 		const { teamId } = this.props;
-		HostApi.instance.send(UpdateTeamAdminRequestType, { teamId, add: user.id });
+		HostApi.sidebarInstance.send(UpdateTeamAdminRequestType, { teamId, add: user.id });
 	}
 
 	confirmKick(user: CSUser) {
@@ -487,7 +487,7 @@ class Team extends React.Component<Props, State> {
 
 	kick = (user: CSUser) => {
 		const { teamId } = this.props;
-		HostApi.instance.send(KickUserRequestType, { teamId, userId: user.id });
+		HostApi.sidebarInstance.send(KickUserRequestType, { teamId, userId: user.id });
 	};
 
 	renderAdminUser(user: CSUser) {
@@ -594,14 +594,14 @@ class Team extends React.Component<Props, State> {
 	}
 
 	changeXray = async value => {
-		await HostApi.instance.send(UpdateTeamSettingsRequestType, {
+		await HostApi.sidebarInstance.send(UpdateTeamSettingsRequestType, {
 			teamId: this.props.teamId,
 			settings: { xray: value },
 		});
 	};
 
 	removeSuggestion = async user => {
-		await HostApi.instance.send(UpdateTeamSettingsRequestType, {
+		await HostApi.sidebarInstance.send(UpdateTeamSettingsRequestType, {
 			teamId: this.props.teamId,
 			// we need to replace . with * to allow for the creation of deeply-nested
 			// team settings, since that's how they're stored in mongo
@@ -626,7 +626,7 @@ class Team extends React.Component<Props, State> {
 	};
 
 	addBlameMap = async (author: string, assigneeId: string) => {
-		await HostApi.instance.send(UpdateTeamSettingsRequestType, {
+		await HostApi.sidebarInstance.send(UpdateTeamSettingsRequestType, {
 			teamId: this.props.teamId,
 			// we need to replace . with * to allow for the creation of deeply-nested
 			// team settings, since that's how they're stored in mongo

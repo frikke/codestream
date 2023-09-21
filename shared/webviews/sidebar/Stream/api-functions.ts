@@ -9,7 +9,7 @@ import { HostApi } from "../sidebar-api";
 
 export async function getDocumentFromMarker(markerId: string, source?: string) {
 	try {
-		const response = await HostApi.instance.send(GetDocumentFromMarkerRequestType, {
+		const response = await HostApi.sidebarInstance.send(GetDocumentFromMarkerRequestType, {
 			markerId: markerId,
 			source: source,
 		});
@@ -37,7 +37,10 @@ export async function highlightRange(request: EditorHighlightRangeRequest) {
 		) {
 			request.range.end.character = 0;
 		}
-		const { success } = await HostApi.instance.send(EditorHighlightRangeRequestType, request);
+		const { success } = await HostApi.sidebarInstance.send(
+			EditorHighlightRangeRequestType,
+			request
+		);
 		return success;
 	} catch (error) {
 		logError("Error making request 'EditorHighlightRangeRequestType'", {
@@ -48,7 +51,7 @@ export async function highlightRange(request: EditorHighlightRangeRequest) {
 }
 
 export async function moveCursorToLine(markerId: string) {
-	const hostApi = HostApi.instance;
+	const hostApi = HostApi.sidebarInstance;
 	try {
 		const response = await getDocumentFromMarker(markerId);
 

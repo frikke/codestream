@@ -258,10 +258,13 @@ export const SharingControls = React.memo(
 				if (data.get().channels.length === 0) setIsFetchingData(true);
 				void (async () => {
 					try {
-						const response = await HostApi.instance.send(FetchThirdPartyChannelsRequestType, {
-							providerId: selectedShareTarget.providerId,
-							providerTeamId: selectedShareTarget.teamId,
-						});
+						const response = await HostApi.sidebarInstance.send(
+							FetchThirdPartyChannelsRequestType,
+							{
+								providerId: selectedShareTarget.providerId,
+								providerTeamId: selectedShareTarget.teamId,
+							}
+						);
 						/*
 							if we know the channel the user last selected for this target
 							AND the webview doesn't currently have one selected,

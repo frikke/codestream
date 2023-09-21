@@ -48,7 +48,7 @@ MockedHostApi.mockImplementation(() => {
 	return mockHostApi;
 });
 // YUCK yuck yuck, static singletons are bad bad bad for testing
-MockedHostApi.instance = mockHostApi;
+MockedHostApi.sidebarInstance = mockHostApi;
 
 const user: Partial<CSUser> = {
 	id: "abcd1234",

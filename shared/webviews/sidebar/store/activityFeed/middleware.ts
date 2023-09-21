@@ -45,7 +45,7 @@ const fetchPostForActivity =
 	) => {
 		let post: PostPlus | undefined = getPost(getState().posts, streamId, postId);
 		if (post == undefined) {
-			const response = await HostApi.instance.send(GetPostRequestType, {
+			const response = await HostApi.sidebarInstance.send(GetPostRequestType, {
 				postId,
 				streamId,
 			});

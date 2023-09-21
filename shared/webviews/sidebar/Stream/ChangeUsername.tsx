@@ -53,8 +53,8 @@ export const ChangeUsername = props => {
 
 		setLoading(true);
 		try {
-			await HostApi.instance.send(UpdateUserRequestType, { username });
-			HostApi.instance.track("Username Changed", {});
+			await HostApi.sidebarInstance.send(UpdateUserRequestType, { username });
+			HostApi.sidebarInstance.track("Username Changed", {});
 			dispatch(closeModal());
 		} catch (error) {
 			logError(error, { detail: `Unexpected error during change username`, username });

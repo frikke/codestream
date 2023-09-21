@@ -50,7 +50,7 @@ export const createCodemark =
 		const state = getState();
 
 		try {
-			const response = await HostApi.instance.send(CreateShareableCodemarkRequestType, {
+			const response = await HostApi.sidebarInstance.send(CreateShareableCodemarkRequestType, {
 				attributes: rest,
 				memberIds: accessMemberIds,
 				textDocuments: attributes.textDocuments,
@@ -88,7 +88,7 @@ export const createCodemark =
 					if (attributes.sharingAttributes) {
 						const { sharingAttributes } = attributes;
 						try {
-							const { post, ts, permalink, channelId } = await HostApi.instance.send(
+							const { post, ts, permalink, channelId } = await HostApi.sidebarInstance.send(
 								CreateThirdPartyPostRequestType,
 								{
 									providerId: sharingAttributes.providerId,
@@ -106,7 +106,7 @@ export const createCodemark =
 								}
 							);
 							if (ts) {
-								await HostApi.instance.send(UpdatePostSharingDataRequestType, {
+								await HostApi.sidebarInstance.send(UpdatePostSharingDataRequestType, {
 									postId: response.codemark.postId,
 									sharedTo: [
 										{
@@ -124,7 +124,7 @@ export const createCodemark =
 									],
 								});
 							}
-							HostApi.instance.track("Shared Codemark", {
+							HostApi.sidebarInstance.track("Shared Codemark", {
 								Destination: capitalize(
 									getConnectedProviders(getState()).find(
 										config => config.id === attributes.sharingAttributes!.providerId
@@ -148,7 +148,7 @@ export const createCodemark =
 						for (const target of sharedTo) {
 							if (target.providerId !== "slack*com") continue;
 							try {
-								const { post, ts, permalink } = await HostApi.instance.send(
+								const { post, ts, permalink } = await HostApi.sidebarInstance.send(
 									CreateThirdPartyPostRequestType,
 									{
 										providerId: target.providerId,
@@ -162,7 +162,7 @@ export const createCodemark =
 									}
 								);
 								if (ts) {
-									await HostApi.instance.send(UpdatePostSharingDataRequestType, {
+									await HostApi.sidebarInstance.send(UpdatePostSharingDataRequestType, {
 										postId: response.codemark.postId,
 										sharedTo: [
 											{
@@ -180,7 +180,7 @@ export const createCodemark =
 								}
 							} catch (error) {
 								try {
-									await HostApi.instance.send(SharePostViaServerRequestType, {
+									await HostApi.sidebarInstance.send(SharePostViaServerRequestType, {
 										postId: response.post.id,
 										providerId: target.providerId,
 									});
@@ -219,13 +219,13 @@ export const createCodemark =
 
 export const deleteCodemark = (codemarkId: string, sharedTo?: ShareTarget[]) => async dispatch => {
 	try {
-		void (await HostApi.instance.send(DeleteCodemarkRequestType, {
+		void (await HostApi.sidebarInstance.send(DeleteCodemarkRequestType, {
 			codemarkId,
 		}));
 		try {
 			if (sharedTo) {
 				for (const shareTarget of sharedTo) {
-					await HostApi.instance.send(DeleteThirdPartyPostRequestType, {
+					await HostApi.sidebarInstance.send(DeleteThirdPartyPostRequestType, {
 						providerId: shareTarget.providerId,
 						channelId: shareTarget.channelId,
 						providerPostId: shareTarget.postId,
@@ -256,7 +256,7 @@ export const editCodemark =
 				});
 
 				await Promise.all(
-					toDelete.map(args => HostApi.instance.send(DeleteMarkerRequestType, args))
+					toDelete.map(args => HostApi.sidebarInstance.send(DeleteMarkerRequestType, args))
 				);
 			}
 
@@ -287,14 +287,16 @@ export const editCodemark =
 				});
 
 				if (toAdd.newMarkers.length > 0) {
-					await HostApi.instance.send(AddMarkersRequestType, toAdd);
+					await HostApi.sidebarInstance.send(AddMarkersRequestType, toAdd);
 				}
 				if (toMove.length > 0) {
-					await Promise.all(toMove.map(args => HostApi.instance.send(MoveMarkerRequestType, args)));
+					await Promise.all(
+						toMove.map(args => HostApi.sidebarInstance.send(MoveMarkerRequestType, args))
+					);
 				}
 			}
 
-			const response = await HostApi.instance.send(UpdateCodemarkRequestType, {
+			const response = await HostApi.sidebarInstance.send(UpdateCodemarkRequestType, {
 				codemarkId: codemark.id,
 				...attributes,
 			});
@@ -302,7 +304,7 @@ export const editCodemark =
 				const { sharedTo } = attributes;
 				for (const shareTarget of sharedTo) {
 					try {
-						const { post, ts, permalink } = await HostApi.instance.send(
+						const { post, ts, permalink } = await HostApi.sidebarInstance.send(
 							CreateThirdPartyPostRequestType,
 							{
 								providerId: shareTarget.providerId,
@@ -319,7 +321,7 @@ export const editCodemark =
 							}
 						);
 						if (ts) {
-							await HostApi.instance.send(UpdatePostSharingDataRequestType, {
+							await HostApi.sidebarInstance.send(UpdatePostSharingDataRequestType, {
 								postId: response.codemark.postId,
 								sharedTo: [
 									{
@@ -335,7 +337,7 @@ export const editCodemark =
 								],
 							});
 						}
-						HostApi.instance.track("Shared Codemark", {
+						HostApi.sidebarInstance.track("Shared Codemark", {
 							Destination: capitalize(
 								getConnectedProviders(getState()).find(
 									config => config.id === shareTarget.providerId

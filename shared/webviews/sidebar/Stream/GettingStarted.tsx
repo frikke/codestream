@@ -250,7 +250,7 @@ export function GettingStarted(props: GettingStartedProps) {
 			setActive(index);
 
 			const stepLabels = ["Getting Started", "The Basics", "Trunk Flow", "Branch Flow"];
-			HostApi.instance.track("Tour Tab Clicked", {
+			HostApi.sidebarInstance.track("Tour Tab Clicked", {
 				"Tour Step": stepLabels[index],
 			});
 		}
@@ -363,7 +363,7 @@ export function GettingStarted(props: GettingStartedProps) {
 										variant="secondary"
 										size="compact"
 										onClick={() =>
-											HostApi.instance.send(OpenUrlRequestType, {
+											HostApi.sidebarInstance.send(OpenUrlRequestType, {
 												url: "https://www.codestream.com/video-library",
 											})
 										}

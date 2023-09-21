@@ -45,12 +45,12 @@ export const ChangeCompanyName = props => {
 
 		setLoading(true);
 		try {
-			await HostApi.instance.send(UpdateCompanyRequestType, {
+			await HostApi.sidebarInstance.send(UpdateCompanyRequestType, {
 				companyId: derivedState.company.id,
 				name: companyName,
 			});
 
-			HostApi.instance.track("companyName Changed", {});
+			HostApi.sidebarInstance.track("companyName Changed", {});
 			dispatch(closeModal());
 		} catch (error) {
 			logError(error, { detail: `Unexpected error during change companyName`, companyName });

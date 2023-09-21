@@ -60,7 +60,7 @@ export const NewUserEntry = (connect(mapStateToProps) as any)((props: Props) => 
 
 	const getAutoJoinInfo = async () => {
 		try {
-			const response = await HostApi.instance.send(GetWorkspaceAutoJoinInfoRequestType, {});
+			const response = await HostApi.sidebarInstance.send(GetWorkspaceAutoJoinInfoRequestType, {});
 			if (response) {
 				// massage the info to a more collapsed format
 				const infoByTeam: { [id: string]: GetWorkspaceAutoJoinInfoResponse } = {};
@@ -91,7 +91,7 @@ export const NewUserEntry = (connect(mapStateToProps) as any)((props: Props) => 
 		let tosType;
 		const picker = Math.random();
 		picker < 0.5 ? (tosType = "Interstitial") : (tosType = "Links");
-		HostApi.instance.track("Reg Path Selected", {
+		HostApi.sidebarInstance.track("Reg Path Selected", {
 			"Reg Path": "Create Team",
 			"TOS Type": tosType,
 		});
@@ -100,7 +100,7 @@ export const NewUserEntry = (connect(mapStateToProps) as any)((props: Props) => 
 
 	// const onClickJoinTeam = (event: React.SyntheticEvent) => {
 	// 	event.preventDefault();
-	// 	HostApi.instance.track("Reg Path Selected", {
+	// 	HostApi.sidebarInstance.track("Reg Path Selected", {
 	// 		"Reg Path": "Join Team"
 	// 	});
 	// 	props.dispatch(goToJoinTeam());
@@ -111,7 +111,7 @@ export const NewUserEntry = (connect(mapStateToProps) as any)((props: Props) => 
 		let tosType;
 		const picker = Math.random();
 		picker < 0.5 ? (tosType = "Interstitial") : (tosType = "Links");
-		HostApi.instance.track("Reg Path Selected", {
+		HostApi.sidebarInstance.track("Reg Path Selected", {
 			"Reg Path": "Auto Join Team",
 			"TOS Type": tosType,
 		});

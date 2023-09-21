@@ -109,7 +109,7 @@ export const ObservabilityRelatedSearch = React.memo((props: Props) => {
 
 	const fetchGoldenMetrics = async (entityGuid?: string | null) => {
 		if (entityGuid) {
-			const response = await HostApi.instance.send(GetServiceLevelTelemetryRequestType, {
+			const response = await HostApi.sidebarInstance.send(GetServiceLevelTelemetryRequestType, {
 				newRelicEntityGuid: entityGuid,
 				repoId: props.currentRepoId,
 				skipRepoFetch: true,

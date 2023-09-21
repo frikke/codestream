@@ -200,7 +200,7 @@ export const OnboardNewRelic = React.memo(function OnboardNewRelic() {
 		setTimeout(() => positionDots(), 250);
 		(async () => {
 			if (Object.keys(derivedState.wantNewRelicOptions || {}).length === 0) {
-				const reposResponse = await HostApi.instance.send(GetReposScmRequestType, {
+				const reposResponse = await HostApi.sidebarInstance.send(GetReposScmRequestType, {
 					inEditorOnly: true,
 					guessProjectTypes: true,
 				});
@@ -222,7 +222,7 @@ export const OnboardNewRelic = React.memo(function OnboardNewRelic() {
 			}
 		})();
 
-		HostApi.instance.track("Wizard Presented", {});
+		HostApi.sidebarInstance.track("Wizard Presented", {});
 	});
 
 	// check when you connect to a host provider
@@ -259,14 +259,14 @@ export const OnboardNewRelic = React.memo(function OnboardNewRelic() {
 
 	const setStep = (step: number, options?: { appName?: string }) => {
 		if (step === NUM_STEPS - 1) {
-			HostApi.instance.track("Wizard Ended", {
+			HostApi.sidebarInstance.track("Wizard Ended", {
 				"Language Selected": projectType,
 				"App Name": options?.appName,
 			});
 		}
 
 		if (step === 1) {
-			HostApi.instance.track("Wizard Started", {
+			HostApi.sidebarInstance.track("Wizard Started", {
 				"Language Detected": derivedState.wantNewRelicOptions?.projectType,
 			});
 		}
@@ -378,7 +378,7 @@ export const OnboardNewRelic = React.memo(function OnboardNewRelic() {
 										size="xl"
 										onClick={() => {
 											const url = "https://one.newrelic.com/launcher/nr1-core.explorer";
-											HostApi.instance.send(OpenUrlRequestType, { url });
+											HostApi.sidebarInstance.send(OpenUrlRequestType, { url });
 											dispatch(setOnboardStep(0));
 											dispatch(closePanel());
 										}}
@@ -914,7 +914,7 @@ const InviteTeammates = (props: { className: string; skip: Function; positionDot
 	});
 
 	const getSuggestedInvitees = async () => {
-		const result = await HostApi.instance.send(GetLatestCommittersRequestType, {});
+		const result = await HostApi.sidebarInstance.send(GetLatestCommittersRequestType, {});
 		const committers = result ? result.scm : undefined;
 		if (!committers) return;
 
@@ -970,7 +970,7 @@ const InviteTeammates = (props: { className: string; skip: Function; positionDot
 	const inviteEmail = async (email: string, method: "Onboarding" | "Onboarding Suggestion") => {
 		if (email) {
 			await dispatch(invite({ email, inviteType: method }));
-			HostApi.instance.track("Teammate Invited", {
+			HostApi.sidebarInstance.track("Teammate Invited", {
 				"Invitee Email Address": email,
 				"Invitation Method": method,
 			});
@@ -1070,7 +1070,7 @@ const CreateCodemark = (props: { className: string; skip: Function }) => {
 	});
 
 	const fetchOpenRepos = async () => {
-		const response = await HostApi.instance.send(GetReposScmRequestType, {
+		const response = await HostApi.sidebarInstance.send(GetReposScmRequestType, {
 			inEditorOnly: true,
 			includeCurrentBranches: true,
 			includeProviders: true,
@@ -1160,10 +1160,10 @@ const ProviderButtons = (props: { providerIds: string[]; setShowNextMessagingSte
 							onClick={() => {
 								if (connected) return;
 								if (provider.id == "msteams") {
-									HostApi.instance.send(OpenUrlRequestType, {
+									HostApi.sidebarInstance.send(OpenUrlRequestType, {
 										url: "https://docs.newrelic.com/docs/codestream/codestream-integrations/msteams-integration/",
 									});
-									HostApi.instance.send(TelemetryRequestType, {
+									HostApi.sidebarInstance.send(TelemetryRequestType, {
 										eventName: "Service Connected",
 										properties: {
 											Service: provider.name,

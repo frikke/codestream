@@ -224,7 +224,7 @@ export const ErrorRow = (props: {
 						onClick={e => {
 							e.preventDefault();
 							e.stopPropagation();
-							HostApi.instance.send(OpenUrlRequestType, {
+							HostApi.sidebarInstance.send(OpenUrlRequestType, {
 								url:
 									props.url +
 									`&utm_source=codestream&utm_medium=ide-${derivedState.ideName}&utm_campaign=error_group_link`,
@@ -363,7 +363,10 @@ export const Observability = React.memo((props: Props) => {
 		setLoadingAssignments(true);
 		setErrorInboxError(undefined);
 		try {
-			const response = await HostApi.instance.send(GetObservabilityErrorAssignmentsRequestType, {});
+			const response = await HostApi.sidebarInstance.send(
+				GetObservabilityErrorAssignmentsRequestType,
+				{}
+			);
 			throwIfError(response);
 			setObservabilityAssignments(response.items);
 			setLoadingAssignments(false);
@@ -371,7 +374,7 @@ export const Observability = React.memo((props: Props) => {
 		} catch (ex) {
 			setLoadingAssignments(false);
 			if (ex.code === ERROR_NR_INSUFFICIENT_API_KEY) {
-				HostApi.instance.track("NR Access Denied", {
+				HostApi.sidebarInstance.track("NR Access Denied", {
 					Query: "GetObservabilityErrorAssignments",
 				});
 				setNoErrorsAccess(NO_ERRORS_ACCESS_ERROR_MESSAGE);
@@ -409,7 +412,7 @@ export const Observability = React.memo((props: Props) => {
 		if (currentRepoId) {
 			setLoadingObservabilityErrors(true);
 			try {
-				const response = await HostApi.instance.send(GetObservabilityErrorsRequestType, {
+				const response = await HostApi.sidebarInstance.send(GetObservabilityErrorsRequestType, {
 					filters: buildFilters([currentRepoId]),
 					timeWindow: derivedState.recentErrorsTimeWindow,
 				});
@@ -425,7 +428,7 @@ export const Observability = React.memo((props: Props) => {
 				}
 			} catch (err) {
 				if (err.code === ERROR_NR_INSUFFICIENT_API_KEY) {
-					HostApi.instance.track("NR Access Denied", {
+					HostApi.sidebarInstance.track("NR Access Denied", {
 						Query: "GetObservabilityErrors",
 					});
 					setNoErrorsAccess(NO_ERRORS_ACCESS_ERROR_MESSAGE);
@@ -442,7 +445,9 @@ export const Observability = React.memo((props: Props) => {
 
 	const getEntityCount = async (force = false) => {
 		try {
-			const { entityCount } = await HostApi.instance.send(GetEntityCountRequestType, { force });
+			const { entityCount } = await HostApi.sidebarInstance.send(GetEntityCountRequestType, {
+				force,
+			});
 			console.debug(`o11y: entityCount ${entityCount}`);
 			setHasEntities(entityCount > 0);
 		} catch (err) {
@@ -469,10 +474,13 @@ export const Observability = React.memo((props: Props) => {
 	useDidMount(() => {
 		_useDidMount(false);
 
-		const disposable = HostApi.instance.on(HostDidChangeWorkspaceFoldersNotificationType, () => {
-			_useDidMount();
-		});
-		const disposable1 = HostApi.instance.on(
+		const disposable = HostApi.sidebarInstance.on(
+			HostDidChangeWorkspaceFoldersNotificationType,
+			() => {
+				_useDidMount();
+			}
+		);
+		const disposable1 = HostApi.sidebarInstance.on(
 			DidChangeObservabilityDataNotificationType,
 			(e: any) => {
 				if (e.type === "Assignment") {
@@ -612,7 +620,7 @@ export const Observability = React.memo((props: Props) => {
 					observabilityRepoCount: observabilityRepos?.length ?? -1,
 				};
 			}
-			HostApi.instance.track("O11y Rendered", properties);
+			HostApi.sidebarInstance.track("O11y Rendered", properties);
 		}
 	};
 
@@ -640,7 +648,7 @@ export const Observability = React.memo((props: Props) => {
 
 			console.debug(`o11y: NR Service Clicked`, event);
 
-			HostApi.instance.track("NR Service Clicked", event);
+			HostApi.sidebarInstance.track("NR Service Clicked", event);
 			setPendingServiceClickedTelemetryCall(false);
 		} catch (ex) {
 			console.error(ex);
@@ -676,7 +684,7 @@ export const Observability = React.memo((props: Props) => {
 		const filters = hasFilter ? [{ repoId, entityGuid }] : undefined;
 
 		try {
-			const response = await HostApi.instance.send(GetObservabilityReposRequestType, {
+			const response = await HostApi.sidebarInstance.send(GetObservabilityReposRequestType, {
 				filters,
 				force,
 			});
@@ -694,7 +702,7 @@ export const Observability = React.memo((props: Props) => {
 		} catch (ex) {
 			console.debug(`o11y: fetchObservabilityRepos nope`, ex);
 			if (ex.code === ERROR_NR_INSUFFICIENT_API_KEY) {
-				HostApi.instance.track("NR Access Denied", {
+				HostApi.sidebarInstance.track("NR Access Denied", {
 					Query: "GetObservabilityRepos",
 				});
 				setNoErrorsAccess(NO_ERRORS_ACCESS_ERROR_MESSAGE);
@@ -709,7 +717,7 @@ export const Observability = React.memo((props: Props) => {
 		setLoadingPane(expandedEntity);
 
 		try {
-			const response = await HostApi.instance.send(GetObservabilityErrorsRequestType, {
+			const response = await HostApi.sidebarInstance.send(GetObservabilityErrorsRequestType, {
 				filters: [{ repoId: repoId, entityGuid: entityGuid }],
 				timeWindow: derivedState.recentErrorsTimeWindow,
 			});
@@ -736,7 +744,7 @@ export const Observability = React.memo((props: Props) => {
 
 		try {
 			const clmSettings = derivedState?.clmSettings as CLMSettings;
-			const response = await HostApi.instance.send(GetObservabilityAnomaliesRequestType, {
+			const response = await HostApi.sidebarInstance.send(GetObservabilityAnomaliesRequestType, {
 				entityGuid,
 				sinceDaysAgo: parseInt(
 					!_isNil(clmSettings?.compareDataLastValue)
@@ -799,7 +807,7 @@ export const Observability = React.memo((props: Props) => {
 			if (!noLoadingSpinner) {
 				setLoadingGoldenMetrics(true);
 			}
-			const response = await HostApi.instance.send(GetServiceLevelTelemetryRequestType, {
+			const response = await HostApi.sidebarInstance.send(GetServiceLevelTelemetryRequestType, {
 				newRelicEntityGuid: entityGuid,
 				repoId: currentRepoId,
 				fetchRecentAlertViolations: true,
@@ -840,7 +848,7 @@ export const Observability = React.memo((props: Props) => {
 		setLoadingServiceLevelObjectives(true);
 		try {
 			if (entityGuid) {
-				const response = await HostApi.instance.send(GetServiceLevelObjectivesRequestType, {
+				const response = await HostApi.sidebarInstance.send(GetServiceLevelObjectivesRequestType, {
 					entityGuid: entityGuid,
 				});
 
@@ -919,7 +927,7 @@ export const Observability = React.memo((props: Props) => {
 
 		// update the IDEs
 		setTimeout(() => {
-			HostApi.instance.send(RefreshEditorsCodeLensRequestType, {});
+			HostApi.sidebarInstance.send(RefreshEditorsCodeLensRequestType, {});
 		}, 2500);
 	};
 
@@ -1016,7 +1024,7 @@ export const Observability = React.memo((props: Props) => {
 		if (!_isEmpty(currentRepoId) && !_isEmpty(observabilityRepos)) {
 			const currentRepo = _head(observabilityRepos.filter(_ => _.repoId === currentRepoId));
 			if (!currentRepo) {
-				HostApi.instance
+				HostApi.sidebarInstance
 					.send(GetObservabilityReposRequestType, { force: true })
 					.then((_: GetObservabilityReposResponse) => {
 						console.debug(
@@ -1222,10 +1230,13 @@ export const Observability = React.memo((props: Props) => {
 																					onClick={e => {
 																						e.preventDefault();
 																						e.stopPropagation();
-																						HostApi.instance.track("Open Service Summary on NR", {
-																							Section: "Golden Metrics",
-																						});
-																						HostApi.instance.send(OpenUrlRequestType, {
+																						HostApi.sidebarInstance.track(
+																							"Open Service Summary on NR",
+																							{
+																								Section: "Golden Metrics",
+																							}
+																						);
+																						HostApi.sidebarInstance.send(OpenUrlRequestType, {
 																							url: ea.url!,
 																						});
 																					}}
@@ -1355,7 +1366,7 @@ export const Observability = React.memo((props: Props) => {
 																</span>
 															}
 															onSuccess={async e => {
-																HostApi.instance.track("NR Entity Association", {
+																HostApi.sidebarInstance.track("NR Entity Association", {
 																	"Repo ID": repoForEntityAssociator.repoId,
 																});
 

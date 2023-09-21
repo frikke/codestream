@@ -379,7 +379,7 @@ class CodemarkForm extends React.Component<Props, State> {
 		const { codeBlocks } = this.state;
 
 		if (textEditorUriHasPullRequestContext) {
-			const changedPrLines = await HostApi.instance.send(GetShaDiffsRangesRequestType, {
+			const changedPrLines = await HostApi.sidebarInstance.send(GetShaDiffsRangesRequestType, {
 				repoId: textEditorUriContext.repoId,
 				filePath: textEditorUriContext.path,
 				baseSha: textEditorUriContext.leftSha,
@@ -490,7 +490,7 @@ class CodemarkForm extends React.Component<Props, State> {
 	}
 
 	private selectRangeInEditor(uri: string, range: Range) {
-		HostApi.instance.send(EditorSelectRangeRequestType, {
+		HostApi.sidebarInstance.send(EditorSelectRangeRequestType, {
 			uri: uri,
 			selection: { ...range, cursor: range.end },
 			preserveFocus: true,
@@ -503,7 +503,7 @@ class CodemarkForm extends React.Component<Props, State> {
 		gitSha?: string,
 		callback?: Function
 	) {
-		const scmInfo = await HostApi.instance.send(GetRangeScmInfoRequestType, {
+		const scmInfo = await HostApi.sidebarInstance.send(GetRangeScmInfoRequestType, {
 			uri: uri,
 			gitSha: gitSha,
 			range: range,
@@ -544,7 +544,7 @@ class CodemarkForm extends React.Component<Props, State> {
 		}
 
 		try {
-			const { users } = await HostApi.instance.send(FetchAssignableUsersRequestType, {
+			const { users } = await HostApi.sidebarInstance.send(FetchAssignableUsersRequestType, {
 				providerId,
 				boardId: board.apiIdentifier || board.id,
 			});
@@ -804,7 +804,7 @@ class CodemarkForm extends React.Component<Props, State> {
 
 			this.setState({ isLoading: true });
 
-			const response = await HostApi.instance.send(
+			const response = await HostApi.sidebarInstance.send(
 				CreateDocumentMarkerPermalinkRequestType,
 				request
 			);
@@ -852,7 +852,7 @@ class CodemarkForm extends React.Component<Props, State> {
 				textEditorUriContext.context.pullRequest
 					? textEditorUriContext.context.pullRequest.providerId
 					: "";
-			HostApi.instance.track("PR Comment Added", {
+			HostApi.sidebarInstance.track("PR Comment Added", {
 				Host: providerId,
 				"Comment Type": this.state.isProviderReview ? "Review Comment" : "Single Comment",
 			});
@@ -862,7 +862,7 @@ class CodemarkForm extends React.Component<Props, State> {
 		// all codemarks created while in a review are attached to that review
 		if (this.props.currentReviewId) {
 			try {
-				const response = await HostApi.instance.send(GetReviewRequestType, {
+				const response = await HostApi.sidebarInstance.send(GetReviewRequestType, {
 					reviewId: this.props.currentReviewId,
 				});
 				const { review } = response;
@@ -1224,7 +1224,7 @@ class CodemarkForm extends React.Component<Props, State> {
 	// handleClickConnectSlack = async event => {
 	// 	event.preventDefault();
 	// 	this.setState({ isLoading: true });
-	// 	await HostApi.instance.send(GoToSlackSignin); // TODO: use the provider api
+	// 	await HostApi.sidebarInstance.send(GoToSlackSignin); // TODO: use the provider api
 	// 	this.setState({ isLoading: false });
 	// }
 
@@ -1419,7 +1419,7 @@ class CodemarkForm extends React.Component<Props, State> {
 		if (relatedCodemarkIds[codemark.id]) delete relatedCodemarkIds[codemark.id];
 		else {
 			relatedCodemarkIds[codemark.id] = codemark;
-			HostApi.instance.track("Related Codemark Added", {
+			HostApi.sidebarInstance.track("Related Codemark Added", {
 				"Codemark ID": this.props.editingCodemark ? this.props.editingCodemark.id : undefined,
 				"Sibling Status": this.props.isEditing ? "Existing Codemark" : "New Codemark",
 			});
@@ -1611,7 +1611,7 @@ class CodemarkForm extends React.Component<Props, State> {
 		} else {
 			return;
 		}
-		HostApi.instance.send(EditorHighlightRangeRequestType, { uri, range, highlight });
+		HostApi.sidebarInstance.send(EditorHighlightRangeRequestType, { uri, range, highlight });
 	}
 
 	renderMessageInput = () => {

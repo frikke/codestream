@@ -59,7 +59,7 @@ export const SignupNewRelic = () => {
 
 	useDidMount(() => {
 		if (derivedState.webviewFocused) {
-			HostApi.instance.track("Page Viewed", { "Page Name": "Signup with NR" });
+			HostApi.sidebarInstance.track("Page Viewed", { "Page Name": "Signup with NR" });
 		}
 	});
 
@@ -113,17 +113,17 @@ export const SignupNewRelic = () => {
 				eligibleJoinCompanies,
 				isWebmail,
 				accountIsConnected,
-			} = await HostApi.instance.send(RegisterNrUserRequestType, data);
+			} = await HostApi.sidebarInstance.send(RegisterNrUserRequestType, data);
 
 			setLoading(false);
 
 			const sendTelemetry = () => {
-				HostApi.instance.track("Account Created", {
+				HostApi.sidebarInstance.track("Account Created", {
 					email: email,
 					"Auth Provider": "New Relic",
 					Source: derivedState.pendingProtocolHandlerQuerySource,
 				});
-				HostApi.instance.track("NR Connected", {
+				HostApi.sidebarInstance.track("NR Connected", {
 					"Connection Location": "Onboarding",
 				});
 			};

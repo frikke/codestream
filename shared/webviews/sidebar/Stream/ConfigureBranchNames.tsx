@@ -37,7 +37,7 @@ export const ConfigureBranchNames = (props: { onClose: Function }) => {
 	);
 
 	const save = async () => {
-		await HostApi.instance.send(UpdateTeamSettingsRequestType, {
+		await HostApi.sidebarInstance.send(UpdateTeamSettingsRequestType, {
 			teamId: derivedState.teamId,
 			// we need to replace . with * to allow for the creation of deeply-nested
 			// team settings, since that's how they're stored in mongo

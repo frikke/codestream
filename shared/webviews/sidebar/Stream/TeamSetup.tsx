@@ -86,11 +86,11 @@ export const TeamSetup = (props: Props) => {
 						}
 					}
 				}
-				await HostApi.instance.send(UpdateCompanyRequestType, {
+				await HostApi.sidebarInstance.send(UpdateCompanyRequestType, {
 					companyId: derivedState.company.id!,
 					domainJoining: domainsArray,
 				});
-				HostApi.instance.track("Domain Joining Updated");
+				HostApi.sidebarInstance.track("Domain Joining Updated");
 			} catch (ex) {
 				setDomainError(ex.message ? ex.message : ex.toString());
 				setIsLoading(false);

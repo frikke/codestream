@@ -35,7 +35,7 @@ MockedHostApi.mockImplementation(() => {
 });
 
 // YUCK yuck yuck, static singletons are bad bad bad for testing
-MockedHostApi.instance = mockHostApi;
+MockedHostApi.sidebarInstance = mockHostApi;
 
 const baseState: Partial<CodeStreamState> = {
 	context: {

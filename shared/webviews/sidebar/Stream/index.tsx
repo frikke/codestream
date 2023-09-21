@@ -188,19 +188,23 @@ export class SimpleStream extends PureComponent<Props> {
 		this.props.setIsFirstPageview(false);
 
 		if (this.props.activePanel === "main" && this.props.postStreamId != undefined) {
-			HostApi.instance.track("Page Viewed", { "Page Name": "Stream" });
+			HostApi.sidebarInstance.track("Page Viewed", { "Page Name": "Stream" });
 		}
 		this.disposables.push(
-			HostApi.instance.on(NewCodemarkNotificationType, this.handleNewCodemarkRequest, this)
+			HostApi.sidebarInstance.on(NewCodemarkNotificationType, this.handleNewCodemarkRequest, this)
 		);
 		this.disposables.push(
-			HostApi.instance.on(NewReviewNotificationType, this.handleNewReviewRequest, this)
+			HostApi.sidebarInstance.on(NewReviewNotificationType, this.handleNewReviewRequest, this)
 		);
 		this.disposables.push(
-			HostApi.instance.on(NewPullRequestNotificationType, this.handleNewPullRequestRequest, this)
+			HostApi.sidebarInstance.on(
+				NewPullRequestNotificationType,
+				this.handleNewPullRequestRequest,
+				this
+			)
 		);
 		this.disposables.push(
-			HostApi.instance.on(PixieDynamicLoggingType, this.handlePixieDynamicLoggingType, this)
+			HostApi.sidebarInstance.on(PixieDynamicLoggingType, this.handlePixieDynamicLoggingType, this)
 		);
 
 		this.emailHasBeenCheckedForMismatch = false;
@@ -221,7 +225,7 @@ export class SimpleStream extends PureComponent<Props> {
 
 			// re-emit the notification after switching to spatial view
 			this.updateEmitter.enqueue(() => {
-				HostApi.instance.emit(NewCodemarkNotificationType.method, e);
+				HostApi.sidebarInstance.emit(NewCodemarkNotificationType.method, e);
 			});
 			this.props.openPanel(WebviewPanels.Sidebar);
 		} else {
@@ -327,7 +331,7 @@ export class SimpleStream extends PureComponent<Props> {
 		} = this.props;
 
 		if (!this.emailHasBeenCheckedForMismatch) {
-			const response = await HostApi.instance.send(GetUserInfoRequestType, {});
+			const response = await HostApi.sidebarInstance.send(GetUserInfoRequestType, {});
 			if (response?.email === currentUser?.email) {
 				setUserPreference({ prefPath: ["skipGitEmailCheck"], value: true });
 				this.emailHasBeenCheckedForMismatch = true;
@@ -336,7 +340,7 @@ export class SimpleStream extends PureComponent<Props> {
 				const mappedMe = blameMap[scmEmail.replace(/\./g, "*")];
 				if (addBlameMapEnabled && scmEmail && !mappedMe && !skipGitEmailCheck) {
 					this.addBlameMap(scmEmail, currentUser.id);
-					HostApi.instance.track("Git Email Mismatch", { Mapped: true });
+					HostApi.sidebarInstance.track("Git Email Mismatch", { Mapped: true });
 
 					setUserPreference({ prefPath: ["skipGitEmailCheck"], value: true });
 				}
@@ -348,7 +352,7 @@ export class SimpleStream extends PureComponent<Props> {
 	addBlameMap = async (email, userId) => {
 		const { teamId } = this.props;
 
-		await HostApi.instance.send(AddBlameMapRequestType, {
+		await HostApi.sidebarInstance.send(AddBlameMapRequestType, {
 			teamId,
 			userId,
 			email,
@@ -619,13 +623,13 @@ export class SimpleStream extends PureComponent<Props> {
 			if (commentingContext) {
 				const { uri, range, setSelection } = commentingContext;
 				if (setSelection) {
-					HostApi.instance.send(EditorSelectRangeRequestType, {
+					HostApi.sidebarInstance.send(EditorSelectRangeRequestType, {
 						uri: uri,
 						selection: { ...range, cursor: range.end },
 						preserveFocus: true,
 					});
 				}
-				scmInfo = await HostApi.instance.send(GetRangeScmInfoRequestType, {
+				scmInfo = await HostApi.sidebarInstance.send(GetRangeScmInfoRequestType, {
 					uri: uri,
 					range: range,
 					dirty: true, // should this be determined here? using true to be safe
@@ -692,7 +696,7 @@ export class SimpleStream extends PureComponent<Props> {
 		const codemark = post.codemark;
 		if (!codemark) return;
 
-		HostApi.instance.send(SetCodemarkPinnedRequestType, {
+		HostApi.sidebarInstance.send(SetCodemarkPinnedRequestType, {
 			codemarkId: codemark.id,
 			value: !codemark.pinned,
 		});

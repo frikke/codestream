@@ -144,11 +144,11 @@ function CodemarkForCodemark(props: PropsWithCodemark) {
 				action: () => {
 					const value = !derivedState.userIsFollowingCodemark;
 					const changeType = value ? "Followed" : "Unfollowed";
-					HostApi.instance.send(FollowCodemarkRequestType, {
+					HostApi.sidebarInstance.send(FollowCodemarkRequestType, {
 						codemarkId: codemark.id,
 						value,
 					});
-					HostApi.instance.track("Notification Change", {
+					HostApi.sidebarInstance.track("Notification Change", {
 						Change: `Codemark ${changeType}`,
 						"Source of Change": "Codemark menu",
 					});
@@ -158,7 +158,7 @@ function CodemarkForCodemark(props: PropsWithCodemark) {
 				label: codemark.pinned ? "Archive" : "Unarchive",
 				key: "toggle-pinned",
 				action: () => {
-					HostApi.instance.send(SetCodemarkPinnedRequestType, {
+					HostApi.sidebarInstance.send(SetCodemarkPinnedRequestType, {
 						codemarkId: codemark.id,
 						value: !codemark.pinned,
 					});

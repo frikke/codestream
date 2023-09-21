@@ -245,12 +245,20 @@ export class HostApi extends EventEmitter {
 	private apiManager = new RequestApiManager();
 	private port: IpcHost;
 
-	private static _instance: HostApi;
-	static get instance(): HostApi {
-		if (this._instance === undefined) {
-			this._instance = new HostApi(findHost());
+	private static _sidebarInstance: HostApi;
+	static get sidebarInstance(): HostApi {
+		if (this._sidebarInstance === undefined) {
+			this._sidebarInstance = new HostApi(findHost("sidebar"));
 		}
-		return this._instance;
+		return this._sidebarInstance;
+	}
+
+	private static _editorInstance: HostApi;
+	static get editorInstance(): HostApi {
+		if (this._editorInstance === undefined) {
+			this._editorInstance = new HostApi(findHost("editor"));
+		}
+		return this._editorInstance;
 	}
 
 	protected constructor(port: any) {
@@ -334,29 +342,41 @@ export class HostApi extends EventEmitter {
 
 export class Server {
 	static get<Res = any>(url: string, paramData?: { [key: string]: any }): Promise<Res> {
-		return HostApi.instance.send(new RequestType<any, Res, void, void>("codestream/api/get"), {
-			url: url,
-			paramData: paramData,
-		});
+		return HostApi.sidebarInstance.send(
+			new RequestType<any, Res, void, void>("codestream/api/get"),
+			{
+				url: url,
+				paramData: paramData,
+			}
+		);
 	}
 
 	static post<Res = any>(url: string, body?: any): Promise<Res> {
-		return HostApi.instance.send(new RequestType<any, Res, void, void>("codestream/api/post"), {
-			url: url,
-			body: body,
-		});
+		return HostApi.sidebarInstance.send(
+			new RequestType<any, Res, void, void>("codestream/api/post"),
+			{
+				url: url,
+				body: body,
+			}
+		);
 	}
 
 	static put<Res = any>(url: string, body?: any): Promise<Res> {
-		return HostApi.instance.send(new RequestType<any, Res, void, void>("codestream/api/put"), {
-			url: url,
-			body: body,
-		});
+		return HostApi.sidebarInstance.send(
+			new RequestType<any, Res, void, void>("codestream/api/put"),
+			{
+				url: url,
+				body: body,
+			}
+		);
 	}
 
 	static delete<Res = any>(url: string): Promise<Res> {
-		return HostApi.instance.send(new RequestType<any, Res, void, void>("codestream/api/delete"), {
-			url: url,
-		});
+		return HostApi.sidebarInstance.send(
+			new RequestType<any, Res, void, void>("codestream/api/delete"),
+			{
+				url: url,
+			}
+		);
 	}
 }

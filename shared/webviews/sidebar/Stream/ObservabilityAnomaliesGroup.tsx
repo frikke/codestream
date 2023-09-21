@@ -85,12 +85,12 @@ export const ObservabilityAnomaliesGroup = React.memo((props: Props) => {
 
 		console.debug("CLM Anomaly Clicked", event);
 
-		HostApi.instance.track("CLM Anomaly Clicked", event);
+		HostApi.sidebarInstance.track("CLM Anomaly Clicked", event);
 	}
 
 	function handleClick(anomaly: ObservabilityAnomaly) {
 		handleClickTelemetry();
-		HostApi.instance.send(EditorRevealSymbolRequestType, {
+		HostApi.sidebarInstance.send(EditorRevealSymbolRequestType, {
 			codeFilepath: anomaly.codeFilepath,
 			codeNamespace: anomaly.codeNamespace,
 			codeFunction: anomaly.codeFunction,

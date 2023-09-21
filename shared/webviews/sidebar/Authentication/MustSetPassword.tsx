@@ -32,7 +32,7 @@ export const MustSetPassword = (props: MustSetPasswordProps) => {
 		if (password === "" && !passwordIsValid) return;
 
 		setIsLoading(true);
-		const response = await HostApi.instance.send(SetPasswordRequestType, { password });
+		const response = await HostApi.sidebarInstance.send(SetPasswordRequestType, { password });
 		try {
 			// @ts-ignore - the await is necessary
 			await dispatch(

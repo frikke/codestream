@@ -15,7 +15,7 @@ export function logError(error: string | Error, extra?: any) {
 	try {
 		console.error(error, extra);
 		const isInstanceOfError = error instanceof Error;
-		HostApi.instance.send(ReportMessageRequestType, {
+		HostApi.sidebarInstance.send(ReportMessageRequestType, {
 			source: "webview",
 			type: ReportingMessageType.Error,
 			error: isInstanceOfError ? serializeError(error) : undefined,

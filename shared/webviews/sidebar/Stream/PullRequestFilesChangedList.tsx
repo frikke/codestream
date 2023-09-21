@@ -195,7 +195,7 @@ export const PullRequestFilesChangedList = (props: Props) => {
 	};
 
 	const saveVisitedFiles = newVisitedFiles => {
-		HostApi.instance.send(WriteTextFileRequestType, {
+		HostApi.sidebarInstance.send(WriteTextFileRequestType, {
 			path: `${props.baseRef}-${props.headRef}.json`,
 			contents: JSON.stringify(newVisitedFiles, null, 4),
 		});
@@ -204,7 +204,7 @@ export const PullRequestFilesChangedList = (props: Props) => {
 
 	useEffect(() => {
 		(async () => {
-			const response = (await HostApi.instance.send(ReadTextFileRequestType, {
+			const response = (await HostApi.sidebarInstance.send(ReadTextFileRequestType, {
 				path: `${props.baseRef}-${props.headRef}.json`,
 			})) as any;
 
@@ -310,7 +310,7 @@ export const PullRequestFilesChangedList = (props: Props) => {
 		const { filename, patch } = record;
 		let repoRoot = currentRepoRoot;
 		if (!repoRoot) {
-			const response = await HostApi.instance.send(GetReposScmRequestType, {
+			const response = await HostApi.sidebarInstance.send(GetReposScmRequestType, {
 				inEditorOnly: false,
 			});
 			if (!response.repositories) return;
@@ -333,7 +333,7 @@ export const PullRequestFilesChangedList = (props: Props) => {
 			}
 		}
 
-		const result = await HostApi.instance.send(EditorRevealRangeRequestType, {
+		const result = await HostApi.sidebarInstance.send(EditorRevealRangeRequestType, {
 			uri: path.join("file://", repoRoot, filename),
 			range: Range.create(startLine, 0, startLine, 0),
 		});
@@ -342,7 +342,7 @@ export const PullRequestFilesChangedList = (props: Props) => {
 			setErrorMessage("Could not open file");
 		}
 
-		HostApi.instance.track("PR File Viewed", {
+		HostApi.sidebarInstance.track("PR File Viewed", {
 			Host: props.pr && props.pr.providerId,
 		});
 	};

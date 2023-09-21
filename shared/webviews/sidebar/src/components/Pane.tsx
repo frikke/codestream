@@ -216,7 +216,7 @@ export const PaneHeader = React.memo((props: PropsWithChildren<PaneHeaderProps>)
 		) {
 			dispatch(setPaneCollapsed(props.id, !derivedState.collapsed));
 
-			//HostApi.instance.track("Sidebar Adjusted", {
+			//HostApi.sidebarInstance.track("Sidebar Adjusted", {
 			//	Section: props.id,
 			//	Adjustment: !derivedState.collapsed ? "Collapsed" : "Expanded"
 			//});
@@ -226,7 +226,7 @@ export const PaneHeader = React.memo((props: PropsWithChildren<PaneHeaderProps>)
 	const maximize = () => {
 		dispatch(setPaneMaximized(props.id, !derivedState.maximized));
 
-		//HostApi.instance.track("Sidebar Adjusted", {
+		//HostApi.sidebarInstance.track("Sidebar Adjusted", {
 		//	Section: props.id,
 		//	Adjustment: !derivedState.maximized ? "Maximized" : "Minimized"
 		//});

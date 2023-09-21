@@ -63,7 +63,7 @@ export const AddAppMonitoringJava = (props: {
 	const onInstallLibrary = async (event: React.SyntheticEvent) => {
 		event.preventDefault();
 		setInstallingLibrary(true);
-		const response = (await HostApi.instance.send(InstallNewRelicRequestType, {
+		const response = (await HostApi.sidebarInstance.send(InstallNewRelicRequestType, {
 			type: RepoProjectType.Java,
 			cwd: repoPath!,
 		})) as InstallNewRelicResponse;
@@ -80,7 +80,7 @@ export const AddAppMonitoringJava = (props: {
 	const onCreateConfigFile = async (event: React.SyntheticEvent) => {
 		event.preventDefault();
 		setCreatingConfig(true);
-		const response = (await HostApi.instance.send(CreateNewRelicConfigFileRequestType, {
+		const response = (await HostApi.sidebarInstance.send(CreateNewRelicConfigFileRequestType, {
 			type: RepoProjectType.Java,
 			filePath: repoPath!,
 			appName,

@@ -129,7 +129,7 @@ import { HostApi } from "./sidebar-api";
 // import translationsEs from "./translations/es";
 
 export function setupCommunication(host: { postMessage: (message: any) => void }) {
-	Object.defineProperty(window, "acquireCodestreamHost", {
+	Object.defineProperty(window, "acquireCodestreamHostForSidebar", {
 		value() {
 			return host;
 		},
@@ -156,11 +156,11 @@ export async function initialize(selector: string) {
 
 	await store.dispatch(bootstrap() as any);
 
-	HostApi.instance.notify(WebviewDidInitializeNotificationType, {});
+	HostApi.sidebarInstance.notify(WebviewDidInitializeNotificationType, {});
 
 	// verify we can connect to the server, if successful, as a side effect,
 	// we get the api server's capabilities and our environment
-	const resp: VerifyConnectivityResponse = await HostApi.instance.send(
+	const resp: VerifyConnectivityResponse = await HostApi.sidebarInstance.send(
 		VerifyConnectivityRequestType,
 		void {}
 	);
@@ -201,7 +201,7 @@ export async function initialize(selector: string) {
 
 // TODO: type up the store state
 function listenForEvents(store) {
-	const api = HostApi.instance;
+	const api = HostApi.sidebarInstance;
 
 	api.on(DidEncounterMaintenanceModeNotificationType, async e => {
 		if (store.getState().session.userId) {
@@ -388,11 +388,11 @@ function listenForEvents(store) {
 			if (codemark.streamId) {
 				store.dispatch(setCurrentStream(codemark.streamId, codemark.postId));
 			} else if (codemark.markerIds) {
-				const response = await HostApi.instance.send(GetDocumentFromMarkerRequestType, {
+				const response = await HostApi.sidebarInstance.send(GetDocumentFromMarkerRequestType, {
 					markerId: codemark.markerIds[0],
 				});
 				if (response) {
-					HostApi.instance.send(EditorRevealRangeRequestType, {
+					HostApi.sidebarInstance.send(EditorRevealRangeRequestType, {
 						uri: response.textDocument.uri,
 						range: response.range,
 						atTop: true,
@@ -526,12 +526,12 @@ function listenForEvents(store) {
 				break;
 			}
 			case RouteControllerType.File: {
-				const reposResponse = await HostApi.instance.send(GetReposScmRequestType, {
+				const reposResponse = await HostApi.sidebarInstance.send(GetReposScmRequestType, {
 					inEditorOnly: true,
 				});
 
 				if (reposResponse) {
-					HostApi.instance.send(EditorRevealRangeRequestType, {
+					HostApi.sidebarInstance.send(EditorRevealRangeRequestType, {
 						uri: path.join(reposResponse.repositories![0].path, "main.js"),
 						range: Range.create(0, 0, 0, 0),
 						atTop: true,
@@ -627,7 +627,7 @@ function listenForEvents(store) {
 								store.dispatch(setForceRegion({ region: definedQuery.query.env }));
 							}
 							if (route.query["anonymousId"]) {
-								await HostApi.instance.send(TelemetrySetAnonymousIdRequestType, {
+								await HostApi.sidebarInstance.send(TelemetrySetAnonymousIdRequestType, {
 									anonymousId: route.query["anonymousId"],
 								});
 							}
@@ -647,7 +647,7 @@ function listenForEvents(store) {
 						}
 						const state = store.getState();
 
-						const response = (await HostApi.instance.send(
+						const response = (await HostApi.sidebarInstance.send(
 							GetObservabilityErrorGroupMetadataRequestType,
 							{ entityGuid: definedQuery.query.entityId || "" }
 						)) as GetObservabilityErrorGroupMetadataResponse;
@@ -678,7 +678,7 @@ function listenForEvents(store) {
 
 						let normalizedUrlResponse;
 						try {
-							normalizedUrlResponse = await HostApi.instance.send(NormalizeUrlRequestType, {
+							normalizedUrlResponse = await HostApi.sidebarInstance.send(NormalizeUrlRequestType, {
 								url: remote,
 							});
 						} catch (e) {
@@ -689,7 +689,7 @@ function listenForEvents(store) {
 
 						let reposResponse;
 						try {
-							reposResponse = await HostApi.instance.send(GetReposScmRequestType, {
+							reposResponse = await HostApi.sidebarInstance.send(GetReposScmRequestType, {
 								inEditorOnly: true,
 							});
 						} catch (e) {
@@ -711,7 +711,7 @@ function listenForEvents(store) {
 							});
 							if (repo) {
 								const filePath = path.join(repo.path, file);
-								HostApi.instance.send(EditorRevealRangeRequestType, {
+								HostApi.sidebarInstance.send(EditorRevealRangeRequestType, {
 									uri: filePath,
 									range: Range.create(lineNumber, 0, lineNumber, 9999),
 									atTop: true,
@@ -747,7 +747,7 @@ function listenForEvents(store) {
 						const { query } = route;
 						if (query.providerId === "trello*com") {
 							const card = { ...query, providerIcon: "trello" };
-							HostApi.instance
+							HostApi.sidebarInstance
 								.send(ExecuteThirdPartyRequestUntypedType, {
 									method: "selfAssignCard",
 									providerId: card.providerId,
@@ -758,7 +758,7 @@ function listenForEvents(store) {
 									store.dispatch(setStartWorkCard(card));
 								});
 						} else {
-							HostApi.instance
+							HostApi.sidebarInstance
 								.send(ExecuteThirdPartyRequestUntypedType, {
 									method: "getIssueIdFromUrl",
 									providerId: route.query.providerId,
@@ -766,7 +766,7 @@ function listenForEvents(store) {
 								})
 								.then((issue: any) => {
 									if (issue) {
-										HostApi.instance
+										HostApi.sidebarInstance
 											.send(ExecuteThirdPartyRequestUntypedType, {
 												method: "setAssigneeOnIssue",
 												providerId: route!.query.providerId,
@@ -865,7 +865,10 @@ function listenForEvents(store) {
 }
 
 const pollToCheckMaintenanceMode = async function () {
-	const response: any = await HostApi.instance.send(PollForMaintenanceModeRequestType, void {});
+	const response: any = await HostApi.sidebarInstance.send(
+		PollForMaintenanceModeRequestType,
+		void {}
+	);
 	await store.dispatch(setMaintenanceMode(response.maintenanceMode));
 };
 

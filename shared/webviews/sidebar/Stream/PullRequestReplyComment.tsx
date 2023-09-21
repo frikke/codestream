@@ -45,7 +45,7 @@ export const PullRequestReplyComment = styled((props: Props) => {
 			if (text == null || text == "") return;
 			setIsSubmitting(true);
 
-			HostApi.instance.track("PR Comment Added", {
+			HostApi.sidebarInstance.track("PR Comment Added", {
 				Host: pr.providerId,
 				"Comment Type": "Single Reply",
 			});

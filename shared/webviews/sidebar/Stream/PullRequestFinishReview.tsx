@@ -51,7 +51,7 @@ export const PullRequestFinishReview = (props: {
 		e.stopPropagation();
 		setIsLoadingMessage("Submitting Review...");
 		setSubmittingReview(true);
-		HostApi.instance.track("PR Review Finished", {
+		HostApi.sidebarInstance.track("PR Review Finished", {
 			Host: pr.providerId,
 			"Review Type": reviewType,
 		});

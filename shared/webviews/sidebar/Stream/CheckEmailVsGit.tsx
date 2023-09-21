@@ -59,7 +59,7 @@ export const CheckEmailVsGit = () => {
 	};
 
 	const getUserInfo = async () => {
-		const response = await HostApi.instance.send(GetUserInfoRequestType, {});
+		const response = await HostApi.sidebarInstance.send(GetUserInfoRequestType, {});
 		if (response.email === currentUser.email) {
 			dispatch(setUserPreference({ prefPath: ["skipGitEmailCheck"], value: true }));
 		} else {
@@ -68,19 +68,19 @@ export const CheckEmailVsGit = () => {
 	};
 
 	const clickNo = () => {
-		HostApi.instance.track("Git Email Mismatch", { Mapped: false });
+		HostApi.sidebarInstance.track("Git Email Mismatch", { Mapped: false });
 		close();
 	};
 
 	const clickYes = () => {
 		addBlameMap(scmEmail, currentUser.id);
-		HostApi.instance.track("Git Email Mismatch", { Mapped: true });
+		HostApi.sidebarInstance.track("Git Email Mismatch", { Mapped: true });
 		close();
 	};
 
 	const addBlameMap = async (email: string, userId: string) => {
 		setLoading(true);
-		await HostApi.instance.send(AddBlameMapRequestType, {
+		await HostApi.sidebarInstance.send(AddBlameMapRequestType, {
 			teamId: team.id,
 			userId,
 			email,

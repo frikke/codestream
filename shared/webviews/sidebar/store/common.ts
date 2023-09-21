@@ -67,7 +67,7 @@ export function withExponentialConnectionRetry<T extends object>(
 	fn: () => Promise<T>,
 	fnName: string = "function"
 ): Promise<T> {
-	const api = HostApi.instance;
+	const api = HostApi.sidebarInstance;
 	return new Promise<T>(resolve => {
 		const delays = [5000, 10000, 30000, 60000, 10 * 60000];
 		let disposable: Disposable | undefined;

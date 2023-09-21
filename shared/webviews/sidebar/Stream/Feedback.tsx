@@ -204,7 +204,7 @@ export class Feedback extends React.Component<Props, State> {
 		)}&tw_p=tweetbutton&via=teamcodestream`;
 		const url = "https://twitter.com/intent/tweet" + queryString;
 
-		HostApi.instance.send(OpenUrlRequestType, { url: url });
+		HostApi.sidebarInstance.send(OpenUrlRequestType, { url: url });
 		this.closeDialog();
 	};
 }

@@ -21,7 +21,7 @@ export const Namespaces = props => {
 	const loadNamespaces = async () => {
 		setIsLoading(true);
 		try {
-			const response = await HostApi.instance.send(PixieGetNamespacesRequestType, {
+			const response = await HostApi.sidebarInstance.send(PixieGetNamespacesRequestType, {
 				accountId: props.account.id,
 				clusterId: props.cluster.clusterId,
 			});

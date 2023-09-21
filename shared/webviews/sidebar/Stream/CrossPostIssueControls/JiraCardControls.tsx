@@ -58,7 +58,7 @@ export function JiraCardControls(
 		let isValid = true;
 
 		const fetchBoards = async () => {
-			let response = await HostApi.instance.send(FetchThirdPartyBoardsRequestType, {
+			let response = await HostApi.sidebarInstance.send(FetchThirdPartyBoardsRequestType, {
 				providerId: props.provider.id,
 			});
 
@@ -145,11 +145,14 @@ export function JiraCardControls(
 		if (!data.currentProject) return [];
 
 		try {
-			const { users } = await HostApi.instance.send(FetchAssignableUsersAutocompleteRequestType, {
-				search: inputValue,
-				providerId: props.provider.id,
-				boardId: data.currentProject.id,
-			});
+			const { users } = await HostApi.sidebarInstance.send(
+				FetchAssignableUsersAutocompleteRequestType,
+				{
+					search: inputValue,
+					providerId: props.provider.id,
+					boardId: data.currentProject.id,
+				}
+			);
 			return users.map(user => {
 				return { label: user.displayName, value: user };
 			});

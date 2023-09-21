@@ -27,7 +27,7 @@ export const ObservabilityAlertViolations = React.memo((props: Props) => {
 
 	const handleRowClick = (e, violationUrl) => {
 		e.preventDefault();
-		HostApi.instance.send(OpenUrlRequestType, { url: violationUrl });
+		HostApi.sidebarInstance.send(OpenUrlRequestType, { url: violationUrl });
 	};
 
 	return (

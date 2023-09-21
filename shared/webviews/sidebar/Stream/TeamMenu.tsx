@@ -87,7 +87,7 @@ export function TeamMenu(props: TeamMenuProps) {
 							className: "delete",
 							wait: true,
 							action: async () => {
-								await HostApi.instance.send(DeleteCompanyRequestType, {
+								await HostApi.sidebarInstance.send(DeleteCompanyRequestType, {
 									companyId: currentCompanyId,
 								});
 								dispatch(logout());

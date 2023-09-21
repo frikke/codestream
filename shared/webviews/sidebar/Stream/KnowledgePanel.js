@@ -99,7 +99,7 @@ export class SimpleKnowledgePanel extends Component {
 
 	componentDidMount() {
 		if (this.props.webviewFocused)
-			HostApi.instance.track("Page Viewed", { "Page Name": "Search Tab" });
+			HostApi.sidebarInstance.track("Page Viewed", { "Page Name": "Search Tab" });
 		if (this.props.codemarks.length === 0)
 			this.props.fetchCodemarks().then(() => {
 				this.setState({ isLoading: false });

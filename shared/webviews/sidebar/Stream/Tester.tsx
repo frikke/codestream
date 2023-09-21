@@ -45,7 +45,7 @@ export const Tester = props => {
 
 		const f = new RequestType<any, any, any, any>(method);
 		try {
-			const r = await HostApi.instance.send(f, JSON.parse(payload));
+			const r = await HostApi.sidebarInstance.send(f, JSON.parse(payload));
 			setResult(JSON.stringify(r, null, 4));
 		} catch (e) {
 			setResult(JSON.stringify(e, null, 4));

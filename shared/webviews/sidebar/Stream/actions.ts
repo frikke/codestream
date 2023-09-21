@@ -111,7 +111,7 @@ export {
 };
 
 export const markStreamRead = (streamId: string, postId?: string) => () => {
-	HostApi.instance
+	HostApi.sidebarInstance
 		.send(MarkStreamReadRequestType, { streamId, postId })
 		.catch(error =>
 			logError(error, { detail: `There was an error marking a stream read`, streamId })
@@ -119,7 +119,7 @@ export const markStreamRead = (streamId: string, postId?: string) => () => {
 };
 
 export const markPostUnread = (streamId: string, postId: string) => () => {
-	HostApi.instance
+	HostApi.sidebarInstance
 		.send(MarkPostUnreadRequestType, { streamId, postId })
 		.catch(error =>
 			logError(error, { detail: `There was an error marking a post unread`, streamId, postId })
@@ -127,7 +127,7 @@ export const markPostUnread = (streamId: string, postId: string) => () => {
 };
 
 export const markItemRead = (itemId: string, numReplies: number) => () => {
-	HostApi.instance
+	HostApi.sidebarInstance
 		.send(MarkItemReadRequestType, { itemId, numReplies })
 		.catch(error =>
 			logError(error, { detail: `There was an error marking an item read`, itemId, numReplies })
@@ -373,7 +373,7 @@ export const createPost =
 		try {
 			let responsePromise: Promise<CreatePostResponse>;
 			if (codemark) {
-				responsePromise = HostApi.instance.send(CreatePostWithMarkerRequestType, {
+				responsePromise = HostApi.sidebarInstance.send(CreatePostWithMarkerRequestType, {
 					streamId,
 					text: codemark.text,
 					textDocuments: codemark.textEditorUris,
@@ -397,7 +397,7 @@ export const createPost =
 						: undefined,
 				});
 			} else {
-				responsePromise = HostApi.instance.send(CreatePostRequestType, {
+				responsePromise = HostApi.sidebarInstance.send(CreatePostRequestType, {
 					streamId,
 					text,
 					parentPostId,
@@ -431,7 +431,7 @@ export const createPost =
 				if (sharedTo) {
 					for (const target of sharedTo) {
 						try {
-							const { post, ts, permalink } = await HostApi.instance.send(
+							const { post, ts, permalink } = await HostApi.sidebarInstance.send(
 								CreateThirdPartyPostRequestType,
 								{
 									providerId: target.providerId,
@@ -446,7 +446,7 @@ export const createPost =
 								}
 							);
 							if (ts) {
-								await HostApi.instance.send(UpdatePostSharingDataRequestType, {
+								await HostApi.sidebarInstance.send(UpdatePostSharingDataRequestType, {
 									postId: response.post.id,
 									sharedTo: [
 										{
@@ -464,7 +464,7 @@ export const createPost =
 							}
 						} catch (error) {
 							try {
-								await HostApi.instance.send(SharePostViaServerRequestType, {
+								await HostApi.sidebarInstance.send(SharePostViaServerRequestType, {
 									postId: response.post.id,
 									providerId: target.providerId,
 								});
@@ -511,7 +511,7 @@ export const retryPost = (pendingId: string) => async (dispatch, getState) => {
 	const { posts } = getState();
 	const pendingPost = posts.pending.find(post => post.id === pendingId);
 	if (pendingPost) {
-		const { post } = await HostApi.instance.send(CreatePostRequestType, pendingPost);
+		const { post } = await HostApi.sidebarInstance.send(CreatePostRequestType, pendingPost);
 		return dispatch(postsActions.resolvePendingPost(pendingId, post));
 		// if it fails then what?
 	} else {
@@ -549,7 +549,7 @@ export const editPost =
 	(streamId: string, postId: string, text: string, mentionedUserIds?: string[]) =>
 	async (dispatch, getState) => {
 		try {
-			const response = await HostApi.instance.send(EditPostRequestType, {
+			const response = await HostApi.sidebarInstance.send(EditPostRequestType, {
 				streamId,
 				postId,
 				text,
@@ -560,7 +560,7 @@ export const editPost =
 			if (response.post.sharedTo) {
 				for (const shareTarget of response.post.sharedTo) {
 					try {
-						const { post, ts, permalink } = await HostApi.instance.send(
+						const { post, ts, permalink } = await HostApi.sidebarInstance.send(
 							CreateThirdPartyPostRequestType,
 							{
 								providerId: shareTarget.providerId,
@@ -574,7 +574,7 @@ export const editPost =
 					} catch (error) {
 						if (error.includes("edit_window_closed")) continue;
 						try {
-							await HostApi.instance.send(SharePostViaServerRequestType, {
+							await HostApi.sidebarInstance.send(SharePostViaServerRequestType, {
 								postId,
 								providerId: shareTarget.providerId,
 							});
@@ -605,7 +605,7 @@ export const reactToPost =
 			dispatch(postsActions.updatePost({ ...post, reactions }));
 
 			// then update it for real on the API server
-			const response = await HostApi.instance.send(ReactToPostRequestType, {
+			const response = await HostApi.sidebarInstance.send(ReactToPostRequestType, {
 				streamId: post.streamId,
 				postId: post.id,
 				emojis: { [emoji]: value },
@@ -619,14 +619,17 @@ export const reactToPost =
 export const deletePost =
 	(streamId: string, postId: string, sharedTo?: ShareTarget[]) => async (dispatch, getState) => {
 		try {
-			const response = await HostApi.instance.send(DeletePostRequestType, { streamId, postId });
+			const response = await HostApi.sidebarInstance.send(DeletePostRequestType, {
+				streamId,
+				postId,
+			});
 			throwIfError(response);
 			const { post } = response;
 			try {
 				if (sharedTo) {
 					for (const shareTarget of sharedTo) {
 						try {
-							await HostApi.instance.send(DeleteThirdPartyPostRequestType, {
+							await HostApi.sidebarInstance.send(DeleteThirdPartyPostRequestType, {
 								providerId: shareTarget.providerId,
 								channelId: shareTarget.channelId,
 								providerPostId: shareTarget.postId,
@@ -634,7 +637,7 @@ export const deletePost =
 							});
 						} catch (error) {
 							try {
-								await HostApi.instance.send(SharePostViaServerRequestType, {
+								await HostApi.sidebarInstance.send(SharePostViaServerRequestType, {
 									postId,
 									providerId: shareTarget.providerId,
 								});
@@ -671,7 +674,7 @@ export const setUserPreference = createAppAsyncThunk<void, SetUserPreferenceRequ
 		try {
 			// optimistically merge it into current preferences
 			dispatch(updatePreferences(newPreference));
-			const response = await HostApi.instance.send(UpdatePreferencesRequestType, {
+			const response = await HostApi.sidebarInstance.send(UpdatePreferencesRequestType, {
 				preferences: newPreference,
 			});
 			// update with confirmed server response
@@ -714,7 +717,7 @@ export const setUserPreferences = (request: SetUserPreferenceRequest[]) => async
 	try {
 		// optimistically merge it into current preferences
 		dispatch(updatePreferences(result));
-		const response = await HostApi.instance.send(UpdatePreferencesRequestType, {
+		const response = await HostApi.sidebarInstance.send(UpdatePreferencesRequestType, {
 			preferences: result,
 		});
 		// update with confirmed server response
@@ -760,7 +763,7 @@ export const setUserStatus =
 	) =>
 	async dispatch => {
 		try {
-			const response = await HostApi.instance.send(UpdateStatusRequestType, {
+			const response = await HostApi.sidebarInstance.send(UpdateStatusRequestType, {
 				status: { [teamId]: { label, ticketId, ticketUrl, ticketProvider, invisible } },
 			});
 			dispatch(updateUser(response.user));
@@ -772,7 +775,7 @@ export const setUserStatus =
 // use setUserStatus instead
 // export const setUserInvisible = (invisible: boolean) => async dispatch => {
 // 	try {
-// 		const response = await HostApi.instance.send(UpdateInvisibleRequestType, { invisible });
+// 		const response = await HostApi.sidebarInstance.send(UpdateInvisibleRequestType, { invisible });
 // 		dispatch(updateUser(response.user));
 // 	} catch (error) {
 // 		logError(`Error trying to update invisible`, { message: error.message });
@@ -794,7 +797,7 @@ export const createStream =
 	async dispatch => {
 		let responsePromise: Promise<CreateChannelStreamResponse | CreateDirectStreamResponse>;
 		if (attributes.type === StreamType.Channel) {
-			responsePromise = HostApi.instance.send(CreateChannelStreamRequestType, {
+			responsePromise = HostApi.sidebarInstance.send(CreateChannelStreamRequestType, {
 				type: StreamType.Channel,
 				name: attributes.name,
 				memberIds: attributes.memberIds,
@@ -803,7 +806,7 @@ export const createStream =
 				isTeamStream: false,
 			});
 		} else {
-			responsePromise = HostApi.instance.send(CreateDirectStreamRequestType, {
+			responsePromise = HostApi.sidebarInstance.send(CreateDirectStreamRequestType, {
 				type: StreamType.Direct,
 				memberIds: attributes.memberIds,
 			});
@@ -833,7 +836,7 @@ export const leaveChannel = (streamId: string) => async (dispatch, getState) => 
 	const { context, session } = getState();
 
 	try {
-		const { stream } = await HostApi.instance.send(LeaveStreamRequestType, { streamId });
+		const { stream } = await HostApi.sidebarInstance.send(LeaveStreamRequestType, { streamId });
 		if (stream.privacy === "private") {
 			dispatch(streamActions.remove(streamId, context.currentTeamId));
 		} else {
@@ -856,7 +859,7 @@ export const leaveChannel = (streamId: string) => async (dispatch, getState) => 
 
 export const removeUsersFromStream = (streamId: string, userIds: string[]) => async dispatch => {
 	try {
-		const { stream } = await HostApi.instance.send(UpdateStreamMembershipRequestType, {
+		const { stream } = await HostApi.sidebarInstance.send(UpdateStreamMembershipRequestType, {
 			streamId,
 			remove: userIds,
 		});
@@ -872,7 +875,7 @@ export const removeUsersFromStream = (streamId: string, userIds: string[]) => as
 
 export const addUsersToStream = (streamId: string, userIds: string[]) => async dispatch => {
 	try {
-		const { stream } = await HostApi.instance.send(UpdateStreamMembershipRequestType, {
+		const { stream } = await HostApi.sidebarInstance.send(UpdateStreamMembershipRequestType, {
 			streamId,
 			add: userIds,
 		});
@@ -884,7 +887,7 @@ export const addUsersToStream = (streamId: string, userIds: string[]) => async d
 
 export const joinStream = (streamId: string) => async dispatch => {
 	try {
-		const { stream } = await HostApi.instance.send(JoinStreamRequestType, { streamId });
+		const { stream } = await HostApi.sidebarInstance.send(JoinStreamRequestType, { streamId });
 		return dispatch(streamActions.updateStream(stream));
 	} catch (error) {
 		logError(error, { detail: `There was an error joining a stream`, streamId });
@@ -893,7 +896,10 @@ export const joinStream = (streamId: string) => async dispatch => {
 
 export const renameStream = (streamId: string, name: string) => async dispatch => {
 	try {
-		const { stream } = await HostApi.instance.send(RenameStreamRequestType, { streamId, name });
+		const { stream } = await HostApi.sidebarInstance.send(RenameStreamRequestType, {
+			streamId,
+			name,
+		});
 		return dispatch(streamActions.updateStream(stream));
 	} catch (error) {
 		logError(error, { detail: `There was an error renaming a stream`, streamId, name });
@@ -902,7 +908,7 @@ export const renameStream = (streamId: string, name: string) => async dispatch =
 
 export const setPurpose = (streamId: string, purpose: string) => async dispatch => {
 	try {
-		const { stream } = await HostApi.instance.send(SetStreamPurposeRequestType, {
+		const { stream } = await HostApi.sidebarInstance.send(SetStreamPurposeRequestType, {
 			streamId,
 			purpose,
 		});
@@ -917,7 +923,7 @@ export const archiveStream =
 	async dispatch => {
 		try {
 			const command = archive ? ArchiveStreamRequestType : UnarchiveStreamRequestType;
-			const { stream } = await HostApi.instance.send(command, { streamId });
+			const { stream } = await HostApi.sidebarInstance.send(command, { streamId });
 			if (stream) return dispatch(streamActions.updateStream(stream));
 		} catch (error) {
 			logError(error, {
@@ -930,7 +936,7 @@ export const archiveStream =
 export const invite =
 	(attributes: { email: string; fullName?: string; inviteType?: string }) => async dispatch => {
 		try {
-			const response = await HostApi.instance.send(InviteUserRequestType, attributes);
+			const response = await HostApi.sidebarInstance.send(InviteUserRequestType, attributes);
 			return dispatch(addUsers([response.user]));
 		} catch (error) {
 			logError(error, { ...attributes, detail: `There was an error inviting a user` });
@@ -940,7 +946,7 @@ export const invite =
 export const fetchPosts =
 	(params: { streamId: string; limit?: number; before?: string }) => async dispatch => {
 		try {
-			const response = await HostApi.instance.send(FetchPostsRequestType, params);
+			const response = await HostApi.sidebarInstance.send(FetchPostsRequestType, params);
 			dispatch(postsActions.addPostsForStream(params.streamId, response.posts));
 			response.codemarks && dispatch(saveCodemarks(response.codemarks));
 			return response;
@@ -954,7 +960,7 @@ export const fetchThread =
 	(streamId: string, parentPostId: string) => async (dispatch, getState) => {
 		try {
 			dispatch(setPostThreadsLoading(parentPostId, true));
-			const { posts, codemarks } = await HostApi.instance.send(FetchPostRepliesRequestType, {
+			const { posts, codemarks } = await HostApi.sidebarInstance.send(FetchPostRepliesRequestType, {
 				streamId,
 				postId: parentPostId,
 			});
@@ -968,7 +974,7 @@ export const fetchThread =
 				}
 			}
 			if (missingAuthorIds.length > 0) {
-				const response = await HostApi.instance.send(FetchUsersRequestType, {
+				const response = await HostApi.sidebarInstance.send(FetchUsersRequestType, {
 					userIds: missingAuthorIds,
 				});
 				await dispatch(addUsers(response.users));
@@ -985,7 +991,7 @@ export const fetchThread =
 // TODO: make this a capability? doesn't work on CS teams
 export const closeDirectMessage = (streamId: string) => async dispatch => {
 	try {
-		const { stream } = await HostApi.instance.send(CloseStreamRequestType, { streamId });
+		const { stream } = await HostApi.sidebarInstance.send(CloseStreamRequestType, { streamId });
 		dispatch(streamActions.updateStream(stream));
 	} catch (error) {
 		logError(error, { detail: `There was an error closing a dm` });
@@ -994,7 +1000,7 @@ export const closeDirectMessage = (streamId: string) => async dispatch => {
 
 export const openDirectMessage = (streamId: string) => async dispatch => {
 	try {
-		const response = await HostApi.instance.send(OpenStreamRequestType, { streamId });
+		const response = await HostApi.sidebarInstance.send(OpenStreamRequestType, { streamId });
 		return dispatch(streamActions.updateStream(response.stream));
 	} catch (error) {
 		logError(error, { detail: `There was an error opening a dm` });
@@ -1007,7 +1013,7 @@ export const changeStreamMuteState =
 
 		try {
 			dispatch(updatePreferences({ mutedStreams: { ...mutedStreams, [streamId]: mute } }));
-			await HostApi.instance.send(MuteStreamRequestType, { streamId, mute });
+			await HostApi.sidebarInstance.send(MuteStreamRequestType, { streamId, mute });
 		} catch (error) {
 			logError(error, { detail: `There was an error toggling stream mute state`, streamId });
 			// TODO: communicate failure
@@ -1017,7 +1023,7 @@ export const changeStreamMuteState =
 
 export const fetchCodemarks = () => async dispatch => {
 	try {
-		const response = await HostApi.instance.send(FetchCodemarksRequestType, {});
+		const response = await HostApi.sidebarInstance.send(FetchCodemarksRequestType, {});
 		if (response) dispatch(saveCodemarks(response.codemarks));
 	} catch (error) {
 		logError(error, { detail: `failed to fetch codemarks` });
@@ -1040,7 +1046,7 @@ const describeIssueStatusChange = (action: IssueStatus) => {
 export const setCodemarkStatus =
 	(codemarkId: string, status: IssueStatus, extraText?: string) => async dispatch => {
 		try {
-			const response = await HostApi.instance.send(UpdateCodemarkRequestType, {
+			const response = await HostApi.sidebarInstance.send(UpdateCodemarkRequestType, {
 				codemarkId,
 				status,
 			});
@@ -1073,7 +1079,7 @@ const describePinnedChange = (value: boolean) => {
 export const setCodemarkPinned =
 	(codemark: CodemarkPlus, value: boolean, extraText?: string) => async dispatch => {
 		try {
-			const response = await HostApi.instance.send(SetCodemarkPinnedRequestType, {
+			const response = await HostApi.sidebarInstance.send(SetCodemarkPinnedRequestType, {
 				codemarkId: codemark.id,
 				value,
 			});
@@ -1117,7 +1123,7 @@ const toStatusTelemetryNames = (status: CSReviewStatus) => {
 
 export const setReviewStatus = (reviewId: string, status: CSReviewStatus) => async dispatch => {
 	try {
-		const response = await HostApi.instance.send(UpdateReviewRequestType, {
+		const response = await HostApi.sidebarInstance.send(UpdateReviewRequestType, {
 			id: reviewId,
 			status,
 		});
@@ -1130,7 +1136,7 @@ export const setReviewStatus = (reviewId: string, status: CSReviewStatus) => asy
 			)
 		);
 		try {
-			HostApi.instance.track("Review State Updated", {
+			HostApi.sidebarInstance.track("Review State Updated", {
 				"Review ID": reviewId,
 				"Review State": toStatusTelemetryNames(status),
 			});
@@ -1141,14 +1147,14 @@ export const setReviewStatus = (reviewId: string, status: CSReviewStatus) => asy
 
 		const message = `_${describeStatusChange(status)} this feedback request_`;
 
-		const { post } = await HostApi.instance.send(GetPostRequestType, {
+		const { post } = await HostApi.sidebarInstance.send(GetPostRequestType, {
 			postId: response.review.postId,
 			streamId: response.review.streamId,
 		});
 		if (post && post.sharedTo && post.sharedTo.length > 0) {
 			for (const target of post.sharedTo) {
 				if (target.providerId === "slack*com") continue;
-				await HostApi.instance.send(CreateThirdPartyPostRequestType, {
+				await HostApi.sidebarInstance.send(CreateThirdPartyPostRequestType, {
 					providerId: target.providerId,
 					channelId: target.channelId,
 					providerTeamId: target.teamId,
@@ -1192,22 +1198,22 @@ export const updateTeamTag =
 				// isn't super elegant or pretty. -Pez
 				tag.id = Date.now() + Object.keys(team.tags).length + tag.color;
 				tag.sortOrder = Date.now();
-				response = HostApi.instance.send(CreateTeamTagRequestType, { team, tag });
-				HostApi.instance.track("Tags Updated", {
+				response = HostApi.sidebarInstance.send(CreateTeamTagRequestType, { team, tag });
+				HostApi.sidebarInstance.track("Tags Updated", {
 					"Tag Action": "New",
 					Label: tag.label,
 					Color: tag.color,
 				});
 			} else if (tag.deactivated) {
-				response = HostApi.instance.send(DeleteTeamTagRequestType, { team, tag });
-				HostApi.instance.track("Tags Updated", {
+				response = HostApi.sidebarInstance.send(DeleteTeamTagRequestType, { team, tag });
+				HostApi.sidebarInstance.track("Tags Updated", {
 					"Tag Action": "Delete",
 					Label: tag.label,
 					Color: tag.color,
 				});
 			} else {
-				response = HostApi.instance.send(UpdateTeamTagRequestType, { team, tag });
-				HostApi.instance.track("Tags Updated", {
+				response = HostApi.sidebarInstance.send(UpdateTeamTagRequestType, { team, tag });
+				HostApi.sidebarInstance.track("Tags Updated", {
 					"Tag Action": "Edit",
 					Label: tag.label,
 					Color: tag.color,

@@ -160,7 +160,7 @@ export const PullRequestFilesChangedTab = (props: {
 			_mapCommitsData(prCommitsData);
 			await getPRFiles();
 
-			disposable = HostApi.instance.on(DidChangeDataNotificationType, async (e: any) => {
+			disposable = HostApi.sidebarInstance.on(DidChangeDataNotificationType, async (e: any) => {
 				if (e.type === ChangeDataType.Commits) {
 					setIsLoading(true);
 					const data =

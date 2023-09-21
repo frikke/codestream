@@ -1102,12 +1102,14 @@ export const InviteTeammates = (props: { className: string; skip: Function; unwr
 
 	useDidMount(() => {
 		if (derivedState.webviewFocused)
-			HostApi.instance.track("Page Viewed", { "Page Name": "Invite Teammates - Onboarding" });
+			HostApi.sidebarInstance.track("Page Viewed", {
+				"Page Name": "Invite Teammates - Onboarding",
+			});
 		getSuggestedInvitees();
 	});
 
 	const getSuggestedInvitees = async () => {
-		const result = await HostApi.instance.send(GetLatestCommittersRequestType, {});
+		const result = await HostApi.sidebarInstance.send(GetLatestCommittersRequestType, {});
 		const committers = result ? result.scm : undefined;
 		if (!committers) return;
 
@@ -1158,7 +1160,7 @@ export const InviteTeammates = (props: { className: string; skip: Function; unwr
 	const inviteEmail = async (email: string, method: "Onboarding" | "Onboarding Suggestion") => {
 		if (email) {
 			await dispatch(invite({ email, inviteType: method }));
-			HostApi.instance.track("Teammate Invited", {
+			HostApi.sidebarInstance.track("Teammate Invited", {
 				"Invitee Email Address": email,
 				"Invitation Method": method,
 			});
@@ -1205,11 +1207,11 @@ export const InviteTeammates = (props: { className: string; skip: Function; unwr
 
 		if (domain && companyId) {
 			try {
-				await HostApi.instance.send(UpdateCompanyRequestType, {
+				await HostApi.sidebarInstance.send(UpdateCompanyRequestType, {
 					companyId,
 					domainJoining: allowDomainBasedJoining ? [domain] : [],
 				});
-				HostApi.instance.track("Domain Joining Enabled");
+				HostApi.sidebarInstance.track("Domain Joining Enabled");
 			} catch (ex) {
 				console.error(ex);
 				return;
@@ -1326,7 +1328,7 @@ const CreateCodemark = (props: { className: string; skip: Function }) => {
 	});
 
 	const fetchOpenRepos = async () => {
-		const response = await HostApi.instance.send(GetReposScmRequestType, {
+		const response = await HostApi.sidebarInstance.send(GetReposScmRequestType, {
 			inEditorOnly: true,
 			includeCurrentBranches: true,
 			includeProviders: true,
@@ -1416,10 +1418,10 @@ const ProviderButtons = (props: { providerIds: string[]; setShowNextMessagingSte
 							onClick={() => {
 								if (connected) return;
 								if (provider.id == "msteams") {
-									HostApi.instance.send(OpenUrlRequestType, {
+									HostApi.sidebarInstance.send(OpenUrlRequestType, {
 										url: "https://docs.newrelic.com/docs/codestream/codestream-integrations/msteams-integration/",
 									});
-									HostApi.instance.send(TelemetryRequestType, {
+									HostApi.sidebarInstance.send(TelemetryRequestType, {
 										eventName: "Service Connected",
 										properties: {
 											Service: provider.name,
