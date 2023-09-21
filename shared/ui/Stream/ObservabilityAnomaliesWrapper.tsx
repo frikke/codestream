@@ -92,7 +92,8 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 	const showDistributedTracingWarning = !showAgentWarning && !props.distributedTracingEnabled;
 	const showExtensionWarning =
 		!showDistributedTracingWarning &&
-		!_isEmpty(props.languageAndVersionValidation?.languageExtensionValidation);
+		!_isEmpty(props.languageAndVersionValidation?.languageExtensionValidation) &&
+		props.languageAndVersionValidation?.languageExtensionValidation !== "VALID";
 
 	// useEffect(() => {
 	// 	if (!_isEmpty(props.languageAndVersionValidation)) {

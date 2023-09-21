@@ -36,11 +36,11 @@ function checkPlugin(languageId: string): string | undefined {
 }
 
 function checkRubyPlugin(): string | undefined {
-	if (extensions.getExtension("rebornix.Ruby")?.isActive) {
+	if (extensions.getExtension("rebornix.ruby")) {
 		const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("ruby"); // ruby.useLanguageServer
 		const useLanguageServer = config.get("useLanguageServer");
 		if (!useLanguageServer) {
-			return "RUBY_PLUGIN_NO_LANGUAGE_SERVER";
+			return "NO_RUBY_VSCODE_EXTENSION";
 		}
 		return;
 	}
