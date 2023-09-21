@@ -1,13 +1,8 @@
 import { extensions } from "vscode";
-import { AgentValidateLanguageExtensionRequestType } from "@codestream/protocols/agent";
-import { Container } from "./container";
 import * as vscode from "vscode";
 
 export async function validateExtension(language: string) {
 	const languageValidationString = checkPlugin(language) || "VALID";
-	await Container.agent.sendRequest(AgentValidateLanguageExtensionRequestType, {
-		language: languageValidationString
-	});
 	return languageValidationString;
 }
 

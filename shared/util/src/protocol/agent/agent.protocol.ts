@@ -336,13 +336,6 @@ export const AgentValidateLanguageExtensionRequestType = new RequestType<
 	void
 >("codestream/language/validate");
 
-// export const ResolveStackTracePathsRequestType = new RequestType<
-// 	ResolveStackTracePathsRequest,
-// 	ResolveStackTracePathsResponse,
-// 	void,
-// 	void
-// >("codestream/stackTrace/resolvePaths");
-
 export interface AgentFileSearchRequest {
 	basePath: string;
 	path: string;

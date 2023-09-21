@@ -1335,14 +1335,6 @@ export class CodeStreamAgentConnection implements Disposable {
 		);
 		this._client.onRequest(AgentOpenUrlRequestType, e => this._onOpenUrl.fire(e));
 
-		// this._client.onRequest(AgentValidateLanguageExtensionRequestType, e =>
-		// 	this._onValidateLanguageExtension.fire(e)
-		// );
-
-		// this._client.onRequest(AgentValidateLanguageExtensionRequestType, e =>
-		// 	this._onValidateLanguageExtension.fire(e)
-		// );
-
 		this._client.onRequest(AgentValidateLanguageExtensionRequestType, async request => {
 			if (request.language) {
 				const languageValidationString = await validateExtension(request.language);
@@ -1352,8 +1344,6 @@ export class CodeStreamAgentConnection implements Disposable {
 			return { languageValidationString: "VALID" };
 		});
 
-		// ResolveStackTracePathsRequestType
-		// AgentValidateLanguageExtensionRequestType
 		this._client.onRequest(AgentFileSearchRequestType, async e => {
 			try {
 				const files = await workspace.findFiles(`**/${e.path}`);
