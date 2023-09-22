@@ -91,6 +91,17 @@ export class ClmManager {
 		}
 
 		const resolutionMethod = this.getResolutionMethod(languageId);
+
+		if (
+			resolutionMethod === "locator" &&
+			!request.locator?.functionName &&
+			!request.locator?.namespace &&
+			!request.locator?.namespaces
+		) {
+			ContextLogger.warn("getFileLevelTelemetry: Missing locator for resolutionMethod 'locator'");
+			return undefined;
+		}
+
 		const cacheKey =
 			resolutionMethod === "filePath"
 				? [filePath, request.languageId].join("-")

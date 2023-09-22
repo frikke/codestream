@@ -166,11 +166,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 	}
 
 	private noSpanCodelens(languageId: string): vscode.CodeLens[] {
-		return this.errorCodelens(
-			"NO_SPANS",
-			languageId,
-			"No code-level metrics found for this file"
-		);
+		return this.errorCodelens("NO_SPANS", languageId, "No code-level metrics found for this file");
 	}
 
 	private missingRubyExtensionCodelens(newRelicAccountId?: number): vscode.CodeLens[] {
@@ -283,6 +279,19 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 		return undefined;
 	}
 
+	// Shouldn't have to to this (╯°□°)╯︵ ┻━┻
+	parseCsharpNamespace(documentText: string): string | undefined {
+		const lines = documentText.split(/\r?\n/);
+
+		for (const line of lines) {
+			const matcher = line.match(/^\s*namespace\s+([A-Za-z0-9_.]+)\s*$/);
+			if (matcher && matcher.length > 1) {
+				return matcher[1];
+			}
+		}
+		return undefined;
+	}
+
 	public async provideCodeLenses(
 		document: TextDocument,
 		token: vscode.CancellationToken
@@ -347,12 +356,8 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 
 			let functionLocator: FunctionLocator | undefined = undefined;
 			if (document.languageId === "csharp") {
-				// for whatever reason, Omnisharp is naming Namespace with the Module kind
-				// in C# speak, it would really be Namespace
-				const namespace = allSymbols.find(_ => _.kind === SymbolKind.Module);
-
 				functionLocator = {
-					namespace: namespace?.name
+					namespace: this.parseCsharpNamespace(document.getText())
 				};
 			}
 
