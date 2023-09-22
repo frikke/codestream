@@ -534,7 +534,7 @@ export const Signup = (props: Props) => {
 											{!props.newOrg && !props.joinCompanyId && (
 												<>
 													Don't have a New Relic account?{" "}
-													<Link href="https://newrelic.com/signup">Sign up for free.</Link>
+													<Link href="https://newrelic.com/signup?utm_source=codestream&utm_medium=programmatic&utm_campaign=global-ever-green-codestream-signin-form">Sign up for free.</Link>
 												</>
 											)}
 										</div>
