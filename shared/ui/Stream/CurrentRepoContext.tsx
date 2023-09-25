@@ -25,7 +25,7 @@ interface Props {
 }
 
 interface CurrentRepoContainerProps {
-	isHeaderText?: boolean; // Define the prop and its type here
+	isHeaderText?: boolean;
 }
 const CurrentRepoContainer = styled.span<CurrentRepoContainerProps>`
 	color: ${props =>
