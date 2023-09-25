@@ -21,10 +21,16 @@ import { useAppDispatch } from "../utilities/hooks";
 interface Props {
 	currentRepoCallback: (repoId?: string) => void;
 	observabilityRepos?: ObservabilityRepo[];
+	isHeaderText?: boolean;
 }
 
-const CurrentRepoContainer = styled.span`
-	color: var(--text-color-subtle);
+interface CurrentRepoContainerProps {
+	isHeaderText?: boolean; // Define the prop and its type here
+}
+const CurrentRepoContainer = styled.span<CurrentRepoContainerProps>`
+	color: ${props =>
+		props.isHeaderText ? "var(--text-color-highlight)" : "var(--text-color-subtle)"};
+	display: ${props => (props.isHeaderText ? "flex" : "inherit")};
 `;
 
 export const CurrentRepoContext = React.memo((props: Props) => {
@@ -124,9 +130,20 @@ export const CurrentRepoContext = React.memo((props: Props) => {
 	};
 
 	return (
-		<CurrentRepoContainer>
+		<CurrentRepoContainer isHeaderText={props.isHeaderText ? true : false}>
 			<Icon style={{ transform: "scale(0.7)", display: "inline-block" }} name="repo" />{" "}
-			{currentRepoName}
+			<span style={{ margin: props.isHeaderText ? "1px 2px 0px 0px" : "0" }}>
+				{currentRepoName}
+			</span>
+			{props.isHeaderText && (
+				<Icon
+					name="info"
+					className="subtle"
+					placement="bottomRight"
+					style={{ transform: "scale(0.9)", display: "inline-block" }}
+					title={`Open a file in the editor to see data for a different repository`}
+				/>
+			)}
 		</CurrentRepoContainer>
 	);
 });

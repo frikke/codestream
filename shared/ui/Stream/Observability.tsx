@@ -83,6 +83,7 @@ import { ObservabilityAnomaliesWrapper } from "@codestream/webview/Stream/Observ
 import { CLMSettings, DEFAULT_CLM_SETTINGS } from "@codestream/protocols/api";
 import { throwIfError } from "@codestream/webview/store/common";
 import { AnyObject } from "@codestream/webview/utils";
+import { isFeatureEnabled } from "../store/apiVersioning/reducer";
 
 interface Props {
 	paneState: PaneState;
@@ -261,7 +262,10 @@ export const Observability = React.memo((props: Props) => {
 			providers["newrelic*com"] && isConnected(state, { id: "newrelic*com" });
 		const activeO11y = preferences.activeO11y;
 		const clmSettings = state.preferences.clmSettings || {};
-
+		let isO11yPaneOnly = true;
+		if (isFeatureEnabled(state, "showCodeAnalyzers")) {
+			isO11yPaneOnly = false;
+		}
 		return {
 			sessionStart: state.context.sessionStart,
 			newRelicIsConnected,
@@ -278,6 +282,7 @@ export const Observability = React.memo((props: Props) => {
 			clmSettings,
 			recentErrorsTimeWindow: state.preferences.codeErrorTimeWindow,
 			currentObservabilityAnomalyEntityGuid: state.context.currentObservabilityAnomalyEntityGuid,
+			isO11yPaneOnly,
 		};
 	}, shallowEqual);
 
@@ -1046,14 +1051,29 @@ export const Observability = React.memo((props: Props) => {
 	return (
 		<Root>
 			<PaneHeader
-				title="Observability"
+				title={
+					derivedState.isO11yPaneOnly ? (
+						<CurrentRepoContext
+							observabilityRepos={observabilityRepos}
+							currentRepoCallback={setCurrentRepoId}
+							isHeaderText={true}
+						/>
+					) : (
+						"Observability"
+					)
+				}
 				id={WebviewPanels.Observability}
 				subtitle={
-					<CurrentRepoContext
-						observabilityRepos={observabilityRepos}
-						currentRepoCallback={setCurrentRepoId}
-					/>
+					derivedState.isO11yPaneOnly ? (
+						false
+					) : (
+						<CurrentRepoContext
+							observabilityRepos={observabilityRepos}
+							currentRepoCallback={setCurrentRepoId}
+						/>
+					)
 				}
+				noDropdown={derivedState.isO11yPaneOnly ? true : false}
 			>
 				{derivedState.newRelicIsConnected ? (
 					<Icon

@@ -173,6 +173,7 @@ interface PaneHeaderProps {
 	subtitle?: string | React.ReactNode;
 	isLoading?: boolean;
 	warning?: React.ReactNode;
+	noDropdown?: boolean;
 }
 export const PaneHeader = React.memo((props: PropsWithChildren<PaneHeaderProps>) => {
 	const dispatch = useAppDispatch();
@@ -231,6 +232,34 @@ export const PaneHeader = React.memo((props: PropsWithChildren<PaneHeaderProps>)
 		//	Adjustment: !derivedState.maximized ? "Maximized" : "Minimized"
 		//});
 	};
+
+	if (props.noDropdown) {
+		return (
+			<PaneHeaderRoot
+				className={cx("pane-header", props.className)}
+				tabIndex={1}
+				style={{ alignItems: "center", marginLeft: "-3px" }}
+			>
+				<div className="label" data-testid={props.id + "-label-title"}>
+					{props.title}
+					{(typeof props.count === "string" && props.count.length > 0) ||
+					(typeof props.count === "number" && props.count > 0) ? (
+						<span className="subtle toggle-target"> ({props.count})</span>
+					) : null}
+					{props.subtitle ? <span className="subtle"> {props.subtitle}</span> : null}
+					{props.warning && props.warning}
+				</div>
+				<div className="actions">{props.children}</div>
+				{props.isLoading && (
+					<div className="progress-container">
+						<div className="progress-bar">
+							<div className="progress-cursor" />
+						</div>
+					</div>
+				)}
+			</PaneHeaderRoot>
+		);
+	}
 
 	const header = (
 		<PaneHeaderRoot
