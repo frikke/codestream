@@ -139,7 +139,7 @@ export const CurrentRepoContext = React.memo((props: Props) => {
 				<Icon
 					name="info"
 					className="subtle"
-					placement="bottomRight"
+					placement="bottom"
 					style={{ transform: "scale(0.9)", display: "inline-block" }}
 					title={`Open a file in the editor to see data for a different repository`}
 				/>
