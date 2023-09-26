@@ -966,7 +966,10 @@ export class NewRelicProvider
 				}
 				let mappedUniqueEntities = await Promise.all(
 					uniqueEntities.map(async entity => {
-						const languageAndVersionValidation = await this.languageAndVersionValidation(entity);
+						const languageAndVersionValidation = await this.languageAndVersionValidation(
+							entity,
+							request?.isVsCode
+						);
 
 						return {
 							accountId: entity.account?.id,
@@ -1024,7 +1027,8 @@ export class NewRelicProvider
 	}
 
 	private async languageAndVersionValidation(
-		entity?: Entity
+		entity?: Entity,
+		isVsCode?: boolean
 	): Promise<LanguageAndVersionValidation> {
 		const tags = entity?.tags || [];
 		const agentVersion = tags.find(tag => tag.key === "agentVersion");
@@ -1036,12 +1040,15 @@ export class NewRelicProvider
 
 		const version = agentVersion?.values[0];
 		const languageValue = language?.values[0].toLowerCase();
-		const extensionValidationResponse = await SessionContainer.instance().session.agent.sendRequest(
-			AgentValidateLanguageExtensionRequestType,
-			{
-				language: languageValue,
-			}
-		);
+		let extensionValidationResponse;
+		if (isVsCode) {
+			extensionValidationResponse = await SessionContainer.instance().session.agent.sendRequest(
+				AgentValidateLanguageExtensionRequestType,
+				{
+					language: languageValue,
+				}
+			);
+		}
 
 		if (
 			languageValue === "go" ||
@@ -1062,12 +1069,18 @@ export class NewRelicProvider
 			) {
 				return {
 					language: language.values[0],
-					languageExtensionValidation: extensionValidationResponse.languageValidationString,
+					languageExtensionValidation: extensionValidationResponse?.languageValidationString
+						? extensionValidationResponse?.languageValidationString
+						: "VALID",
 					required: REQUIRED_AGENT_VERSIONS[languageValue],
 				};
 			}
 		}
-		return { languageExtensionValidation: extensionValidationResponse.languageValidationString };
+		return {
+			languageExtensionValidation: extensionValidationResponse?.languageValidationString
+				? extensionValidationResponse?.languageValidationString
+				: "VALID",
+		};
 	}
 
 	/**

@@ -1457,6 +1457,7 @@ export const GetObservabilityResponseTimesRequestType = new RequestType<
 export interface GetObservabilityReposRequest {
 	filters?: { repoId: string; entityGuid?: string }[];
 	force?: boolean;
+	isVsCode?: boolean;
 }
 
 export interface EntityAccount {

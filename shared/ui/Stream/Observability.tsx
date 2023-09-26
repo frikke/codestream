@@ -273,6 +273,7 @@ export const Observability = React.memo((props: Props) => {
 			observabilityRepoEntities: preferences.observabilityRepoEntities || EMPTY_ARRAY,
 			showGoldenSignalsInEditor: state?.configs.showGoldenSignalsInEditor,
 			isVS: state.ide.name === "VS",
+			isVsCode: state.ide.name === "VSC",
 			hideCodeLevelMetricsInstructions: state.preferences.hideCodeLevelMetricsInstructions,
 			currentMethodLevelTelemetry: (state.context.currentMethodLevelTelemetry ||
 				{}) as CurrentMethodLevelTelemetry,
@@ -684,6 +685,7 @@ export const Observability = React.memo((props: Props) => {
 			const response = await HostApi.instance.send(GetObservabilityReposRequestType, {
 				filters,
 				force,
+				isVsCode: derivedState.isVsCode,
 			});
 			if (response.repos) {
 				if (hasFilter) {
