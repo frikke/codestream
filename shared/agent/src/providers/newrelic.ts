@@ -82,6 +82,7 @@ import {
 	GetServiceLevelTelemetryResponse,
 	GoldenMetricUnitMappings,
 	isNRErrorResponse,
+	LanguageAndVersionValidation,
 	MethodGoldenMetrics,
 	MethodLevelGoldenMetricQueryResult,
 	MetricTimesliceNameMapping,
@@ -986,7 +987,7 @@ export class NewRelicProvider
 					`${a?.accountName}-${a?.entityName}`.localeCompare(`${b?.accountName}-${b?.entityName}`)
 				);
 				response.repos?.push({
-					repoId: repo.id!,
+					repoId: repo.id,
 					repoName: folderName,
 					repoRemote: remote,
 					hasRepoAssociation,
@@ -1022,7 +1023,9 @@ export class NewRelicProvider
 		return tracingValue === "standard" || tracingValue === "infinite";
 	}
 
-	private async languageAndVersionValidation(entity?: Entity): Promise<object> {
+	private async languageAndVersionValidation(
+		entity?: Entity
+	): Promise<LanguageAndVersionValidation> {
 		const tags = entity?.tags || [];
 		const agentVersion = tags.find(tag => tag.key === "agentVersion");
 		const language = tags.find(tag => tag.key === "language");
