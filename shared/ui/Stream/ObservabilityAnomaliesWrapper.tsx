@@ -164,32 +164,31 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 			)}
 
 			{/* Agent Version Warning */}
-			{(expanded && !props.calculatingAnomalies && showAgentWarning) ||
-				(true && (
-					<>
-						{props.languageAndVersionValidation?.language &&
-							props.languageAndVersionValidation?.required && (
-								<Row
-									style={{
-										padding: "0px 0px 0px 0px",
-									}}
-									className={"pr-row"}
-								>
-									<span style={{ marginLeft: "2px", whiteSpace: "normal" }}>
-										<WarningBoxRoot style={{ margin: "0px 1px 0px 0px" }}>
-											<Icon name="alert" className="alert" />
-											<div className="message">
-												<div>
-													Requires {props.languageAndVersionValidation?.language} agent version{" "}
-													{props.languageAndVersionValidation?.required} or higher.
-												</div>
+			{expanded && !props.calculatingAnomalies && showAgentWarning && (
+				<>
+					{props.languageAndVersionValidation?.language &&
+						props.languageAndVersionValidation?.required && (
+							<Row
+								style={{
+									padding: "0px 0px 0px 0px",
+								}}
+								className={"pr-row"}
+							>
+								<span style={{ marginLeft: "2px", whiteSpace: "normal" }}>
+									<WarningBoxRoot style={{ margin: "0px 1px 0px 0px" }}>
+										<Icon name="alert" className="alert" />
+										<div className="message">
+											<div>
+												Requires {props.languageAndVersionValidation?.language} agent version{" "}
+												{props.languageAndVersionValidation?.required} or higher.
 											</div>
-										</WarningBoxRoot>
-									</span>
-								</Row>
-							)}
-					</>
-				))}
+										</div>
+									</WarningBoxRoot>
+								</span>
+							</Row>
+						)}
+				</>
+			)}
 
 			{/* Distrubuted Tracing Warning */}
 			{expanded && !props.calculatingAnomalies && showDistributedTracingWarning && (
