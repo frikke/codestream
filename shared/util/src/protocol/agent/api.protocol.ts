@@ -14,7 +14,7 @@ import {
 	CSCompany,
 	CSDirectStream,
 	CSFileStream,
-	CSLocation,
+	CSLocationArray,
 	CSMarker,
 	CSMarkerLocation,
 	CSMarkerLocations,
@@ -199,7 +199,7 @@ export interface CSCreateMarkerLocationRequest {
 	streamId: string;
 	commitHash: string;
 	locations: {
-		[id: string]: CSLocation;
+		[id: string]: CSLocationArray;
 	};
 }
 
@@ -210,7 +210,7 @@ export interface CSCreatePostRequestCodeBlock {
 	preContext?: string;
 	postContext?: string;
 
-	location?: CSLocation;
+	location?: CSLocationArray;
 	commitHash?: string;
 
 	streamId?: string;
@@ -564,7 +564,7 @@ export interface CSCreateMarkerRequest {
 	remotes?: string[];
 	file?: string;
 	commitHash?: string;
-	location?: CSLocation;
+	location?: CSLocationArray;
 }
 
 export interface CSCreateMarkerResponse {
@@ -823,7 +823,7 @@ export interface CSGetReviewCheckpointDiffsResponse
 
 export interface CSAddReferenceLocationRequest {
 	commitHash: string;
-	location: CSLocation;
+	location: CSLocationArray;
 	flags: { [id: string]: boolean };
 }
 
