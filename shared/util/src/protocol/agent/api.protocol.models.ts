@@ -7,7 +7,7 @@ import {
 	FetchProviderDefaultPullResponse,
 	ThirdPartyProviders,
 } from "./agent.protocol";
-import { CSEligibleJoinCompany, CSReviewCheckpoint } from "./api.protocol";
+import { CSEligibleJoinCompany, CSPossibleAuthDomain, CSReviewCheckpoint } from "./api.protocol";
 
 /* NOTE: there can be dynamic panel names that begin with configure-provider- or configure-enterprise- */
 export enum WebviewPanels {
@@ -735,6 +735,7 @@ export interface CSUser extends CSEntity {
 	externalUserId?: string;
 	status?: { [teamId: string]: CSMeStatus };
 	eligibleJoinCompanies?: CSEligibleJoinCompany[];
+	possibleAuthDomains?: CSPossibleAuthDomain[];
 	avatar?: {
 		image?: string;
 		image48?: string;
