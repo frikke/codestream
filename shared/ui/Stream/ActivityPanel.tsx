@@ -1,5 +1,11 @@
-import React from "react";
-import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import {
+	useAppDispatch,
+	useAppSelector,
+	useDidMount,
+	useIntersectionObserver,
+	usePrevious,
+} from "@codestream/webview/utilities/hooks";
 import Icon from "./Icon";
 import ScrollBox from "./ScrollBox";
 import Timestamp from "./Timestamp";
@@ -14,8 +20,13 @@ import {
 	setCurrentCodeError,
 	closeAllPanels,
 } from "../store/context/actions";
-import { getActivity } from "../store/activityFeed/reducer";
-import { useDidMount, useIntersectionObserver, usePrevious } from "../utilities/hooks";
+import {
+	ActivityFeedResponse,
+	CodeErrorActivityItem,
+	CodemarkActivityItem,
+	getActivity,
+	ReviewActivityItem,
+} from "../store/activityFeed/reducer";
 import { HostApi } from "../webview-api";
 import {
 	FetchActivityRequestType,
@@ -33,14 +44,7 @@ import { addOlderActivity } from "../store/activityFeed/actions";
 import { saveCodemarks } from "../store/codemarks/actions";
 import { safe, emptyArray } from "../utils";
 import { markStreamRead, setUserPreference } from "./actions";
-import {
-	CSUser,
-	CSReview,
-	ActivityFilter,
-	RepoSetting,
-	CSCodeError,
-	CSPost,
-} from "@codestream/protocols/api";
+import { CSUser, CSReview, ActivityFilter, RepoSetting, CSPost } from "@codestream/protocols/api";
 import { resetLastReads } from "../store/unreads/actions";
 import { PanelHeader } from "../src/components/PanelHeader";
 import { getPost, getThreadPosts } from "../store/posts/reducer";
@@ -69,21 +73,8 @@ interface MenuItem {
 // see comment in SmartFormattedList.tsx
 const FormattedPluralAlias = FormattedPlural as any;
 
-const EmptyMessage = styled.div`
-	height: 100%;
-	width: 100%;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	p {
-		width: 20em;
-		margin: 0 auto;
-		color: var(--text-color-subtle);
-		text-align: center;
-	}
-`;
-
 const DEFAULT_ACTIVITY_FILTER = { mode: "openInIde", settings: { repos: [] } };
+
 export const ActivityPanel = () => {
 	const dispatch = useAppDispatch();
 	const derivedState = useAppSelector(state => {
@@ -110,17 +101,17 @@ export const ActivityPanel = () => {
 
 	const previousActivityFilter = usePrevious(derivedState.activityFilter);
 
-	const [activityFilterMenuItems, setActivityFilterMenuItems] = React.useState<any[] | undefined>(
+	const [activityFilterMenuItems, setActivityFilterMenuItems] = useState<MenuItem[] | undefined>(
 		undefined
 	);
-	const [ellipsisMenuOpen, setEllipsisMenuOpen] = React.useState();
+	const [ellipsisMenuOpen, setEllipsisMenuOpen] = useState();
 	const toggleEllipsisMenu = event => {
 		setEllipsisMenuOpen(ellipsisMenuOpen ? undefined : event.target.closest("label"));
 	};
-	const [repos, setRepos] = React.useState<ReposScm[]>([]);
-	const [maximized, setMaximized] = React.useState(false);
-	const [lastFetchedActivity, setLastFetchedActivity] = React.useState<string>();
-	const [lastFilteredActivity, setLastFilteredActivity] = React.useState<string>();
+	const [repos, setRepos] = useState<ReposScm[]>([]);
+	const [maximized, setMaximized] = useState(false);
+	const [lastFetchedActivity, setLastFetchedActivity] = useState<string>();
+	const [lastFilteredActivity, setLastFilteredActivity] = useState<string>();
 
 	const setActivityPreferences = (
 		data: ActivityFilter,
@@ -135,8 +126,8 @@ export const ActivityPanel = () => {
 		});
 	};
 
-	const activity = React.useMemo(() => {
-		let _activity = derivedState.activity;
+	const activity = useMemo(() => {
+		const _activity = derivedState.activity;
 
 		if (!repos?.length) {
 			return _activity;
@@ -146,7 +137,7 @@ export const ActivityPanel = () => {
 		let isFallback = false;
 		if (derivedState.activityFilter.mode === "selectedRepos") {
 			repoSettings = derivedState.activityFilter?.settings?.repos || [];
-			let mappedRepoIds = repos.map(_ => _.id);
+			const mappedRepoIds = repos.map(_ => _.id);
 
 			repoSettings = repoSettings?.filter(_ => _.id != null && mappedRepoIds.includes(_.id));
 
@@ -187,7 +178,7 @@ export const ActivityPanel = () => {
 				if (_.record.assignees?.includes(derivedState.currentUserId!)) {
 					return _;
 				}
-				let found: any = undefined;
+				let found: CodemarkActivityItem | undefined = undefined;
 				for (const repoSetting of repoSettings) {
 					const match = _.record.markers?.find(m => {
 						let isPathMatch = true;
@@ -207,7 +198,7 @@ export const ActivityPanel = () => {
 					return _;
 				}
 
-				let found: any = undefined;
+				let found: ReviewActivityItem | undefined = undefined;
 				for (const repoSetting of repoSettings) {
 					const match = _.record.reviewChangesets?.find(m => {
 						let isPathMatch = true;
@@ -225,7 +216,7 @@ export const ActivityPanel = () => {
 				}
 				return found;
 			} else if (_.type === "codeError") {
-				let found: any = undefined;
+				let found: CodeErrorActivityItem | undefined = undefined;
 				for (const repoSetting of repoSettings) {
 					const match = _.record.stackTraces?.find(m => {
 						return repoSetting.id === m.repoId;
@@ -237,16 +228,16 @@ export const ActivityPanel = () => {
 				}
 				return found;
 			}
-			return null;
+			return [];
 		});
-		return filtered.filter(Boolean);
+		return filtered.filter(Boolean) as ActivityFeedResponse;
 	}, [derivedState.activity, repos, derivedState.activityFilter, derivedState.postsByStreamId]);
 
-	const filterLabel = React.useMemo(() => {
+	const filterLabel = useMemo(() => {
 		if (derivedState.activityFilter.mode === "selectedRepos") {
 			let repoSettings = derivedState.activityFilter?.settings?.repos || [];
 			if (repoSettings.length) {
-				let mappedRepoIds = repos.map(_ => _.id);
+				const mappedRepoIds = repos.map(_ => _.id);
 				repoSettings = repoSettings?.filter(_ => _.id != null && mappedRepoIds.includes(_.id));
 
 				// couldn't find a matching repo open in the ide, fallback to open in IDE
@@ -279,10 +270,10 @@ export const ActivityPanel = () => {
 
 	const lastFetchedActivityPostId = safe(() => _last(derivedState.activity)!.record.postId);
 	const lastFilteredActivityPostId = safe(() => _last(activity)!.record.postId);
-	const fetchActivity = React.useCallback(async () => {
+	const fetchActivity = useCallback(async () => {
 		setLastFetchedActivity(lastFetchedActivityPostId);
 		setLastFilteredActivity(lastFilteredActivityPostId);
-		let response = await HostApi.instance.send(FetchActivityRequestType, {
+		const response = await HostApi.instance.send(FetchActivityRequestType, {
 			limit: 50,
 			before: lastFetchedActivityPostId,
 		});
@@ -300,7 +291,7 @@ export const ActivityPanel = () => {
 
 	// when we fetch results but all new results get filtered out, we need to
 	// fetch more data (if there is more data to fetch)
-	React.useEffect(() => {
+	useEffect(() => {
 		if (
 			lastFetchedActivityPostId !== lastFetchedActivity &&
 			derivedState.hasMoreActivity &&
@@ -359,7 +350,7 @@ export const ActivityPanel = () => {
 				};
 				if (r?.children != null && r?.children.length) {
 					const menuItems: MenuItem[] = [];
-					r.children.forEach((child: any) => {
+					r.children.forEach(child => {
 						menuItems.push(menuTreeBuilder(child));
 					});
 					menuItem.submenu = menuItems;
@@ -403,7 +394,7 @@ export const ActivityPanel = () => {
 				} as any;
 				selectedReposSubMenuItems.push(repoMenu);
 				if (_.directories && _.directories.children != null && _.directories.children.length) {
-					const submenuItems: any[] = [];
+					const submenuItems: MenuItem[] = [];
 					_.directories.children.forEach(child => {
 						submenuItems.push(menuTreeBuilder(child));
 					});
@@ -458,7 +449,7 @@ export const ActivityPanel = () => {
 		return { repos: repoResponse?.repositories || [] };
 	};
 
-	React.useEffect(() => {
+	useEffect(() => {
 		if (JSON.stringify(previousActivityFilter) !== JSON.stringify(derivedState.activityFilter)) {
 			renderFilter();
 		}
@@ -484,7 +475,7 @@ export const ActivityPanel = () => {
 		};
 	});
 
-	React.useEffect(() => {
+	useEffect(() => {
 		for (let streamId in derivedState.umis.unreads) {
 			dispatch(markStreamRead(streamId));
 		}
@@ -664,7 +655,7 @@ export const ActivityPanel = () => {
 							{({ className, post }) => (
 								<CodeError
 									className={className}
-									codeError={record as CSCodeError}
+									codeError={record}
 									collapsed
 									hoverEffect
 									onClick={e => {
@@ -857,7 +848,7 @@ const UnreadReply = (props: {
 	starred?: boolean;
 	codemarkId?: string;
 }) => {
-	const menuItems = React.useMemo(() => {
+	const menuItems = useMemo(() => {
 		// sine the only menu item right now is for pinning replies, don't show it if this is not a reply to a codemark
 		if (props.codemarkId == null) return emptyArray;
 

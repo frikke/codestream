@@ -113,6 +113,7 @@ export interface BaseCodeErrorProps extends CardProps {
 	stackTraceTip?: any;
 	resolutionTip?: any;
 	setGrokRequested: () => void;
+	readOnly: boolean;
 }
 
 export interface BaseCodeErrorHeaderProps {
@@ -1190,7 +1191,7 @@ const BaseCodeError = (props: BaseCodeErrorProps) => {
 		getGrokPostLength(state, codeError.streamId, codeError.postId)
 	);
 
-	if (derivedState.showGrok) {
+	if (derivedState.showGrok && !props.readOnly) {
 		useEffect(() => {
 			const submitGrok = async (codeBlock?: string) => {
 				// console.debug("===--- useEffect startGrokLoading");
@@ -1796,6 +1797,7 @@ interface PropsWithCodeError extends FromBaseCodeErrorProps {
 	codeError: CSCodeError;
 	errorGroup?: NewRelicErrorGroup;
 	parsedStack?: ResolveStackTraceResponse;
+	readOnly?: boolean;
 }
 
 function isPropsWithId(props: PropsWithId | PropsWithCodeError): props is PropsWithId {
@@ -1957,6 +1959,7 @@ const CodeErrorForCodeError = (props: PropsWithCodeError) => {
 				setIsEditing={setIsEditing}
 				headerError={headerError}
 				setGrokRequested={setGrokRequested}
+				readOnly={props.readOnly === true}
 			/>
 		</>
 	);

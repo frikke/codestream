@@ -10,6 +10,8 @@ import { getReview } from "../reviews/reducer";
 import { ReviewsState } from "../reviews/types";
 import * as actions from "./actions";
 import { ActivityFeedActionType, ActivityFeedActivity, ActivityFeedState } from "./types";
+import { CodemarkPlus } from "@codestream/protocols/agent";
+import { CSCodeError, CSReview } from "@codestream/protocols/api";
 
 type ActivityFeedAction = ActionType<typeof actions>;
 
@@ -37,6 +39,29 @@ export function reduceActivityFeed(state = initialState, action: ActivityFeedAct
 	}
 }
 
+export type ActivityType = "codemark" | "review" | "codeError";
+
+export interface ActivityItem<T> {
+	type: ActivityType;
+	record: T;
+}
+
+export interface CodemarkActivityItem extends ActivityItem<CodemarkPlus> {
+	type: "codemark";
+}
+
+export interface ReviewActivityItem extends ActivityItem<CSReview> {
+	type: "review";
+}
+
+export interface CodeErrorActivityItem extends ActivityItem<CSCodeError> {
+	type: "codeError";
+}
+
+export type ActivityFeedResponse = Array<
+	CodemarkActivityItem | ReviewActivityItem | CodeErrorActivityItem
+>;
+
 export const getActivity = createSelector(
 	(state: CodeStreamState) => state.codemarks,
 	(state: CodeStreamState) => state.reviews,
@@ -49,31 +74,34 @@ export const getActivity = createSelector(
 		codeErrorsState: CodeErrorsState,
 		activityFeed: ActivityFeedActivity[]
 		// posts: PostsState
-	) => {
+	): ActivityFeedResponse => {
 		return mapFilter(activityFeed, activity => {
 			const [model, id] = activity.split("|");
 			switch (model) {
-				case "codemark":
+				case "codemark": {
 					const codemark = codemarks[id];
 					if (codemark == undefined || codemark.deactivated) return;
 					return {
 						type: model,
 						record: codemark,
 					};
-				case "review":
+				}
+				case "review": {
 					const review = getReview(reviewsState, id);
 					if (review == null || review.deactivated) return;
 					return {
 						type: model,
 						record: review,
 					};
-				case "codeError":
+				}
+				case "codeError": {
 					const codeError = getCodeError(codeErrorsState, id);
 					if (codeError == null || codeError.deactivated) return;
 					return {
 						type: model,
 						record: codeError,
 					};
+				}
 				default:
 					return;
 			}
