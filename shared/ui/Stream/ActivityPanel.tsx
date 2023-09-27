@@ -656,6 +656,7 @@ export const ActivityPanel = () => {
 								<CodeError
 									className={className}
 									codeError={record}
+									readOnly={true}
 									collapsed
 									hoverEffect
 									onClick={e => {
