@@ -43,7 +43,7 @@ export const ObservabilityRelatedEntity = React.memo((props: Props) => {
 
 	useEffect(() => {
 		if (expanded) {
-			HostApi.sidebarInstance.track("Related Service Clicked", {});
+			HostApi.instance.track("Related Service Clicked", {});
 			setLoadingGoldenMetrics(true);
 			fetchGoldenMetrics(relatedEntity.guid);
 		}
@@ -57,7 +57,7 @@ export const ObservabilityRelatedEntity = React.memo((props: Props) => {
 
 	const fetchNewRelicUrl = async (entityGuid?: string | null) => {
 		if (entityGuid) {
-			const response = await HostApi.sidebarInstance.send(GetNewRelicUrlRequestType, {
+			const response = await HostApi.instance.send(GetNewRelicUrlRequestType, {
 				entityGuid,
 			});
 			if (response) {
@@ -69,7 +69,7 @@ export const ObservabilityRelatedEntity = React.memo((props: Props) => {
 
 	const fetchGoldenMetrics = async (entityGuid?: string | null) => {
 		if (entityGuid) {
-			const response = await HostApi.sidebarInstance.send(GetServiceLevelTelemetryRequestType, {
+			const response = await HostApi.instance.send(GetServiceLevelTelemetryRequestType, {
 				newRelicEntityGuid: entityGuid,
 				repoId: props.currentRepoId,
 				skipRepoFetch: true,
@@ -136,10 +136,10 @@ export const ObservabilityRelatedEntity = React.memo((props: Props) => {
 						onClick={e => {
 							e.preventDefault();
 							e.stopPropagation();
-							HostApi.sidebarInstance.track("Open Service Summary on NR", {
+							HostApi.instance.track("Open Service Summary on NR", {
 								Section: "Related Services",
 							});
-							HostApi.sidebarInstance.send(OpenUrlRequestType, {
+							HostApi.instance.send(OpenUrlRequestType, {
 								url: newRelicUrl,
 							});
 						}}

@@ -20,7 +20,7 @@ export class LocateRepoButton extends React.Component<Props, State> {
 	mounted = false;
 
 	async locateCode() {
-		HostApi.sidebarInstance.send(TelemetryRequestType, { eventName: "Locate Repo" });
+		HostApi.instance.send(TelemetryRequestType, { eventName: "Locate Repo" });
 
 		const { repoId, repoName } = this.props;
 		if (!repoId) return;
@@ -28,12 +28,12 @@ export class LocateRepoButton extends React.Component<Props, State> {
 		this.setState({
 			locateLoading: true,
 		});
-		let response = await HostApi.sidebarInstance.send(ShellPromptFolderRequestType, {
+		let response = await HostApi.instance.send(ShellPromptFolderRequestType, {
 			message: `Please select the root folder for the ${repoName} repository.`,
 		});
 		try {
 			if (response && response.path) {
-				const result = await HostApi.sidebarInstance.send(MapReposRequestType, {
+				const result = await HostApi.instance.send(MapReposRequestType, {
 					repos: [{ repoId: repoId, ...response } as RepoMap],
 				});
 

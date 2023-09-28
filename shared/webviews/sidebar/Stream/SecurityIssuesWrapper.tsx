@@ -132,7 +132,7 @@ function Additional(props: { onClick: () => void; additional?: number }) {
 
 function VulnView(props: { vuln: Vuln; onClose: () => void }) {
 	const { vuln } = props;
-	HostApi.sidebarInstancenstancenstancenstance.track("Vulnerability Clicked");
+	HostApi.instancenstancenstancenstance.track("Vulnerability Clicked");
 	return (
 		<div className="codemark-form-container">
 			<div className="codemark-form standard-form vscroll">
@@ -145,7 +145,7 @@ function VulnView(props: { vuln: Vuln; onClose: () => void }) {
 								className="link-to-ticket"
 								onClick={() => {
 									if (vuln.url) {
-										HostApi.sidebarInstancenstancenstancenstance.send(OpenUrlRequestType, {
+										HostApi.instancenstancenstancenstance.send(OpenUrlRequestType, {
 											url: vuln.url,
 										});
 									}

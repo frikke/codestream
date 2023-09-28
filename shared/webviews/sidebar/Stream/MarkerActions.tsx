@@ -148,7 +148,7 @@ class MarkerActions extends React.Component<Props, State> {
 
 		this.checkDiffs(false);
 		this._disposables.push(
-			HostApi.sidebarInstance.on(DidChangeDocumentMarkersNotificationType, ({ textDocument }) => {
+			HostApi.instance.on(DidChangeDocumentMarkersNotificationType, ({ textDocument }) => {
 				if (this.props.textEditorUri === textDocument.uri) {
 					this.checkDiffs(false);
 				}
@@ -167,7 +167,7 @@ class MarkerActions extends React.Component<Props, State> {
 				const response = await this.getDocumentFromMarkerDebounced(marker.id, "openCodemark");
 
 				if (response) {
-					const { success } = await HostApi.sidebarInstance.send(EditorSelectRangeRequestType, {
+					const { success } = await HostApi.instance.send(EditorSelectRangeRequestType, {
 						uri: response.textDocument.uri,
 						// Ensure we put the cursor at the right line (don't actually select the whole range)
 						selection: {
@@ -210,7 +210,7 @@ class MarkerActions extends React.Component<Props, State> {
 		if (codemark == null || marker == null) return;
 
 		try {
-			const response = await HostApi.sidebarInstance.send(GetCodemarkRangeRequestType, {
+			const response = await HostApi.instance.send(GetCodemarkRangeRequestType, {
 				codemarkId: codemark.id,
 				markerId: marker.id,
 			});
@@ -228,7 +228,7 @@ class MarkerActions extends React.Component<Props, State> {
 
 				if (response) {
 					if (jumpToMarker && jump) {
-						const { success } = await HostApi.sidebarInstance.send(EditorSelectRangeRequestType, {
+						const { success } = await HostApi.instance.send(EditorSelectRangeRequestType, {
 							uri: response.textDocument.uri,
 							// Ensure we put the cursor at the right line (don't actually select the whole range)
 							selection: {
@@ -252,7 +252,7 @@ class MarkerActions extends React.Component<Props, State> {
 
 	handleClickJump = async event => {
 		event.preventDefault();
-		HostApi.sidebarInstance.send(TelemetryRequestType, {
+		HostApi.instance.send(TelemetryRequestType, {
 			eventName: "Jumped To Code",
 			properties: {},
 		});
@@ -264,7 +264,7 @@ class MarkerActions extends React.Component<Props, State> {
 		try {
 			const response = await this.getDocumentFromMarkerDebounced(marker.id, "jump");
 			if (response) {
-				const { success } = await HostApi.sidebarInstance.send(EditorSelectRangeRequestType, {
+				const { success } = await HostApi.instance.send(EditorSelectRangeRequestType, {
 					uri: response.textDocument.uri,
 					// Ensure we put the cursor at the right line (don't actually select the whole range)
 					selection: {
@@ -310,27 +310,27 @@ class MarkerActions extends React.Component<Props, State> {
 
 	handleClickApplyPatch = async (event, marker) => {
 		event.preventDefault();
-		HostApi.sidebarInstance.send(TelemetryRequestType, {
+		HostApi.instance.send(TelemetryRequestType, {
 			eventName: "Apply",
 			properties: { "Author?": this.props.isAuthor },
 		});
 		await this.jump(marker);
-		HostApi.sidebarInstance.send(ApplyMarkerRequestType, { marker });
+		HostApi.instance.send(ApplyMarkerRequestType, { marker });
 	};
 
 	handleClickCompare = (event, marker) => {
 		event.preventDefault();
 		event.stopPropagation();
-		HostApi.sidebarInstance.send(TelemetryRequestType, {
+		HostApi.instance.send(TelemetryRequestType, {
 			eventName: "Compare",
 			properties: { "Author?": this.props.isAuthor },
 		});
-		HostApi.sidebarInstance.send(CompareMarkerRequestType, { marker });
+		HostApi.instance.send(CompareMarkerRequestType, { marker });
 	};
 
 	handleClickOpenRevision = (event, marker) => {
 		event.preventDefault();
-		// HostApi.sidebarInstance.send(OpenRevisionMarkerRequestType, { marker });
+		// HostApi.instance.send(OpenRevisionMarkerRequestType, { marker });
 	};
 
 	getWarningMessage() {
@@ -523,14 +523,14 @@ class MarkerActions extends React.Component<Props, State> {
 			this.getDocumentFromMarkerDebounced(this.props.marker.id, "_toggleCodeHighlight")!.then(
 				info => {
 					if (info) {
-						HostApi.sidebarInstance.send(EditorHighlightRangeRequestType, {
+						HostApi.instance.send(EditorHighlightRangeRequestType, {
 							uri: info.textDocument.uri,
 							range: info.range,
 							highlight,
 						});
 						this._highlightDisposable = {
 							dispose() {
-								HostApi.sidebarInstance.send(EditorHighlightRangeRequestType, {
+								HostApi.instance.send(EditorHighlightRangeRequestType, {
 									uri: info.textDocument.uri,
 									range: info.range,
 									highlight: false,

@@ -302,7 +302,7 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 			} else if (!derivedState.reviewId) {
 				// if we're not creating a PR from a review, then get the current
 				// repo and branch from the editor
-				const response = await HostApi.sidebarInstance.send(GetReposScmRequestType, {
+				const response = await HostApi.instance.send(GetReposScmRequestType, {
 					inEditorOnly: true,
 					includeConnectedProviders: true,
 				});
@@ -330,11 +330,11 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 
 					let branchInfo;
 					if (newPullRequestBranch && newPullRequestBranch.name) {
-						branchInfo = await HostApi.sidebarInstance.send(GetBranchesRequestType, {
+						branchInfo = await HostApi.instance.send(GetBranchesRequestType, {
 							uri: newPullRequestBranch.repoPath,
 						});
 					} else {
-						branchInfo = await HostApi.sidebarInstance.send(GetBranchesRequestType, {
+						branchInfo = await HostApi.instance.send(GetBranchesRequestType, {
 							uri: panelRepo.folder.uri,
 						});
 					}
@@ -344,10 +344,7 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 					// FIXME if we kept track of the fork point, pass in the args.baseRefName here
 				}
 			}
-			const result = await HostApi.sidebarInstance.send(
-				CheckPullRequestPreconditionsRequestType,
-				args
-			);
+			const result = await HostApi.instance.send(CheckPullRequestPreconditionsRequestType, args);
 			if (result) {
 				setModel(result);
 			}
@@ -489,7 +486,7 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 
 		const disposables: { dispose(): void }[] = [];
 		disposables.push(
-			HostApi.sidebarInstance.on(DidChangeDataNotificationType, (e: DidChangeDataNotification) => {
+			HostApi.instance.on(DidChangeDataNotificationType, (e: DidChangeDataNotification) => {
 				if (pauseDataNotifications.current) return;
 				if (e.type === ChangeDataType.Commits) {
 					fetchPreconditionDataRef.current(true);
@@ -526,7 +523,7 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 		setPreconditionWarning({ message: "", type: "", url: "", id: "" });
 
 		try {
-			const result = await HostApi.sidebarInstance.send(CreatePullRequestRequestType, {
+			const result = await HostApi.instance.send(CreatePullRequestRequestType, {
 				...pending!,
 				reviewId: derivedState.reviewId,
 				providerId: prProviderId,
@@ -556,7 +553,7 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 					id: result.error.id || "",
 				});
 			} else {
-				HostApi.sidebarInstance.track("Pull Request Created", {
+				HostApi.instance.track("Pull Request Created", {
 					Service: prProviderId,
 					"Associated Issue": addressesStatus,
 				});
@@ -593,7 +590,7 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 		if (success) {
 			// create a small buffer for the provider to incorporate this change before re-fetching
 			setTimeout(() => {
-				HostApi.sidebarInstance.emit(DidChangeDataNotificationType.method, {
+				HostApi.instance.emit(DidChangeDataNotificationType.method, {
 					type: ChangeDataType.PullRequests,
 					data: {
 						prProviderId: prProviderId,
@@ -642,7 +639,7 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 			if (selectedRepo && selectedRepo.id) {
 				repoId = selectedRepo.id;
 			} else {
-				const response = await HostApi.sidebarInstance.send(GetReposScmRequestType, {
+				const response = await HostApi.instance.send(GetReposScmRequestType, {
 					inEditorOnly: true,
 					includeConnectedProviders: true,
 				});
@@ -654,7 +651,7 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 			}
 		}
 
-		HostApi.sidebarInstance
+		HostApi.instance
 			.send(CheckPullRequestPreconditionsRequestType, {
 				providerId: prProviderId,
 				reviewId: derivedState.reviewId,
@@ -713,7 +710,7 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 
 		setIsLoadingForkInfo(true);
 		try {
-			const response = (await HostApi.sidebarInstance.send(ExecuteThirdPartyRequestUntypedType, {
+			const response = (await HostApi.instance.send(ExecuteThirdPartyRequestUntypedType, {
 				method: "getForkedRepos",
 				providerId: providerId,
 				params: { remote: remoteUrl },
@@ -1232,7 +1229,7 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 											dispatch(setCurrentPullRequest(model.provider.id, id));
 										}
 									} else {
-										HostApi.sidebarInstance.send(OpenUrlRequestType, { url: url! });
+										HostApi.instance.send(OpenUrlRequestType, { url: url! });
 									}
 								}}
 							>
@@ -1295,7 +1292,7 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 	}
 
 	const getLatestCommit = async () => {
-		const result = await HostApi.sidebarInstance.send(GetLatestCommitScmRequestType, {
+		const result = await HostApi.instance.send(GetLatestCommitScmRequestType, {
 			repoId: pending?.repoId!,
 			branch: pending?.headRefName!,
 		});
@@ -1315,7 +1312,7 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 	const fetchBranchCommitsStatus = async () => {
 		if (!pending?.repoId) return;
 
-		const commitsStatus = await HostApi.sidebarInstance.send(FetchBranchCommitsStatusRequestType, {
+		const commitsStatus = await HostApi.instance.send(FetchBranchCommitsStatusRequestType, {
 			repoId: pending?.repoId!,
 			branchName: (pending?.baseRefName || pending?.headRefName)!,
 		});
@@ -1358,7 +1355,7 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 	const fetchFilesChanged = async (repoId: string, baseRefName: string, headRefName: string) => {
 		setIsLoadingDiffs(true);
 		try {
-			const response = await HostApi.sidebarInstance.send(DiffBranchesRequestType, {
+			const response = await HostApi.instance.send(DiffBranchesRequestType, {
 				repoId: repoId,
 				baseRef: baseRefName,
 				headRef: headRefName,
@@ -1550,7 +1547,7 @@ export const CreatePullRequestPanel = (props: { closePanel: MouseEventHandler<El
 																			key: name,
 																			action: async () => {
 																				try {
-																					const response = (await HostApi.sidebarInstance.send(
+																					const response = (await HostApi.instance.send(
 																						ReadTextFileRequestType,
 																						{
 																							path: `${name}.md`,
@@ -1791,7 +1788,7 @@ export const PullLatest = (props: {
 		setPullSubmitting(true);
 
 		try {
-			await HostApi.sidebarInstance.send(FetchRemoteBranchRequestType, {
+			await HostApi.instance.send(FetchRemoteBranchRequestType, {
 				repoId: props.repoId!,
 				branchName: props.branchName!,
 			});

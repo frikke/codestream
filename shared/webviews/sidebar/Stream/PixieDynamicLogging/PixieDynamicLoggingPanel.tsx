@@ -61,7 +61,7 @@ export const PixieDynamicLoggingPanel = () => {
 	const [pod, setPod] = React.useState<PixiePod | undefined>();
 
 	useDidMount(() => {
-		HostApi.sidebarInstance.send(TelemetryRequestType, {
+		HostApi.instance.send(TelemetryRequestType, {
 			eventName: "Pixie Logging Selected",
 			properties: {},
 		});
@@ -229,11 +229,11 @@ const PixieDynamicLogging = props => {
 		setMinutes(time);
 		if (derivedState.currentPixieDynamicLoggingOptions) {
 			setIsLoading(true);
-			HostApi.sidebarInstance.send(TelemetryRequestType, {
+			HostApi.instance.send(TelemetryRequestType, {
 				eventName: "Pixie Logging Started",
 				properties: {},
 			});
-			const result: PixieDynamicLoggingReponse = await HostApi.sidebarInstance.send(
+			const result: PixieDynamicLoggingReponse = await HostApi.instance.send(
 				PixieDynamicLoggingRequestType,
 				{
 					accountId: props.account.id,
@@ -250,7 +250,7 @@ const PixieDynamicLogging = props => {
 
 	const stopLogging = async () => {
 		setIsCancelling(true);
-		HostApi.sidebarInstance.send(TelemetryRequestType, {
+		HostApi.instance.send(TelemetryRequestType, {
 			eventName: "Pixie Logging Stopped",
 			properties: {},
 		});

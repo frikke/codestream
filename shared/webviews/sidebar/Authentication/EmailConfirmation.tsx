@@ -67,9 +67,9 @@ export const EmailConfirmation = (connect() as any)((props: Props) => {
 			event.preventDefault();
 			setEmailSent(false);
 			if (props.confirmationType === "signup") {
-				await HostApi.sidebarInstance.send(RegisterUserRequestType, props.registrationParams);
+				await HostApi.instance.send(RegisterUserRequestType, props.registrationParams);
 			} else {
-				await HostApi.sidebarInstance.send(GenerateLoginCodeRequestType, { email: props.email });
+				await HostApi.instance.send(GenerateLoginCodeRequestType, { email: props.email });
 			}
 			setEmailSent(true);
 		},
@@ -111,7 +111,7 @@ export const EmailConfirmation = (connect() as any)((props: Props) => {
 				setIsLoading(false);
 			}
 		} else {
-			const result = await HostApi.sidebarInstance.send(ConfirmRegistrationRequestType, {
+			const result = await HostApi.instance.send(ConfirmRegistrationRequestType, {
 				email: props.email,
 				errorGroupGuid: derivedState.errorGroupGuid,
 				confirmationCode: code,
@@ -127,7 +127,7 @@ export const EmailConfirmation = (connect() as any)((props: Props) => {
 			}
 			switch (result.status) {
 				case LoginResult.NotInCompany: {
-					HostApi.sidebarInstance.track("Email Confirmed");
+					HostApi.instance.track("Email Confirmed");
 					props.dispatch(
 						goToCompanyCreation({
 							...result,
@@ -139,13 +139,13 @@ export const EmailConfirmation = (connect() as any)((props: Props) => {
 					break;
 				}
 				case LoginResult.NotOnTeam: {
-					HostApi.sidebarInstance.track("Email Confirmed");
+					HostApi.instance.track("Email Confirmed");
 					props.dispatch(goToTeamCreation({ token: result.token, email: props.email }));
 
 					break;
 				}
 				case LoginResult.Success: {
-					HostApi.sidebarInstance.track("Email Confirmed");
+					HostApi.instance.track("Email Confirmed");
 					try {
 						props.dispatch(
 							completeSignup(props.email, result.token!, props.teamId, {

@@ -123,7 +123,7 @@ export const MethodLevelTelemetryPanel = () => {
 				return;
 			}
 
-			const response = await HostApi.sidebarInstance.send(GetMethodLevelTelemetryRequestType, {
+			const response = await HostApi.instance.send(GetMethodLevelTelemetryRequestType, {
 				newRelicEntityGuid: newRelicEntityGuid,
 				metricTimesliceNameMapping:
 					derivedState.currentMethodLevelTelemetry.metricTimesliceNameMapping,
@@ -145,7 +145,7 @@ export const MethodLevelTelemetryPanel = () => {
 	};
 
 	useDidMount(() => {
-		HostApi.sidebarInstance.track("MLT Codelens Clicked", {
+		HostApi.instance.track("MLT Codelens Clicked", {
 			"NR Account ID": derivedState.currentMethodLevelTelemetry?.newRelicAccountId + "",
 			Language: derivedState.currentMethodLevelTelemetry.languageId,
 		});
@@ -192,11 +192,11 @@ export const MethodLevelTelemetryPanel = () => {
 						title="Code-Level Metrics"
 						label="Select the service on New Relic that is built from this repository to see how it's performing."
 						onSuccess={async e => {
-							HostApi.sidebarInstance.track("MLT Repo Association", {
+							HostApi.instance.track("MLT Repo Association", {
 								"NR Account ID": derivedState.currentMethodLevelTelemetry.newRelicAccountId + "",
 							});
-							HostApi.sidebarInstance.send(RefreshEditorsCodeLensRequestType, {});
-							HostApi.sidebarInstance.emit(DidChangeObservabilityDataNotificationType.method, {
+							HostApi.instance.send(RefreshEditorsCodeLensRequestType, {});
+							HostApi.instance.emit(DidChangeObservabilityDataNotificationType.method, {
 								type: "RepositoryAssociation",
 							});
 							dispatch(closeAllPanels());
@@ -212,7 +212,7 @@ export const MethodLevelTelemetryPanel = () => {
 								type="checkbox"
 								checked={!showGoldenSignalsInEditor}
 								onClick={e => {
-									HostApi.sidebarInstance.send(UpdateConfigurationRequestType, {
+									HostApi.instance.send(UpdateConfigurationRequestType, {
 										name: "showGoldenSignalsInEditor",
 										value: !showGoldenSignalsInEditor,
 									});
@@ -338,9 +338,9 @@ export const MethodLevelTelemetryPanel = () => {
 																}
 
 																// update the IDEs
-																HostApi.sidebarInstance.send(RefreshEditorsCodeLensRequestType, {});
+																HostApi.instance.send(RefreshEditorsCodeLensRequestType, {});
 																// tell other parts of the webview that we updated this
-																HostApi.sidebarInstance.emit(
+																HostApi.instance.emit(
 																	DidChangeObservabilityDataNotificationType.method,
 																	{
 																		type: "Entity",
@@ -371,10 +371,10 @@ export const MethodLevelTelemetryPanel = () => {
 														<Link
 															onClick={e => {
 																e.preventDefault();
-																HostApi.sidebarInstance.track("Open Service Summary on NR", {
+																HostApi.instance.track("Open Service Summary on NR", {
 																	Section: "Code-level Metrics",
 																});
-																HostApi.sidebarInstance.send(OpenUrlRequestType, {
+																HostApi.instance.send(OpenUrlRequestType, {
 																	url: telemetryResponse.newRelicUrl!,
 																});
 															}}
@@ -415,7 +415,7 @@ export const MethodLevelTelemetryPanel = () => {
 															onClick={async e => {
 																try {
 																	setIsLoadingErrorGroupGuid(indexedErrorGroupGuid);
-																	const response = (await HostApi.sidebarInstance.send(
+																	const response = (await HostApi.instance.send(
 																		GetObservabilityErrorGroupMetadataRequestType,
 																		{ errorGroupGuid: _.errorGroupGuid }
 																	)) as GetObservabilityErrorGroupMetadataResponse;

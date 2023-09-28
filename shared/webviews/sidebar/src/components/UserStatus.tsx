@@ -52,7 +52,7 @@ export function UserStatus(props: { user: CSUser; className?: string }) {
 
 	const handleClick = () => {
 		if (status.ticketUrl) {
-			HostApi.sidebarInstance.send(OpenUrlRequestType, {
+			HostApi.instance.send(OpenUrlRequestType, {
 				url: status[derivedState.teamId].ticketUrl,
 			});
 		}

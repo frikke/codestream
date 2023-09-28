@@ -296,7 +296,7 @@ export const IntegrationsPanel = () => {
 
 	useDidMount(() => {
 		if (derivedState.webviewFocused)
-			HostApi.sidebarInstance.track("Page Viewed", { "Page Name": "Integrations" });
+			HostApi.instance.track("Page Viewed", { "Page Name": "Integrations" });
 	});
 
 	if (propsForPrePRProviderInfoModal) {

@@ -158,7 +158,6 @@ export async function activate(context: ExtensionContext) {
 
 	// this plumping lives here rather than the WebviewController as it needs to get activated here
 	webviewSidebar = new CodeStreamWebviewSidebar(Container.session, context.extensionUri);
-	webviewEditor = new WebviewEditor(Container.session, context.extensionUri);
 
 	context.subscriptions.push(
 		window.registerWebviewViewProvider(CodeStreamWebviewSidebar.viewType, webviewSidebar, {
@@ -167,6 +166,7 @@ export async function activate(context: ExtensionContext) {
 			}
 		})
 	);
+	webviewEditor = new WebviewEditor(Container.session, context.extensionUri);
 
 	context.subscriptions.push(
 		window.registerWebviewViewProvider(WebviewEditor.viewType, webviewEditor, {

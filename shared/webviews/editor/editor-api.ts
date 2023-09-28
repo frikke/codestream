@@ -2,28 +2,24 @@ import { TelemetryRequestType } from "@codestream/protocols/agent";
 import { URI } from "vscode-uri";
 
 import { NotificationType, RequestType } from "vscode-jsonrpc";
-import {
-	HostDidChangeActiveEditorNotification,
-	HostDidChangeActiveEditorNotificationType,
-	HostDidChangeEditorSelectionNotification,
-	HostDidChangeEditorSelectionNotificationType,
-	HostDidChangeEditorVisibleRangesNotification,
-	HostDidChangeEditorVisibleRangesNotificationType,
-	NewCodemarkNotification,
-	NewCodemarkNotificationType,
-	NewReviewNotification,
-	NewReviewNotificationType,
-} from "./ipc/sidebar.protocol";
-import { AnyObject, Disposable, shortUuid } from "./utils";
+
+import { AnyObject, Disposable, shortUuid } from "../sidebar/utils";
+// import {
+// 	findHost,
+// 	IpcHost,
+// 	isIpcRequestMessage,
+// 	isIpcResponseMessage,
+// 	WebviewIpcMessage,
+// } from "@codestream/sidebar/ipc/sidebar.protocol.common";
+import { HistoryCounter } from "@codestream/utils/system/historyCounter";
+
+import { roundDownExponentially } from "@codestream/utils/system/math";
 import {
 	IpcHost,
+	WebviewIpcMessage,
 	isIpcRequestMessage,
 	isIpcResponseMessage,
-	WebviewIpcMessage,
-} from "@codestream/sidebar/ipc/sidebar.protocol.common";
-import { HistoryCounter } from "@codestream/utils/system/historyCounter";
-import { logError } from "@codestream/sidebar/logger";
-import { roundDownExponentially } from "@codestream/utils/system/math";
+} from "../sidebar/ipc/sidebar.protocol.common";
 
 type NotificationParamsOf<NT> = NT extends NotificationType<infer N, any> ? N : never;
 export type RequestParamsOf<RT> = RT extends RequestType<infer R, any, any, any> ? R : never;
@@ -62,45 +58,7 @@ class StaleRequestGroup {
 const normalizeNotificationsMap = new Map<
 	NotificationType<any, any>,
 	(listener: Listener) => Listener
->([
-	[
-		HostDidChangeActiveEditorNotificationType,
-		listener => (e: HostDidChangeActiveEditorNotification) => {
-			if (e.editor) {
-				e.editor.uri = URI.parse(e.editor.uri).toString(true);
-			}
-			return listener(e);
-		},
-	],
-	[
-		HostDidChangeEditorSelectionNotificationType,
-		listener => (e: HostDidChangeEditorSelectionNotification) => {
-			e.uri = URI.parse(e.uri).toString(true);
-			return listener(e);
-		},
-	],
-	[
-		HostDidChangeEditorVisibleRangesNotificationType,
-		listener => (e: HostDidChangeEditorVisibleRangesNotification) => {
-			e.uri = URI.parse(e.uri).toString(true);
-			return listener(e);
-		},
-	],
-	[
-		NewCodemarkNotificationType,
-		listener => (e: NewCodemarkNotification) => {
-			e.uri = e.uri ? URI.parse(e.uri).toString(true) : undefined;
-			return listener(e);
-		},
-	],
-	[
-		NewReviewNotificationType,
-		listener => (e: NewReviewNotification) => {
-			e.uri = e.uri ? URI.parse(e.uri).toString(true) : undefined;
-			return listener(e);
-		},
-	],
-]);
+>([]);
 
 function normalizeListener<NT extends NotificationType<any, any>>(
 	type: NT,
@@ -197,7 +155,7 @@ export class RequestApiManager {
 			}
 		}
 		if (report) {
-			logError(report);
+			// logError(report);
 		}
 	}
 
@@ -234,20 +192,21 @@ export class RequestApiManager {
 		// A rounded error allows the count to stay the same and the duplicate error suppression to work in the agent
 		const rounded = roundDownExponentially(count, ALERT_THRESHOLD);
 		if (count > ALERT_THRESHOLD && identifier != "codestream/reporting/message") {
-			logError(new Error(`More than ${rounded} calls pending for ${identifier}`));
+			//logError(new Error(`More than ${rounded} calls pending for ${identifier}`));
 		}
 		return this.pendingRequests.set(key, value);
 	}
 }
 
-declare function acquireCodestreamHostForSidebar(): IpcHost;
+declare function acquireCodestreamHostForEditor(): IpcHost;
 
 let host: IpcHost;
 const findHost = (webview: string): IpcHost => {
 	//if (host) return host;
 	try {
-		if (webview === "sidebar") {
-			host = acquireCodestreamHostForSidebar();
+		if (webview === "editor") {
+			host = acquireCodestreamHostForEditor();
+			return host;
 		}
 	} catch (e) {
 		throw new Error("Host needs to provide global `acquireCodestreamHost` function");
@@ -259,21 +218,21 @@ export class HostApi extends EventEmitter {
 	private apiManager = new RequestApiManager();
 	private port: IpcHost;
 
-	private static _sidebarInstance: HostApi;
-	static get instance(): HostApi {
-		if (this._sidebarInstance === undefined) {
-			this._sidebarInstance = new HostApi(findHost("sidebar"));
-		}
-		return this._sidebarInstance;
-	}
-
-	// private static _editorInstance: HostApi;
-	// static locator(): HostApi {
-	// 	if (this._editorInstance === undefined) {
-	// 		this._editorInstance = new HostApi(findHost("editor"));
+	// private static _sidebarInstance: HostApi;
+	// static get instance(): HostApi {
+	// 	if (this._sidebarInstance === undefined) {
+	// 		this._sidebarInstance = new HostApi(findHost("sidebar"));
 	// 	}
-	// 	return this._editorInstance;
+	// 	return this._sidebarInstance;
 	// }
+
+	private static _editorInstance: HostApi;
+	static locator(): HostApi {
+		if (this._editorInstance === undefined) {
+			this._editorInstance = new HostApi(findHost("editor"));
+		}
+		return this._editorInstance;
+	}
 
 	protected constructor(port: any) {
 		super();
@@ -350,35 +309,6 @@ export class HostApi extends EventEmitter {
 		this.send(TelemetryRequestType, {
 			eventName,
 			properties,
-		});
-	}
-}
-
-export class Server {
-	static get<Res = any>(url: string, paramData?: { [key: string]: any }): Promise<Res> {
-		return HostApi.instance.send(new RequestType<any, Res, void, void>("codestream/api/get"), {
-			url: url,
-			paramData: paramData,
-		});
-	}
-
-	static post<Res = any>(url: string, body?: any): Promise<Res> {
-		return HostApi.instance.send(new RequestType<any, Res, void, void>("codestream/api/post"), {
-			url: url,
-			body: body,
-		});
-	}
-
-	static put<Res = any>(url: string, body?: any): Promise<Res> {
-		return HostApi.instance.send(new RequestType<any, Res, void, void>("codestream/api/put"), {
-			url: url,
-			body: body,
-		});
-	}
-
-	static delete<Res = any>(url: string): Promise<Res> {
-		return HostApi.instance.send(new RequestType<any, Res, void, void>("codestream/api/delete"), {
-			url: url,
 		});
 	}
 }

@@ -155,7 +155,7 @@ export function SharingModal(props: SharingModalProps) {
 		setState({ name: "submitted" });
 		try {
 			if (!valuesRef.current) throw new Error();
-			const { post, ts, permalink, channelId } = await HostApi.sidebarInstance.send(
+			const { post, ts, permalink, channelId } = await HostApi.instance.send(
 				CreateThirdPartyPostRequestType,
 				{
 					providerId: valuesRef.current!.providerId,
@@ -191,7 +191,7 @@ export function SharingModal(props: SharingModalProps) {
 				const sharedTo = props.post.sharedTo || [];
 				sharedTo.push(newTarget);
 
-				const a = await HostApi.sidebarInstance.send(UpdatePostSharingDataRequestType, {
+				const a = await HostApi.instance.send(UpdatePostSharingDataRequestType, {
 					postId: props.post.id,
 					sharedTo,
 				});
@@ -208,7 +208,7 @@ export function SharingModal(props: SharingModalProps) {
 			) {
 				trackingData["Error Group ID"] = props.codeError.objectId!;
 			}
-			HostApi.sidebarInstance.track(`Shared ${shareTargetType}`, trackingData);
+			HostApi.instance.track(`Shared ${shareTargetType}`, trackingData);
 
 			setState({ name: "success" });
 		} catch (error) {

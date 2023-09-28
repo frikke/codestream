@@ -137,7 +137,7 @@ export const ChangesetFileList = (props: {
 	}
 
 	const saveVisitedFiles = (newVisitedFiles, key) => {
-		HostApi.sidebarInstance.send(WriteTextFileRequestType, {
+		HostApi.instance.send(WriteTextFileRequestType, {
 			path: `review-${review.id}-${key}.json`,
 			contents: JSON.stringify(newVisitedFiles, null, 4),
 		});
@@ -147,7 +147,7 @@ export const ChangesetFileList = (props: {
 
 	useEffect(() => {
 		(async () => {
-			const response = (await HostApi.sidebarInstance.send(ReadTextFileRequestType, {
+			const response = (await HostApi.instance.send(ReadTextFileRequestType, {
 				path: `review-${review.id}-${reviewCheckpointKey}.json`,
 			})) as any;
 
@@ -204,8 +204,8 @@ export const ChangesetFileList = (props: {
 	// if there is a better solution here....
 	useEffect(() => {
 		const disposables = [
-			HostApi.sidebarInstance.on(ShowNextChangedFileNotificationType, nextFile),
-			HostApi.sidebarInstance.on(ShowPreviousChangedFileNotificationType, prevFile),
+			HostApi.instance.on(ShowNextChangedFileNotificationType, nextFile),
+			HostApi.instance.on(ShowPreviousChangedFileNotificationType, prevFile),
 		];
 
 		return () => disposables.forEach(disposable => disposable.dispose());
@@ -427,7 +427,7 @@ export const ChangesetFileList = (props: {
 			visitFile(visitedKey, index);
 
 			if (props.withTelemetry && review.id) {
-				HostApi.sidebarInstance.track("Review Diff Viewed", {
+				HostApi.instance.track("Review Diff Viewed", {
 					"Review ID": review.id,
 				});
 			}
@@ -443,13 +443,13 @@ export const ChangesetFileList = (props: {
 
 			if (f.repoId && props.repoRoots) {
 				const repoRoot = props.repoRoots[f.repoId];
-				void HostApi.sidebarInstance.send(EditorRevealRangeRequestType, {
+				void HostApi.instance.send(EditorRevealRangeRequestType, {
 					uri: path.join("file://", repoRoot, f.file),
 					range: Range.create(0, 0, 0, 0),
 				});
 
 				if (props.withTelemetry && review.id) {
-					HostApi.sidebarInstance.track("Review File Viewed", {
+					HostApi.instance.track("Review File Viewed", {
 						"Review ID": review.id,
 					});
 				}

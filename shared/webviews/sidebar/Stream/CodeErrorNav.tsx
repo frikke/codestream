@@ -376,7 +376,7 @@ export function CodeErrorNav(props: Props) {
 		try {
 			let errorGroupResult: GetNewRelicErrorGroupResponse | undefined = undefined;
 			if (isConnected || derivedState.isConnectedToNewRelic) {
-				errorGroupResult = await HostApi.sidebarInstance.send(GetNewRelicErrorGroupRequestType, {
+				errorGroupResult = await HostApi.instance.send(GetNewRelicErrorGroupRequestType, {
 					errorGroupGuid: errorGroupGuidToUse,
 					occurrenceId: occurrenceIdToUse,
 					entityGuid: entityIdToUse,
@@ -450,19 +450,16 @@ export function CodeErrorNav(props: Props) {
 							title: "Which Repository?",
 							description: `Select the repository that this error is associated with so that we can take you to the code. If the repository doesn't appear in the list, open it in your IDE.`,
 						});
-						HostApi.sidebarInstance.track("Page Viewed", { "Page Name": "NR Repo Association" });
+						HostApi.instance.track("Page Viewed", { "Page Name": "NR Repo Association" });
 						return;
 					}
 				}
 
 				if (targetRemote) {
 					// we have a remote, try to find a repo.
-					const normalizationResponse = (await HostApi.sidebarInstance.send(
-						NormalizeUrlRequestType,
-						{
-							url: targetRemote,
-						}
-					)) as NormalizeUrlResponse;
+					const normalizationResponse = (await HostApi.instance.send(NormalizeUrlRequestType, {
+						url: targetRemote,
+					})) as NormalizeUrlResponse;
 					if (!normalizationResponse || !normalizationResponse.normalizedUrl) {
 						const title = "Error";
 						const description = `Could not find a matching repo for the remote ${targetRemote}`;
@@ -480,7 +477,7 @@ export function CodeErrorNav(props: Props) {
 						return;
 					}
 
-					const reposResponse = (await HostApi.sidebarInstance.send(MatchReposRequestType, {
+					const reposResponse = (await HostApi.instance.send(MatchReposRequestType, {
 						repos: [
 							{
 								remotes: [normalizationResponse.normalizedUrl],
@@ -503,7 +500,7 @@ export function CodeErrorNav(props: Props) {
 							targetRemote,
 							timestamp: derivedState.currentCodeErrorData?.timestamp,
 						});
-						HostApi.sidebarInstance.track("Page Viewed", { "Page Name": "NR Repo Not Open" });
+						HostApi.instance.track("Page Viewed", { "Page Name": "NR Repo Not Open" });
 						return;
 					}
 					repoId = reposResponse.repos[0].id!;
@@ -629,7 +626,7 @@ export function CodeErrorNav(props: Props) {
 					? "Warning"
 					: "Populated";
 			}
-			HostApi.sidebarInstance.track("Error Opened", trackingData);
+			HostApi.instance.track("Error Opened", trackingData);
 		} catch (ex) {
 			console.warn(ex);
 			const title = "Unexpected Error";
@@ -808,7 +805,7 @@ export function CodeErrorNav(props: Props) {
 							errorGroupGuid: derivedState.codeError?.objectId || pendingErrorGroupGuid!,
 						};
 						if (!skipTracking) {
-							HostApi.sidebarInstance.track("NR Multi Repo Selected", {
+							HostApi.instance.track("NR Multi Repo Selected", {
 								"Error Group ID": payload.errorGroupGuid,
 							});
 						}
@@ -846,7 +843,7 @@ export function CodeErrorNav(props: Props) {
 								setRepoAssociationError(undefined);
 								resolve(true);
 
-								HostApi.sidebarInstance.track("NR Repo Association", {
+								HostApi.instance.track("NR Repo Association", {
 									"Error Group ID": payload.errorGroupGuid,
 								});
 

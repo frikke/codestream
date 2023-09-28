@@ -153,23 +153,23 @@ export class SimpleCodemarksForFile extends Component<Props, State> {
 		this._mounted = true;
 
 		this.disposables.push(
-			HostApi.sidebarInstance.on(DidChangeDocumentMarkersNotificationType, ({ textDocument }) => {
+			HostApi.instance.on(DidChangeDocumentMarkersNotificationType, ({ textDocument }) => {
 				if (this.props.textEditorUri === textDocument.uri) {
 					this.props.fetchDocumentMarkers(textDocument.uri);
 				}
 			}),
-			HostApi.sidebarInstance.on(NewCodemarkNotificationType, e => {
+			HostApi.instance.on(NewCodemarkNotificationType, e => {
 				this.currentPostEntryPoint = e.source as PostEntryPoint;
 				if (!this._mounted) {
 					console.debug(
 						`<InlineCodemarks/>: notification ${NewCodemarkNotificationType.method} received but the component is not mounted yet so the notification will be re-emitted`
 					);
 					Promise.resolve().then(() => {
-						HostApi.sidebarInstance.emit(NewCodemarkNotificationType.method, e);
+						HostApi.instance.emit(NewCodemarkNotificationType.method, e);
 					});
 				}
 			}),
-			HostApi.sidebarInstance.on(DidChangeDataNotificationType, async (e: any) => {
+			HostApi.instance.on(DidChangeDataNotificationType, async (e: any) => {
 				if (e.type === ChangeDataType.Commits && e.data && e.data.type === "change") {
 					this.onFileChanged(false, this.onFileChangedError, true);
 				}
@@ -233,12 +233,12 @@ export class SimpleCodemarksForFile extends Component<Props, State> {
 			this.setState({ isLoading: true });
 
 			if (textEditorUri) {
-				scmInfo = await HostApi.sidebarInstance.send(GetFileScmInfoRequestType, {
+				scmInfo = await HostApi.instance.send(GetFileScmInfoRequestType, {
 					uri: textEditorUri,
 				});
 			}
 
-			const reposResponse = await HostApi.sidebarInstance.send(GetReposScmRequestType, {
+			const reposResponse = await HostApi.instance.send(GetReposScmRequestType, {
 				inEditorOnly: true,
 			});
 

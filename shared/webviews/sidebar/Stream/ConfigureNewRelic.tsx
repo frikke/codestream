@@ -127,7 +127,7 @@ export default function ConfigureNewRelic(props: Props) {
 		}
 		setAlreadyConnected(true);
 		let isOnSubmittedPromise = false;
-		HostApi.sidebarInstance.track("NR Connected", {
+		HostApi.instance.track("NR Connected", {
 			"Connection Location": props.originLocation,
 		});
 		if (props.onSubmited) {
@@ -141,7 +141,7 @@ export default function ConfigureNewRelic(props: Props) {
 		}
 
 		if (!props.disablePostConnectOnboarding) {
-			const reposResponse = await HostApi.sidebarInstance.send(GetReposScmRequestType, {
+			const reposResponse = await HostApi.instance.send(GetReposScmRequestType, {
 				inEditorOnly: true,
 				guessProjectTypes: true,
 			});
@@ -197,7 +197,7 @@ export default function ConfigureNewRelic(props: Props) {
 	};
 
 	const onClickSignup = async campaign => {
-		const { token, baseLandingUrl } = await HostApi.sidebarInstance.send(
+		const { token, baseLandingUrl } = await HostApi.instance.send(
 			GetNewRelicSignupJwtTokenRequestType,
 			{}
 		);
@@ -207,7 +207,7 @@ export default function ConfigureNewRelic(props: Props) {
 			`&utm_source=codestream` +
 			`&utm_medium=${derivedState.ide.name}` +
 			`&utm_campaign=${campaign}`;
-		await HostApi.sidebarInstance.send(OpenUrlRequestType, { url });
+		await HostApi.instance.send(OpenUrlRequestType, { url });
 	};
 
 	if (derivedState.didConnect) {
@@ -272,7 +272,7 @@ export default function ConfigureNewRelic(props: Props) {
 								<Link
 									onClick={e => {
 										e.preventDefault();
-										HostApi.sidebarInstance.track("NR Get API Key");
+										HostApi.instance.track("NR Get API Key");
 										onClickSignup("nr_getapikey");
 									}}
 								>
@@ -289,7 +289,7 @@ export default function ConfigureNewRelic(props: Props) {
 								className="row-button"
 								onClick={e => {
 									e.preventDefault();
-									HostApi.sidebarInstance.track("NR Signup Initiated");
+									HostApi.instance.track("NR Signup Initiated");
 									onClickSignup("nr_signup");
 								}}
 							>

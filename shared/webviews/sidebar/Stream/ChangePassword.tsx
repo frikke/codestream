@@ -21,7 +21,7 @@ export const ChangePassword = props => {
 
 	const savePassword = async () => {
 		setLoading(true);
-		HostApi.sidebarInstance.track("Password Changed", {});
+		HostApi.instance.track("Password Changed", {});
 		// @ts-ignore
 		// const result = await dispatch(setUserPassword(oldPassword, newPassword2));
 		setLoading(false);

@@ -125,7 +125,7 @@ export const ObservabilityErrorDropdown = React.memo((props: Props) => {
 											onClick={async e => {
 												try {
 													setIsLoadingErrorGroupGuid(indexedErrorGroupGuid);
-													const response = (await HostApi.sidebarInstance.send(
+													const response = (await HostApi.instance.send(
 														GetObservabilityErrorGroupMetadataRequestType,
 														{ errorGroupGuid: err.errorGroupGuid }
 													)) as GetObservabilityErrorGroupMetadataResponse;

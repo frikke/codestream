@@ -909,7 +909,7 @@ export const IssueList = React.memo((props: React.PropsWithChildren<IssueListPro
 			setTestCards(undefined);
 			setLoadingTest(true);
 			const id = addingCustomFilterForProvider ? addingCustomFilterForProvider.id : "";
-			const response = await HostApi.sidebarInstance.send(FetchThirdPartyCardsRequestType, {
+			const response = await HostApi.instance.send(FetchThirdPartyCardsRequestType, {
 				customFilter: newCustomFilter,
 				providerId: id,
 			});
@@ -1226,7 +1226,7 @@ export const IssueList = React.memo((props: React.PropsWithChildren<IssueListPro
 							key={card.key}
 							onClick={() => {
 								selectCard(card);
-								HostApi.sidebarInstance.track("StartWork Form Opened", {
+								HostApi.instance.track("StartWork Form Opened", {
 									"Opened Via": "Selected Ticket",
 								});
 							}}
@@ -1278,7 +1278,7 @@ export const IssueList = React.memo((props: React.PropsWithChildren<IssueListPro
 											if (card.url) {
 												e.stopPropagation();
 												e.preventDefault();
-												HostApi.sidebarInstance.send(OpenUrlRequestType, {
+												HostApi.instance.send(OpenUrlRequestType, {
 													url: card.url,
 												});
 											}

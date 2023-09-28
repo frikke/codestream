@@ -54,7 +54,7 @@ document.body.addEventListener(
 		e.stopPropagation();
 		e.stopImmediatePropagation();
 
-		HostApi.sidebarInstance.send(LiveShareJoinSessionRequestType, {
+		HostApi.instance.send(LiveShareJoinSessionRequestType, {
 			url: (e.target as HTMLAnchorElement).href
 		});
 	},

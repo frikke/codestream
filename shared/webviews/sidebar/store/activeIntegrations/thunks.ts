@@ -54,7 +54,7 @@ const _fetchCards =
 				activeProviders.map(async provider => {
 					try {
 						const filterCustom = getFilterCustom(startWorkPreferences, provider.id);
-						const response = await HostApi.sidebarInstance.send(FetchThirdPartyCardsRequestType, {
+						const response = await HostApi.instance.send(FetchThirdPartyCardsRequestType, {
 							customFilter: filterCustom.selected,
 							providerId: provider.id,
 						});
@@ -93,7 +93,7 @@ export const _fetchBoards =
 			await Promise.all(
 				activeProviders.map(async provider => {
 					try {
-						const response = await HostApi.sidebarInstance.send(FetchThirdPartyBoardsRequestType, {
+						const response = await HostApi.instance.send(FetchThirdPartyBoardsRequestType, {
 							providerId: provider.id,
 							force: force,
 						});

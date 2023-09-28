@@ -88,7 +88,7 @@ export function CompanyCreation(props: {
 	const onClickTryAnother = useCallback(async (event: React.FormEvent) => {
 		event.preventDefault();
 
-		HostApi.sidebarInstance.track("Try Another Email", {
+		HostApi.instance.track("Try Another Email", {
 			"Discarded Email": props.email,
 			"Auth Provider": providerName,
 		});
@@ -163,7 +163,7 @@ export function CompanyCreation(props: {
 		if (!companiesToJoin || !companiesToJoin.length) {
 			createOrganization();
 		} else {
-			HostApi.sidebarInstance.track("Organization Options Presented", {
+			HostApi.instance.track("Organization Options Presented", {
 				"Domain Orgs": organizationsByDomain && organizationsByDomain.length ? true : false,
 				"Invite Orgs": organizationsByInvite && organizationsByInvite.length ? true : false,
 				"Auth Provider": providerName,
@@ -190,10 +190,10 @@ export function CompanyCreation(props: {
 			setIsCreatingOrg(true);
 			setInitialLoad(false);
 			try {
-				const { team } = await HostApi.sidebarInstance.send(CreateCompanyRequestType, {
+				const { team } = await HostApi.instance.send(CreateCompanyRequestType, {
 					name: organizationSettings.companyName!,
 				});
-				HostApi.sidebarInstance.track("New Organization Created", {
+				HostApi.instance.track("New Organization Created", {
 					"Domain Joining": props.isWebmail ? "Not Available" : "Off",
 					"Auth Provider": providerName,
 				});
@@ -240,14 +240,14 @@ export function CompanyCreation(props: {
 					toServerUrl: organization.host.publicApiUrl,
 				};
 			}
-			const result = (await HostApi.sidebarInstance.send(
+			const result = (await HostApi.instance.send(
 				JoinCompanyRequestType,
 				request
 			)) as JoinCompanyResponse;
 
 			const availabilityType = organization?.byInvite ? "Invite" : organization._type;
 
-			HostApi.sidebarInstance.track("Joined Organization", {
+			HostApi.instance.track("Joined Organization", {
 				Availability: availabilityType,
 				"Auth Provider": providerName,
 				Location: "Signup",

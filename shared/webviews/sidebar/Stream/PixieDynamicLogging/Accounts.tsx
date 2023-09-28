@@ -21,7 +21,7 @@ export const Accounts = props => {
 
 	const loadAccounts = async () => {
 		setIsLoading(true);
-		const response = await HostApi.sidebarInstance.send(GetNewRelicAccountsRequestType, void {});
+		const response = await HostApi.instance.send(GetNewRelicAccountsRequestType, void {});
 		const newAccounts = response.accounts.map(_ => ({
 			key: _.id.toString(),
 			label: _.name,

@@ -59,7 +59,7 @@ export function AsanaCardControls(
 		let isValid = true;
 
 		const fetchBoards = async () => {
-			const response = (await HostApi.sidebarInstance.send(FetchThirdPartyBoardsRequestType, {
+			const response = (await HostApi.instance.send(FetchThirdPartyBoardsRequestType, {
 				providerId: props.provider.id,
 			})) as unknown as { boards: AsanaBoard[] };
 
@@ -155,7 +155,7 @@ export function AsanaCardControls(
 		async (inputValue: string) => {
 			if (!data.currentBoard) return [];
 
-			const { users } = await HostApi.sidebarInstance.send(FetchAssignableUsersRequestType, {
+			const { users } = await HostApi.instance.send(FetchAssignableUsersRequestType, {
 				providerId: props.provider.id,
 				boardId: String(data.currentBoard.id),
 			});

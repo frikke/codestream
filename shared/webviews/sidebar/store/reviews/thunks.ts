@@ -41,7 +41,7 @@ export interface CreateReviewError {
 }
 
 export const bootstrapReviews = () => async dispatch => {
-	const { reviews } = await HostApi.sidebarInstance.send(FetchReviewsRequestType, {});
+	const { reviews } = await HostApi.instance.send(FetchReviewsRequestType, {});
 	dispatch(_bootstrapReviews(reviews));
 };
 
@@ -50,7 +50,7 @@ export const createReview =
 		const { accessMemberIds, ...rest } = attributes;
 
 		try {
-			const response = await HostApi.sidebarInstance.send(CreateShareableReviewRequestType, {
+			const response = await HostApi.instance.send(CreateShareableReviewRequestType, {
 				attributes: rest,
 				memberIds: accessMemberIds,
 				entryPoint: attributes.entryPoint,
@@ -65,7 +65,7 @@ export const createReview =
 				if (attributes.sharingAttributes) {
 					const { sharingAttributes } = attributes;
 					try {
-						const { post, ts, permalink, channelId } = await HostApi.sidebarInstance.send(
+						const { post, ts, permalink, channelId } = await HostApi.instance.send(
 							CreateThirdPartyPostRequestType,
 							{
 								providerId: attributes.sharingAttributes.providerId,
@@ -82,7 +82,7 @@ export const createReview =
 							}
 						);
 						if (ts) {
-							await HostApi.sidebarInstance.send(UpdatePostSharingDataRequestType, {
+							await HostApi.instance.send(UpdatePostSharingDataRequestType, {
 								postId: response.post.id,
 								sharedTo: [
 									{
@@ -100,7 +100,7 @@ export const createReview =
 								],
 							});
 						}
-						HostApi.sidebarInstance.track("Shared Review", {
+						HostApi.instance.track("Shared Review", {
 							Destination: capitalize(
 								getConnectedProviders(getState()).find(
 									config => config.id === attributes.sharingAttributes!.providerId
@@ -127,13 +127,13 @@ export const createReview =
 
 export const deleteReview = (id: string, sharedTo?: ShareTarget[]) => async dispatch => {
 	try {
-		await HostApi.sidebarInstance.send(DeleteReviewRequestType, {
+		await HostApi.instance.send(DeleteReviewRequestType, {
 			id,
 		});
 		try {
 			if (sharedTo) {
 				for (const shareTarget of sharedTo) {
-					await HostApi.sidebarInstance.send(DeleteThirdPartyPostRequestType, {
+					await HostApi.instance.send(DeleteThirdPartyPostRequestType, {
 						providerId: shareTarget.providerId,
 						channelId: shareTarget.channelId,
 						providerPostId: shareTarget.postId,
@@ -155,7 +155,7 @@ export const editReview =
 	async (dispatch, getState: () => CodeStreamState) => {
 		let response: UpdateReviewResponse | undefined;
 		try {
-			response = await HostApi.sidebarInstance.send(UpdateReviewRequestType, {
+			response = await HostApi.instance.send(UpdateReviewRequestType, {
 				id,
 				...attributes,
 			});
@@ -205,7 +205,7 @@ export const editReview =
 				const { sharedTo } = attributes;
 				for (const shareTarget of sharedTo) {
 					try {
-						const { post, ts, permalink } = await HostApi.sidebarInstance.send(
+						const { post, ts, permalink } = await HostApi.instance.send(
 							CreateThirdPartyPostRequestType,
 							{
 								providerId: shareTarget.providerId,
@@ -221,7 +221,7 @@ export const editReview =
 							}
 						);
 						if (ts) {
-							await HostApi.sidebarInstance.send(UpdatePostSharingDataRequestType, {
+							await HostApi.instance.send(UpdatePostSharingDataRequestType, {
 								postId: response.review.id,
 								sharedTo: [
 									{
@@ -237,7 +237,7 @@ export const editReview =
 								],
 							});
 						}
-						HostApi.sidebarInstance.track("Shared Review", {
+						HostApi.instance.track("Shared Review", {
 							Destination: capitalize(
 								getConnectedProviders(getState()).find(
 									config => config.id === shareTarget.providerId
@@ -259,7 +259,7 @@ export const editReview =
 	};
 
 export const fetchReview = (reviewId: string) => async dispatch => {
-	const response = await HostApi.sidebarInstance.send(GetReviewRequestType, { reviewId });
+	const response = await HostApi.instance.send(GetReviewRequestType, { reviewId });
 
 	if (response.review) return dispatch(saveReviews([response.review]));
 };
@@ -267,7 +267,7 @@ export const fetchReview = (reviewId: string) => async dispatch => {
 export const showDiff =
 	(reviewId: string, checkpoint: ReviewCheckpoint, repoId: string, path: string) =>
 	async dispatch => {
-		const response = HostApi.sidebarInstance.send(ReviewShowDiffRequestType, {
+		const response = HostApi.instance.send(ReviewShowDiffRequestType, {
 			reviewId,
 			checkpoint,
 			repoId,
@@ -278,7 +278,7 @@ export const showDiff =
 	};
 
 export const closeDiff = () => async dispatch => {
-	const response = HostApi.sidebarInstance.send(ReviewCloseDiffRequestType, {});
+	const response = HostApi.instance.send(ReviewCloseDiffRequestType, {});
 	// if (response.success)
 	// return dispatch()
 };

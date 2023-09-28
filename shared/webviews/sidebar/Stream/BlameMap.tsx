@@ -107,7 +107,7 @@ export function BlameMap() {
 		// for now, suggested invitees are only available to admins
 		// if (!isCurrentUserAdmin) return;
 
-		const result = await HostApi.sidebarInstance.send(GetLatestCommittersRequestType, {
+		const result = await HostApi.instance.send(GetLatestCommittersRequestType, {
 			includeNoreply: true,
 		});
 		const committers = result ? result.scm : undefined;
@@ -143,13 +143,13 @@ export function BlameMap() {
 
 	const addBlameMap = async (email: string, userId: string) => {
 		if (userId) {
-			await HostApi.sidebarInstance.send(AddBlameMapRequestType, {
+			await HostApi.instance.send(AddBlameMapRequestType, {
 				teamId: derivedState.teamId,
 				userId,
 				email,
 			});
 		} else {
-			await HostApi.sidebarInstance.send(DeleteBlameMapRequestType, {
+			await HostApi.instance.send(DeleteBlameMapRequestType, {
 				teamId: derivedState.teamId,
 				email,
 			});

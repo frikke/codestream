@@ -36,7 +36,7 @@ export function PlusMenu(props: PlusMenuProps) {
 	});
 
 	useDidMount(() => {
-		const disposable = HostApi.sidebarInstance.on(StartWorkNotificationType, () =>
+		const disposable = HostApi.instance.on(StartWorkNotificationType, () =>
 			handleStartWorkRequest()
 		);
 		return () => disposable && disposable.dispose();

@@ -125,8 +125,7 @@ export const BuildStatus = (props: Props) => {
 								onClick={e => {
 									e.preventDefault();
 									e.stopPropagation();
-									if (props.url)
-										HostApi.sidebarInstance.send(OpenUrlRequestType, { url: props.url });
+									if (props.url) HostApi.instance.send(OpenUrlRequestType, { url: props.url });
 								}}
 							>
 								<Icon
@@ -144,7 +143,7 @@ export const BuildStatus = (props: Props) => {
 									e.preventDefault();
 									e.stopPropagation();
 									if (props.logsUrl)
-										HostApi.sidebarInstance.send(OpenUrlRequestType, { url: props.logsUrl });
+										HostApi.instance.send(OpenUrlRequestType, { url: props.logsUrl });
 								}}
 							>
 								<Icon
@@ -162,7 +161,7 @@ export const BuildStatus = (props: Props) => {
 									e.preventDefault();
 									e.stopPropagation();
 									if (props.artifactsUrl)
-										HostApi.sidebarInstance.send(OpenUrlRequestType, { url: props.artifactsUrl });
+										HostApi.instance.send(OpenUrlRequestType, { url: props.artifactsUrl });
 								}}
 							>
 								<Icon

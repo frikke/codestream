@@ -27,28 +27,25 @@ export const SearchContextProvider = (props: React.PropsWithChildren<{}>) => {
 	}, []);
 
 	useDidMount(() => {
-		const disposable = HostApi.sidebarInstance.on(
-			HostDidReceiveRequestNotificationType,
-			async e => {
-				const route = parseProtocol(e.url);
-				if (!route || !route.controller) return;
-				if (route.controller === "search") {
-					if (route.action) {
-						switch (route.action) {
-							case "open": {
-								if (route.query) {
-									const q = route.query["q"];
-									if (q) {
-										dispatch(setCurrentCodemark());
-										goToSearch(q);
-									}
+		const disposable = HostApi.instance.on(HostDidReceiveRequestNotificationType, async e => {
+			const route = parseProtocol(e.url);
+			if (!route || !route.controller) return;
+			if (route.controller === "search") {
+				if (route.action) {
+					switch (route.action) {
+						case "open": {
+							if (route.query) {
+								const q = route.query["q"];
+								if (q) {
+									dispatch(setCurrentCodemark());
+									goToSearch(q);
 								}
 							}
 						}
 					}
 				}
 			}
-		);
+		});
 
 		return () => disposable.dispose();
 	});

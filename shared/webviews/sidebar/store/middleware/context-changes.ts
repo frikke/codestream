@@ -17,13 +17,13 @@ export const contextChangeObserver = store => (next: Dispatch) => (action: { typ
 
 	window.requestIdleCallback(() => {
 		if (!shallowEqual(oldContext, newContext)) {
-			HostApi.sidebarInstance.notify(WebviewDidChangeContextNotificationType, {
+			HostApi.instance.notify(WebviewDidChangeContextNotificationType, {
 				context: newContext,
 			});
 
 			// alert the agent so it may use more aggressive behaviors based upon
 			// which UI the user is looking at
-			void HostApi.sidebarInstance.send(UIStateRequestType, {
+			void HostApi.instance.send(UIStateRequestType, {
 				context: newContext,
 			});
 		}

@@ -95,7 +95,7 @@ export function BaseCodemark(props: BaseCodemarkProps) {
 
 	const resolve = () => {
 		dispatch(setCodemarkStatus(codemark.id, CodemarkStatus.Closed));
-		HostApi.sidebarInstance.track("Codemark Resolved", {
+		HostApi.instance.track("Codemark Resolved", {
 			"Codemark ID": codemark.id,
 			"Codemark Type": codemark.type,
 			Archived: false,
@@ -279,7 +279,7 @@ export function BaseCodemark(props: BaseCodemarkProps) {
 									onClickCapture={e => {
 										e.preventDefault();
 										e.stopPropagation();
-										HostApi.sidebarInstance.send(OpenUrlRequestType, {
+										HostApi.instance.send(OpenUrlRequestType, {
 											url: codemark.externalProviderUrl!,
 										});
 									}}

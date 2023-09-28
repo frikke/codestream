@@ -435,7 +435,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 				setIsLoadingPRs({ provider: "*", isLoading: false });
 
 				if (!hasRenderedOnce) {
-					HostApi.sidebarInstance.track("PR List Rendered", {
+					HostApi.instance.track("PR List Rendered", {
 						"List State":
 							count === undefined
 								? "No Auth"
@@ -467,7 +467,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 	}, [props.paneState]);
 
 	useEffect(() => {
-		const disposable = HostApi.sidebarInstance.on(DidChangeDataNotificationType, (e: any) => {
+		const disposable = HostApi.instance.on(DidChangeDataNotificationType, (e: any) => {
 			if (e.type === ChangeDataType.PullRequests) {
 				console.warn("OpenPullRequests: ChangeDataType.PullRequests", e);
 				setTimeout(() => {
@@ -499,7 +499,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 	}, [queries, fetchPRs]);
 
 	useEffect(() => {
-		HostApi.sidebarInstance.send(ReviewCloseDiffRequestType, {});
+		HostApi.instance.send(ReviewCloseDiffRequestType, {});
 	}, [derivedState.expandedPullRequestId]);
 
 	useEffect(() => {
@@ -516,8 +516,10 @@ export const OpenPullRequests = React.memo((props: Props) => {
 
 	useDidMount(() => {
 		(async () => {
-			const defaultQueriesResponse: FetchProviderDefaultPullResponse =
-				await HostApi.sidebarInstance.send(FetchProviderDefaultPullRequestsType, {});
+			const defaultQueriesResponse: FetchProviderDefaultPullResponse = await HostApi.instance.send(
+				FetchProviderDefaultPullRequestsType,
+				{}
+			);
 			if (defaultQueriesResponse) {
 				// Update default queries for users in a non-destructive way
 				if (derivedState.pullRequestQueries) {
@@ -695,7 +697,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 
 		prFromUrlInput?.current?.blur();
 
-		HostApi.sidebarInstance.track("PR Load from URL", {
+		HostApi.instance.track("PR Load from URL", {
 			Host: providerId,
 		});
 
@@ -780,7 +782,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 					telemetryQueryName = "Custom";
 				}
 
-				HostApi.sidebarInstance.track("PR Clicked", {
+				HostApi.instance.track("PR Clicked", {
 					Host: pr.providerId,
 					Section: telemetryQueryName || "",
 				});
@@ -841,7 +843,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 		const currentRepo = getCurrentRepo(prToCheckout);
 
 		const repoId = currentRepo?.id || "";
-		const result = await HostApi.sidebarInstance.send(SwitchBranchRequestType, {
+		const result = await HostApi.instance.send(SwitchBranchRequestType, {
 			branch: prToCheckout!.headRefName,
 			repoId: repoId,
 		});
@@ -940,7 +942,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 
 	const getOpenRepos = async () => {
 		const { reposState } = derivedState;
-		const response = await HostApi.sidebarInstance.send(GetReposScmRequestType, {
+		const response = await HostApi.instance.send(GetReposScmRequestType, {
 			inEditorOnly: true,
 			includeCurrentBranches: true,
 			includeRemotes: true,
@@ -1027,7 +1029,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 								onClick={e => {
 									e.preventDefault();
 									e.stopPropagation();
-									HostApi.sidebarInstance.send(OpenUrlRequestType, {
+									HostApi.instance.send(OpenUrlRequestType, {
 										url: pr.url,
 									});
 								}}
@@ -1160,7 +1162,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 								onClick={e => {
 									e.preventDefault();
 									e.stopPropagation();
-									HostApi.sidebarInstance.send(OpenUrlRequestType, {
+									HostApi.instance.send(OpenUrlRequestType, {
 										url: pr.web_url,
 									});
 								}}
@@ -1277,7 +1279,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 								onClick={e => {
 									e.preventDefault();
 									e.stopPropagation();
-									HostApi.sidebarInstance.send(OpenUrlRequestType, {
+									HostApi.instance.send(OpenUrlRequestType, {
 										url: pr.url,
 									});
 								}}
@@ -1479,7 +1481,7 @@ export const OpenPullRequests = React.memo((props: Props) => {
 				subtext: "Requires paid GitLab account",
 				key: "multiple",
 				action: () => {
-					HostApi.sidebarInstance.send(UpdateTeamSettingsRequestType, {
+					HostApi.instance.send(UpdateTeamSettingsRequestType, {
 						teamId: derivedState.teamId,
 						settings: {
 							gitLabMultipleAssignees: !derivedState.teamSettings?.gitLabMultipleAssignees,

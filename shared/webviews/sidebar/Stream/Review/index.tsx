@@ -384,11 +384,11 @@ export const BaseReviewMenu = (props: BaseReviewMenuProps) => {
 				action: () => {
 					const value = !derivedState.userIsFollowing;
 					const changeType = value ? "Followed" : "Unfollowed";
-					HostApi.sidebarInstance.send(FollowReviewRequestType, {
+					HostApi.instance.send(FollowReviewRequestType, {
 						id: review.id,
 						value,
 					});
-					HostApi.sidebarInstance.track("Notification Change", {
+					HostApi.instance.track("Notification Change", {
 						Change: `Review ${changeType}`,
 						"Source of Change": "Review menu",
 					});
@@ -588,9 +588,9 @@ const BaseReview = (props: BaseReviewProps) => {
 		.reduce((a, b) => a + b, 0);
 	const renderedFooter = props.renderFooter && props.renderFooter(CardFooter, ComposeWrapper);
 
-	const prevFile = () => HostApi.sidebarInstance.send(ShowPreviousChangedFileRequestType, {});
+	const prevFile = () => HostApi.instance.send(ShowPreviousChangedFileRequestType, {});
 
-	const nextFile = () => HostApi.sidebarInstance.send(ShowNextChangedFileRequestType, {});
+	const nextFile = () => HostApi.instance.send(ShowNextChangedFileRequestType, {});
 
 	const isMacintosh = navigator.appVersion.includes("Macintosh");
 	const nextFileKeyboardShortcut = () => (isMacintosh ? `⌥ F6` : "Alt-F6");
@@ -687,7 +687,7 @@ const BaseReview = (props: BaseReviewProps) => {
 											review.pullRequestProviderId === "github*com" ||
 											review.pullRequestProviderId === "github/enterprise"
 										) {
-											HostApi.sidebarInstance
+											HostApi.instance
 												.send(ExecuteThirdPartyRequestUntypedType, {
 													method: "getPullRequestIdFromUrl",
 													providerId: review.pullRequestProviderId,
@@ -700,13 +700,13 @@ const BaseReview = (props: BaseReviewProps) => {
 														dispatch(setCurrentReview(""));
 														dispatch(setCurrentPullRequest(review.pullRequestProviderId!, id));
 													} else {
-														HostApi.sidebarInstance.send(OpenUrlRequestType, {
+														HostApi.instance.send(OpenUrlRequestType, {
 															url: review.pullRequestUrl!,
 														});
 													}
 												})
 												.catch(e => {
-													HostApi.sidebarInstance.send(OpenUrlRequestType, {
+													HostApi.instance.send(OpenUrlRequestType, {
 														url: review.pullRequestUrl!,
 													});
 												});
@@ -1247,7 +1247,7 @@ const ReviewForReview = (props: PropsWithReview) => {
 	const webviewFocused = useSelector((state: CodeStreamState) => state.context.hasFocus);
 	useDidMount(() => {
 		if (!props.collapsed && webviewFocused) {
-			HostApi.sidebarInstance.track("Page Viewed", { "Page Name": "Review Details" });
+			HostApi.instance.track("Page Viewed", { "Page Name": "Review Details" });
 		}
 		return () => {
 			// cleanup this disposable on unmount. it may or may not have been set.
@@ -1256,7 +1256,7 @@ const ReviewForReview = (props: PropsWithReview) => {
 	});
 
 	const checkPreconditions = async () => {
-		let response = await HostApi.sidebarInstance.send(CheckReviewPreconditionsRequestType, {
+		let response = await HostApi.instance.send(CheckReviewPreconditionsRequestType, {
 			reviewId: review.id,
 		});
 
@@ -1268,7 +1268,7 @@ const ReviewForReview = (props: PropsWithReview) => {
 			setPreconditionError(response.error);
 			setCanStartReview(false);
 
-			disposableDidChangeDataNotification = HostApi.sidebarInstance.on(
+			disposableDidChangeDataNotification = HostApi.instance.on(
 				DidChangeDataNotificationType,
 				async (e: DidChangeDataNotification) => {
 					if (e.type === ChangeDataType.Commits && !canStartReview) {

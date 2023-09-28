@@ -27,7 +27,7 @@ export const Clusters = props => {
 	const loadClusters = async () => {
 		setIsLoading(true);
 		try {
-			const response = await HostApi.sidebarInstance.send(PixieGetClustersRequestType, {
+			const response = await HostApi.instance.send(PixieGetClustersRequestType, {
 				accountId: props.account.id,
 			});
 			const newClusters = response.clusters.map(_ => ({

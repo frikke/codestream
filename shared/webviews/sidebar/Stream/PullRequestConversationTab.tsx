@@ -290,7 +290,7 @@ export const PullRequestConversationTab = (props: {
 
 	useDidMount(() => {
 		(async () => {
-			const defaultQueriesResponse: any = (await HostApi.sidebarInstance.send(
+			const defaultQueriesResponse: any = (await HostApi.instance.send(
 				FetchProviderDefaultPullRequestsType,
 				{}
 			)) as any;
@@ -336,7 +336,7 @@ export const PullRequestConversationTab = (props: {
 				})
 			).unwrap();
 			if (response) {
-				HostApi.sidebarInstance.emit(DidChangeDataNotificationType.method, {
+				HostApi.instance.emit(DidChangeDataNotificationType.method, {
 					type: ChangeDataType.PullRequests,
 				});
 			}
@@ -1276,7 +1276,7 @@ export const PullRequestConversationTab = (props: {
 										className="no-wrap"
 										variant="secondary"
 										onClick={() => {
-											HostApi.sidebarInstance.send(OpenUrlRequestType, {
+											HostApi.instance.send(OpenUrlRequestType, {
 												url: `${pr.url}/conflicts`,
 											});
 										}}

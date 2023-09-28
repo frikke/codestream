@@ -17,7 +17,7 @@ import {
 	CSUser,
 } from "@codestream/protocols/api";
 
-import { RequestType } from "vscode-jsonrpc";
+import { NotificationType, RequestType } from "vscode-jsonrpc";
 import { EditorContext, IpcRoutes, SessionState, WebviewContext } from "./sidebar.protocol.common";
 
 export interface Collaborator {
@@ -53,6 +53,8 @@ export const BootstrapInHostRequestType = new RequestType<
 	void,
 	void
 >(`${IpcRoutes.Host}/bootstrap`);
+
+export const SendToEditorRequestType = new NotificationType<void, void>(`${IpcRoutes.Host}/cheese`);
 
 export interface SignedInBootstrapData extends BootstrapInHostResponse {
 	editorContext: EditorContext;

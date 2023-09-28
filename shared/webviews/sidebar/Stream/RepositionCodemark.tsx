@@ -39,7 +39,7 @@ export const RepositionCodemark = (props: Props) => {
 		if (!docMarker || !textEditorUri) return;
 
 		setLoading(true);
-		const scmInfo = await HostApi.sidebarInstance.send(GetRangeScmInfoRequestType, {
+		const scmInfo = await HostApi.instance.send(GetRangeScmInfoRequestType, {
 			uri: textEditorUri,
 			gitSha: textEditorGitSha,
 			range: textEditorSelection!,
@@ -49,7 +49,7 @@ export const RepositionCodemark = (props: Props) => {
 			if (textEditorUri !== docMarker.textDocument.uri) location = "Different File";
 			// how do we compare repos if docMarker doesn't have that property?
 			// if (scmInfo.scm.repoPath !== docMarker.newRepoPath) location = "Different Repo";
-			HostApi.sidebarInstance.track("Reposition Codemark", { "New Location": location });
+			HostApi.instance.track("Reposition Codemark", { "New Location": location });
 			const payload = {
 				markerId: props.markerId,
 				code: scmInfo.contents,
@@ -58,7 +58,7 @@ export const RepositionCodemark = (props: Props) => {
 				source: scmInfo.scm,
 			};
 			console.log("Payload: ", payload);
-			HostApi.sidebarInstance.send(MoveMarkerRequestType, payload);
+			HostApi.instance.send(MoveMarkerRequestType, payload);
 		} else {
 			// FIXME what to do in this scenario?
 		}

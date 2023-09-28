@@ -47,7 +47,7 @@ export const PullRequestBottomComment = styled((props: Props) => {
 	};
 
 	const trackComment = type => {
-		HostApi.sidebarInstance.track("PR Comment Added", {
+		HostApi.instance.track("PR Comment Added", {
 			Host: pr.providerId,
 			"Comment Type": type,
 		});
@@ -83,7 +83,7 @@ export const PullRequestBottomComment = styled((props: Props) => {
 			})
 		);
 
-		HostApi.sidebarInstance.emit(DidChangeDataNotificationType.method, {
+		HostApi.instance.emit(DidChangeDataNotificationType.method, {
 			type: ChangeDataType.PullRequests,
 		});
 		setText("");
@@ -115,7 +115,7 @@ export const PullRequestBottomComment = styled((props: Props) => {
 			);
 		}
 
-		HostApi.sidebarInstance.emit(DidChangeDataNotificationType.method, {
+		HostApi.instance.emit(DidChangeDataNotificationType.method, {
 			type: ChangeDataType.PullRequests,
 		});
 		setText("");

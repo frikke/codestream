@@ -41,7 +41,7 @@ export const OktaConfig = (connect() as any)((props: ConnectedProps & DispatchPr
 			setIsLoading(true);
 			try {
 				if (props.fromSignup) {
-					HostApi.sidebarInstance.track("Provider Auth Selected", {
+					HostApi.instance.track("Provider Auth Selected", {
 						Provider: "Okta",
 					});
 				}

@@ -451,7 +451,7 @@ export const Timeline = (props: Props) => {
 				e.target.classList.contains("gfm-commit"))
 		) {
 			e.preventDefault();
-			HostApi.sidebarInstance.send(OpenUrlRequestType, { url: e.target.getAttribute("href")! });
+			HostApi.instance.send(OpenUrlRequestType, { url: e.target.getAttribute("href")! });
 			e.stopPropagation();
 		}
 	};
@@ -635,7 +635,7 @@ export const Timeline = (props: Props) => {
 											variant="secondary"
 											narrow
 											onClick={() =>
-												HostApi.sidebarInstance.send(OpenUrlRequestType, {
+												HostApi.instance.send(OpenUrlRequestType, {
 													url: `${pr.repository.url}/-/issues/new?discussion_to_resolve=${note.databaseId}&merge_request_to_resolve_discussions_of=${pr.number}`,
 												})
 											}

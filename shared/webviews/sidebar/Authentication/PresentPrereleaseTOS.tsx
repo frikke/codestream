@@ -109,7 +109,7 @@ export const PresentPrereleaseTOS = () => {
 		setIsLoading(true);
 
 		if (derivedState.currentUserIsAdmin) {
-			await HostApi.sidebarInstance.send(UpdateTeamSettingsRequestType, {
+			await HostApi.instance.send(UpdateTeamSettingsRequestType, {
 				teamId: derivedState.team.id,
 				settings: { acceptedPrereleaseTOS: true },
 			});

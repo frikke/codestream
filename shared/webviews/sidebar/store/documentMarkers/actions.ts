@@ -19,7 +19,7 @@ export const addDocumentMarker = (uri: string, marker: DocumentMarker) =>
 	action(DocumentMarkersActionsType.SaveOneForFile, { uri, marker });
 
 export const fetchDocumentMarkers = (uri: string) => async dispatch => {
-	const response = await HostApi.sidebarInstance.send(FetchDocumentMarkersRequestType, {
+	const response = await HostApi.instance.send(FetchDocumentMarkersRequestType, {
 		textDocument: { uri },
 		applyFilters: false,
 	});

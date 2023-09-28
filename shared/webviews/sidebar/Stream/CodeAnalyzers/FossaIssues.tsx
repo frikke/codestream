@@ -76,7 +76,7 @@ const criticalityToRiskSeverity = (riskSeverity: VulnSeverity): VulnSeverity => 
 const eventClicked = (
 	trackingData: { "Analyzer Service": string; Category: string } | undefined
 ) => {
-	HostApi.sidebarInstance.track("Analyzer Result Clicked", trackingData);
+	HostApi.instance.track("Analyzer Result Clicked", trackingData);
 };
 
 const ModalView = (props: {

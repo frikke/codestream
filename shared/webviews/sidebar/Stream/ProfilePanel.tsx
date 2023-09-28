@@ -117,7 +117,7 @@ export const ProfilePanel = () => {
 
 	useDidMount(() => {
 		if (derivedState.webviewFocused)
-			HostApi.sidebarInstance.track("Page Viewed", { "Page Name": "Profile" });
+			HostApi.instance.track("Page Viewed", { "Page Name": "Profile" });
 	});
 
 	if (!derivedState.person) {
@@ -136,8 +136,8 @@ export const ProfilePanel = () => {
 		label: timeZone,
 		searchLabel: timeZone,
 		action: async () => {
-			await HostApi.sidebarInstance.send(UpdateUserRequestType, { timeZone });
-			HostApi.sidebarInstance.track("TimeZone Change Request", {});
+			await HostApi.instance.send(UpdateUserRequestType, { timeZone });
+			HostApi.instance.track("TimeZone Change Request", {});
 		},
 	})) as any;
 	timeZoneItems.unshift({ type: "search" }, { label: "-" });
@@ -179,7 +179,7 @@ export const ProfilePanel = () => {
 						className: "delete",
 						wait: true,
 						action: async () => {
-							await HostApi.sidebarInstance.send(DeleteUserRequestType, {
+							await HostApi.instance.send(DeleteUserRequestType, {
 								userId: currentUserId!,
 							});
 							dispatch(logout());

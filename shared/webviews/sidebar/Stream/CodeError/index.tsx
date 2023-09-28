@@ -296,7 +296,7 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 	const notify = (emailAddress?: string) => {
 		// if no email address or it's you
 		if (!emailAddress || derivedState.emailAddress.toLowerCase() === emailAddress.toLowerCase()) {
-			HostApi.sidebarInstance.emit(DidChangeObservabilityDataNotificationType.method, {
+			HostApi.instance.emit(DidChangeObservabilityDataNotificationType.method, {
 				type: "Assignment",
 			});
 		}
@@ -308,7 +308,7 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 		if (!props.errorGroup) return;
 
 		const _setAssignee = async (type: AssigneeType) => {
-			HostApi.sidebarInstance.track("Error Assigned", {
+			HostApi.instance.track("Error Assigned", {
 				"Error Group ID": props.errorGroup?.guid,
 				"NR Account ID": props.errorGroup?.accountId,
 				Assignment: props.errorGroup?.assignee ? "Change" : "New",
@@ -362,7 +362,7 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 								inviteType: "error",
 							})
 						);
-						HostApi.sidebarInstance.track("Teammate Invited", {
+						HostApi.instance.track("Teammate Invited", {
 							"Invitee Email Address": emailAddress,
 							"Invitation Method": "Error Assignment",
 						});
@@ -425,7 +425,7 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 								notify();
 								setIsStateChanging(false);
 
-								HostApi.sidebarInstance.track("Error Status Changed", {
+								HostApi.instance.track("Error Status Changed", {
 									"Error Group ID": props.errorGroup?.guid,
 									"NR Account ID": props.errorGroup?.accountId,
 									"Error Status": STATES_TO_ACTION_STRINGS[_],
@@ -488,7 +488,7 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 		}
 
 		if (derivedState.isConnectedToNewRelic) {
-			let { users } = await HostApi.sidebarInstance.send(GetNewRelicAssigneesRequestType, {});
+			let { users } = await HostApi.instance.send(GetNewRelicAssigneesRequestType, {});
 			if (assigneeEmail) {
 				users = users.filter(_ => _.email !== assigneeEmail);
 			}
@@ -607,10 +607,10 @@ export const BaseCodeErrorHeader = (props: PropsWithChildren<BaseCodeErrorHeader
 	const handleEntityLinkClick = (e, url) => {
 		e.preventDefault();
 		e.stopPropagation();
-		HostApi.sidebarInstance.track("Open Service Summary on NR", {
+		HostApi.instance.track("Open Service Summary on NR", {
 			Section: "Error",
 		});
-		HostApi.sidebarInstance.send(OpenUrlRequestType, {
+		HostApi.instance.send(OpenUrlRequestType, {
 			url,
 		});
 	};
@@ -1046,11 +1046,11 @@ export const BaseCodeErrorMenu = (props: BaseCodeErrorMenuProps) => {
 		// 	action: () => {
 		// 		const value = !derivedState.userIsFollowing;
 		// 		const changeType = value ? "Followed" : "Unfollowed";
-		// 		HostApi.sidebarInstance.send(FollowCodeErrorRequestType, {
+		// 		HostApi.instance.send(FollowCodeErrorRequestType, {
 		// 			id: codeError.id,
 		// 			value
 		// 		});
-		// 		HostApi.sidebarInstance.track("Notification Change", {
+		// 		HostApi.instance.track("Notification Change", {
 		// 			Change: `Code Error ${changeType}`,
 		// 			"Source of Change": "Code Error menu"
 		// 		});

@@ -30,7 +30,7 @@ beforeEach(() => {
 	container = document.createElement("div");
 	document.body.appendChild(container);
 
-	MockedHostApi.sidebarInstance = {};
+	MockedHostApi.instance = {};
 	MockedHostApi.mockClear();
 });
 
@@ -116,7 +116,7 @@ it("renders default state", async () => {
 		return mockHostApi;
 	});
 	// YUCK yuck yuck, static singletons are bad bad bad for testing
-	MockedHostApi.sidebarInstance = mockHostApi;
+	MockedHostApi.instance = mockHostApi;
 
 	const mockStore = configureStore();
 
@@ -210,7 +210,7 @@ it("renders default state 2", async () => {
 		return mockHostApi;
 	});
 	// YUCK yuck yuck, static singletons are bad bad bad for testing
-	MockedHostApi.sidebarInstance = mockHostApi;
+	MockedHostApi.instance = mockHostApi;
 
 	const mockStore = configureStore();
 
@@ -261,7 +261,7 @@ it("ALREADY_HAS_PULL_REQUEST", async () => {
 		return mockHostApi;
 	});
 	// YUCK yuck yuck, static singletons are bad bad bad for testing
-	MockedHostApi.sidebarInstance = mockHostApi;
+	MockedHostApi.instance = mockHostApi;
 
 	const mockStore = configureStore();
 
@@ -307,7 +307,7 @@ it("REQUIRES_PROVIDER", async () => {
 		return mockHostApi;
 	});
 	// YUCK yuck yuck, static singletons are bad bad bad for testing
-	MockedHostApi.sidebarInstance = mockHostApi;
+	MockedHostApi.instance = mockHostApi;
 
 	const mockStore = configureStore();
 
@@ -355,7 +355,7 @@ it("REPO_NOT_FOUND", async () => {
 		return mockHostApi;
 	});
 	// YUCK yuck yuck, static singletons are bad bad bad for testing
-	MockedHostApi.sidebarInstance = mockHostApi;
+	MockedHostApi.instance = mockHostApi;
 
 	const mockStore = configureStore();
 
@@ -403,7 +403,7 @@ it("HAS_LOCAL_MODIFICATIONS", async () => {
 		return mockHostApi;
 	});
 	// YUCK yuck yuck, static singletons are bad bad bad for testing
-	MockedHostApi.sidebarInstance = mockHostApi;
+	MockedHostApi.instance = mockHostApi;
 
 	const mockStore = configureStore();
 

@@ -77,7 +77,7 @@ export const PullRequestReviewButton = (props: Props) => {
 
 	const getOpenRepos = async () => {
 		const { reposState } = derivedState;
-		const response = await HostApi.sidebarInstance.send(GetReposScmRequestType, {
+		const response = await HostApi.instance.send(GetReposScmRequestType, {
 			inEditorOnly: true,
 			includeCurrentBranches: true,
 		});
@@ -122,7 +122,7 @@ export const PullRequestReviewButton = (props: Props) => {
 		setIsLoadingBranch(true);
 
 		const repoId = derivedState.prRepoId || "";
-		const result = await HostApi.sidebarInstance.send(SwitchBranchRequestType, {
+		const result = await HostApi.instance.send(SwitchBranchRequestType, {
 			branch: props.pullRequest!.headRefName,
 			repoId: repoId,
 		});

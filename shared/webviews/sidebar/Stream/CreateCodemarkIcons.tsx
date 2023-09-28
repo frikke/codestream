@@ -131,7 +131,7 @@ export const CreateCodemarkIcons = (props: Props) => {
 	const derivedState = useSelector(mapStateToProps, shallowEqual);
 
 	useDidMount(() => {
-		const disposable = HostApi.sidebarInstance.on(NewCodemarkNotificationType, e => {
+		const disposable = HostApi.instance.on(NewCodemarkNotificationType, e => {
 			// this can fire if there's no file open yet we're on the CodemarkForFile panel
 			if (!e.uri) return;
 			if (e.source === "Codemark" && e.range) {
@@ -180,7 +180,7 @@ export const CreateCodemarkIcons = (props: Props) => {
 			return;
 		}
 
-		HostApi.sidebarInstance.send(EditorHighlightRangeRequestType, {
+		HostApi.instance.send(EditorHighlightRangeRequestType, {
 			uri: derivedState.textEditorUri!,
 			range: Range.create(mappedLineNum, 0, mappedLineNum, MaxRangeValue),
 			highlight: highlight,

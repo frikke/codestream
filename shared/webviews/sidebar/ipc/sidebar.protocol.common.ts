@@ -225,23 +225,23 @@ export interface IpcHost {
 	onmessage: any;
 }
 
-declare function acquireCodestreamHostForEditor(): IpcHost;
-declare function acquireCodestreamHostForSidebar(): IpcHost;
+// declare function acquireCodestreamHostForEditor(): IpcHost;
+// declare function acquireCodestreamHostForSidebar(): IpcHost;
 
-let host: IpcHost;
-export const findHost = (webview: string): IpcHost => {
-	if (host) return host;
-	try {
-		if (webview === "editor") {
-			host = acquireCodestreamHostForEditor();
-		} else if (webview === "sidebar") {
-			host = acquireCodestreamHostForSidebar();
-		}
-	} catch (e) {
-		throw new Error("Host needs to provide global `acquireCodestreamHost` function");
-	}
-	return host;
-};
+// let host: IpcHost;
+// export const findHost = (webview: string): IpcHost => {
+// 	//if (host) return host;
+// 	try {
+// 		if (webview === "editor") {
+// 			host = acquireCodestreamHostForEditor();
+// 		} else if (webview === "sidebar") {
+// 			host = acquireCodestreamHostForSidebar();
+// 		}
+// 	} catch (e) {
+// 		throw new Error("Host needs to provide global `acquireCodestreamHost` function");
+// 	}
+// 	return host;
+// };
 
 export enum IpcRoutes {
 	Agent = "codestream",

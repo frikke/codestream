@@ -32,7 +32,7 @@ export const Link = React.memo((props: PropsWithChildren<Props>) => {
 					event.stopPropagation();
 				}
 				if (props.href) {
-					HostApi.sidebarInstance.send(OpenUrlRequestType, { url: props.href });
+					HostApi.instance.send(OpenUrlRequestType, { url: props.href });
 				}
 			}
 		};

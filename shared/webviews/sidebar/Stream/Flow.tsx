@@ -793,7 +793,7 @@ export const Flow = (props: { flow: "adhoc" | "simplified" | "standard"; active?
 		if (flow === "simplified" && index === 3) setRotate(!rotate);
 		if (flow === "standard" && index === 3) setRotate(!rotate);
 
-		HostApi.sidebarInstance.track("Flow Step Viewed", {
+		HostApi.instance.track("Flow Step Viewed", {
 			"Tour Step":
 				flow === "adhoc" ? "The Basics" : flow === "simplified" ? "Trunk Flow" : "Branch Flow",
 			"Flow Step Viewed": index,

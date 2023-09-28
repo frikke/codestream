@@ -161,12 +161,12 @@ export function Post(props: PostProps) {
 		const marker = hasMarkers && codemark?.markers?.[0];
 		if (marker) {
 			if (marker.repoId) {
-				const response = await HostApi.sidebarInstance.send(GetDocumentFromMarkerRequestType, {
+				const response = await HostApi.instance.send(GetDocumentFromMarkerRequestType, {
 					markerId: marker.id,
 				});
 
 				if (response) {
-					const { success } = await HostApi.sidebarInstance.send(EditorSelectRangeRequestType, {
+					const { success } = await HostApi.instance.send(EditorSelectRangeRequestType, {
 						uri: response.textDocument.uri,
 						// Ensure we put the cursor at the right line (don't actually select the whole range)
 						selection: {
@@ -431,7 +431,7 @@ export function Post(props: PostProps) {
 			)
 				return;
 			if (derivedState.parentPostCodemark) {
-				HostApi.sidebarInstance.send(PinReplyToCodemarkRequestType, {
+				HostApi.instance.send(PinReplyToCodemarkRequestType, {
 					codemarkId: derivedState.parentPostCodemark.id,
 					postId: derivedState.post.id,
 					value: true,
@@ -444,7 +444,7 @@ export function Post(props: PostProps) {
 			)
 				return;
 
-			HostApi.sidebarInstance.send(PinReplyToCodemarkRequestType, {
+			HostApi.instance.send(PinReplyToCodemarkRequestType, {
 				codemarkId: derivedState.parentPostCodemark.id,
 				postId: derivedState.post.id,
 				value: false,

@@ -141,7 +141,7 @@ export const EditPullRequest = props => {
 
 	useDidMount(() => {
 		(async () => {
-			const defaultQueriesResponse: any = (await HostApi.sidebarInstance.send(
+			const defaultQueriesResponse: any = (await HostApi.instance.send(
 				FetchProviderDefaultPullRequestsType,
 				{}
 			)) as any;
@@ -398,7 +398,7 @@ export const EditPullRequest = props => {
 			menuItems.push({
 				label: "Manage Labels",
 				action: () => {
-					HostApi.sidebarInstance.send(OpenUrlRequestType, {
+					HostApi.instance.send(OpenUrlRequestType, {
 						url: `${pr.repository.url}/-/labels`,
 					});
 					setAvailableLabels(undefined);

@@ -31,10 +31,10 @@ export const logout = createAppAsyncThunk<void, void>(
 		dispatch(setBootstrapped(false));
 		/*
     if (ide.name === "VSC") {
-      await HostApi.sidebarInstance.send(DisconnectFromIDEProviderRequestType, { provider: "github" });
+      await HostApi.instance.send(DisconnectFromIDEProviderRequestType, { provider: "github" });
     }
     */
-		await HostApi.sidebarInstance.send(LogoutRequestType, {});
+		await HostApi.instance.send(LogoutRequestType, {});
 		dispatch(reset());
 		dispatch(setBootstrapped(true));
 	}
@@ -53,10 +53,7 @@ export const switchToTeam = createAppAsyncThunk<
 	const { teamId, options, accessTokenFromEligibleCompany } = request;
 	let accessToken;
 	if (!accessTokenFromEligibleCompany) {
-		accessToken = { accessToken } = await HostApi.sidebarInstance.send(
-			GetAccessTokenRequestType,
-			{}
-		);
+		accessToken = { accessToken } = await HostApi.instance.send(GetAccessTokenRequestType, {});
 	} else {
 		accessToken = accessTokenFromEligibleCompany;
 	}
@@ -67,8 +64,8 @@ export const switchToTeam = createAppAsyncThunk<
 	dispatch(setBootstrapped(false));
 	dispatch(reset());
 
-	await HostApi.sidebarInstance.send(LogoutRequestType, {});
-	const response = await HostApi.sidebarInstance.send(TokenLoginRequestType, {
+	await HostApi.instance.send(LogoutRequestType, {});
+	const response = await HostApi.instance.send(TokenLoginRequestType, {
 		token: {
 			email: user.email,
 			value: accessToken,
@@ -92,7 +89,7 @@ export const switchToTeam = createAppAsyncThunk<
 });
 
 export const setEnvironment = (environment: string, serverUrl: string) => async dispatch => {
-	await HostApi.sidebarInstance.send(UpdateServerUrlRequestType, {
+	await HostApi.instance.send(UpdateServerUrlRequestType, {
 		serverUrl,
 		environment,
 	});
@@ -134,12 +131,12 @@ export const switchToForeignCompany = createAppAsyncThunk<any, string>(
 		dispatch(setBootstrapped(false));
 		dispatch(reset());
 
-		await HostApi.sidebarInstance.send(LogoutRequestType, {
+		await HostApi.instance.send(LogoutRequestType, {
 			newServerUrl: company.host.publicApiUrl,
 			newEnvironment: company.host.shortName,
 		});
 		await dispatch(setEnvironment(company.host.shortName, company.host.publicApiUrl));
-		const response = await HostApi.sidebarInstance.send(TokenLoginRequestType, {
+		const response = await HostApi.instance.send(TokenLoginRequestType, {
 			token: {
 				email: user.email,
 				value: company.accessToken!,
@@ -168,7 +165,7 @@ export const switchToForeignCompany = createAppAsyncThunk<any, string>(
 );
 
 export const changeRegistrationEmail = (userId: string) => async dispatch => {
-	await HostApi.sidebarInstance.send(DeleteMeUserRequestType, { userId: userId });
+	await HostApi.instance.send(DeleteMeUserRequestType, { userId: userId });
 	return dispatch(goToSignup({}));
 };
 

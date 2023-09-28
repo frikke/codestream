@@ -41,7 +41,7 @@ export const appendGrokStreamingResponse = (event: GrokStreamEvent[]) =>
 export const getPosts =
 	(streamId: string, postIds: string[], parentPostId?: string) => async dispatch => {
 		try {
-			const { posts } = await HostApi.sidebarInstance.send(GetPostsRequestType, {
+			const { posts } = await HostApi.instance.send(GetPostsRequestType, {
 				streamId,
 				postIds,
 				parentPostId,

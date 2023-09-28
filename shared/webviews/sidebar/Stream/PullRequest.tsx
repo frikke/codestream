@@ -296,7 +296,7 @@ export const PullRequest = () => {
 		setIsLoadingBranch(true);
 
 		const repoId = derivedState.prRepoId || "";
-		const result = await HostApi.sidebarInstance.send(SwitchBranchRequestType, {
+		const result = await HostApi.instance.send(SwitchBranchRequestType, {
 			branch: pr!.headRefName,
 			repoId: repoId,
 		});
@@ -337,7 +337,7 @@ export const PullRequest = () => {
 	useEffect(() => {
 		if (!pr) return;
 
-		const _didChangeDataNotification = HostApi.sidebarInstance.on(
+		const _didChangeDataNotification = HostApi.instance.on(
 			DidChangeDataNotificationType,
 			(e: any) => {
 				if (e.type === ChangeDataType.Commits) {
@@ -421,7 +421,7 @@ export const PullRequest = () => {
 
 	const getOpenRepos = async () => {
 		const { reposState } = derivedState;
-		const response = await HostApi.sidebarInstance.send(GetReposScmRequestType, {
+		const response = await HostApi.instance.send(GetReposScmRequestType, {
 			inEditorOnly: true,
 			includeCurrentBranches: true,
 		});

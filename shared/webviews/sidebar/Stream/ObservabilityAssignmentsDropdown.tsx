@@ -86,7 +86,7 @@ export const ObservabilityAssignmentsDropdown = React.memo((props: Props) => {
 										onClick={async e => {
 											try {
 												setIsLoadingErrorGroupGuid(indexedErrorGroupGuid);
-												const response = (await HostApi.sidebarInstance.send(
+												const response = (await HostApi.instance.send(
 													GetObservabilityErrorGroupMetadataRequestType,
 													{ errorGroupGuid: _.errorGroupGuid }
 												)) as GetObservabilityErrorGroupMetadataResponse;

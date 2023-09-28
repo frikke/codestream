@@ -42,7 +42,7 @@ export const ExportPanel = () => {
 
 	useDidMount(() => {
 		if (derivedState.webviewFocused)
-			HostApi.sidebarInstance.track("Page Viewed", { "Page Name": "Export" });
+			HostApi.instance.track("Page Viewed", { "Page Name": "Export" });
 	});
 
 	const insertText = () => {};

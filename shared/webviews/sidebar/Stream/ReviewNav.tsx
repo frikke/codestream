@@ -236,7 +236,7 @@ export function ReviewNav(props: Props) {
 		// clear out the current review (set to blank) in the webview
 		await dispatch(setCurrentReview());
 		// tell the extension to close the diff panel in the editor
-		HostApi.sidebarInstance.send(ReviewCloseDiffRequestType, {});
+		HostApi.instance.send(ReviewCloseDiffRequestType, {});
 	};
 
 	const showReview = async () => {

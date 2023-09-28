@@ -49,14 +49,14 @@ export const sessionMiddleware: Middleware =
 								if (meta && !meta?.pollRefresh) {
 									await dispatch(authenticate(meta as any));
 								} else {
-									const resp = await HostApi.sidebarInstance.send(
+									const resp = await HostApi.instance.send(
 										PollForMaintenanceModeRequestType,
 										void {}
 									);
 									if (!resp.maintenanceMode) {
 										await dispatch(setMaintenanceMode(false));
 										await dispatch(errorDismissed());
-										HostApi.sidebarInstance.send(RestartRequestType, void {});
+										HostApi.instance.send(RestartRequestType, void {});
 									}
 								}
 								return !getState().session.inMaintenanceMode;
@@ -81,14 +81,14 @@ export const sessionMiddleware: Middleware =
 					pollingTask = new Poller(600000, async () => {
 						if (!getState().session.inMaintenanceMode) {
 							try {
-								const resp = await HostApi.sidebarInstance.send(
+								const resp = await HostApi.instance.send(
 									PollForMaintenanceModeRequestType,
 									void {}
 								);
 								if (resp.maintenanceMode) {
 									await dispatch(setMaintenanceMode(true));
 									await dispatch(errorDismissed());
-									HostApi.sidebarInstance.send(RestartRequestType, void {});
+									HostApi.instance.send(RestartRequestType, void {});
 								}
 								return getState().session.inMaintenanceMode;
 							} catch (error) {

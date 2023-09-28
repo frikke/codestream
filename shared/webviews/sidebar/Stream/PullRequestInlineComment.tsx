@@ -44,7 +44,7 @@ export const PullRequestInlineComment = styled((props: Props) => {
 	const [isPreviewing, setIsPreviewing] = useState(false);
 
 	const trackComment = type => {
-		HostApi.sidebarInstance.track("PR Comment Added", {
+		HostApi.instance.track("PR Comment Added", {
 			Host: pr.providerId,
 			"Comment Type": type,
 		});

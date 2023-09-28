@@ -187,13 +187,10 @@ export const CodeAnalyzers = (props: Props) => {
 		const [providerId] = derivedState.fossaProvider ?? [];
 		try {
 			if (providerId) {
-				const result = await HostApi.sidebarInstance.send(
-					FetchThirdPartyRepoMatchToFossaRequestType,
-					{
-						providerId,
-						repoId: currentRepoId,
-					}
-				);
+				const result = await HostApi.instance.send(FetchThirdPartyRepoMatchToFossaRequestType, {
+					providerId,
+					repoId: currentRepoId,
+				});
 				if (result.isRepoMatch !== undefined) {
 					isRepoMatch = result.isRepoMatch;
 				}
@@ -219,14 +216,11 @@ export const CodeAnalyzers = (props: Props) => {
 		const [providerId] = derivedState.fossaProvider ?? [];
 		try {
 			if (providerId) {
-				const result = await HostApi.sidebarInstance.send(
-					FetchThirdPartyVulnerabilitiesRequestType,
-					{
-						providerId,
-						pageNumber: vulnPageNum,
-						repoId: currentRepoId,
-					}
-				);
+				const result = await HostApi.instance.send(FetchThirdPartyVulnerabilitiesRequestType, {
+					providerId,
+					pageNumber: vulnPageNum,
+					repoId: currentRepoId,
+				});
 				if (result.issues) {
 					vulnerabilities = result.issues;
 				}
@@ -272,14 +266,11 @@ export const CodeAnalyzers = (props: Props) => {
 		const [providerId] = derivedState.fossaProvider ?? [];
 		try {
 			if (providerId) {
-				const result = await HostApi.sidebarInstance.send(
-					FetchThirdPartyLicenseDependenciesRequestType,
-					{
-						providerId,
-						pageNumber: licDepPageNum,
-						repoId: currentRepoId,
-					}
-				);
+				const result = await HostApi.instance.send(FetchThirdPartyLicenseDependenciesRequestType, {
+					providerId,
+					pageNumber: licDepPageNum,
+					repoId: currentRepoId,
+				});
 				if (result.issues) {
 					licenseDepIssues = result.issues;
 				}

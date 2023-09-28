@@ -79,7 +79,7 @@ function Form(props: { email?: string; onComplete: Function }) {
 		event.preventDefault();
 		if (email === "") return;
 
-		await HostApi.sidebarInstance.send(SendPasswordResetEmailRequestType, { email });
+		await HostApi.instance.send(SendPasswordResetEmailRequestType, { email });
 		props.onComplete();
 	};
 

@@ -34,7 +34,7 @@ export const EntityAssociator = React.memo((props: PropsWithChildren<EntityAssoc
 	const [warningOrErrors, setWarningOrErrors] = useState<WarningOrError[] | undefined>(undefined);
 
 	async function loadEntities(search: string, _loadedOptions, additional?: AdditionalType) {
-		const result = await HostApi.sidebarInstance.send(GetObservabilityEntitiesRequestType, {
+		const result = await HostApi.instance.send(GetObservabilityEntitiesRequestType, {
 			searchCharacters: search,
 			nextCursor: additional?.nextCursor,
 		});

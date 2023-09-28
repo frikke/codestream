@@ -33,7 +33,7 @@ export const ChangeEmail = props => {
 
 	useDidMount(() => {
 		const getUserInfo = async () => {
-			const response = await HostApi.sidebarInstance.send(GetUserInfoRequestType, {});
+			const response = await HostApi.instance.send(GetUserInfoRequestType, {});
 			setScmEmail(response.email || "");
 		};
 		getUserInfo();
@@ -59,8 +59,8 @@ export const ChangeEmail = props => {
 
 		setLoading(true);
 		try {
-			const response = await HostApi.sidebarInstance.send(UpdateUserRequestType, { email });
-			HostApi.sidebarInstance.track("Email Change Request", {});
+			const response = await HostApi.instance.send(UpdateUserRequestType, { email });
+			HostApi.instance.track("Email Change Request", {});
 			if (
 				response.user &&
 				(response.user as any).$set &&
@@ -89,7 +89,7 @@ export const ChangeEmail = props => {
 		async (event: React.MouseEvent) => {
 			event.preventDefault();
 			setEmailSent(false);
-			await HostApi.sidebarInstance.send(UpdateUserRequestType, { email });
+			await HostApi.instance.send(UpdateUserRequestType, { email });
 			setEmailSent(true);
 		},
 		[email]

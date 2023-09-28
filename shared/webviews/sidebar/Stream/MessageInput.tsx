@@ -364,14 +364,14 @@ export class MessageInput extends React.Component<Props, State> {
 						reader.onerror = error => reject(error);
 					});
 				request.buffer = await toBase64(file);
-				const response = await HostApi.sidebarInstance.send(UploadFileRequestType, request);
+				const response = await HostApi.instance.send(UploadFileRequestType, request);
 				if (response && response.url) {
 					this.replaceAttachment(response, index);
 				} else {
 					attachment.status = "error";
 					this.replaceAttachment(file, index);
 				}
-				HostApi.sidebarInstance.track("File Attached", {
+				HostApi.instance.track("File Attached", {
 					"File Type": file.type,
 					Parent: this.props.attachmentContainerType,
 				});

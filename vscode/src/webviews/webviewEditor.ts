@@ -2,6 +2,7 @@
 import { promises as fs } from "fs";
 import {
 	CancellationToken,
+	Event,
 	Uri,
 	ViewColumn,
 	WebviewPanel,
@@ -12,14 +13,21 @@ import {
 } from "vscode";
 import { CodeStreamSession } from "../api/session";
 import { Logger } from "../logger";
+import { NotificationType } from "vscode-languageclient";
+import { WebviewIpcMessage } from "@codestream/protocols/sidebar";
+import { NotificationParamsOf } from "./webviewLike";
 
-export class WebviewEditor implements WebviewViewProvider {
+export class WebviewEditor {
 	public static readonly viewType = "editor.codestream";
 
 	private readonly panel: WebviewPanel;
 	private _webviewView?: WebviewView;
 	private _codestreamSession: CodeStreamSession;
 	private _extensionUri: Uri;
+
+	public get onDidMessageReceive(): Event<any> {
+		return this.panel!?.webview?.onDidReceiveMessage;
+	}
 
 	constructor(
 		public readonly session: CodeStreamSession,
@@ -55,22 +63,22 @@ export class WebviewEditor implements WebviewViewProvider {
 		});
 	}
 
-	public async resolveWebviewView(
-		webviewView: WebviewView,
-		context: WebviewViewResolveContext,
-		_token: CancellationToken
-	) {
-		this._webviewView = webviewView;
+	// public async resolveWebviewView(
+	// 	webviewView: WebviewView,
+	// 	context: WebviewViewResolveContext,
+	// 	_token: CancellationToken
+	// ) {
+	// 	this._webviewView = webviewView;
 
-		webviewView.webview.options = {
-			// Allow scripts in the webview
-			enableScripts: true,
-			enableCommandUris: true,
-			localResourceRoots: [this._extensionUri]
-		};
+	// 	webviewView.webview.options = {
+	// 		// Allow scripts in the webview
+	// 		enableScripts: true,
+	// 		enableCommandUris: true,
+	// 		localResourceRoots: [this._extensionUri]
+	// 	};
 
-		webviewView.webview.html = await this.getHtml();
-	}
+	// 	webviewView.webview.html = await this.getHtml();
+	// }
 
 	private _html: string = "";
 
@@ -93,5 +101,13 @@ export class WebviewEditor implements WebviewViewProvider {
 
 		this._html = data.replace(/{{root}}/g, pathToExt);
 		return this._html;
+	}
+
+	notify<NT extends NotificationType<any, any>>(type: NT, params: NotificationParamsOf<NT>): void {
+		this.postMessage({ method: type.method, params: params });
+	}
+	private async postMessage(msg: WebviewIpcMessage, enqueue: boolean = true) {
+		// debugger;
+		await this.panel?.webview.postMessage(msg);
 	}
 }

@@ -130,7 +130,7 @@ export const ActivityPanel = () => {
 			setUserPreference({ prefPath: [derivedState.currentTeamId, "activityFilter"], value: data })
 		);
 
-		HostApi.sidebarInstance.track("Activity Feed Filtered", {
+		HostApi.instance.track("Activity Feed Filtered", {
 			"Selected Filter": src,
 		});
 	};
@@ -282,7 +282,7 @@ export const ActivityPanel = () => {
 	const fetchActivity = React.useCallback(async () => {
 		setLastFetchedActivity(lastFetchedActivityPostId);
 		setLastFilteredActivity(lastFilteredActivityPostId);
-		let response = await HostApi.sidebarInstance.send(FetchActivityRequestType, {
+		let response = await HostApi.instance.send(FetchActivityRequestType, {
 			limit: 50,
 			before: lastFetchedActivityPostId,
 		});
@@ -311,7 +311,7 @@ export const ActivityPanel = () => {
 	});
 
 	const renderFilter = async () => {
-		const repoResponse = await HostApi.sidebarInstance.send(GetReposScmRequestType, {
+		const repoResponse = await HostApi.instance.send(GetReposScmRequestType, {
 			inEditorOnly: true,
 			withSubDirectoriesDepth: 2,
 		});
@@ -466,13 +466,13 @@ export const ActivityPanel = () => {
 
 	useDidMount(() => {
 		if (derivedState.webviewFocused)
-			HostApi.sidebarInstance.track("Page Viewed", { "Page Name": "Activity Feed" });
+			HostApi.instance.track("Page Viewed", { "Page Name": "Activity Feed" });
 
 		renderFilter().then(() => {
 			if (activity.length === 0) fetchActivity();
 		});
 
-		const disposable = HostApi.sidebarInstance.on(DidChangeDataNotificationType, (e: any) => {
+		const disposable = HostApi.instance.on(DidChangeDataNotificationType, (e: any) => {
 			if (e.type === ChangeDataType.Workspace) {
 				renderFilter();
 			}
@@ -547,7 +547,7 @@ export const ActivityPanel = () => {
 											(target.closest(".emoji-mart") || target.closest(".reactions"))
 										)
 											return;
-										HostApi.sidebarInstance.track("Codemark Clicked", {
+										HostApi.instance.track("Codemark Clicked", {
 											"Codemark ID": codemark.id,
 											"Codemark Location": "Activity Feed",
 											Following: (codemark.followerIds || []).includes(
@@ -866,7 +866,7 @@ const UnreadReply = (props: {
 				label: props.starred ? "Un-Star Reply" : "Star Reply",
 				key: "star",
 				action: () => {
-					HostApi.sidebarInstance.send(PinReplyToCodemarkRequestType, {
+					HostApi.instance.send(PinReplyToCodemarkRequestType, {
 						codemarkId: props.codemarkId!,
 						postId: props.post.id,
 						value: !props.starred,

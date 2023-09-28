@@ -25,7 +25,7 @@ export const Pods = props => {
 	const loadPods = async () => {
 		setIsLoading(true);
 		try {
-			const response = await HostApi.sidebarInstance.send(PixieGetPodsRequestType, {
+			const response = await HostApi.instance.send(PixieGetPodsRequestType, {
 				accountId: props.account.id,
 				clusterId: props.cluster.clusterId,
 				namespace: props.namespace,

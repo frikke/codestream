@@ -146,7 +146,7 @@ export const PullRequestFileCommentCard = (props: PropsWithChildren<Props>) => {
 			const { textEditorUri } = derivedState;
 			const isDiff = textEditorUri?.startsWith("codestream-diff://");
 			if (textEditorUri && isDiff && !isEmpty(commentRange)) {
-				await HostApi.sidebarInstance.notify(EditorScrollToNotificationType, {
+				await HostApi.instance.notify(EditorScrollToNotificationType, {
 					uri: textEditorUri,
 					//@ts-ignore
 					position: Position.create(commentRange?.start?.line, 0),
@@ -169,7 +169,7 @@ export const PullRequestFileCommentCard = (props: PropsWithChildren<Props>) => {
 			const { textEditorUri } = derivedState;
 			const isDiff = textEditorUri?.startsWith("codestream-diff://");
 			if (textEditorUri && isDiff && !isEmpty(commentRange)) {
-				await HostApi.sidebarInstance.notify(EditorScrollToNotificationType, {
+				await HostApi.instance.notify(EditorScrollToNotificationType, {
 					uri: textEditorUri,
 					//@ts-ignore
 					position: Position.create(commentRange?.start?.line, 0),
@@ -203,12 +203,12 @@ export const PullRequestFileCommentCard = (props: PropsWithChildren<Props>) => {
 				: undefined,
 		};
 		try {
-			await HostApi.sidebarInstance.send(CompareLocalFilesRequestType, request);
+			await HostApi.instance.send(CompareLocalFilesRequestType, request);
 		} catch (err) {
 			console.warn(err);
 		}
 
-		HostApi.sidebarInstance.track("PR Diff Viewed", {
+		HostApi.instance.track("PR Diff Viewed", {
 			Host: pr && pr.providerId,
 		});
 
@@ -219,7 +219,7 @@ export const PullRequestFileCommentCard = (props: PropsWithChildren<Props>) => {
 	const handleOpenFile = async () => {
 		let repoRoot = currentRepoRoot;
 		if (!repoRoot) {
-			const response = await HostApi.sidebarInstance.send(GetReposScmRequestType, {
+			const response = await HostApi.instance.send(GetReposScmRequestType, {
 				inEditorOnly: false,
 			});
 			if (!response.repositories) return;
@@ -238,13 +238,13 @@ export const PullRequestFileCommentCard = (props: PropsWithChildren<Props>) => {
 		const path = comment?.path || comment?.position?.filePath || "";
 
 		if (repoRoot && _lineNumber) {
-			HostApi.sidebarInstance.send(EditorRevealRangeRequestType, {
+			HostApi.instance.send(EditorRevealRangeRequestType, {
 				uri: Path.join("file://", repoRoot, path),
 				range: Range.create(_lineNumber, 0, _lineNumber, 9999),
 			});
 		}
 
-		HostApi.sidebarInstance.track("PR Jump to Local File", {
+		HostApi.instance.track("PR Jump to Local File", {
 			Host: pr && pr.providerId,
 		});
 	};
@@ -469,7 +469,7 @@ export const PullRequestFileCommentCard = (props: PropsWithChildren<Props>) => {
 														style={{ color: "var(--text-color-subtle)" }}
 														onClick={e => {
 															handleDiffClick();
-															HostApi.sidebarInstance.track("PR Jump to Diff", {
+															HostApi.instance.track("PR Jump to Diff", {
 																Host: pr && pr.providerId,
 															});
 														}}

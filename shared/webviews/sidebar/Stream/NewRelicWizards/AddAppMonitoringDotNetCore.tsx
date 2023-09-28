@@ -75,7 +75,7 @@ export const AddAppMonitoringDotNetCore = (props: {
 			dispatch(clearProcessBuffer({}));
 
 			if (repoPath) {
-				void HostApi.sidebarInstance.send(EditorRevealRangeRequestType, {
+				void HostApi.instance.send(EditorRevealRangeRequestType, {
 					uri: path.join("file://", repoPath, "NrStart.cmd"),
 					range: Range.create(0, 0, 0, 0),
 				});
@@ -93,7 +93,7 @@ export const AddAppMonitoringDotNetCore = (props: {
 	const onInstallLibrary = async (event: React.SyntheticEvent) => {
 		event.preventDefault();
 		setInstallingLibrary(true);
-		const response = (await HostApi.sidebarInstance.send(InstallNewRelicRequestType, {
+		const response = (await HostApi.instance.send(InstallNewRelicRequestType, {
 			type: RepoProjectType.DotNetCore,
 			cwd: cwd || repoPath!,
 		})) as InstallNewRelicResponse;
@@ -110,7 +110,7 @@ export const AddAppMonitoringDotNetCore = (props: {
 	const onCreateConfigFile = async (event: React.SyntheticEvent) => {
 		event.preventDefault();
 		setCreatingConfig(true);
-		const response = (await HostApi.sidebarInstance.send(CreateNewRelicConfigFileRequestType, {
+		const response = (await HostApi.instance.send(CreateNewRelicConfigFileRequestType, {
 			type: RepoProjectType.DotNetCore,
 			repoPath: repoPath!,
 			filePath: cwd || repoPath!,

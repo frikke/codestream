@@ -180,7 +180,7 @@ export const PullRequestCommitsTab = props => {
 		(async () => {
 			getData();
 
-			disposable = HostApi.sidebarInstance.on(DidChangeDataNotificationType, async (e: any) => {
+			disposable = HostApi.instance.on(DidChangeDataNotificationType, async (e: any) => {
 				if (e.type === ChangeDataType.Commits) {
 					setIsLoading(true);
 					const data = await dispatch(

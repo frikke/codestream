@@ -80,7 +80,7 @@ export function RepositoryAssociator(props: {
 	const [skipRender, setSkipRender] = React.useState(false);
 
 	const fetchRepos = () => {
-		HostApi.sidebarInstance
+		HostApi.instance
 			.send(GetReposScmRequestType, {
 				inEditorOnly: true,
 				includeRemotes: true,
@@ -157,7 +157,7 @@ export function RepositoryAssociator(props: {
 		}
 		if (!repositoryError) return;
 
-		const disposable = HostApi.sidebarInstance.on(DidChangeDataNotificationType, (e: any) => {
+		const disposable = HostApi.instance.on(DidChangeDataNotificationType, (e: any) => {
 			if (e.type === ChangeDataType.Workspace) {
 				fetchRepos();
 			}
@@ -209,7 +209,7 @@ export function RepositoryAssociator(props: {
 
 		await props.onSubmit(repo, true);
 		if (!props.disableEmitDidChangeObservabilityDataNotification) {
-			HostApi.sidebarInstance.emit(DidChangeObservabilityDataNotificationType.method, {
+			HostApi.instance.emit(DidChangeObservabilityDataNotificationType.method, {
 				type: "RepositoryAssociation",
 			});
 		}
@@ -230,7 +230,7 @@ export function RepositoryAssociator(props: {
 
 							await props.onSubmit(selected);
 							if (!props.disableEmitDidChangeObservabilityDataNotification) {
-								HostApi.sidebarInstance.emit(DidChangeObservabilityDataNotificationType.method, {
+								HostApi.instance.emit(DidChangeObservabilityDataNotificationType.method, {
 									type: "RepositoryAssociation",
 								});
 							}

@@ -625,7 +625,7 @@ export class Codemark extends React.Component<Props, State> {
 		}
 
 		if (!this.props.selected) {
-			HostApi.sidebarInstance.track("Codemark Clicked", {
+			HostApi.instance.track("Codemark Clicked", {
 				"Codemark ID": this.props.codemark!.id,
 				"Codemark Location": this.props.contextName ? this.props.contextName : undefined,
 				Following: (this.props.codemark!.followerIds || []).includes(this.props.currentUser.id),
@@ -644,11 +644,11 @@ export class Codemark extends React.Component<Props, State> {
 	};
 
 	private _sendHighlightRequest(request: EditorHighlightRangeRequest) {
-		HostApi.sidebarInstance.send(EditorHighlightRangeRequestType, request);
+		HostApi.instance.send(EditorHighlightRangeRequestType, request);
 	}
 
 	private _sendSelectRequest(request: EditorSelectRangeRequest) {
-		HostApi.sidebarInstance.send(EditorSelectRangeRequestType, request);
+		HostApi.instance.send(EditorSelectRangeRequestType, request);
 	}
 
 	jumpToMarker = markerId => {
@@ -721,7 +721,7 @@ export class Codemark extends React.Component<Props, State> {
 		}
 
 		// if (jump) {
-		// 	await HostApi.sidebarInstance.send(EditorSelectRangeRequestType, {
+		// 	await HostApi.instance.send(EditorSelectRangeRequestType, {
 		// 		uri: this._fileUri[marker.id],
 		// 		// Ensure we put the cursor at the right line (don't actually select the whole range)
 		// 		selection: {
@@ -737,7 +737,7 @@ export class Codemark extends React.Component<Props, State> {
 		// }
 
 		// this._isHighlightedInTextEditor = highlight;
-		// HostApi.sidebarInstance.send(EditorHighlightRangeRequestType, {
+		// HostApi.instance.send(EditorHighlightRangeRequestType, {
 		// 	uri: this._fileUri[marker.id],
 		// 	range: this._range[marker.id],
 		// 	highlight: highlight
@@ -834,7 +834,7 @@ export class Codemark extends React.Component<Props, State> {
 		this.props.addCodemarks([updatedCodemark]);
 
 		this.props.setCodemarkPinned(codemark, value);
-		// HostApi.sidebarInstance.send(SetCodemarkPinnedRequestType, {
+		// HostApi.instance.send(SetCodemarkPinnedRequestType, {
 		// 	codemarkId: codemark.id,
 		// 	value
 		// });
@@ -842,7 +842,7 @@ export class Codemark extends React.Component<Props, State> {
 
 	toggleLabelIndicators = (_event: React.SyntheticEvent) => {
 		// event.stopPropagation();
-		// HostApi.sidebarInstance.send(UpdateConfigurationRequestType, {
+		// HostApi.instance.send(UpdateConfigurationRequestType, {
 		// 	name: "showLabelText",
 		// 	value: !this.props.showLabelText
 		// });
@@ -851,11 +851,11 @@ export class Codemark extends React.Component<Props, State> {
 
 	followCodemark = () => {
 		const { codemark } = this.props;
-		HostApi.sidebarInstance.send(FollowCodemarkRequestType, {
+		HostApi.instance.send(FollowCodemarkRequestType, {
 			codemarkId: codemark!.id,
 			value: true,
 		});
-		HostApi.sidebarInstance.track("Notification Change", {
+		HostApi.instance.track("Notification Change", {
 			Change: "Codemark Followed",
 			"Source of Change": "Codemark menu",
 		});
@@ -863,11 +863,11 @@ export class Codemark extends React.Component<Props, State> {
 
 	unfollowCodemark = () => {
 		const { codemark } = this.props;
-		HostApi.sidebarInstance.send(FollowCodemarkRequestType, {
+		HostApi.instance.send(FollowCodemarkRequestType, {
 			codemarkId: codemark!.id,
 			value: false,
 		});
-		HostApi.sidebarInstance.track("Notification Change", {
+		HostApi.instance.track("Notification Change", {
 			Change: "Codemark Unfollowed",
 			"Source of Change": "Codemark menu",
 		});
@@ -1149,7 +1149,7 @@ export class Codemark extends React.Component<Props, State> {
 					className="detail-icon"
 					onClickCapture={e => {
 						e.preventDefault();
-						HostApi.sidebarInstance.send(OpenUrlRequestType, { url: codemark.externalProviderUrl });
+						HostApi.instance.send(OpenUrlRequestType, { url: codemark.externalProviderUrl });
 					}}
 				>
 					<Icon
@@ -1716,7 +1716,7 @@ export class Codemark extends React.Component<Props, State> {
 				onClick={e => {
 					e.preventDefault();
 					// @ts-ignore
-					HostApi.sidebarInstance.send(EditorRevealRangeRequestType, {
+					HostApi.instance.send(EditorRevealRangeRequestType, {
 						// @ts-ignore
 						uri: marker.fileUri,
 						// @ts-ignore
@@ -1803,7 +1803,7 @@ export class Codemark extends React.Component<Props, State> {
 										<Link
 											onClick={e => {
 												e.preventDefault();
-												HostApi.sidebarInstance.send(OpenUrlRequestType, { url: action.uri });
+												HostApi.instance.send(OpenUrlRequestType, { url: action.uri });
 											}}
 										>
 											{action.label}
@@ -1879,7 +1879,7 @@ export class Codemark extends React.Component<Props, State> {
 				onClick={e => {
 					e.preventDefault();
 					// @ts-ignore
-					HostApi.sidebarInstance.send(EditorRevealRangeRequestType, {
+					HostApi.instance.send(EditorRevealRangeRequestType, {
 						// @ts-ignore
 						uri: marker.fileUri,
 						// @ts-ignore
@@ -1962,8 +1962,8 @@ export class Codemark extends React.Component<Props, State> {
 											<Link
 												onClick={e => {
 													e.preventDefault();
-													HostApi.sidebarInstance.send(OpenUrlRequestType, { url: action.uri });
-													HostApi.sidebarInstance.track("PR Comment Action", {
+													HostApi.instance.send(OpenUrlRequestType, { url: action.uri });
+													HostApi.instance.track("PR Comment Action", {
 														Host: marker.externalContent!.provider.name,
 														"Action Label": action.label
 													});

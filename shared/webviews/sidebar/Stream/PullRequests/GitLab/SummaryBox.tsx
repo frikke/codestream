@@ -102,7 +102,7 @@ export const SummaryBox = (props: {
 
 		setIsLoadingBranch(true);
 		const repoId = derivedState.prRepoId ? derivedState.prRepoId : "";
-		const result = await HostApi.sidebarInstance.send(SwitchBranchRequestType, {
+		const result = await HostApi.instance.send(SwitchBranchRequestType, {
 			branch: pr!.headRefName,
 			repoId: repoId,
 		});
@@ -175,7 +175,7 @@ export const SummaryBox = (props: {
 									label: "Email patches",
 									key: "email",
 									action: () => {
-										HostApi.sidebarInstance.send(OpenUrlRequestType, {
+										HostApi.instance.send(OpenUrlRequestType, {
 											url: `${pr.repository.url}/-/merge_requests/${pr.number}.patch`,
 										});
 									},
@@ -184,7 +184,7 @@ export const SummaryBox = (props: {
 									label: "Plain diff",
 									key: "plain",
 									action: () => {
-										HostApi.sidebarInstance.send(OpenUrlRequestType, {
+										HostApi.instance.send(OpenUrlRequestType, {
 											url: `${pr.repository.url}/-/merge_requests/${pr.number}.diff`,
 										});
 									},

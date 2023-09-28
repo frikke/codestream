@@ -105,7 +105,7 @@ export const createCodeError =
 	(attributes: NewCodeErrorAttributes) => async (dispatch, getState: () => CodeStreamState) => {
 		// console.debug("===--- createCodeError ---===", attributes);
 		try {
-			const response = await HostApi.sidebarInstance.send(CreateShareableCodeErrorRequestType, {
+			const response = await HostApi.instance.send(CreateShareableCodeErrorRequestType, {
 				attributes,
 				entryPoint: attributes.entryPoint,
 				addedUsers: attributes.addedUsers,
@@ -276,7 +276,7 @@ export const openErrorGroup =
 		}
 
 		if (message) {
-			HostApi.sidebarInstance.track("Error Roadblocked", {
+			HostApi.instance.track("Error Roadblocked", {
 				"Error Group ID": errorGroupGuid,
 				"NR Account ID": response && response.accountId,
 			});
@@ -382,7 +382,7 @@ export const upgradePendingCodeError =
 					}
 					return undefined;
 				}
-				HostApi.sidebarInstance.track("Error Created", {
+				HostApi.instance.track("Error Created", {
 					"Error Group ID": objectId,
 					"NR Account ID": newCodeError.accountId,
 					Trigger: source,
@@ -460,7 +460,7 @@ export const api =
 			// 	params.metadata = currentPullRequest.metadata;
 			// }
 
-			const response = (await HostApi.sidebarInstance.send(new ExecuteThirdPartyTypedType<T, R>(), {
+			const response = (await HostApi.instance.send(new ExecuteThirdPartyTypedType<T, R>(), {
 				method: method,
 				providerId: "newrelic*com",
 				params: params,
@@ -514,7 +514,7 @@ export const api =
 			// );
 			logError(error, { providerId, pullRequestId, method, message: errorString });
 
-			HostApi.sidebarInstance.track("ErrorGroup Error", {
+			HostApi.instance.track("ErrorGroup Error", {
 				Host: providerId,
 				Operation: method,
 				Error: errorString,
@@ -529,7 +529,7 @@ export const api =
 export const replaceSymbol =
 	(uri: string, symbol: string, codeBlock: string) =>
 	async (dispatch, getState: () => CodeStreamState) => {
-		await HostApi.sidebarInstance.send(EditorReplaceSymbolType, {
+		await HostApi.instance.send(EditorReplaceSymbolType, {
 			uri,
 			symbolName: symbol,
 			codeBlock,
@@ -543,7 +543,7 @@ export const copySymbolFromIde =
 		}
 		const currentPosition =
 			ref && repoId && stackLine.fileRelativePath
-				? await HostApi.sidebarInstance.send(ResolveStackTracePositionRequestType, {
+				? await HostApi.instance.send(ResolveStackTracePositionRequestType, {
 						ref,
 						repoId,
 						filePath: stackLine.fileRelativePath,
@@ -565,7 +565,7 @@ export const copySymbolFromIde =
 
 		// console.debug("===--- copySymbolFromIde lookupPath: ", lookupPath);
 
-		const symbolDetails = await HostApi.sidebarInstance.send(EditorCopySymbolType, {
+		const symbolDetails = await HostApi.instance.send(EditorCopySymbolType, {
 			uri: lookupPath,
 			namespace: stackLine.namespace,
 			symbolName: stackLine.method,
@@ -600,16 +600,13 @@ export const jumpToStackLine =
 			console.error(`Unable to jump to stack trace line: missing fileRelativePath`);
 			return;
 		}
-		const currentPosition = await HostApi.sidebarInstance.send(
-			ResolveStackTracePositionRequestType,
-			{
-				ref,
-				repoId,
-				filePath: stackLine.fileRelativePath!,
-				line: stackLine.line!,
-				column: stackLine.column!,
-			}
-		);
+		const currentPosition = await HostApi.instance.send(ResolveStackTracePositionRequestType, {
+			ref,
+			repoId,
+			filePath: stackLine.fileRelativePath!,
+			line: stackLine.line!,
+			column: stackLine.column!,
+		});
 		if (currentPosition.error) {
 			logError(`Unable to jump to stack trace line: ${currentPosition.error}`);
 			return;
@@ -627,7 +624,7 @@ export const jumpToStackLine =
 			range.end.character = 2147483647;
 		}
 
-		const revealResponse = await HostApi.sidebarInstance.send(EditorRevealRangeRequestType, {
+		const revealResponse = await HostApi.instance.send(EditorRevealRangeRequestType, {
 			uri: path!,
 			preserveFocus: true,
 			range,
@@ -644,7 +641,7 @@ export const jumpToStackLine =
 	};
 
 export const updateCodeError = request => async dispatch => {
-	const response = await HostApi.sidebarInstance.send(UpdateCodeErrorRequestType, request);
+	const response = await HostApi.instance.send(UpdateCodeErrorRequestType, request);
 	if (response?.codeError) {
 		dispatch(updateCodeErrors([response.codeError]));
 	}
@@ -652,7 +649,7 @@ export const updateCodeError = request => async dispatch => {
 
 export const fetchNewRelicErrorGroup =
 	(request: GetNewRelicErrorGroupRequest) => async dispatch => {
-		return HostApi.sidebarInstance.send(GetNewRelicErrorGroupRequestType, request);
+		return HostApi.instance.send(GetNewRelicErrorGroupRequestType, request);
 	};
 
 export const startGrokLoading = (codeError: CSCodeError) => async (dispatch, getState) => {

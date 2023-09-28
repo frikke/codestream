@@ -1,6 +1,9 @@
 import React from "react";
+
 import { render } from "react-dom";
 import "@formatjs/intl-listformat/polyfill-locales";
+
+import { App } from "./App";
 
 export function setupCommunication(host: { postMessage: (message: any) => void }) {
 	Object.defineProperty(window, "acquireCodestreamHostForEditor", {
@@ -9,6 +12,7 @@ export function setupCommunication(host: { postMessage: (message: any) => void }
 		},
 	});
 }
+let foo = "";
 export async function initialize(selector: string) {
-	render(<h1>Hello Editor Webview!</h1>, document.querySelector(selector));
+	render(<App />, document.querySelector(selector));
 }

@@ -68,6 +68,7 @@ import {
 	ReviewCloseDiffRequestType,
 	ReviewShowDiffRequestType,
 	ReviewShowLocalDiffRequestType,
+	SendToEditorRequestType,
 	ShellPromptFolderRequestType,
 	ShowCodemarkNotificationType,
 	ShowNextChangedFileNotificationType,
@@ -134,6 +135,7 @@ import * as csUri from "../system/uri";
 import * as TokenManager from "../api/tokenManager";
 import { SaveTokenReason } from "../api/tokenManager";
 import { copySymbol, replaceSymbol } from "./symbolEditController";
+import { WebviewEditor } from "../webviews/webviewEditor";
 
 const emptyObj = {};
 
@@ -162,7 +164,8 @@ export class SidebarController implements Disposable {
 
 	constructor(
 		public readonly session: CodeStreamSession,
-		private _sidebar?: WebviewLike
+		private _sidebar?: WebviewLike,
+		private _editor?: WebviewEditor
 	) {
 		this._disposable = Disposable.from(
 			this.session.onDidChangeSessionStatus(this.onSessionStatusChanged, this),
@@ -844,6 +847,18 @@ export class SidebarController implements Disposable {
 
 	private onWebviewNotification(webview: WebviewLike, e: WebviewIpcNotificationMessage) {
 		switch (e.method) {
+			case SendToEditorRequestType.method: {
+				// view is rendered and ready to receive messages
+
+				this._editor?.notify(DidChangeDataNotificationType, {
+					type: "cheese" as any,
+					data: {
+						cheese: true
+					}
+				});
+
+				break;
+			}
 			case WebviewDidInitializeNotificationType.method: {
 				// view is rendered and ready to receive messages
 				webview.onIpcReady();
@@ -984,6 +999,16 @@ export class SidebarController implements Disposable {
 
 	private async onWebviewRequest(webview: WebviewLike, e: WebviewIpcRequestMessage) {
 		switch (e.method) {
+			case SendToEditorRequestType.method: {
+				debugger;
+				this._editor?.notify(DidChangeDataNotificationType, {
+					type: "cheese" as any,
+					data: {
+						cheese: true
+					}
+				});
+				break;
+			}
 			case BootstrapInHostRequestType.method: {
 				Logger.log(
 					"WebviewController: Bootstrapping sidebar...",

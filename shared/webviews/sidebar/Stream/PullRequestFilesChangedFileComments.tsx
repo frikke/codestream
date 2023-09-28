@@ -278,7 +278,7 @@ export const PullRequestFilesChangedFileComments = (props: Props) => {
 			)
 		);
 
-		HostApi.sidebarInstance.track("PR Conversation View", {
+		HostApi.instance.track("PR Conversation View", {
 			Host: pullRequest?.providerId,
 		});
 	};
@@ -315,7 +315,7 @@ export const PullRequestFilesChangedFileComments = (props: Props) => {
 		e.stopPropagation();
 		let repoRoot = currentRepoRoot;
 		if (!repoRoot) {
-			const response = await HostApi.sidebarInstance.send(GetReposScmRequestType, {
+			const response = await HostApi.instance.send(GetReposScmRequestType, {
 				inEditorOnly: false,
 			});
 			if (!response.repositories) return;
@@ -335,13 +335,13 @@ export const PullRequestFilesChangedFileComments = (props: Props) => {
 		}
 
 		if (repoRoot) {
-			HostApi.sidebarInstance.send(EditorRevealRangeRequestType, {
+			HostApi.instance.send(EditorRevealRangeRequestType, {
 				uri: Path.join("file://", repoRoot, fileObject.file),
 				range: Range.create(0, 0, 0, 0),
 			});
 		}
 
-		HostApi.sidebarInstance.track("PR Jump To Local File from Tree", {
+		HostApi.instance.track("PR Jump To Local File from Tree", {
 			Host: pullRequest && pullRequest.providerId,
 		});
 	};
@@ -425,7 +425,7 @@ export const PullRequestFilesChangedFileComments = (props: Props) => {
 							: async e => {
 									e.preventDefault();
 									goDiff(index);
-									HostApi.sidebarInstance.track("PR File Clicked", {
+									HostApi.instance.track("PR File Clicked", {
 										Host: pullRequest && pullRequest.providerId,
 									});
 							  }
@@ -523,7 +523,7 @@ export const PullRequestFilesChangedFileComments = (props: Props) => {
 								: async e => {
 										e.preventDefault();
 										goDiff(index);
-										HostApi.sidebarInstance.track("PR File Clicked", {
+										HostApi.instance.track("PR File Clicked", {
 											Host: pullRequest && pullRequest.providerId,
 										});
 								  }

@@ -24,7 +24,7 @@ export function RelatedCodemark(props: { id: string; className?: string }) {
 		event => {
 			event.preventDefault();
 			event.stopPropagation();
-			HostApi.sidebarInstance.track("Codemark Clicked", {
+			HostApi.instance.track("Codemark Clicked", {
 				"Codemark ID": props.id,
 				"Codemark Location": "Related List",
 				Following: (codemark?.followerIds || []).includes(currentUserId),

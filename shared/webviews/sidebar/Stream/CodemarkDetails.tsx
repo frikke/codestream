@@ -147,7 +147,7 @@ export class CodemarkDetails extends React.Component<Props, State> {
 		if (this.props.setUserPreference) {
 			this.props.setUserPreference({ prefPath: ["defaultResolveAction"], value: type });
 		}
-		HostApi.sidebarInstance.track("Codemark Resolved", {
+		HostApi.instance.track("Codemark Resolved", {
 			"Codemark ID": this.props.codemark.id,
 			"Codemark Type": this.props.codemark.type,
 			Archived: type === "archive",
@@ -160,7 +160,7 @@ export class CodemarkDetails extends React.Component<Props, State> {
 		if (post && post.sharedTo && post.sharedTo.length > 0) {
 			for (const target of post.sharedTo) {
 				if (target.providerId === "slack*com") continue;
-				await HostApi.sidebarInstance.send(CreateThirdPartyPostRequestType, {
+				await HostApi.instance.send(CreateThirdPartyPostRequestType, {
 					providerId: target.providerId,
 					channelId: target.channelId,
 					providerTeamId: target.teamId,

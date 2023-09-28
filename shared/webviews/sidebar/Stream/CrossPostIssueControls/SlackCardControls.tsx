@@ -53,7 +53,7 @@ export function SlackCardControls(props: React.PropsWithChildren<Props>) {
 		let isValid = true;
 
 		const fetchChannels = async () => {
-			const response = await HostApi.sidebarInstance.send(FetchThirdPartyChannelsRequestType, {
+			const response = await HostApi.instance.send(FetchThirdPartyChannelsRequestType, {
 				providerId: props.provider.id,
 				// TODO need the real providerTeamId
 				providerTeamId: "T7DDT1L5R",
@@ -147,7 +147,7 @@ export function SlackCardControls(props: React.PropsWithChildren<Props>) {
 		async (inputValue: string) => {
 			if (!data.currentBoard) return [];
 
-			const { users } = await HostApi.sidebarInstance.send(FetchAssignableUsersRequestType, {
+			const { users } = await HostApi.instance.send(FetchAssignableUsersRequestType, {
 				providerId: props.provider.id,
 				boardId: data.currentBoard!.id,
 			});

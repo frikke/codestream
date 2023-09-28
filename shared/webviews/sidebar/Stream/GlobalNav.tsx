@@ -106,10 +106,10 @@ export function GlobalNav() {
 		dispatch(setCurrentCodemark());
 		if (currentReviewId) {
 			// tell the extension to close the diff panel in the editor
-			HostApi.sidebarInstance.send(ReviewCloseDiffRequestType, {});
+			HostApi.instance.send(ReviewCloseDiffRequestType, {});
 		}
 		if (currentPullRequestId) {
-			HostApi.sidebarInstance.send(LocalFilesCloseDiffRequestType, {});
+			HostApi.instance.send(LocalFilesCloseDiffRequestType, {});
 		}
 	};
 

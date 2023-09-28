@@ -181,7 +181,7 @@ export const PullRequestFilesChanged = (props: Props) => {
 		e.preventDefault();
 		e.stopPropagation();
 		if (!showErrorDetails) {
-			const response = await HostApi.sidebarInstance.send(GetReposScmRequestType, {
+			const response = await HostApi.instance.send(GetReposScmRequestType, {
 				inEditorOnly: true,
 				includeCurrentBranches: true,
 				includeProviders: true,
@@ -213,7 +213,7 @@ export const PullRequestFilesChanged = (props: Props) => {
 			(async () => {
 				setLoading(true);
 				try {
-					const forkPointResponse = await HostApi.sidebarInstance.send(FetchForkPointRequestType, {
+					const forkPointResponse = await HostApi.instance.send(FetchForkPointRequestType, {
 						repoId: derivedState.prRepoId!,
 						baseSha: props?.pr?.baseRefOid || props.baseRef,
 						headSha: props?.pr?.headRefOid || props.headRef,
@@ -245,7 +245,7 @@ export const PullRequestFilesChanged = (props: Props) => {
 			if (isMounted && derivedState.prRepoId && props.pr && !forkPointSha && !loading) {
 				try {
 					setLoading(true);
-					const forkPointResponse = await HostApi.sidebarInstance.send(FetchForkPointRequestType, {
+					const forkPointResponse = await HostApi.instance.send(FetchForkPointRequestType, {
 						repoId: derivedState.prRepoId!,
 						baseSha: props.pr.baseRefOid,
 						headSha: props.pr.headRefOid,
@@ -295,13 +295,13 @@ export const PullRequestFilesChanged = (props: Props) => {
 						: undefined,
 				};
 				try {
-					await HostApi.sidebarInstance.send(CompareLocalFilesRequestType, request);
+					await HostApi.instance.send(CompareLocalFilesRequestType, request);
 				} catch (err) {
 					console.warn(err);
 					setErrorMessage(err || "Could not open file diff");
 				}
 
-				HostApi.sidebarInstance.track("PR Diff Viewed", {
+				HostApi.instance.track("PR Diff Viewed", {
 					Host: pr && pr.providerId,
 				});
 			})(i);
@@ -323,8 +323,8 @@ export const PullRequestFilesChanged = (props: Props) => {
 
 	useEffect(() => {
 		const disposables = [
-			HostApi.sidebarInstance.on(ShowNextChangedFileNotificationType, nextFile),
-			HostApi.sidebarInstance.on(ShowPreviousChangedFileNotificationType, prevFile),
+			HostApi.instance.on(ShowNextChangedFileNotificationType, nextFile),
+			HostApi.instance.on(ShowPreviousChangedFileNotificationType, prevFile),
 		];
 
 		return () => disposables.forEach(disposable => disposable.dispose());
@@ -337,7 +337,7 @@ export const PullRequestFilesChanged = (props: Props) => {
 
 		let repoRoot = currentRepoRoot;
 		if (!repoRoot) {
-			const response = await HostApi.sidebarInstance.send(GetReposScmRequestType, {
+			const response = await HostApi.instance.send(GetReposScmRequestType, {
 				inEditorOnly: false,
 			});
 			if (!response.repositories) return;
@@ -355,7 +355,7 @@ export const PullRequestFilesChanged = (props: Props) => {
 			}
 		}
 		if (repoRoot) {
-			const result = await HostApi.sidebarInstance.send(EditorRevealRangeRequestType, {
+			const result = await HostApi.instance.send(EditorRevealRangeRequestType, {
 				uri: path.join("file://", repoRoot, f.file),
 				range: Range.create(0, 0, 0, 0),
 			});
@@ -363,7 +363,7 @@ export const PullRequestFilesChanged = (props: Props) => {
 			if (!result.success) {
 				setErrorMessage("Could not open file");
 			} else {
-				HostApi.sidebarInstance.track("PR File Viewed", {
+				HostApi.instance.track("PR File Viewed", {
 					Host: props.pr && props.pr.providerId,
 				});
 			}

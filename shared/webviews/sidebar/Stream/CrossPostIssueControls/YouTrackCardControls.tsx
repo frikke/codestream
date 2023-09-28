@@ -59,7 +59,7 @@ export function YouTrackCardControls(
 		let isValid = true;
 
 		const fetchBoards = async () => {
-			let response = await HostApi.sidebarInstance.send(FetchThirdPartyBoardsRequestType, {
+			let response = await HostApi.instance.send(FetchThirdPartyBoardsRequestType, {
 				providerId: props.provider.id,
 			});
 
@@ -118,7 +118,7 @@ export function YouTrackCardControls(
 			return [];
 			// if (!data.currentProject) return [];
 			//
-			// const { users } = await HostApi.sidebarInstance.send(FetchAssignableUsersRequestType, {
+			// const { users } = await HostApi.instance.send(FetchAssignableUsersRequestType, {
 			// 	providerId: props.provider.id,
 			// 	boardId: data.currentProject.id
 			// });
