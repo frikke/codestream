@@ -101,6 +101,16 @@ export interface CSEligibleJoinCompany {
 	teamId?: string;
 }
 
+export interface CSPossibleAuthDomain {
+	authentication_domain_id?: string;
+	authentication_domain_name: string;
+	authentication_type: string;
+	login_url: string;
+	organization_id: string;
+	organization_name: string;
+	user_id: number;
+}
+
 export interface CSAccessTokenInfo {
 	refreshToken: string;
 	expiresAt: number;

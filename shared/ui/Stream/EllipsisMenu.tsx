@@ -2,7 +2,7 @@ import {
 	UpdateTeamSettingsRequestType,
 	DeleteCompanyRequestType,
 } from "@codestream/protocols/agent";
-import { isEmpty as _isEmpty, sortBy as _sortBy } from "lodash-es";
+import { sortBy as _sortBy } from "lodash-es";
 import React from "react";
 import styled from "styled-components";
 import { WebviewModals, OpenUrlRequestType } from "@codestream/protocols/webview";
@@ -106,6 +106,7 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 			isProductionCloud,
 			supportsMultiRegion,
 			eligibleJoinCompanies: _sortBy(user?.eligibleJoinCompanies, "name"),
+			possibleAuthDomains: _sortBy(user?.possibleAuthDomains, "authentication_domain_name"),
 		};
 	});
 
@@ -192,47 +193,39 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 			currentHost,
 			hasMultipleEnvironments,
 			supportsMultiRegion,
+			possibleAuthDomains,
 		} = derivedState;
 
 		const buildSubmenu = () => {
-			const items = eligibleJoinCompanies
-				.filter(company => {
-					// Skip companys eligible to join by domain and are signed out with no invite
-					const domainJoining = company?.domainJoining;
-					const canJoinByDomain = !_isEmpty(domainJoining);
-					const isInvited = company.byInvite && !company.accessToken;
-					const isSignedOut = !company.byInvite && !company.accessToken;
-					if (canJoinByDomain || isSignedOut || isInvited) return false;
-					return true;
-				})
-				.map(company => {
-					const isCurrentCompany = company.id === currentCompanyId;
-					const companyHost = company.host || currentHost;
-					const companyRegion =
-						supportsMultiRegion && hasMultipleEnvironments && companyHost?.shortName;
+			const items = possibleAuthDomains.map(company => {
+				const isCurrentCompany = company.authentication_domain_id === currentCompanyId;
+				const companyHost = company.organization_name || currentHost;
+				// const companyRegion =
+				// 	supportsMultiRegion && hasMultipleEnvironments && companyHost?.shortName;
+				const companyAuthType = company.authentication_type;
 
-					let checked: any;
-					if (isCurrentCompany) {
-						checked = true;
-					} else {
-						checked = false;
-					}
+				let checked: any;
+				if (isCurrentCompany) {
+					checked = true;
+				} else {
+					checked = false;
+				}
 
-					return {
-						key: company.id,
-						label: (
-							<>
-								{company.name}
-								<RegionSubtext>{companyRegion && <>{companyRegion}</>}</RegionSubtext>
-							</>
-						),
-						checked: checked,
-						noHover: isCurrentCompany,
-						action: () => {
-							trackSwitchOrg(isCurrentCompany, company);
-						},
-					};
-				}) as any;
+				return {
+					key: company.authentication_domain_id,
+					label: (
+						<>
+							{company.organization_name}
+							<RegionSubtext>{companyAuthType && <>{companyAuthType}</>}</RegionSubtext>
+						</>
+					),
+					checked: checked,
+					noHover: isCurrentCompany,
+					action: () => {
+						trackSwitchOrg(isCurrentCompany, company);
+					},
+				};
+			}) as any;
 
 			return items;
 		};
