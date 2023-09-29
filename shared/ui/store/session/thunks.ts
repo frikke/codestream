@@ -11,7 +11,7 @@ import { CSMe } from "@codestream/protocols/api";
 import { isEmpty } from "lodash-es";
 
 import { LogoutRequestType, UpdateServerUrlRequestType } from "@codestream/protocols/webview";
-import { onLogin } from "@codestream/webview/Authentication/actions";
+import { SignupType, onLogin, startSSOSignin } from "@codestream/webview/Authentication/actions";
 import { logError } from "@codestream/webview/logger";
 import { CodeStreamState } from "@codestream/webview/store";
 import { setBootstrapped } from "@codestream/webview/store/bootstrapped/actions";
@@ -41,6 +41,10 @@ export interface SwitchToTeamRequest {
 	teamId: string;
 	options?: { codemarkId?: string; reviewId?: string };
 	accessTokenFromEligibleCompany?: string;
+}
+
+export interface SwitchToTeamSSORequest {
+	loginUrl?: string;
 }
 
 export const switchToTeam = createAppAsyncThunk<
@@ -83,6 +87,47 @@ export const switchToTeam = createAppAsyncThunk<
 	dispatch(setUserPreference({ prefPath: ["lastTeamId"], value: teamId }));
 
 	return dispatch(onLogin(response));
+});
+
+export const switchToTeamSSO = createAppAsyncThunk<
+	LoginResponse | LoginSuccessResponse | { type: BootstrapActionType } | void,
+	SwitchToTeamSSORequest
+>("session/switchToTeamSSO", async (request, { dispatch, getState }) => {
+	const { loginUrl } = request;
+
+	const { configs, context, users, session } = getState(); // TODO restore codemarks
+	const user = users[session.userId!] as CSMe;
+
+	// dispatch(setBootstrapped(false));
+	// dispatch(reset());
+
+	await dispatch(logout());
+
+	// await HostApi.instance.send(LogoutRequestType, {});
+	// const response = await HostApi.instance.send(TokenLoginRequestType, {
+	// 	token: {
+	// 		email: user.email,
+	// 		value: accessToken,
+	// 		url: configs.serverUrl,
+	// 		teamId: teamId,
+	// 		providerAccess: context.chatProviderAccess as any,
+	// 	},
+	// 	teamId: teamId,
+	// 	codemarkId: options?.codemarkId,
+	// 	reviewId: options?.reviewId,
+	// });
+
+	// if (isLoginFailResponse(response)) {
+	// 	logError("Failed to switch teams", { ...response, userId: user.id, email: user.email });
+	// 	return dispatch(setBootstrapped(true));
+	// }
+
+	// dispatch(setUserPreference({ prefPath: ["lastTeamId"], value: teamId }));
+
+	console.warn(SignupType.CreateTeam, loginUrl);
+	return dispatch(
+		startSSOSignin("newrelicidp", { type: SignupType.CreateTeam, fromSignup: false, loginUrl })
+	);
 });
 
 export const setEnvironment = (environment: string, serverUrl: string) => async dispatch => {

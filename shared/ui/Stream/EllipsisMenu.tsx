@@ -9,14 +9,13 @@ import { WebviewModals, OpenUrlRequestType } from "@codestream/protocols/webview
 import { multiStageConfirmPopup } from "./MultiStageConfirm";
 import {
 	logout,
-	switchToForeignCompany,
-	switchToTeam,
+	switchToTeamSSO,
 } from "@codestream/webview/store/session/thunks";
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import { WebviewPanels, SidebarPanes } from "@codestream/protocols/api";
 import { CodeStreamState } from "../store";
 import { isFeatureEnabled } from "../store/apiVersioning/reducer";
-import { openModal, setCurrentOrganizationInvite, setProfileUser } from "../store/context/actions";
+import { openModal, setProfileUser } from "../store/context/actions";
 import { HostApi } from "../webview-api";
 import { openPanel } from "./actions";
 import Icon from "./Icon";
@@ -61,10 +60,17 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		const team = state.teams[teamId];
 		const user = state.users[state.session.userId!];
 		const onPrem = state.configs.isOnPrem;
-		const currentCompanyId = team.companyId;
+		const companies = state.companies;
 		const { environmentHosts, environment, isProductionCloud } = state.configs;
 		const currentHost = environmentHosts?.find(host => host.shortName === environment);
 		const supportsMultiRegion = isFeatureEnabled(state, "multiRegion");
+
+		let currentCompanyId;
+		for (const key in companies) {
+			if (companies[key].hasOwnProperty("linkedNROrgId")) {
+				currentCompanyId = companies[key].linkedNROrgId;
+			}
+		}
 
 		let sidebarPanes: SidebarPanes = state.preferences.sidebarPanes || (EMPTY_HASH as SidebarPanes);
 		let sidebarPaneOrder: WebviewPanels[] = state.preferences.sidebarPaneOrder || AVAILABLE_PANES;
@@ -118,31 +124,61 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		HostApi.instance.track("Switched Organizations", {});
 		// slight delay so tracking call completes
 		setTimeout(() => {
-			const { eligibleJoinCompanies } = derivedState;
+			const { possibleAuthDomains } = derivedState;
 			const isInvited = company.byInvite && !company.accessToken;
 			if (isCurrentCompany) return;
-			if (company.host && !isInvited) {
-				dispatch(switchToForeignCompany(company.id));
-			} else if (isInvited) {
-				dispatch(setCurrentOrganizationInvite(company.name, company.id, company.host));
-				dispatch(openModal(WebviewModals.AcceptCompanyInvite));
-			} else {
-				const eligibleCompany = eligibleJoinCompanies.find(_ => _.id === company.id);
-				if (eligibleCompany?.teamId) {
-					dispatch(
-						switchToTeam({
-							teamId: eligibleCompany.teamId,
-							accessTokenFromEligibleCompany: eligibleCompany?.accessToken,
-						})
-					);
-				} else {
-					console.error(`Could not switch to a team in company ${company.id}`);
-				}
-			}
+
+			dispatch(switchToTeamSSO({ loginUrl: company.login_url }));
+
+			// do what we do on login here
+
+			// if (company.host && !isInvited) {
+			// 	dispatch(switchToForeignCompany(company.id));
+			// } else if (isInvited) {
+			// 	dispatch(setCurrentOrganizationInvite(company.name, company.id, company.host));
+			// 	dispatch(openModal(WebviewModals.AcceptCompanyInvite));
+			// } else {
+			// 	const eligibleCompany = possibleAuthDomains.find(_ => _.id === company.id);
+			// 	if (eligibleCompany?.authentication_domain_id) {
+			// 		dispatch(
+			// 			switchToTeam({
+			// 				teamId: eligibleCompany.possibleAuthDomains,
+			// 				accessTokenFromEligibleCompany: eligibleCompany?.accessToken,
+			// 			})
+			// 		);
+			// 	} else {
+			// 		console.error(`Could not switch to a team in company ${company.id}`);
+			// 	}
+			// }
 		}, 500);
 
 		return;
 	};
+
+	// const buildSignupInfo = (fromSignup = true) => {
+	// 	const info: any = {};
+
+	// 	if (props.inviteCode) {
+	// 		info.type = SignupType.JoinTeam;
+	// 		info.inviteCode = props.inviteCode;
+	// 	} else if (props.commitHash) {
+	// 		info.type = SignupType.JoinTeam;
+	// 		info.repoInfo = {
+	// 			teamId: props.teamId,
+	// 			commitHash: props.commitHash,
+	// 			repoId: props.repoId,
+	// 		};
+	// 	} else {
+	// 		info.type = SignupType.CreateTeam;
+	// 	}
+
+	// 	if (props.joinCompanyId) {
+	// 		info.joinCompanyId = props.joinCompanyId;
+	// 	}
+
+	// 	info.fromSignup = fromSignup;
+	// 	return info;
+	// };
 
 	const deleteOrganization = () => {
 		const { currentCompanyId } = derivedState;
@@ -198,8 +234,8 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 
 		const buildSubmenu = () => {
 			const items = possibleAuthDomains.map(company => {
-				const isCurrentCompany = company.authentication_domain_id === currentCompanyId;
-				const companyHost = company.organization_name || currentHost;
+				const isCurrentCompany = company.organization_id === currentCompanyId;
+				// const companyHost = company.organization_name || currentHost;
 				// const companyRegion =
 				// 	supportsMultiRegion && hasMultipleEnvironments && companyHost?.shortName;
 				const companyAuthType = company.authentication_type;

@@ -68,6 +68,7 @@ export interface SSOAuthInfo {
 		commitHash: string;
 	};
 	joinCompanyId?: string;
+	loginUrl?: string;
 }
 
 export const ProviderNames = {
@@ -123,7 +124,9 @@ export const startSSOSignin =
 
 		try {
 			await HostApi.instance.send(OpenUrlRequestType, {
-				url: encodeURI(`${configs.serverUrl}/web/provider-auth/${provider}?${queryString}`),
+				url: info?.loginUrl
+					? info.loginUrl
+					: encodeURI(`${configs.serverUrl}/web/provider-auth/${provider}?${queryString}`),
 			});
 			return dispatch(goToSSOAuth(provider, { ...(info || emptyObject), mode: access }));
 		} catch (error) {
