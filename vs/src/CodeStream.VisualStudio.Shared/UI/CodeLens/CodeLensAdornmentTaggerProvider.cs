@@ -21,7 +21,6 @@ namespace CodeStream.VisualStudio.Shared.UI.CodeLens
 		public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer)
 			where T : ITag
 		{
-
 			if (buffer != textView.TextBuffer || !(textView is IWpfTextView wpfTextView))
 			{
 				return null;

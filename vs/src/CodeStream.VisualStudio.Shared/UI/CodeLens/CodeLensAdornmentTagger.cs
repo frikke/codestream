@@ -16,7 +16,6 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace CodeStream.VisualStudio.Shared.UI.CodeLens
 {
-
 	internal sealed class CodeLensAdornmentTagger : ITagger<IntraTextAdornmentTag>
 	{
 		private IWpfTextView _view;
@@ -26,10 +25,16 @@ namespace CodeStream.VisualStudio.Shared.UI.CodeLens
 
 		[Export]
 		[Name("CodeLensAdornmentLayer")]
-		[Order(After = PredefinedAdornmentLayers.Text, Before = PredefinedAdornmentLayers.Selection)]
+		[Order(
+			After = PredefinedAdornmentLayers.Text,
+			Before = PredefinedAdornmentLayers.Selection
+		)]
 		public AdornmentLayerDefinition AdornmentLayer { get; } = new AdornmentLayerDefinition();
 
-		internal CodeLensAdornmentTagger(IWpfTextView view, ITagAggregator<ICodeLensTag> tagAggregator)
+		internal CodeLensAdornmentTagger(
+			IWpfTextView view,
+			ITagAggregator<ICodeLensTag> tagAggregator
+		)
 		{
 			_view = view;
 			_tagAggregator = tagAggregator;
@@ -48,9 +53,12 @@ namespace CodeStream.VisualStudio.Shared.UI.CodeLens
 			_adornments.RemoveAll(x => true);
 
 			// Add adornments to the view
-			foreach (var tagSpan in GetTags(new NormalizedSnapshotSpanCollection(e.NewSnapshot, e.NewOrReformattedSpans)))
+			foreach (
+				var tagSpan in GetTags(
+					new NormalizedSnapshotSpanCollection(e.NewSnapshot, e.NewOrReformattedSpans)
+				)
+			)
 			{
-
 				var adornment = tagSpan.Tag.Adornment;
 
 				if (_adornments.Contains(adornment))
@@ -60,7 +68,13 @@ namespace CodeStream.VisualStudio.Shared.UI.CodeLens
 
 				_adornments.Add(adornment);
 
-				_adornmentLayer.AddAdornment(AdornmentPositioningBehavior.TextRelative, tagSpan.Span, null, adornment, null);
+				_adornmentLayer.AddAdornment(
+					AdornmentPositioningBehavior.TextRelative,
+					tagSpan.Span,
+					null,
+					adornment,
+					null
+				);
 			}
 		}
 
@@ -81,7 +95,8 @@ namespace CodeStream.VisualStudio.Shared.UI.CodeLens
 			var root = tree.GetCompilationUnitRoot();
 
 			// Find all method declarations in the syntax tree
-			var methodDeclarations = root.DescendantNodes().OfType<ClassDeclarationSyntax>()
+			var methodDeclarations = root.DescendantNodes()
+				.OfType<ClassDeclarationSyntax>()
 				.SelectMany(x => x.ChildNodes().OfType<MethodDeclarationSyntax>());
 
 			foreach (var methodDeclaration in methodDeclarations)
@@ -91,7 +106,7 @@ namespace CodeStream.VisualStudio.Shared.UI.CodeLens
 
 				// Get the position of the method's identifier token in the snapshot
 				var methodPosition = identifierToken.SpanStart;
-				
+
 				var adornmentControl = new CodeLensControl();
 
 				// Create the IntraTextAdornmentTag
@@ -100,7 +115,7 @@ namespace CodeStream.VisualStudio.Shared.UI.CodeLens
 					null,
 					PositionAffinity.Successor
 				);
-				
+
 				// Create the adornment's SnapshotSpan
 				var adornmentSpan = new SnapshotSpan(snapshot, methodPosition, 0);
 
