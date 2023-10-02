@@ -138,6 +138,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\WebviewUserSettingsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\WpfTextViewCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UI\ActiveTextEditorExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UI\CodeLens\CodeLensAdornmentTagger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UI\CodeLens\CodeLensAdornmentTaggerProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UI\CodeLens\CodeLensControl.xaml.cs">
+      <DependentUpon>CodeLensControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)UI\DocumentMarkerManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UI\Extensions\AnimationExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UI\Glyphs\DocumentMarkGlyphFactory.cs" />
@@ -182,6 +187,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)WebViewRouter.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="$(MSBuildThisFileDirectory)UI\CodeLens\CodeLensControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="$(MSBuildThisFileDirectory)UI\Margins\DocumentMark.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
