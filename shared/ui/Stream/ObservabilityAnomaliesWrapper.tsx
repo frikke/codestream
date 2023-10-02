@@ -2,7 +2,7 @@ import {
 	GetObservabilityAnomaliesResponse,
 	LanguageAndVersionValidation,
 } from "@codestream/protocols/agent";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import Icon from "./Icon";
 import { Link } from "./Link";
@@ -25,6 +25,7 @@ import {
 	RubyPluginLanguageServer,
 } from "./MethodLevelTelemetry/MissingExtension";
 import { WarningBoxRoot } from "./WarningBox";
+import { HostApi } from "@codestream/webview/webview-api";
 
 interface Props {
 	observabilityAnomalies: GetObservabilityAnomaliesResponse;
@@ -96,41 +97,41 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 		!_isEmpty(props.languageAndVersionValidation?.languageExtensionValidation) &&
 		props.languageAndVersionValidation?.languageExtensionValidation !== "VALID";
 
-	// useEffect(() => {
-	// 	if (!_isEmpty(props.languageAndVersionValidation)) {
-	// 		if (showAgentWarning) {
-	// 			// Prevent dupe tracking call if user reloads IDE, can trigger rapid double mount
-	// 			setTimeout(() => {
-	// 				HostApi.instance.track("CLM Blocked", {
-	// 					cause: "Unsupported Agent",
-	// 				});
-	// 			}, 3000);
-	// 		}
+	useEffect(() => {
+		if (!_isEmpty(props.languageAndVersionValidation)) {
+			if (showAgentWarning) {
+				// Prevent dupe tracking call if user reloads IDE, can trigger rapid double mount
+				setTimeout(() => {
+					HostApi.instance.track("CLM Blocked", {
+						cause: "Unsupported Agent",
+					});
+				}, 3000);
+			}
 
-	// 		if (showExtensionWarning) {
-	// 			// Prevent dupe tracking call if user reloads IDE, can trigger rapid double mount
-	// 			setTimeout(() => {
-	// 				HostApi.instance.track("CLM Blocked", {
-	// 					cause: "Missing Language Extension",
-	// 				});
-	// 			}, 3000);
-	// 		}
-	// 	}
-	// }, [props.languageAndVersionValidation]);
+			if (showExtensionWarning) {
+				// Prevent dupe tracking call if user reloads IDE, can trigger rapid double mount
+				setTimeout(() => {
+					HostApi.instance.track("CLM Blocked", {
+						cause: "Missing Language Extension",
+					});
+				}, 3000);
+			}
+		}
+	}, [props.languageAndVersionValidation]);
 
-	// useEffect(() => {
-	// 	if (!props.distributedTracingEnabled) {
-	// 		if (showDistributedTracingWarning) {
-	// 			// Prevent dupe tracking call if user reloads IDE, can trigger rapid double mount
-	// 			setTimeout(() => {
-	// 				console.warn("distributedTracingEnabled", props.distributedTracingEnabled);
-	// 				HostApi.instance.track("CLM Blocked", {
-	// 					cause: "DT Not Enabled",
-	// 				});
-	// 			}, 3000);
-	// 		}
-	// 	}
-	// }, [props.distributedTracingEnabled]);
+	useEffect(() => {
+		if (!props.distributedTracingEnabled) {
+			if (showDistributedTracingWarning) {
+				// Prevent dupe tracking call if user reloads IDE, can trigger rapid double mount
+				setTimeout(() => {
+					console.warn("distributedTracingEnabled", props.distributedTracingEnabled);
+					HostApi.instance.track("CLM Blocked", {
+						cause: "DT Not Enabled",
+					});
+				}, 3000);
+			}
+		}
+	}, [props.distributedTracingEnabled]);
 
 	return (
 		<>
