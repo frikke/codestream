@@ -1122,7 +1122,7 @@ export const Observability = React.memo((props: Props) => {
 											!genericError && (
 												<NoContent>
 													<p>
-														Open a source file to see how your code is performing.{" "}
+														Open a repository to see how your code is performing.{" "}
 														<a href="https://docs.newrelic.com/docs/codestream/how-use-codestream/performance-monitoring#observability-in-IDE">
 															Learn more.
 														</a>
@@ -1157,20 +1157,6 @@ export const Observability = React.memo((props: Props) => {
 													}}
 												/>
 											)}
-										{observabilityRepos.length == 0 && (
-											<>
-												{!loadingObservabilityErrors && !loadingEntities && (
-													<>
-														<PaneNodeName
-															title="Recent errors"
-															id="newrelic-errors-empty"
-														></PaneNodeName>
-
-														<ErrorRow title="No repositories found"></ErrorRow>
-													</>
-												)}
-											</>
-										)}
 
 										{currentEntityAccounts &&
 											currentEntityAccounts?.length !== 0 &&
