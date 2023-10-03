@@ -1106,17 +1106,20 @@ export const Observability = React.memo((props: Props) => {
 												<GenericCopy>{genericError}</GenericCopy>
 											</GenericWrapper>
 										)}
-										{!hasEntities && !genericError && (
-											<GenericWrapper>
-												<GenericCopy>
-													Set up application performance monitoring for your project so that you can
-													discover and investigate errors with CodeStream
-												</GenericCopy>
-												<Button style={{ width: "100%" }} onClick={handleSetUpMonitoring}>
-													Set Up Monitoring
-												</Button>
-											</GenericWrapper>
-										)}
+										{!_isEmpty(currentRepoId) &&
+											!_isEmpty(repoForEntityAssociator) &&
+											!hasEntities &&
+											!genericError && (
+												<GenericWrapper>
+													<GenericCopy>
+														Set up application performance monitoring for your project so that you
+														can discover and investigate errors with CodeStream
+													</GenericCopy>
+													<Button style={{ width: "100%" }} onClick={handleSetUpMonitoring}>
+														Set Up Monitoring
+													</Button>
+												</GenericWrapper>
+											)}
 										{_isEmpty(currentRepoId) &&
 											_isEmpty(repoForEntityAssociator) &&
 											!genericError && (
