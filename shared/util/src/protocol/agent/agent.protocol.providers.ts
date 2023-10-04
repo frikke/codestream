@@ -2305,6 +2305,7 @@ export const DidDetectObservabilityAnomaliesNotificationType = new NotificationT
 >("codestream/didDetectObservabilityAnomalies");
 
 export interface LogRequestFilter {
+	message?: string;
 	levels?: string[];
 	codes?: string[];
 
