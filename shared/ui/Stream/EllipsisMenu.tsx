@@ -7,10 +7,7 @@ import React from "react";
 import styled from "styled-components";
 import { WebviewModals, OpenUrlRequestType } from "@codestream/protocols/webview";
 import { multiStageConfirmPopup } from "./MultiStageConfirm";
-import {
-	logout,
-	switchToTeamSSO,
-} from "@codestream/webview/store/session/thunks";
+import { logout, switchToTeamSSO } from "@codestream/webview/store/session/thunks";
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import { WebviewPanels, SidebarPanes } from "@codestream/protocols/api";
 import { CodeStreamState } from "../store";
@@ -129,56 +126,10 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 			if (isCurrentCompany) return;
 
 			dispatch(switchToTeamSSO({ loginUrl: company.login_url }));
-
-			// do what we do on login here
-
-			// if (company.host && !isInvited) {
-			// 	dispatch(switchToForeignCompany(company.id));
-			// } else if (isInvited) {
-			// 	dispatch(setCurrentOrganizationInvite(company.name, company.id, company.host));
-			// 	dispatch(openModal(WebviewModals.AcceptCompanyInvite));
-			// } else {
-			// 	const eligibleCompany = possibleAuthDomains.find(_ => _.id === company.id);
-			// 	if (eligibleCompany?.authentication_domain_id) {
-			// 		dispatch(
-			// 			switchToTeam({
-			// 				teamId: eligibleCompany.possibleAuthDomains,
-			// 				accessTokenFromEligibleCompany: eligibleCompany?.accessToken,
-			// 			})
-			// 		);
-			// 	} else {
-			// 		console.error(`Could not switch to a team in company ${company.id}`);
-			// 	}
-			// }
 		}, 500);
 
 		return;
 	};
-
-	// const buildSignupInfo = (fromSignup = true) => {
-	// 	const info: any = {};
-
-	// 	if (props.inviteCode) {
-	// 		info.type = SignupType.JoinTeam;
-	// 		info.inviteCode = props.inviteCode;
-	// 	} else if (props.commitHash) {
-	// 		info.type = SignupType.JoinTeam;
-	// 		info.repoInfo = {
-	// 			teamId: props.teamId,
-	// 			commitHash: props.commitHash,
-	// 			repoId: props.repoId,
-	// 		};
-	// 	} else {
-	// 		info.type = SignupType.CreateTeam;
-	// 	}
-
-	// 	if (props.joinCompanyId) {
-	// 		info.joinCompanyId = props.joinCompanyId;
-	// 	}
-
-	// 	info.fromSignup = fromSignup;
-	// 	return info;
-	// };
 
 	const deleteOrganization = () => {
 		const { currentCompanyId } = derivedState;

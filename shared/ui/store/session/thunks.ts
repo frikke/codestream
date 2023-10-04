@@ -98,31 +98,7 @@ export const switchToTeamSSO = createAppAsyncThunk<
 	const { configs, context, users, session } = getState(); // TODO restore codemarks
 	const user = users[session.userId!] as CSMe;
 
-	// dispatch(setBootstrapped(false));
-	// dispatch(reset());
-
 	await dispatch(logout());
-
-	// await HostApi.instance.send(LogoutRequestType, {});
-	// const response = await HostApi.instance.send(TokenLoginRequestType, {
-	// 	token: {
-	// 		email: user.email,
-	// 		value: accessToken,
-	// 		url: configs.serverUrl,
-	// 		teamId: teamId,
-	// 		providerAccess: context.chatProviderAccess as any,
-	// 	},
-	// 	teamId: teamId,
-	// 	codemarkId: options?.codemarkId,
-	// 	reviewId: options?.reviewId,
-	// });
-
-	// if (isLoginFailResponse(response)) {
-	// 	logError("Failed to switch teams", { ...response, userId: user.id, email: user.email });
-	// 	return dispatch(setBootstrapped(true));
-	// }
-
-	// dispatch(setUserPreference({ prefPath: ["lastTeamId"], value: teamId }));
 
 	console.warn(SignupType.CreateTeam, loginUrl);
 	return dispatch(
