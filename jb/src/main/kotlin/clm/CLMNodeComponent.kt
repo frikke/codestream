@@ -3,12 +3,15 @@ package com.codestream.clm
 import com.intellij.lang.javascript.psi.JSFile
 import com.intellij.lang.javascript.psi.JSFunction
 import com.intellij.lang.javascript.psi.ecmal4.JSClass
+import com.intellij.lang.javascript.psi.impl.JSFunctionExpressionImpl
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.NavigatablePsiElement
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.descendantsOfType
+import com.intellij.psi.util.findParentOfType
 
 class CLMNodeComponent(project: Project) :
     CLMLanguageComponent<CLMNodeEditorManager>(project, JSFile::class.java, ::CLMNodeEditorManager, NodeSymbolResolver()) {
@@ -52,6 +55,10 @@ class NodeSymbolResolver : SymbolResolver {
             return result
         }
         return null
+    }
+
+    override fun findParentFunction(psiElement: PsiElement): PsiElement? {
+        return psiElement.findParentOfType<JSFunctionExpressionImpl<*>>()
     }
 }
 

@@ -5,10 +5,13 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.NavigatablePsiElement
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiMethod
 import com.intellij.psi.impl.source.PsiJavaFileImpl
 import com.intellij.psi.impl.source.tree.java.PsiMethodCallExpressionImpl
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.findParentOfType
 
 class CLMJavaComponent(project: Project) :
     CLMLanguageComponent<CLMJavaEditorManager>(project, PsiJavaFileImpl::class.java, ::CLMJavaEditorManager, JavaSymbolResolver()) {
@@ -72,6 +75,9 @@ class JavaSymbolResolver : SymbolResolver {
         return null
     }
 
+    override fun findParentFunction(psiElement: PsiElement): PsiElement? {
+        return psiElement.findParentOfType<PsiMethod>()
+    }
 }
 
 class CLMJavaEditorManager(editor: Editor) : CLMEditorManager(editor, "java", true, false, JavaSymbolResolver()) {

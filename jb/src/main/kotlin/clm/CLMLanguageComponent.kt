@@ -51,6 +51,7 @@ interface SymbolResolver {
     ): PsiElement?
 
     fun findTopLevelFunction(psiFile: PsiFile, functionName: String): PsiElement?
+    fun findParentFunction(psiElement: PsiElement): PsiElement?
 }
 
 abstract class CLMLanguageComponent<T : CLMEditorManager>(

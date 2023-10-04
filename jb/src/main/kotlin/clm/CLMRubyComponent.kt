@@ -97,6 +97,10 @@ class RubySymbolResolver : SymbolResolver {
         return findAnyFunction(psiFile, justFunctionName)
     }
 
+    override fun findParentFunction(psiElement: PsiElement): PsiElement? {
+        return psiElement.findParentOfType<RMethodImpl>()
+    }
+
     private fun findAnyFunction(container: RContainer, functionName: String): NavigatablePsiElement? {
         for (element in container.structureElements) {
             if (element is RMethodImpl || element is RSingletonMethodImpl) {

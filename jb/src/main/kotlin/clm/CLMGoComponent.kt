@@ -11,7 +11,7 @@ import com.intellij.psi.NavigatablePsiElement
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.stubs.StringStubIndexExtension
+import com.intellij.psi.util.findParentOfType
 
 
 class CLMGoComponent(project: Project) :
@@ -67,6 +67,10 @@ class GoSymbolResolver : SymbolResolver {
         if (psiFile !is GoFile) return null
         val function = psiFile.children.find { it is GoFunctionDeclaration && it.name == functionName }
         return function
+    }
+
+    override fun findParentFunction(psiElement: PsiElement): PsiElement? {
+        return psiElement.findParentOfType<GoFunctionDeclaration>()
     }
 }
 
