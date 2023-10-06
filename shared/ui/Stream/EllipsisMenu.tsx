@@ -182,7 +182,7 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 			possibleAuthDomains,
 		} = derivedState;
 
-		if (possibleAuthDomains.length < 1) {
+		if (possibleAuthDomains.length < 2) {
 			return null;
 		}
 

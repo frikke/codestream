@@ -46,7 +46,7 @@ export default {
 	"providerAuth.auth": `Autenticación de ${providerCapitalized}`, // These variables are subject to the context of the module. Check if the message is displayed correctly.
 	"providerAuth.message": `Tu navegador web debería abrir una página de autenticación de ${providerCapitalized}. Una vez haya completado el proceso de autenticación, vuelva aquí para empezar con CodeStream.`,
 	"providerAuth.waiting": `Esperando a la autenticación de ${providerCapitalized}`,
-	"providerAuth.accountNoFound": "No se encotró la cuenta. Porfavor ",
+	"providerAuth.accountNoFound": "No se encotró la cuenta.",
 	"providerAuth.signUp": "Regístrese",
 	"providerAuth.failed": "Fallo en el inicio de sesión",
 	"providerAuth.timeOut": "Se ha agotado el tiempo de inicio de sesión",

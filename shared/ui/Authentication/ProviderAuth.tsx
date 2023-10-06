@@ -178,7 +178,12 @@ export const ProviderAuth = (connect(undefined) as any)((props: Props) => {
 							) : alreadyConfirmed ? (
 								<strong>Already signed up, please sign in.</strong>
 							) : { ideAuthFailure } ? (
-								<></>
+								<strong>
+									<FormattedMessage
+										id="providerAuth.accountNoFound"
+										defaultMessage="Account not found."
+									/>
+								</strong>
 							) : (
 								<strong>
 									{props.gotError ? (
