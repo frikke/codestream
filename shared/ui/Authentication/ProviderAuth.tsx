@@ -46,9 +46,12 @@ export const ProviderAuth = (connect(undefined) as any)((props: Props) => {
 		if (!tryAgainDisabled) {
 			return;
 		}
-		const id = setTimeout(function () {
-			stopTryAgainWaiting();
-		}, inMillis(5, "sec"));
+		const id = setTimeout(
+			function () {
+				stopTryAgainWaiting();
+			},
+			inMillis(5, "sec")
+		);
 
 		return () => clearTimeout(id);
 	}, [tryAgainDisabled]);
@@ -175,16 +178,7 @@ export const ProviderAuth = (connect(undefined) as any)((props: Props) => {
 							) : alreadyConfirmed ? (
 								<strong>Already signed up, please sign in.</strong>
 							) : { ideAuthFailure } ? (
-								<strong>
-									<FormattedMessage
-										id="providerAuth.accountNoFound"
-										defaultMessage="Account not found. Please "
-									/>
-									<Link onClick={onClickGoToSignup}>
-										<FormattedMessage id="providerAuth.signUp" defaultMessage="sign up" />
-									</Link>
-									.
-								</strong>
+								<></>
 							) : (
 								<strong>
 									{props.gotError ? (

@@ -20,7 +20,6 @@ import { MarkdownText } from "./MarkdownText";
 import Menu from "./Menu";
 import { AVAILABLE_PANES } from "./Sidebar";
 import { EMPTY_STATUS } from "./StartWork";
-import { getDomainFromEmail } from "@codestream/webview/utils";
 
 const RegionSubtext = styled.div`
 	font-size: smaller;
@@ -183,6 +182,10 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 			possibleAuthDomains,
 		} = derivedState;
 
+		if (possibleAuthDomains.length < 1) {
+			return null;
+		}
+
 		const buildSubmenu = () => {
 			const items = possibleAuthDomains.map(company => {
 				const isCurrentCompany = company.organization_id === currentCompanyId;
@@ -274,18 +277,6 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 					disabled: false,
 				},
 			];
-
-			const emailDomain = getDomainFromEmail(currentUserEmail!);
-			if (emailDomain && VALID_DELETE_ORG_EMAIL_DOMAINS.includes(emailDomain)) {
-				submenu.push.apply(submenu, [
-					{
-						label: "Delete Organization",
-						key: "delete-organization",
-						action: deleteOrganization,
-						disabled: false,
-					},
-				]);
-			}
 
 			return {
 				label: "Organization Admin",
