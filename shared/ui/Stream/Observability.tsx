@@ -284,6 +284,7 @@ export const Observability = React.memo((props: Props) => {
 			recentErrorsTimeWindow: state.preferences.codeErrorTimeWindow,
 			currentObservabilityAnomalyEntityGuid: state.context.currentObservabilityAnomalyEntityGuid,
 			isO11yPaneOnly,
+			showLogSearch: true, // isFeatureEnabled(state, "showLogSearch"),
 		};
 	}, shallowEqual);
 
@@ -1319,42 +1320,36 @@ export const Observability = React.memo((props: Props) => {
 																								/>
 																							)}
 
-																							{
-																								<>
-																									<Row
-																										style={{
-																											padding: "2px 10px 2px 30px",
-																										}}
-																										className={"pr-row"}
-																										onClick={e => {
-																											e.preventDefault();
-																											e.stopPropagation();
-																											dispatch(
-																												setCurrentObservabilityLogEntity(
-																													ea.entityGuid
-																												)
-																											);
-																											dispatch(
-																												openPanel(
-																													WebviewPanels.ObservabilityLogsSearch
-																												)
-																											);
-																										}}
+																							{derivedState.showLogSearch && (
+																								<Row
+																									style={{
+																										padding: "2px 10px 2px 30px",
+																									}}
+																									className={"pr-row"}
+																									onClick={e => {
+																										e.preventDefault();
+																										e.stopPropagation();
+																										dispatch(
+																											setCurrentObservabilityLogEntity(
+																												ea.entityGuid
+																											)
+																										);
+																										dispatch(
+																											openPanel(
+																												WebviewPanels.ObservabilityLogsSearch
+																											)
+																										);
+																									}}
+																								>
+																									<span
+																										data-testid={`view-logs-${ea.entityGuid}`}
+																										style={{ marginLeft: "2px" }}
 																									>
-																										<span
-																											data-testid={`view-logs-${ea.entityGuid}`}
-																											style={{ marginLeft: "2px" }}
-																										>
-																											<Icon
-																												name="search"
-																												title="View Logs"
-																												onClick={e => {}}
-																											/>
-																											View Logs
-																										</span>
-																									</Row>
-																								</>
-																							}
+																										<Icon name="search" title="View Logs" />
+																										View Logs
+																									</span>
+																								</Row>
+																							)}
 																						</>
 																					</>
 																				)}
