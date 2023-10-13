@@ -31,7 +31,7 @@ function checkPlugin(languageId: string): string | undefined {
 }
 
 function checkRubyPlugin(): string | undefined {
-	if (extensions.getExtension("rebornix.ruby")) {
+	if (extensions.getExtension("Shopify.ruby-lsp")) {
 		const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("ruby"); // ruby.useLanguageServer
 		const useLanguageServer = config.get("useLanguageServer");
 		if (!useLanguageServer) {

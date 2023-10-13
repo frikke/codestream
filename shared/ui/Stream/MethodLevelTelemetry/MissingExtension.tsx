@@ -53,10 +53,7 @@ export function MissingRubyExtension({ sidebarView = false }) {
 						Code that allow CodeStream to identify the methods in your Ruby code.
 					</div>
 					<div style={{ marginTop: "4px" }}>
-						<Link href={"vscode:extension/rebornix.Ruby"}>Ruby</Link> - Be sure to add the following
-						to your settings file:{" "}
-						<pre style={{ margin: "4px 0 0 2px" }}>"ruby.useLanguageServer": true</pre>
-						<pre style={{ margin: "2px 0 4px 2px" }}>"ruby.intellisense": "rubyLocate"</pre>
+						<Link href={"vscode:extension/Shopify.ruby-lsp"}>Ruby</Link>
 					</div>
 					<div style={{ marginTop: "4px" }}>
 						<Link href={"vscode:extension/castwide.solargraph"}>Ruby Solargraph</Link> - Be sure to
