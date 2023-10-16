@@ -85,7 +85,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 	}
 
 	private checkRubyPlugin(): vscode.CodeLens[] | undefined {
-		if (extensions.getExtension("rebornix.Ruby")?.isActive) {
+		if (extensions.getExtension("Shopify.ruby-lsp")?.isActive) {
 			const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("ruby"); // ruby.useLanguageServer
 			const useLanguageServer = config.get("useLanguageServer");
 			if (!useLanguageServer) {

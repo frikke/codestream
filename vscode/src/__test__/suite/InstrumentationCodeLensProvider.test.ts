@@ -313,7 +313,7 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 		stubbedExtension = sinon.stub(vscode.extensions, "getExtension").returns((<
 			Partial<vscode.Extension<any>>
 		>{
-			id: "rebornix.Ruby",
+			id: "Shopify.ruby-lsp",
 			isActive: true
 		}) as vscode.Extension<any>);
 
@@ -452,7 +452,7 @@ suite("InstrumentationCodeLensProvider Test Suite", () => {
 		stubbedExtension = sinon.stub(vscode.extensions, "getExtension").returns((<
 			Partial<vscode.Extension<any>>
 		>{
-			id: "rebornix.Ruby",
+			id: "Shopify.ruby-lsp",
 			isActive: true
 		}) as vscode.Extension<any>);
 

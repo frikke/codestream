@@ -32,7 +32,7 @@ function checkPlugin(languageId: string): string | undefined {
 
 function checkRubyPlugin(): string | undefined {
 	if (extensions.getExtension("Shopify.ruby-lsp")) {
-		const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("ruby"); // ruby.useLanguageServer
+		const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration("ruby");
 		const useLanguageServer = config.get("useLanguageServer");
 		if (!useLanguageServer) {
 			return "NO_RUBY_VSCODE_EXTENSION";
