@@ -16,11 +16,11 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace CodeStream.VisualStudio.Shared.UI.CodeLens
 {
-	internal sealed class CodeLensAdornmentTagger : ITagger<IntraTextAdornmentTag>
+	internal sealed class CodeLensAdornmentTagger : ITagger<InterLineAdornmentTag>
 	{
 		private IWpfTextView _view;
-		private ITagAggregator<ICodeLensTag> _tagAggregator;
-		private List<UIElement> _adornments;
+		private ITagAggregator<InterLineAdornmentTag> _tagAggregator;
+		private List<InterLineAdornmentFactory> _adornments;
 		private IAdornmentLayer _adornmentLayer;
 
 		[Export]
@@ -33,13 +33,13 @@ namespace CodeStream.VisualStudio.Shared.UI.CodeLens
 
 		internal CodeLensAdornmentTagger(
 			IWpfTextView view,
-			ITagAggregator<ICodeLensTag> tagAggregator
+			ITagAggregator<InterLineAdornmentTag> tagAggregator
 		)
 		{
 			_view = view;
 			_tagAggregator = tagAggregator;
 
-			_adornments = new List<UIElement>();
+			_adornments = new List<InterLineAdornmentFactory>();
 
 			_adornmentLayer = view.GetAdornmentLayer("CodeLensAdornmentLayer");
 			_view.LayoutChanged += OnLayoutChanged;
@@ -59,7 +59,7 @@ namespace CodeStream.VisualStudio.Shared.UI.CodeLens
 				)
 			)
 			{
-				var adornment = tagSpan.Tag.Adornment;
+				var adornment = tagSpan.Tag.AdornmentFactory;
 
 				if (_adornments.Contains(adornment))
 				{
@@ -68,17 +68,18 @@ namespace CodeStream.VisualStudio.Shared.UI.CodeLens
 
 				_adornments.Add(adornment);
 
-				_adornmentLayer.AddAdornment(
-					AdornmentPositioningBehavior.TextRelative,
-					tagSpan.Span,
-					null,
-					adornment,
-					null
-				);
+				tagSpan.Tag.AdornmentFactory.Invoke(tagSpan.Tag, _view, tagSpan.Span.Start);
+				//_adornmentLayer.AddAdornment(
+				//	AdornmentPositioningBehavior.TextRelative,
+				//	tagSpan.Span,
+				//	null,
+				//	tagSpan.Tag.AdornmentFactory.Invoke(),
+				//	null
+				//);
 			}
 		}
 
-		public IEnumerable<ITagSpan<IntraTextAdornmentTag>> GetTags(
+		public IEnumerable<ITagSpan<InterLineAdornmentTag>> GetTags(
 			NormalizedSnapshotSpanCollection spans
 		)
 		{
@@ -104,23 +105,22 @@ namespace CodeStream.VisualStudio.Shared.UI.CodeLens
 				// Get the method's identifier token
 				var identifierToken = methodDeclaration.Identifier;
 
-				// Get the position of the method's identifier token in the snapshot
-				var methodPosition = identifierToken.SpanStart;
-
-				var adornmentControl = new CodeLensControl();
+				var codeLensControl = new CodeLensControl();
 
 				// Create the IntraTextAdornmentTag
-				var adornmentTag = new IntraTextAdornmentTag(
-					adornmentControl,
-					null,
-					PositionAffinity.Successor
+				var adornmentTag = new InterLineAdornmentTag(
+					(tag, view, position) => codeLensControl,
+					true,
+					_view.LineHeight,
+					HorizontalPositioningMode.TextRelative,
+					0
 				);
 
 				// Create the adornment's SnapshotSpan
-				var adornmentSpan = new SnapshotSpan(snapshot, methodPosition, 0);
+				var adornmentSpan = new SnapshotSpan(snapshot, identifierToken.SpanStart, 0);
 
 				// Create and yield the TagSpan
-				yield return new TagSpan<IntraTextAdornmentTag>(adornmentSpan, adornmentTag);
+				yield return new TagSpan<InterLineAdornmentTag>(adornmentSpan, adornmentTag);
 			}
 		}
 	}
