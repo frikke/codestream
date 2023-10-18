@@ -143,6 +143,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UI\CodeLens\CodeLensControl.xaml.cs">
       <DependentUpon>CodeLensControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)UI\CodeLens\EndOfMethodAdornment.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UI\DocumentMarkerManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UI\Extensions\AnimationExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UI\Glyphs\DocumentMarkGlyphFactory.cs" />

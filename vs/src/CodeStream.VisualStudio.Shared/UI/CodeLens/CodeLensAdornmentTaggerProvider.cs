@@ -1,52 +1,58 @@
-﻿using System;
+﻿//using System;
 
-using Microsoft.VisualStudio.Language.CodeLens;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio.Utilities;
-using Microsoft.VisualStudio.Text.Internal;
-using System.ComponentModel.Composition;
+//using Microsoft.VisualStudio.Language.CodeLens;
+//using Microsoft.VisualStudio.Text.Editor;
+//using Microsoft.VisualStudio.Text;
+//using Microsoft.VisualStudio.Text.Tagging;
+//using Microsoft.VisualStudio.Utilities;
+//using Microsoft.VisualStudio.Text.Internal;
+//using System.ComponentModel.Composition;
 
-namespace CodeStream.VisualStudio.Shared.UI.CodeLens
-{
-	[Export(typeof(IViewTaggerProvider))]
-	[TagType(typeof(InterLineAdornmentTag))]
-	[ContentType("code")]
-	internal sealed class CodeLensAdornmentTaggerProvider : IViewTaggerProvider
-	{
-		[Import]
-		internal IBufferTagAggregatorFactoryService BufferTagAggregatorFactoryService { get; set; }
+//using CodeStream.VisualStudio.Shared.Interfaces;
 
-		public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer)
-			where T : ITag
-		{
-			if (buffer != textView.TextBuffer || !(textView is IWpfTextView wpfTextView))
-			{
-				return null;
-			}
+//namespace CodeStream.VisualStudio.Shared.UI.CodeLens
+//{
+//	[Export(typeof(IViewTaggerProvider))]
+//	[TagType(typeof(InterLineAdornmentTag))]
+//	[ContentType("code")]
+//	internal sealed class CodeLensAdornmentTaggerProvider : IViewTaggerProvider
+//	{
+//		[Import]
+//		internal IBufferTagAggregatorFactoryService BufferTagAggregatorFactoryService { get; set; }
 
-			if (textView == null)
-			{
-				throw new ArgumentNullException(nameof(textView));
-			}
+//		[Import]
+//		internal IVisualStudioSettingsManager VisualStudioSettingsManager { get; set; }
 
-			if (buffer == null)
-			{
-				throw new ArgumentNullException(nameof(buffer));
-			}
+//		public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer)
+//			where T : ITag
+//		{
+//			if (buffer != textView.TextBuffer || !(textView is IWpfTextView wpfTextView))
+//			{
+//				return null;
+//			}
 
-			if (buffer != textView.TextBuffer)
-			{
-				return null;
-			}
+//			if (textView == null)
+//			{
+//				throw new ArgumentNullException(nameof(textView));
+//			}
 
-			return new CodeLensAdornmentTagger(
-					wpfTextView,
-					BufferTagAggregatorFactoryService.CreateTagAggregator<InterLineAdornmentTag>(
-						buffer
-					)
-				) as ITagger<T>;
-		}
-	}
-}
+//			if (buffer == null)
+//			{
+//				throw new ArgumentNullException(nameof(buffer));
+//			}
+
+//			if (buffer != textView.TextBuffer)
+//			{
+//				return null;
+//			}
+
+//			return new CodeLensAdornmentTagger(
+//					wpfTextView,
+//					BufferTagAggregatorFactoryService.CreateTagAggregator<InterLineAdornmentTag>(
+//						buffer
+//					),
+//					VisualStudioSettingsManager
+//				) as ITagger<T>;
+//		}
+//	}
+//}

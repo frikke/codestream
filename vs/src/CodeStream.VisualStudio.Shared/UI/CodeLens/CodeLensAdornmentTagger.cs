@@ -10,6 +10,8 @@ using System;
 using System.ComponentModel.Composition;
 using System.Windows;
 
+using CodeStream.VisualStudio.Shared.Interfaces;
+
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Utilities;
@@ -20,26 +22,26 @@ namespace CodeStream.VisualStudio.Shared.UI.CodeLens
 	{
 		private IWpfTextView _view;
 		private ITagAggregator<InterLineAdornmentTag> _tagAggregator;
-		private List<InterLineAdornmentFactory> _adornments;
+		private readonly IVisualStudioSettingsManager _visualStudioSettingsManager;
+		private List<UIElement> _adornments;
 		private IAdornmentLayer _adornmentLayer;
 
 		[Export]
 		[Name("CodeLensAdornmentLayer")]
-		[Order(
-			After = PredefinedAdornmentLayers.Text,
-			Before = PredefinedAdornmentLayers.Selection
-		)]
+		[Order(After = PredefinedAdornmentLayers.InterLine)]
 		public AdornmentLayerDefinition AdornmentLayer { get; } = new AdornmentLayerDefinition();
 
 		internal CodeLensAdornmentTagger(
 			IWpfTextView view,
-			ITagAggregator<InterLineAdornmentTag> tagAggregator
+			ITagAggregator<InterLineAdornmentTag> tagAggregator,
+			IVisualStudioSettingsManager visualStudioSettingsManager
 		)
 		{
 			_view = view;
 			_tagAggregator = tagAggregator;
+			_visualStudioSettingsManager = visualStudioSettingsManager;
 
-			_adornments = new List<InterLineAdornmentFactory>();
+			_adornments = new List<UIElement>();
 
 			_adornmentLayer = view.GetAdornmentLayer("CodeLensAdornmentLayer");
 			_view.LayoutChanged += OnLayoutChanged;
@@ -59,7 +61,11 @@ namespace CodeStream.VisualStudio.Shared.UI.CodeLens
 				)
 			)
 			{
-				var adornment = tagSpan.Tag.AdornmentFactory;
+				var adornment = tagSpan.Tag.AdornmentFactory.Invoke(
+					tagSpan.Tag,
+					_view,
+					tagSpan.Span.Start
+				);
 
 				if (_adornments.Contains(adornment))
 				{
@@ -68,12 +74,11 @@ namespace CodeStream.VisualStudio.Shared.UI.CodeLens
 
 				_adornments.Add(adornment);
 
-				tagSpan.Tag.AdornmentFactory.Invoke(tagSpan.Tag, _view, tagSpan.Span.Start);
 				//_adornmentLayer.AddAdornment(
 				//	AdornmentPositioningBehavior.TextRelative,
 				//	tagSpan.Span,
 				//	null,
-				//	tagSpan.Tag.AdornmentFactory.Invoke(),
+				//	adornment,
 				//	null
 				//);
 			}
@@ -95,6 +100,8 @@ namespace CodeStream.VisualStudio.Shared.UI.CodeLens
 			var tree = CSharpSyntaxTree.ParseText(text);
 			var root = tree.GetCompilationUnitRoot();
 
+			var isCodeLensEnabled = _visualStudioSettingsManager.IsCodeLevelMetricsEnabled();
+
 			// Find all method declarations in the syntax tree
 			var methodDeclarations = root.DescendantNodes()
 				.OfType<ClassDeclarationSyntax>()
@@ -111,7 +118,7 @@ namespace CodeStream.VisualStudio.Shared.UI.CodeLens
 				var adornmentTag = new InterLineAdornmentTag(
 					(tag, view, position) => codeLensControl,
 					true,
-					_view.LineHeight,
+					isCodeLensEnabled ? _view.LineHeight * 2 : _view.LineHeight,
 					HorizontalPositioningMode.TextRelative,
 					0
 				);
