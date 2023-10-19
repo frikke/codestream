@@ -115,7 +115,14 @@ import {
 } from "./api/middleware/versionMiddleware";
 import { Container, SessionContainer } from "./container";
 import { Logger } from "./logger";
-import { log, memoize, registerDecoratedHandlers, registerProviders, Strings } from "./system";
+import {
+	Functions,
+	log,
+	memoize,
+	registerDecoratedHandlers,
+	registerProviders,
+	Strings,
+} from "./system";
 import { testGroups } from "./testGroups";
 import { ProxyAgent, setGlobalDispatcher } from "undici";
 
@@ -368,9 +375,7 @@ export class CodeStreamSession {
 					this._didEncounterMaintenanceMode();
 				}
 
-				let isMaintenanceMode = context.response?.headers.get("X-CS-API-Maintenance-Mode")
-					? true
-					: false;
+				const isMaintenanceMode = !!context.response?.headers.get("X-CS-API-Maintenance-Mode");
 				this._refreshMaintenanceModePoll(isMaintenanceMode);
 
 				const alerts = context.response?.headers.get("X-CS-API-Alerts");
@@ -527,12 +532,16 @@ export class CodeStreamSession {
 		});
 	}
 
-	private _refreshMaintenanceModePoll(isMaintenanceMode: boolean) {
-		this.agent.sendNotification(RefreshMaintenancePollNotificationType, {
-			isMaintenanceMode,
-			pollRefresh: true,
-		});
-	}
+	private _refreshMaintenanceModePoll = Functions.debounceMemoized(
+		(isMaintenanceMode: boolean) => {
+			this.agent.sendNotification(RefreshMaintenancePollNotificationType, {
+				isMaintenanceMode,
+				pollRefresh: true,
+			});
+		},
+		2000,
+		{ leading: true }
+	);
 
 	private async onRTMessageReceived(e: RTMessage) {
 		// if we are in broadcaster failure mode, and we received an RT message, we'll immediately

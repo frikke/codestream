@@ -257,6 +257,12 @@ class CodeStreamLanguageClient(private val project: Project) : LanguageClient {
         project.webViewService?.postNotification("codestream/nr/didResolveStackTraceLine", json, true)
     }
 
+    @JsonNotification("codestream/refreshMaintenancePoll")
+    fun refreshMaintenancePoll(json: JsonElement) {
+        // no-op justo register and stop getting Unsupported notification method logs
+        logger.info("codeStream/refreshMaintenancePoll $json")
+    }
+
     @JsonNotification("codestream/didChangeCodelenses")
     fun didChangeCodelenses(json: JsonElement?) {
         project.sessionService?.didChangeCodelenses()
