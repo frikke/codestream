@@ -126,7 +126,6 @@ export const startSSOSignin =
 			.map(key => `${key}=${query[key]}`)
 			.join("&");
 
-		console.warn("eric", `${configs.serverUrl}/web/provider-auth/${provider}?${queryString}`);
 		try {
 			await HostApi.instance.send(OpenUrlRequestType, {
 				url: info?.loginUrl
