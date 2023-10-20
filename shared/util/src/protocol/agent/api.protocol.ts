@@ -109,6 +109,7 @@ export interface CSPossibleAuthDomain {
 	organization_id: string;
 	organization_name: string;
 	user_id: number;
+	useDomainName: boolean;
 }
 
 export interface CSAccessTokenInfo {

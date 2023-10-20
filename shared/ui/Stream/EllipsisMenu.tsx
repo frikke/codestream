@@ -9,7 +9,7 @@ import { WebviewModals, OpenUrlRequestType } from "@codestream/protocols/webview
 import { multiStageConfirmPopup } from "./MultiStageConfirm";
 import { logout, switchToTeamSSO } from "@codestream/webview/store/session/thunks";
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
-import { WebviewPanels, SidebarPanes } from "@codestream/protocols/api";
+import { WebviewPanels, SidebarPanes, CSPossibleAuthDomain } from "@codestream/protocols/api";
 import { CodeStreamState } from "../store";
 import { isFeatureEnabled } from "../store/apiVersioning/reducer";
 import { openModal, setProfileUser } from "../store/context/actions";
@@ -192,8 +192,32 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 			return null;
 		}
 
+		// Create new object with useDomainName property for use in
+		// scenario where two matching orgs exist with differnt auth domains
+		const organizationIdMap = new Map();
+
+		possibleAuthDomains.forEach(item => {
+			if (organizationIdMap.has(item.organization_id)) {
+				organizationIdMap.get(item.organization_id).push(item);
+			} else {
+				organizationIdMap.set(item.organization_id, [item]);
+			}
+		});
+
+		organizationIdMap.forEach(items => {
+			if (items.length > 1) {
+				items.forEach(item => {
+					item.useDomainName = true;
+				});
+			}
+		});
+
+		const _possibleAuthDomains = ([] as CSPossibleAuthDomain[]).concat(
+			...Array.from(organizationIdMap.values())
+		);
+
 		const buildSubmenu = () => {
-			const items = possibleAuthDomains.map(company => {
+			const items = _possibleAuthDomains.map(company => {
 				const isCurrentCompany = company.organization_id === currentCompanyId;
 				// const companyHost = company.organization_name || currentHost;
 				// const companyRegion =
@@ -207,12 +231,19 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 					checked = false;
 				}
 
+				let subtext =
+					company?.useDomainName && company.authentication_domain_name
+						? company?.authentication_domain_name
+						: company.authentication_type
+						? company.authentication_type
+						: "";
+
 				return {
 					key: company.authentication_domain_id,
 					label: (
 						<>
 							{company.organization_name}
-							<RegionSubtext>{companyAuthType && <>{companyAuthType}</>}</RegionSubtext>
+							<RegionSubtext>{subtext}</RegionSubtext>
 						</>
 					),
 					checked: checked,
