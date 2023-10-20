@@ -489,7 +489,7 @@ export const Signup = (props: Props) => {
 												<Button
 													style={{ marginBottom: "30px" }}
 													className="row-button no-top-margin"
-													onClick={event => onClickNewRelicSignup(event, "bitbucket.com")}
+													onClick={event => onClickNewRelicSignup(event, "bitbucket.org")}
 												>
 													<Icon name="bitbucket" />
 													<div className="copy">Bitbucket</div>
