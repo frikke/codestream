@@ -2,7 +2,9 @@ import { isEmpty } from "lodash";
 import { errors, fetch, Request, RequestInfo, RequestInit, Response } from "undici";
 import { Logger } from "../logger";
 import { Functions } from "./function";
-import { handleLimit, InternalRateError } from "../rateLimits";
+import { handleLimit, InternalRateError, nrApriOrigins } from "../rateLimits";
+
+const agentStartTime = Date.now();
 
 export interface ExtraRequestInit extends RequestInit {
 	timeout?: number;
@@ -64,6 +66,15 @@ function urlOrigin(requestInfo: RequestInfo): string {
 	return "<unknown>";
 }
 
+async function maybeSleep(origin: string): Promise<void> {
+	if (nrApriOrigins.has(origin)) {
+		const minutesSinceStart = (Date.now() - agentStartTime) / 1000 / 60;
+		const waitTime = Math.min(minutesSinceStart * 500, 5000);
+		Logger.log(`===--- maybeSleep: Waiting ${waitTime}ms for ${origin}`);
+		await Functions.wait(waitTime);
+	}
+}
+
 export async function fetchCore(
 	count: number,
 	url: RequestInfo,
@@ -74,6 +85,7 @@ export async function fetchCore(
 	// Make sure original init is not modified
 	const init = { ...initIn };
 	try {
+		await maybeSleep(origin);
 		handleLimit(origin);
 		const controller = new AbortController();
 		timeout = setTimeout(() => {

@@ -8,7 +8,7 @@ export const RATE_LIMIT_INTERVAL = 15;
 
 // Tried to extend SessionContainer.instance().session to to notify when session loaded
 // on callback and read current api url but it failed in the most inexplicable way.
-const nrApriOrigins = new Set([
+export const nrApriOrigins = new Set([
 	"https://api.eu.newrelic.com",
 	"https://api.newrelic.com",
 	"https://staging-api.newrelic.com",
