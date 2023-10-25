@@ -70,6 +70,7 @@ export interface SSOAuthInfo {
 	joinCompanyId?: string;
 	loginUrl?: string;
 	domain?: string;
+	nrUserId?: string | number;
 }
 
 export const ProviderNames = {
@@ -114,6 +115,10 @@ export const startSSOSignin =
 		}
 		if (info && info.domain) {
 			query.domain = info.domain;
+		}
+		if (info && info.nrUserId) {
+			const stringifiedNrUserId = info.nrUserId.toString();
+			query.nrUserId = stringifiedNrUserId;
 		}
 		query.enableUId = "1"; // operating under Unified Identity
 

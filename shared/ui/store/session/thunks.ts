@@ -45,6 +45,7 @@ export interface SwitchToTeamRequest {
 
 export interface SwitchToTeamSSORequest {
 	loginUrl?: string;
+	nrUserId?: number;
 }
 
 export const switchToTeam = createAppAsyncThunk<
@@ -93,16 +94,16 @@ export const switchToTeamSSO = createAppAsyncThunk<
 	LoginResponse | LoginSuccessResponse | { type: BootstrapActionType } | void,
 	SwitchToTeamSSORequest
 >("session/switchToTeamSSO", async (request, { dispatch, getState }) => {
-	const { loginUrl } = request;
+	const { nrUserId } = request;
 
 	const { configs, context, users, session } = getState(); // TODO restore codemarks
 	const user = users[session.userId!] as CSMe;
 
 	await dispatch(logout());
 
-	console.warn(SignupType.CreateTeam, loginUrl);
+	console.warn(SignupType.CreateTeam, nrUserId);
 	return dispatch(
-		startSSOSignin("newrelicidp", { type: SignupType.CreateTeam, fromSignup: false, loginUrl })
+		startSSOSignin("newrelicidp", { type: SignupType.CreateTeam, fromSignup: false, nrUserId })
 	);
 });
 

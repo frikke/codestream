@@ -110,7 +110,7 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 			supportsMultiRegion,
 			eligibleJoinCompanies: _sortBy(user?.eligibleJoinCompanies, "name"),
 			possibleAuthDomains,
-			userNrUserId: user?.nrUserId,
+			nrUserId: user?.nrUserId,
 		};
 	});
 
@@ -119,19 +119,21 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 		derivedState.eligibleJoinCompanies.some(company => company.byInvite && !company.accessToken);
 
 	const trackSwitchOrg = (isCurrentCompany, company) => {
+		const { nrUserId } = derivedState;
+
 		HostApi.instance.track("Switched Organizations", {});
 		// slight delay so tracking call completes
 		setTimeout(() => {
 			if (isCurrentCompany) return;
 
-			dispatch(switchToTeamSSO({ loginUrl: company.login_url }));
+			dispatch(switchToTeamSSO({ nrUserId }));
 		}, 500);
 
 		return;
 	};
 
 	const buildSwitchTeamMenuItem = () => {
-		const { currentCompanyId, possibleAuthDomains, userNrUserId } = derivedState;
+		const { currentCompanyId, possibleAuthDomains, nrUserId } = derivedState;
 
 		if (possibleAuthDomains.length < 2) {
 			return null;
@@ -165,7 +167,7 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 			const items = _possibleAuthDomains.map(company => {
 				let isCurrentCompany = company.organization_id === currentCompanyId;
 				if (company.useDomainName) {
-					isCurrentCompany = userNrUserId === company.user_id;
+					isCurrentCompany = nrUserId === company.user_id;
 				}
 
 				let subtext =
