@@ -28,6 +28,7 @@ SOFTWARE.
 /**
  * Modifications Copyright CodeStream Inc. under the Apache 2.0 License (Apache-2.0)
  */
+import fs from "fs";
 import { URI } from "vscode-uri";
 import { CodeStreamAgent } from "./agent";
 import { getCorrelationContext } from "./system";
@@ -38,6 +39,11 @@ import { isResponseError } from "@codestream/utils/system/errors";
 
 // const ConsolePrefix = `[CodeStreamAgent]`;
 
+ var os = require("os");
+ var HOME = os.homedir();
+ 
+var logfile = fs.createWriteStream(HOME+"/lsp-agent-log.txt", { flags: "a" });
+
 export class Logger {
 	static level: TraceLevel = TraceLevel.Silent;
 	private static _agent: CodeStreamAgent | undefined;
@@ -47,6 +53,10 @@ export class Logger {
 		this.customLoggableFn = loggableFn;
 
 		this._agent = agent;
+	}
+
+	static logToDisk(message: string) {
+		 logfile.write(message + "\n");		 
 	}
 
 	static debug(message: string, ...params: any[]): void;
@@ -74,6 +84,7 @@ export class Logger {
 
 		if (this._agent !== undefined) {
 			this._agent.log(`${this.timestamp} ${message || ""}${this.toLoggableParams(true, params)}`);
+			Logger.logToDisk(`${this.timestamp} ${message || ""}${this.toLoggableParams(true, params)}`);
 		}
 	}
 
@@ -124,6 +135,8 @@ export class Logger {
 			const loggable = `${this.toLoggableParams(false, params)}\n${ex}\n${stack}`;
 			this._agent.error(`${this.timestamp} ${message || ""}${loggable}`);
 			reportAgentError({ error: ex, extra: params }, this._agent);
+
+			Logger.logToDisk(`${this.timestamp} ${message || ""}${loggable}`);
 		}
 
 		// Telemetry.trackException(ex);
@@ -161,6 +174,7 @@ export class Logger {
 
 		if (this._agent !== undefined) {
 			this._agent.log(`${this.timestamp} ${message || ""}${this.toLoggableParams(false, params)}`);
+			Logger.logToDisk(`${this.timestamp} ${message || ""}${this.toLoggableParams(false, params)}`);
 		}
 	}
 
@@ -199,6 +213,7 @@ export class Logger {
 
 		if (this._agent !== undefined) {
 			this._agent.log(`${this.timestamp} ${message || ""}${this.toLoggableParams(true, params)}`);
+			Logger.logToDisk(`${this.timestamp} ${message || ""}${this.toLoggableParams(true, params)}`);
 		}
 	}
 
@@ -227,6 +242,7 @@ export class Logger {
 
 		if (this._agent !== undefined) {
 			this._agent.warn(`${this.timestamp} ${message || ""}${this.toLoggableParams(false, params)}`);
+			Logger.logToDisk(`${this.timestamp} ${message || ""}${this.toLoggableParams(false, params)}`);
 		}
 	}
 
