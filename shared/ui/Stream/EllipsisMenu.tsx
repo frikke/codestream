@@ -1,6 +1,4 @@
-import {
-	UpdateTeamSettingsRequestType,
-} from "@codestream/protocols/agent";
+import { UpdateTeamSettingsRequestType } from "@codestream/protocols/agent";
 import { sortBy as _sortBy } from "lodash-es";
 import React from "react";
 import styled from "styled-components";
@@ -165,16 +163,9 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 
 		const buildSubmenu = () => {
 			const items = _possibleAuthDomains.map(company => {
-				const isCurrentCompany =
-					company.organization_id === currentCompanyId && company.useDomainName
-						? userNrUserId === company.user_id
-						: false;
-
-				let checked: any;
-				if (isCurrentCompany) {
-					checked = true;
-				} else {
-					checked = false;
+				let isCurrentCompany = company.organization_id === currentCompanyId;
+				if (company.useDomainName) {
+					isCurrentCompany = userNrUserId === company.user_id;
 				}
 
 				let subtext =
@@ -192,7 +183,7 @@ export function EllipsisMenu(props: EllipsisMenuProps) {
 							<RegionSubtext>{subtext}</RegionSubtext>
 						</>
 					),
-					checked: checked,
+					checked: isCurrentCompany,
 					noHover: isCurrentCompany,
 					action: () => {
 						trackSwitchOrg(isCurrentCompany, company);
