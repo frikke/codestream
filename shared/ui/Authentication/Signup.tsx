@@ -367,23 +367,6 @@ export const Signup = (props: Props) => {
 		}
 	};
 
-	// const onClickGoBack = useCallback(
-	// 	(event: React.SyntheticEvent) => {
-	// 		event.preventDefault();
-	// 		switch (props.type) {
-	// 			case SignupType.JoinTeam: {
-	// 				// simplified the first panel to include joining a team
-	// 				// return dispatch(goToJoinTeam());
-	// 				return dispatch(goToNewUserEntry());
-	// 			}
-	// 			case SignupType.CreateTeam:
-	// 			default:
-	// 				return dispatch(goToNewUserEntry());
-	// 		}
-	// 	},
-	// 	[props.type]
-	// );
-
 	const buildSignupInfo = (fromSignup = true, domain?) => {
 		const info: any = {};
 
@@ -454,45 +437,12 @@ export const Signup = (props: Props) => {
 										{!limitAuthentication && (
 											<>
 												<Button
-													style={{ marginTop: "10px" }}
+													style={{ marginTop: "10px", marginBottom: "30px" }}
 													className="row-button no-top-margin"
 													onClick={event => onClickNewRelicSignup(event)}
 												>
 													<Icon name="newrelic" />
 													<div className="copy">New Relic</div>
-													<Icon name="chevron-right" />
-												</Button>
-												<Button
-													className="row-button no-top-margin"
-													onClick={event => onClickNewRelicSignup(event, "google.com")}
-												>
-													<Icon name="google" />
-													<div className="copy">Google</div>
-													<Icon name="chevron-right" />
-												</Button>
-												<Button
-													className="row-button no-top-margin"
-													onClick={event => onClickNewRelicSignup(event, "github.com")}
-												>
-													<Icon name="mark-github" />
-													<div className="copy">GitHub</div>
-													<Icon name="chevron-right" />
-												</Button>
-												<Button
-													className="row-button no-top-margin"
-													onClick={event => onClickNewRelicSignup(event, "gitlab.com")}
-												>
-													<Icon name="gitlab" />
-													<div className="copy">GitLab</div>
-													<Icon name="chevron-right" />
-												</Button>
-												<Button
-													style={{ marginBottom: "30px" }}
-													className="row-button no-top-margin"
-													onClick={event => onClickNewRelicSignup(event, "bitbucket.org")}
-												>
-													<Icon name="bitbucket" />
-													<div className="copy">Bitbucket</div>
 													<Icon name="chevron-right" />
 												</Button>
 											</>
