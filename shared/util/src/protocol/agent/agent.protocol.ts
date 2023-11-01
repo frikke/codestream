@@ -101,6 +101,7 @@ export interface CodeStreamEnvironmentInfo {
 	newRelicLandingServiceUrl?: string;
 	newRelicApiUrl?: string;
 	newRelicSecApiUrl?: string;
+	csecApiUrl?: string;
 	environmentHosts?: EnvironmentHost[];
 }
 
@@ -192,6 +193,7 @@ export interface VerifyConnectivityResponse {
 	newRelicLandingServiceUrl?: string;
 	newRelicApiUrl?: string;
 	newRelicSecApiUrl?: string;
+	csecApiUrl?: string;
 	environmentHosts?: EnvironmentHost[];
 }
 
