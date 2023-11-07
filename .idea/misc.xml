@@ -8,4 +8,7 @@
     <option name="wasEnabledAtLeastOnce" value="true" />
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_19" project-jdk-name="jbr-17" project-jdk-type="JavaSDK" />
+  <component name="TaskProjectConfiguration">
+    <server type="JIRA" url="https://new-relic.atlassian.net" />
+  </component>
 </project>
