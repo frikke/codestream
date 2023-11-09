@@ -134,7 +134,7 @@ val serverUrlMigrations = hashMapOf(
 class AgentService(private val project: Project) : Disposable {
 
     companion object {
-        private var debugPortSeed = AtomicInteger(6014)
+        private var debugPortSeed = AtomicInteger(6010)
         private val debugPort get() = debugPortSeed.getAndAdd(1)
     }
 
@@ -251,7 +251,6 @@ class AgentService(private val project: Project) : Disposable {
     private fun getAgentEnv(): Map<String, String> {
         val settings = ServiceManager.getService(ApplicationSettingsService::class.java)
         val agentEnv: MutableMap<String, String> = mutableMapOf("NODE_OPTIONS" to "")
-        logger.info("disableStrictSSL: ${settings.disableStrictSSL}")
         agentEnv["NODE_TLS_REJECT_UNAUTHORIZED"] = if (settings.disableStrictSSL) "0" else "1"
         settings.extraCerts?.let {
             agentEnv["NODE_EXTRA_CA_CERTS"] = it
@@ -549,7 +548,6 @@ class AgentService(private val project: Project) : Disposable {
             .request("codestream/textDocument/currentLocation", request)
             .await() as JsonObject
         val result = gson.fromJson<ComputeCurrentLocationsResult>(json)
-//        logger.info("computeCurrentLocations did something $result")
         return result
     }
 
