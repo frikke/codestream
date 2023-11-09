@@ -5,6 +5,8 @@ import com.codestream.agentService
 import com.codestream.codeStream
 import com.codestream.extensions.file
 import com.codestream.extensions.lspPosition
+import com.codestream.extensions.startWithName
+import com.codestream.extensions.stats
 import com.codestream.extensions.uri
 import com.codestream.protocols.agent.FileLevelTelemetryOptions
 import com.codestream.protocols.agent.FileLevelTelemetryParams
@@ -28,7 +30,6 @@ import com.codestream.webViewService
 import com.codestream.workaround.HintsPresentationWorkaround
 import com.intellij.codeInsight.hints.InlayPresentationFactory
 import com.intellij.codeInsight.hints.presentation.InlayPresentation
-import com.intellij.lang.javascript.psi.impl.JSFunctionExpressionImpl
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
@@ -54,7 +55,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SyntaxTraverser
-import com.intellij.psi.util.findParentOfType
 import com.intellij.refactoring.suggested.endOffset
 import com.intellij.refactoring.suggested.startOffset
 import com.intellij.ui.JBColor
@@ -67,7 +67,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.eclipse.lsp4j.Position
 import kotlinx.coroutines.withContext
 import org.eclipse.lsp4j.Range
 import java.awt.Font
@@ -201,37 +200,10 @@ abstract class CLMEditorManager(
         val (result, project, path) = displayDeps() ?: return
 //        logger.info("*** calling getMetricsByLocation")
 //        logger.info("*** metricsByLocation before $metricsByLocation")
+        val stopwatch = startWithName("getMetricsByLocation")
         metricsByLocation = metricsByLocationManager.getMetricsByLocation(result, path, project)
-        logger.info("*** metricsByLocation after $metricsByLocation")
-//        val updatedLocations = mutableMapOf<MetricSource, MetricLocation>()
-//        for (item in metricsByLocation) {
-//            val metricSource = item.key
-//            val currentLocations = computeCurrentLocationsResult(
-//                metricSource.lineno,
-//                metricSource.column,
-//                metricSource.commit,
-//                metricSource.functionName,
-//                metricSource.uri,
-//                project
-//            )
-//            if (currentLocations != null && currentLocations.locations.isNotEmpty()) {
-//                // TODO multiple results
-//                val location = currentLocations.locations.entries.first()
-//                // TODO computeCurrentLocationsResult tries to grab whole line so it has something good to track when the
-//                //  code is repositioned. Somehow need to keep this range more precise and hit the symbol rather
-//                //  than the whole line for the highlighting to work
-//                val range = Range(
-//                    Position(location.value.lineStart - 1,
-//                        0), //location.value.colStart),
-//                    Position(location.value.lineEnd - 1,
-//                        0)) //location.value.colEnd))
-//                val metricLocation = MetricLocation(item.value.metrics, range)
-//                updatedLocations[metricSource] = metricLocation
-//            }
-//            // ugh - this lets me delete items but then when they come back they never make it back into the map
-//            // so i should go back to the lastResult and recompute the locations?
-//            this.metricsByLocation = updatedLocations.toImmutableMap()
-//        }
+        stopwatch.stop()
+        logger.debug(stopwatch.stats())
     }
 
     fun loadInlays(resetCache: Boolean = false, skipStaleCheck: Boolean = false) {
@@ -282,6 +254,7 @@ abstract class CLMEditorManager(
                     // logger.info("=== Calling fileLevelTelemetry for ${editor.document.uri} resetCache: $resetCache")
                     // next.js file path is like posts/[id].tsx - IntelliJ won't create an uri for this file name!
                     val uri = editor.document.uri ?: "file://${editor.document.file?.path}"
+                    val fileLevelTelemetryStopwatch = startWithName("fileLevelTelemetry");
                     val result = project.agentService?.fileLevelTelemetry(
                         FileLevelTelemetryParams(
                             uri,
@@ -293,6 +266,8 @@ abstract class CLMEditorManager(
                             OPTIONS
                         )
                     ) ?: return@launch
+                    fileLevelTelemetryStopwatch.stop()
+                    logger.debug(fileLevelTelemetryStopwatch.stats())
                     // result guaranteed to be non-null, don't overwrite previous result if we get a NR timeout
                     if (result.error != null) {
                         currentError = result.error
@@ -310,24 +285,23 @@ abstract class CLMEditorManager(
                     metricsBySymbol = mapOf()
 
                     val updatedMetrics = mutableMapOf<MethodLevelTelemetrySymbolIdentifier, Metrics>()
-
+                    val metricsCollectionStopWatch = startWithName("metricsCollection")
                     lastResult?.errorRate?.forEach { errorRate ->
-
-                            val metrics = updatedMetrics.getOrPut(errorRate.symbolIdentifier) { Metrics() }
-                            metrics.errorRate = errorRate
-                        }
-                        lastResult?.averageDuration?.forEach { averageDuration ->
-
-                            val metrics = updatedMetrics.getOrPut(averageDuration.symbolIdentifier) { Metrics() }
-                            metrics.averageDuration = averageDuration
-
+                        val metrics = updatedMetrics.getOrPut(errorRate.symbolIdentifier) { Metrics() }
+                        metrics.errorRate = errorRate
+                    }
+                    lastResult?.averageDuration?.forEach { averageDuration ->
+                        val metrics = updatedMetrics.getOrPut(averageDuration.symbolIdentifier) { Metrics() }
+                        metrics.averageDuration = averageDuration
                     }
                     lastResult?.sampleSize?.forEach { sampleSize ->
                         val metrics = updatedMetrics.getOrPut(sampleSize.symbolIdentifier) { Metrics() }
                         metrics.sampleSize = sampleSize
                     }
                     metricsBySymbol = updatedMetrics.toImmutableMap()
-                        metricsByLocation = metricsByLocationManager.getMetricsByLocation(result, uri, project)
+                    metricsByLocation = metricsByLocationManager.getMetricsByLocation(result, uri, project)
+                    metricsCollectionStopWatch.stop()
+                    logger.debug(metricsCollectionStopWatch.stats())
                     updateInlays()
                 } catch (ex: Exception) {
                     logger.error("Error getting fileLevelTelemetry", ex)
@@ -338,11 +312,11 @@ abstract class CLMEditorManager(
 
     private var debouncedRenderBlame: Job? = null
     override fun documentChanged(event: DocumentEvent) {
-        logger.info("*** documentChanged")
+//        logger.info("*** documentChanged")
         debouncedRenderBlame?.cancel()
         debouncedRenderBlame = tasksCoroutineScope.launch {
             delay(750L)
-            logger.info("*** debouncedRenderBlame updateInlays")
+            logger.debug("debouncedRenderBlame updateInlays")
             updateInlays()
         }
     }
@@ -362,7 +336,7 @@ abstract class CLMEditorManager(
                 updateInlayNotAssociated()
             }
         } else if (currentError == null) {
-            logger.info("*** _updateInlays updateInlaysCore")
+//            logger.info("*** _updateInlays updateInlaysCore")
             updateInlaysCore()
         }
     }
@@ -417,7 +391,8 @@ abstract class CLMEditorManager(
         if (project.isDisposed || editor.isDisposed) {
             return
         }
-        logger.info("*** updateInlaysCore actual")
+        val updateInlaysCoreStopWatch = startWithName("updateInlaysCore")
+        val updateInlaysCoreToRenderStopWatch = startWithName("updateInlaysCore toRender")
         val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(editor.document) ?: return
         val presentationFactory = HintsPresentationWorkaround.newPresentationFactory(editor)
         val since = result.sinceDateFormatted?.replace(" ago", "") ?: "30 minutes"
@@ -471,6 +446,10 @@ abstract class CLMEditorManager(
             RenderElements(range, referenceOnHoverPresentation, anomaly != null)
         }
 
+        updateInlaysCoreToRenderStopWatch.stop()
+        logger.debug(updateInlaysCoreToRenderStopWatch.stats())
+
+        val updateInlaysCoreToRenderByLocationStopWatch = startWithName("updateInlaysCore toRenderByLocation")
         val toRenderByLocation: List<RenderElements> = metricsByLocation.mapNotNull { (metricSource, metricLocation) ->
             val range = metricLocation.range
             val metrics = metricLocation.metrics
@@ -540,14 +519,14 @@ abstract class CLMEditorManager(
 //                            highlighter?.errorStripeMarkColor = green
 //                            highlighter?.isThinErrorStripeMark = true
                         } else {
-                            logger.info("*** no parentFunction for ${metricSource.lineno}")
+                            logger.debug("no parentFunction for ${metricSource.lineno}")
                         }
 
-                        logger.info("onHover ${metricSource.lineno}:${metricSource.column} ${metricSource.functionName}")
+                        logger.debug("onHover ${metricSource.lineno}:${metricSource.column} ${metricSource.functionName}")
                     }
 
                     override fun onHoverFinished() {
-                        logger.info("onHoverFinished ${metricSource.lineno}:${metricSource.column} ${metricSource.functionName}")
+                        logger.debug("onHoverFinished ${metricSource.lineno}:${metricSource.column} ${metricSource.functionName}")
                         highlighter?.let {
                             editor.markupModel.removeHighlighter(it)
                             highlighter = null
@@ -561,7 +540,11 @@ abstract class CLMEditorManager(
             RenderElements(textRange, referenceOnHoverPresentation, anomaly != null)
         }
 
+        updateInlaysCoreToRenderByLocationStopWatch.stop()
+        logger.debug(updateInlaysCoreToRenderByLocationStopWatch.stats())
+
         ApplicationManager.getApplication().invokeLaterOnWriteThread {
+            val updateInlaysCoreRenderStopWatch = startWithName("updateInlaysCore render")
             if (!analyticsTracked && toRender.isNotEmpty()) {
                 val params = TelemetryParams(
                     "MLT Codelenses Rendered", mapOf(
@@ -592,7 +575,11 @@ abstract class CLMEditorManager(
                     inlays.add(it)
                 }
             }
+            updateInlaysCoreRenderStopWatch.stop()
+            logger.debug(updateInlaysCoreRenderStopWatch.stats())
         }
+        updateInlaysCoreStopWatch.stop()
+        logger.debug(updateInlaysCoreStopWatch.stats())
     }
 
     private fun updateInlayNotAssociated() {
