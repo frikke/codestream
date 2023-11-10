@@ -77,7 +77,7 @@ export class CodeStreamInlayHintsProvider implements InlayHintsProvider, Disposa
 
 	// The symbol provider has doesn't differentiate between anonymous functions and named functions via the kind field
 	// and it pretty much returns random crap for the "name" of an anonymous function. So we can hopefully detect
-	// anonymous functions by the fact that they are invalid javascript varialbe names
+	// anonymous functions by the fact that they are invalid javascript variable names
 	private isValidJavascriptFunctionName(functionName: string): boolean {
 		return functionName.match(/^[a-zA-Z_$][0-9a-zA-Z_$]*$/) != null;
 	}

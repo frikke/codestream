@@ -1,6 +1,5 @@
 package com.codestream.clm
 
-import com.goide.psi.GoFunctionDeclaration
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
@@ -11,7 +10,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.util.findParentOfType
 import com.jetbrains.php.lang.psi.PhpFile
 import com.jetbrains.php.lang.psi.PhpFileImpl
 import com.jetbrains.php.lang.psi.elements.Function

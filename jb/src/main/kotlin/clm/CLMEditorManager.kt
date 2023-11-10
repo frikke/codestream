@@ -198,8 +198,8 @@ abstract class CLMEditorManager(
 
     private suspend fun updateLocations() {
         val (result, project, path) = displayDeps() ?: return
-//        logger.info("*** calling getMetricsByLocation")
-//        logger.info("*** metricsByLocation before $metricsByLocation")
+        // logger.info("*** calling getMetricsByLocation")
+        // logger.info("*** metricsByLocation before $metricsByLocation")
         val stopwatch = startWithName("metricsByLocationManager.getMetricsByLocation")
         // Slow operations are prohibited on EDT
         val psiFile = ApplicationManager.getApplication().runReadAction<PsiFile> {
@@ -316,7 +316,7 @@ abstract class CLMEditorManager(
 
     private var debouncedRenderBlame: Job? = null
     override fun documentChanged(event: DocumentEvent) {
-//        logger.info("*** documentChanged")
+        // logger.info("*** documentChanged")
         debouncedRenderBlame?.cancel()
         debouncedRenderBlame = tasksCoroutineScope.launch {
             delay(750L)
@@ -340,7 +340,7 @@ abstract class CLMEditorManager(
                 updateInlayNotAssociated()
             }
         } else if (currentError == null) {
-//            logger.info("*** _updateInlays updateInlaysCore")
+        // logger.info("*** _updateInlays updateInlaysCore")
             updateInlaysCore()
         }
     }
@@ -406,9 +406,9 @@ abstract class CLMEditorManager(
             val formatted = metrics.format(appSettings.goldenSignalsInEditorFormat, since)
             val anomaly = metrics.averageDuration?.anomaly ?: metrics.errorRate?.anomaly
             val range = getTextRangeWithoutLeadingCommentsAndWhitespaces(symbol)
-//            logger.info("got range $range for function ${symbolIdentifier.functionName} and textRange " +
-//                "${symbol.textRange} and lspPosition ${editor.document.lspPosition(symbol.textRange.startOffset)} " +
-//                "${editor.document.lspPosition(symbol.textRange.endOffset)}")
+            // logger.info("got range $range for function ${symbolIdentifier.functionName} and textRange " +
+            // "${symbol.textRange} and lspPosition ${editor.document.lspPosition(symbol.textRange.startOffset)} " +
+            // "${editor.document.lspPosition(symbol.textRange.endOffset)}")
             val smartElement = SmartPointerManager.createPointer(symbol)
             val textPresentation = presentationFactory.text(formatted.first)
             val referenceOnHoverPresentation =

@@ -6,7 +6,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.NavigatablePsiElement
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiMethod
 import com.intellij.psi.util.findParentOfType
 import org.jetbrains.kotlin.asJava.elements.KtLightMethodImpl
 import org.jetbrains.kotlin.psi.KtFile
