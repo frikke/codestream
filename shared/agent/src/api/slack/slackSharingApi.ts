@@ -32,11 +32,11 @@ import {
 	WebClient,
 	WebClientEvent,
 } from "@slack/web-api";
-import { orderBy, take, uniq } from "lodash-es";
+import { orderBy, take, uniq } from "lodash";
 import asyncPool from "tiny-async-pool";
 import * as Strings from "@codestream/utils/system/string";
 
-import HttpsProxyAgent from "https-proxy-agent";
+import { HttpsProxyAgent } from "https-proxy-agent";
 import { Container, SessionContainer } from "../../container";
 import { Logger } from "../../logger";
 import { debug, Functions, log } from "../../system";
@@ -51,7 +51,6 @@ import {
 	fromSlackPost,
 	fromSlackPostId,
 	fromSlackUser,
-	toSlackCodeErrorPostBlocks,
 	toSlackPostBlocks,
 	toSlackPostText,
 	toSlackReviewPostBlocks,
@@ -112,7 +111,7 @@ export class SlackSharingApiProvider {
 		private _codestream: CodeStreamApiProvider,
 		providerInfo: CSSlackProviderInfo,
 		private readonly _codestreamTeamId: string,
-		private readonly _proxyAgent: HttpsAgent | HttpsProxyAgent | undefined
+		private readonly _proxyAgent: HttpsAgent | HttpsProxyAgent<string> | undefined
 	) {
 		this._slackToken = providerInfo.accessToken;
 		this._slack = this.newWebClient();
@@ -168,13 +167,13 @@ export class SlackSharingApiProvider {
 			const telemetry = Container.instance().telemetry;
 			if (!telemetry) return;
 
-			telemetry.track({
-				eventName: "Connect Error",
-				properties: {
-					Error: msg,
-					Provider: "Slack",
-				},
-			});
+			// telemetry.track({
+			// 	eventName: "Connect Error",
+			// 	properties: {
+			// 		Error: msg,
+			// 		Provider: "Slack",
+			// 	},
+			// });
 		} catch (error) {
 			Logger.error(error);
 		}
@@ -428,11 +427,6 @@ export class SlackSharingApiProvider {
 				text = `${review.title || ""}${review.title && review.text ? `\n\n` : ""}${
 					review.text || ""
 				}`;
-			} else if (request.codeError != null) {
-				const codeError = request.codeError;
-				blocks = toSlackCodeErrorPostBlocks(codeError, userMaps, repoHash, this._slackUserId);
-				// Set the fallback (notification) content for the message
-				text = `${codeError.title}`;
 			} else if (text) {
 				blocks = toSlackTextPostBlocks(text, request.parentText, request.files);
 			}
@@ -515,9 +509,10 @@ export class SlackSharingApiProvider {
 		} catch (ex) {
 			const telemetry = Container.instance().telemetry;
 			telemetry.track({
-				eventName: "Slack Sharing Error",
+				eventName: "codestream/codemarks/slack_sharing failed",
 				properties: {
-					Error: ex.message,
+					meta_data: `error: ex.message`,
+					event_type: "response",
 				},
 			});
 			throw ex;

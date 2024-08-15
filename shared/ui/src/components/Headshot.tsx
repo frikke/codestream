@@ -17,27 +17,6 @@ const Colors = {
 	// [undefined]: "#666";
 } as const;
 
-export interface HeadshotProps {
-	person?: {
-		email?: string;
-		avatar?: { image?: string; image48?: string };
-		fullName?: string;
-		username?: string;
-		color?: number;
-	};
-	size?: number;
-	hardRightBorder?: boolean;
-	display?: string;
-	onClick?: React.MouseEventHandler;
-	className?: string;
-	addThumbsUp?: boolean;
-}
-
-interface DimensionProps {
-	size: number;
-	hardRightBorder?: boolean;
-}
-
 const Root = styled.div<DimensionProps & { display?: string }>`
 	position: relative;
 	width: ${props => props.size}px;
@@ -107,6 +86,28 @@ export const ThumbsUp = styled.div`
 	}
 `;
 
+export interface HeadshotProps {
+	person?: {
+		email?: string;
+		avatar?: { image?: string; image48?: string };
+		fullName?: string;
+		name?: string;
+		username?: string;
+		color?: number;
+	};
+	size?: number;
+	hardRightBorder?: boolean;
+	display?: string;
+	onClick?: React.MouseEventHandler;
+	className?: string;
+	addThumbsUp?: boolean;
+}
+
+interface DimensionProps {
+	size: number;
+	hardRightBorder?: boolean;
+}
+
 export const Headshot = styled((props: HeadshotProps) => {
 	const [imageError, setImageError] = useState(false);
 	const person = props.person;
@@ -120,6 +121,9 @@ export const Headshot = styled((props: HeadshotProps) => {
 	if (person.fullName) {
 		initials = person.fullName.replace(/(\w)\w*/g, "$1").replace(/\s/g, "");
 		if (initials.length > 2) initials = initials.substring(0, 2);
+	} else if (person.name) {
+		initials = person.name.replace(/(\w)\w*/g, "$1").replace(/\s/g, "");
+		if (initials.length > 2) initials = initials.substring(0, 2);
 	} else if (person.username) {
 		initials = person.username.charAt(0);
 	}
@@ -131,28 +135,7 @@ export const Headshot = styled((props: HeadshotProps) => {
 		(props.className || "") +
 		(props.addThumbsUp && !props.hardRightBorder ? " make-room-for-thumbs-up" : "");
 
-	if (person.username?.toLowerCase() === "grok") {
-		return (
-			<Root
-				size={size}
-				display={display}
-				hardRightBorder={props.hardRightBorder}
-				className={className}
-				onClick={props.onClick}
-			>
-				<Image
-					size={size}
-					src={`https://images.codestream.com/icons/grok-green.png`}
-					onError={() => setImageError(true)}
-				/>
-				{props.addThumbsUp && (
-					<ThumbsUp>
-						<Icon name="thumbsup" />
-					</ThumbsUp>
-				)}
-			</Root>
-		);
-	}
+	const isAI = person.username?.toLowerCase() === "ai" || person.name?.toLowerCase() === "ai";
 
 	return (
 		<Root
@@ -162,14 +145,26 @@ export const Headshot = styled((props: HeadshotProps) => {
 			className={className}
 			onClick={props.onClick}
 		>
-			<StyledGravatar size={size} default="blank" protocol="https://" email={person.email} />
-			<Initials
-				hardRightBorder={props.hardRightBorder}
-				size={size}
-				color={Colors[person.color || 1]}
-			>
-				{initials}
-			</Initials>
+			{isAI && (
+				<img
+					width={size}
+					height={size}
+					src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXAwXzExMDZfNzgzMDgpIj4KPHBhdGggZD0iTTI0IDQ4QzM3LjI1NDggNDggNDggMzcuMjU0OCA0OCAyNEM0OCAxMC43NDUyIDM3LjI1NDggMCAyNCAwQzEwLjc0NTIgMCAwIDEwLjc0NTIgMCAyNEMwIDM3LjI1NDggMTAuNzQ1MiA0OCAyNCA0OFoiIGZpbGw9IiMxQ0U3ODMiLz4KPHBhdGggZD0iTTM0LjAyMjMgOC41Njk4MkgzMi4yMDIzQzMyLjIwMjMgMTIuNDc5OCAzMS41NjIzIDEzLjExOTggMjcuNjUyMyAxMy4xMTk4VjE0LjkzOThDMzEuNTYyMyAxNC45Mzk4IDMyLjIwMjMgMTUuNTc5OCAzMi4yMDIzIDE5LjQ4OThIMzQuMDIyM0MzNC4wMjIzIDE1LjU3OTggMzQuNjYyMyAxNC45Mzk4IDM4LjU3MjMgMTQuOTM5OFYxMy4xMTk4QzM0LjY2MjMgMTMuMTE5OCAzNC4wMjIzIDEyLjQ3OTggMzQuMDIyMyA4LjU2OTgyWiIgZmlsbD0iIzFEMjUyQyIvPgo8cGF0aCBkPSJNMjIuNTAwNyAzOS40Mjk5SDE5LjkzMDdDMTkuOTMwNyAzMi42OTk5IDE0LjQ1MDcgMjcuMjE5OSA3LjcyMDcgMjcuMjE5OVYyNC42NDk5QzE0LjQ1MDcgMjQuNjQ5OSAxOS45MzA3IDE5LjE2OTkgMTkuOTMwNyAxMi40Mzk5SDIyLjUwMDdDMjIuNTAwNyAxOS4xNjk5IDI3Ljk4MDcgMjQuNjQ5OSAzNC43MTA3IDI0LjY0OTlWMjcuMjE5OUMyNy45ODA3IDI3LjIxOTkgMjIuNTAwNyAzMi42OTk5IDIyLjUwMDcgMzkuNDI5OVpNMTMuNzUwNyAyNS45Mjk5QzE3LjA2MDcgMjcuNDE5OSAxOS43MzA3IDMwLjA4OTkgMjEuMjIwNyAzMy4zOTk5QzIyLjcxMDcgMzAuMDg5OSAyNS4zODA3IDI3LjQxOTkgMjguNjkwNyAyNS45Mjk5QzI1LjM4MDcgMjQuNDM5OSAyMi43MTA3IDIxLjc2OTkgMjEuMjIwNyAxOC40NTk5QzE5LjczMDcgMjEuNzY5OSAxNy4wNjA3IDI0LjQzOTkgMTMuNzUwNyAyNS45Mjk5WiIgZmlsbD0iIzFEMjUyQyIvPgo8L2c+CjxkZWZzPgo8Y2xpcFBhdGggaWQ9ImNsaXAwXzExMDZfNzgzMDgiPgo8cmVjdCB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIGZpbGw9IndoaXRlIi8+CjwvY2xpcFBhdGg+CjwvZGVmcz4KPC9zdmc+Cg=="
+					alt="User avatar"
+				/>
+			)}
+			{!isAI && (
+				<>
+					<StyledGravatar size={size} default="blank" protocol="https://" email={person.email} />
+					<Initials
+						hardRightBorder={props.hardRightBorder}
+						size={size}
+						color={Colors[person.color || 1]}
+					>
+						{initials}
+					</Initials>
+				</>
+			)}
 			{props.addThumbsUp && (
 				<ThumbsUp>
 					<Icon name="thumbsup" />

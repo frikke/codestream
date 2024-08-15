@@ -5,14 +5,20 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.NavigatablePsiElement
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.util.findParentOfType
 import org.jetbrains.kotlin.asJava.elements.KtLightMethodImpl
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.psiUtil.getChildrenOfType
 
 class CLMKotlinComponent(project: Project) :
-    CLMLanguageComponent<CLMKotlinEditorManager>(project, KtFile::class.java, ::CLMKotlinEditorManager, KotlinSymbolResolver()) {
+    CLMLanguageComponent<CLMKotlinEditorManager>(
+        project,
+        "kotlin",
+        KtFile::class.java,
+        ::CLMKotlinEditorManager, KotlinSymbolResolver()) {
 
     private val logger = Logger.getInstance(CLMKotlinComponent::class.java)
 
@@ -66,11 +72,15 @@ class KotlinSymbolResolver : SymbolResolver {
         return null
     }
 
+    override fun findParentFunction(psiElement: PsiElement): PsiElement? {
+        return  psiElement.findParentOfType<KtLightMethodImpl>() ?: psiElement.findParentOfType<KtFunction>()
+    }
+
     override fun clmElements(psiFile: PsiFile, clmResult: ClmResult?): List<ClmElements> {
         return listOf()
     }
 }
 
-class CLMKotlinEditorManager(editor: Editor) : CLMEditorManager(editor, "kotlin", true, false, KotlinSymbolResolver()) {
+class CLMKotlinEditorManager(editor: Editor, languageId: String) : CLMEditorManager(editor, languageId, true, false, KotlinSymbolResolver()) {
 
 }

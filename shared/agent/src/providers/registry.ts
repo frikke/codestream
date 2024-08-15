@@ -46,8 +46,8 @@ import {
 	FetchThirdPartyChannelsRequestType,
 	FetchThirdPartyChannelsResponse,
 	FetchThirdPartyCodeAnalyzersRequest,
-	FetchThirdPartyLicenseDependenciesResponse,
 	FetchThirdPartyLicenseDependenciesRequestType,
+	FetchThirdPartyLicenseDependenciesResponse,
 	FetchThirdPartyPullRequestCommitsRequest,
 	FetchThirdPartyPullRequestCommitsType,
 	FetchThirdPartyPullRequestRequest,
@@ -55,8 +55,8 @@ import {
 	FetchThirdPartyRepoMatchToFossaRequest,
 	FetchThirdPartyRepoMatchToFossaRequestType,
 	FetchThirdPartyRepoMatchToFossaResponse,
-	FetchThirdPartyVulnerabilitiesResponse,
 	FetchThirdPartyVulnerabilitiesRequestType,
+	FetchThirdPartyVulnerabilitiesResponse,
 	GetMyPullRequestsResponse,
 	MoveThirdPartyCardRequest,
 	MoveThirdPartyCardRequestType,
@@ -71,7 +71,7 @@ import {
 	UpdateThirdPartyStatusResponse,
 } from "@codestream/protocols/agent";
 import { CSMe } from "@codestream/protocols/api";
-import { differenceWith } from "lodash-es";
+import { differenceWith } from "lodash";
 import semver from "semver";
 import { URI } from "vscode-uri";
 
@@ -92,6 +92,7 @@ import {
 	ThirdPartyProviderSupportsPullRequests,
 	ThirdPartyProviderSupportsViewingPullRequests,
 } from "./provider";
+import { getNrDirectives } from "./newrelic/nrContainer";
 
 const PR_QUERIES: PRProviderQueries = {
 	"gitlab*com": [
@@ -593,6 +594,13 @@ export class ThirdPartyProviderRegistry {
 	})
 	@lspHandler(ExecuteThirdPartyRequestUntypedType)
 	async executeMethod(request: ExecuteThirdPartyRequest) {
+		Logger.log(`ThirdPartyProviderRegistry.executeMethod ${JSON.stringify(request)}`);
+		if (request.providerId === "newrelic*com") {
+			const nrDirectives = getNrDirectives();
+			if (nrDirectives) {
+				return (nrDirectives as any)[request.method](request.params);
+			}
+		}
 		const provider = getProvider(request.providerId);
 		if (provider === undefined) {
 			throw new Error(`No registered provider for '${request.providerId}'`);

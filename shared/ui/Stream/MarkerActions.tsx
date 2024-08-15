@@ -3,7 +3,6 @@ import {
 	CodemarkPlus,
 	DidChangeDocumentMarkersNotificationType,
 	GetCodemarkRangeRequestType,
-	TelemetryRequestType,
 } from "@codestream/protocols/agent";
 import { CSMarker } from "@codestream/protocols/api";
 import { debounce } from "lodash-es";
@@ -252,10 +251,6 @@ class MarkerActions extends React.Component<Props, State> {
 
 	handleClickJump = async event => {
 		event.preventDefault();
-		HostApi.instance.send(TelemetryRequestType, {
-			eventName: "Jumped To Code",
-			properties: {},
-		});
 
 		await this.jump(this.props.marker);
 	};
@@ -310,10 +305,10 @@ class MarkerActions extends React.Component<Props, State> {
 
 	handleClickApplyPatch = async (event, marker) => {
 		event.preventDefault();
-		HostApi.instance.send(TelemetryRequestType, {
-			eventName: "Apply",
-			properties: { "Author?": this.props.isAuthor },
-		});
+		// HostApi.instance.send(TelemetryRequestType, {
+		// 	eventName: "Apply",
+		// 	properties: { "Author?": this.props.isAuthor },
+		// });
 		await this.jump(marker);
 		HostApi.instance.send(ApplyMarkerRequestType, { marker });
 	};
@@ -321,10 +316,10 @@ class MarkerActions extends React.Component<Props, State> {
 	handleClickCompare = (event, marker) => {
 		event.preventDefault();
 		event.stopPropagation();
-		HostApi.instance.send(TelemetryRequestType, {
-			eventName: "Compare",
-			properties: { "Author?": this.props.isAuthor },
-		});
+		// HostApi.instance.send(TelemetryRequestType, {
+		// 	eventName: "Compare",
+		// 	properties: { "Author?": this.props.isAuthor },
+		// });
 		HostApi.instance.send(CompareMarkerRequestType, { marker });
 	};
 

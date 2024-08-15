@@ -17,11 +17,10 @@ import {
 } from "@codestream/protocols/agent";
 import { CSLinearProviderInfo } from "@codestream/protocols/api";
 import { GraphQLClient } from "graphql-request";
-import Cache from "timed-cache";
+import Cache from "@codestream/utils/system/timedCache";
 
 import { Logger } from "../logger";
 import { log, lspProvider } from "../system";
-import { customFetch } from "../system/fetchCore";
 import { QueryLogger } from "./queryLogger";
 import { ThirdPartyIssueProviderBase } from "./thirdPartyIssueProviderBase";
 
@@ -78,7 +77,7 @@ export class LinearProvider extends ThirdPartyIssueProviderBase<CSLinearProvider
 		if (this._client === undefined) {
 			const options = {
 				agent: this._httpsAgent ?? undefined,
-				fetch: customFetch,
+				fetch: this.fetchClient.customFetch,
 			};
 			this._client = new GraphQLClient(this.graphQlBaseUrl, options);
 		}

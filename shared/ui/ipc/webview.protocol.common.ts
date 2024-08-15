@@ -1,5 +1,10 @@
-import { EnvironmentHost, GetFileScmInfoResponse } from "@codestream/protocols/agent";
-import { CSEligibleJoinCompany, WebviewPanels } from "@codestream/protocols/api";
+import {
+	EnvironmentHost,
+	GetFileScmInfoResponse,
+	RelatedRepository,
+	SessionTokenStatus,
+} from "@codestream/protocols/agent";
+import { CSEligibleJoinCompany } from "@codestream/protocols/api";
 import { Position, Range } from "vscode-languageserver-types";
 
 import { NewPullRequestBranch } from "./webview.protocol";
@@ -77,6 +82,7 @@ export enum WebviewModals {
 	ChangeCompanyName = "change-company-name",
 	CreateTeam = "create-team",
 	CreateCompany = "create-company",
+	ErrorRoadblock = "error-roadblock",
 	FinishReview = "finish-review",
 	TeamSetup = "team-setup",
 	Keybindings = "keybindings",
@@ -91,22 +97,25 @@ export enum WebviewModals {
 }
 
 export interface CodeErrorData {
-	// REMOVE BELOW
-	parsedStack?: any;
-	// REMOVE ABOVE
 	remote?: string;
 	commit?: string;
 	tag?: string;
 	/** caches when the last user session started  */
 	sessionStart?: number;
-	pendingErrorGroupGuid?: string;
-	pendingEntityId?: string;
 	occurrenceId?: string;
 	lineIndex?: number;
 	timestamp?: number;
-	openType?: "Open in IDE Flow" | "Observability Section" | "Activity Feed";
+	openType?: "Open in IDE Flow" | "Observability Section" | "Activity Feed" | "CLM Details";
 	multipleRepos?: boolean;
-	claimWhenConnected?: boolean;
+	relatedRepos?: RelatedRepository;
+	environment?: string;
+	stackSourceMap?: string;
+	domain?: string;
+	traceId?: string;
+
+	entityGuid?: string;
+	accountId?: number;
+	errorGroupGuid?: string;
 }
 
 export interface TeamlessContext {
@@ -146,7 +155,7 @@ export interface WebviewContext {
 	/**
 	 * This could be a real codeErorr.id or a PENDING-${id}
 	 */
-	currentCodeErrorId?: string;
+	currentCodeErrorGuid?: string;
 	currentCodeErrorData?: CodeErrorData;
 	createPullRequestReviewId?: string;
 	createPullRequestOptions?: NewPullRequestBranch;
@@ -157,10 +166,7 @@ export interface WebviewContext {
 	hasFocus: boolean;
 	/** the first page seen after registration */
 	isFirstPageview?: boolean;
-	panelStack?: (WebviewPanels | string)[];
-	activePanel?: WebviewPanels;
 	startWorkCard?: any; // TODO figure out how to type CardView which include JSX.Element
-	onboardStep: number;
 	pendingProtocolHandlerUrl?: string;
 	pendingProtocolHandlerQuery?: any;
 	forceRegion?: string;
@@ -174,6 +180,7 @@ export interface SessionState {
 	acceptedTOS?: boolean;
 	machineId?: string;
 	eligibleJoinCompanies?: CSEligibleJoinCompany[];
+	sessionTokenStatus?: SessionTokenStatus;
 }
 
 export interface EditorContext {

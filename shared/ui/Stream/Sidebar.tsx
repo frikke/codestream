@@ -16,7 +16,6 @@ import { useAppDispatch, useAppSelector, useDidMount } from "../utilities/hooks"
 import { findLastIndex } from "../utils";
 import { setUserPreference } from "./actions";
 import CodeAnalyzers from "./CodeAnalyzers";
-import { CreateCodemarkIcons } from "./CreateCodemarkIcons";
 import { Observability } from "./Observability";
 import { WebviewPanels } from "@codestream/protocols/api";
 import { isFeatureEnabled } from "../store/apiVersioning/reducer";
@@ -112,7 +111,8 @@ export const Sidebar = React.memo(function Sidebar() {
 	const [initialRender, setInitialRender] = useState(true);
 
 	const TOP_PADDING = useMemo(() => {
-		return derivedState.ideName === "VS" ? 31 : 25;
+		//@TODO, probably reduce padding for VS
+		return derivedState.ideName === "VS" ? 31 : 8;
 	}, [derivedState.ideName]);
 
 	const fetchOpenRepos = async () => {
@@ -369,7 +369,6 @@ export const Sidebar = React.memo(function Sidebar() {
 	// console.warn("Rendering sidebar: ", dragging);
 	return (
 		<Root className={dragging || initialRender ? "" : "animate-height"}>
-			<CreateCodemarkIcons />
 			{/*<ExtensionTitle>CodeStream</ExtensionTitle>*/}
 			<Panels style={{ paddingTop: `${TOP_PADDING}px` }}>
 				{panes.map((pane, index) => {

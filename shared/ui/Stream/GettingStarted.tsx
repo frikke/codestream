@@ -17,7 +17,6 @@ import { HostApi } from "../webview-api";
 import { OpenUrlRequestType } from "../ipc/host.protocol";
 import { Tab, Tabs, Content } from "../src/components/Tabs";
 import { Flow } from "./Flow";
-import { CreateCodemarkIcons } from "./CreateCodemarkIcons";
 import { PanelHeader } from "../src/components/PanelHeader";
 import ScrollBox from "./ScrollBox";
 import { getSidebarLocation } from "../store/editorContext/reducer";
@@ -249,16 +248,15 @@ export function GettingStarted(props: GettingStartedProps) {
 		if (index !== active) {
 			setActive(index);
 
-			const stepLabels = ["Getting Started", "The Basics", "Trunk Flow", "Branch Flow"];
-			HostApi.instance.track("Tour Tab Clicked", {
-				"Tour Step": stepLabels[index],
-			});
+			// const stepLabels = ["Getting Started", "The Basics", "Trunk Flow", "Branch Flow"];
+			// HostApi.instance.track("Tour Tab Clicked", {
+			// 	"Tour Step": stepLabels[index],
+			// });
 		}
 	};
 
 	return (
 		<div className="panel full-height getting-started-panel">
-			{active === "0" && <CreateCodemarkIcons />}
 			<PanelHeader title={<>&nbsp;</>} />
 			<ScrollBox>
 				<div className="vscroll">

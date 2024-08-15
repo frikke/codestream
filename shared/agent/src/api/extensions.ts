@@ -1,6 +1,5 @@
 "use strict";
 import {
-	CSCodeError,
 	CSCodemark,
 	CSLocationArray,
 	CSMarker,
@@ -99,10 +98,10 @@ export namespace MarkerLocation {
 	): MarkerLocationsById {
 		if (markerLocations == null || markerLocations.locations == null) return {};
 
-		return Object.entries(markerLocations.locations).reduce((m, [id, array]) => {
-			m[id] = fromArray(array, id);
-			return m;
-		}, Object.create(null));
+		return Object.entries(markerLocations.locations).reduce((markerLocations, [id, csLocation]) => {
+			markerLocations[id] = fromArray(csLocation, id);
+			return markerLocations;
+		}, {} as MarkerLocationsById);
 	}
 
 	export function toRange(location: CSMarkerLocation): Range {
@@ -128,7 +127,7 @@ const remoteProviders: [
 	string,
 	string,
 	RegExp,
-	(remote: string, ref: string, file: string, start: number, end: number) => string
+	(remote: string, ref: string, file: string, start: number, end: number) => string,
 ][] = [
 	[
 		"github",
@@ -423,20 +422,6 @@ export function toActionId(
 	return JSON.stringify(actionId);
 }
 
-export function toCodeErrorActionId(
-	id: number,
-	linkType: "web" | "ide" | "code-error-reply",
-	codeError: CSCodeError
-): string {
-	const actionId: CodeErrorActionId = {
-		id: id,
-		codeErrorId: codeError.id,
-		linkType: linkType,
-	};
-
-	return JSON.stringify(actionId);
-}
-
 export function toExternalActionId(
 	id: number,
 	providerType: "issue" | "code",
@@ -452,21 +437,6 @@ export function toExternalActionId(
 		teamId: codemark.teamId,
 		codemarkId: codemark.id,
 		markerId: marker && marker.id,
-	};
-
-	return JSON.stringify(actionId);
-}
-
-export function toCodeErrorReplyActionId(
-	id: number,
-	codeError: CSCodeError,
-	providerCreatorUserId?: string
-): string {
-	const actionId: CodeErrorReplyActionId = {
-		id: id,
-		linkType: "code-error-reply",
-		ceId: codeError.id,
-		pcuId: providerCreatorUserId,
 	};
 
 	return JSON.stringify(actionId);

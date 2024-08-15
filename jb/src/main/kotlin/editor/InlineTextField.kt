@@ -2,6 +2,7 @@ package com.codestream.editor
 
 
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonShortcuts
 import com.intellij.openapi.application.ApplicationManager
@@ -234,6 +235,9 @@ class InlineTextField(
 
             object : DumbAwareAction() {
                 override fun actionPerformed(e: AnActionEvent) = submit()
+                override fun getActionUpdateThread(): ActionUpdateThread {
+                    return ActionUpdateThread.EDT
+                }
             }.registerCustomShortcutSet(SUBMIT_SHORTCUT_SET, textField)
 
             cancelButton.isVisible = onCancel != null
@@ -243,6 +247,9 @@ class InlineTextField(
                 object : DumbAwareAction() {
                     override fun actionPerformed(e: AnActionEvent) {
                         onCancel()
+                    }
+                    override fun getActionUpdateThread(): ActionUpdateThread {
+                        return ActionUpdateThread.EDT
                     }
                 }.registerCustomShortcutSet(CANCEL_SHORTCUT_SET, textField)
             }

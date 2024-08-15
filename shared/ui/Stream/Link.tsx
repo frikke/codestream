@@ -1,7 +1,8 @@
-import { CodeStreamState } from "@codestream/webview/store";
-import Tooltip from "@codestream/webview/Stream/Tooltip";
-import { useAppSelector } from "@codestream/webview/utilities/hooks";
 import React, { PropsWithChildren } from "react";
+// import { CodeStreamState } from "@codestream/webview/store";
+import Tooltip from "@codestream/webview/Stream/Tooltip";
+// import { useAppSelector } from "@codestream/webview/utilities/hooks";
+
 import { OpenUrlRequestType } from "../ipc/host.protocol";
 import { HostApi } from "../webview-api";
 
@@ -13,14 +14,21 @@ interface Props {
 	disabled?: boolean;
 	disabledHover?: string;
 	"data-testid"?: string;
+	style?: any;
 }
 
 export const Link = React.memo((props: PropsWithChildren<Props>) => {
-	const derivedState = useAppSelector((state: CodeStreamState) => {
-		return { useHref: props.href && state.capabilities.openLink };
-	});
+	/*
 
-	const href = derivedState.useHref ? props.href : undefined;
+
+	Hey code reviewer... is this ok to delete? 
+	(state.capabilities.openLink) doesnt seem to be a thing..
+
+
+	*/
+	// const derivedState = useAppSelector((state: CodeStreamState) => {
+	// 	return { useHref: props.href && state.capabilities.openLink };
+	// });
 
 	const onClick =
 		props.onClick ||
@@ -47,8 +55,9 @@ export const Link = React.memo((props: PropsWithChildren<Props>) => {
 				</Tooltip>
 			) : (
 				<a
+					style={props.style}
 					data-testid={props["data-testid"]}
-					href={href}
+					href={props.href}
 					onClickCapture={onClick}
 					className={props.className}
 				>

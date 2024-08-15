@@ -6,6 +6,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.NavigatablePsiElement
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.FilenameIndex
@@ -18,7 +19,7 @@ import com.jetbrains.php.lang.psi.elements.PhpNamespace
 import com.jetbrains.php.lang.psi.elements.impl.FunctionImpl
 
 class CLMPhpComponent(project: Project) :
-    CLMLanguageComponent<CLMPhpEditorManager>(project, PhpFileImpl::class.java, ::CLMPhpEditorManager, PhpSymbolResolver()) {
+    CLMLanguageComponent<CLMPhpEditorManager>(project, "php", PhpFileImpl::class.java, ::CLMPhpEditorManager, PhpSymbolResolver()) {
 
     private val logger = Logger.getInstance(CLMPhpComponent::class.java)
 
@@ -105,11 +106,15 @@ class PhpSymbolResolver : SymbolResolver {
         return entry.value.find { it is FunctionImpl }
     }
 
+    override fun findParentFunction(psiElement: PsiElement): PsiElement? {
+        return null
+    }
+
     override fun clmElements(psiFile: PsiFile, clmResult: ClmResult?): List<ClmElements> {
         return listOf()
     }
 }
 
-class CLMPhpEditorManager(editor: Editor) : CLMEditorManager(editor, "php", true, false, PhpSymbolResolver()) {
+class CLMPhpEditorManager(editor: Editor, languageId: String) : CLMEditorManager(editor, languageId, true, false, PhpSymbolResolver()) {
 
 }

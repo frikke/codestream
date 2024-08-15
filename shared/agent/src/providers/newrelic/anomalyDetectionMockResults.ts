@@ -1,15 +1,16 @@
 import {
+	CriticalPathSpan,
 	GetMethodLevelTelemetryRequest,
 	GetMethodLevelTelemetryResponse,
-	GetObservabilityAnomaliesRequest,
 	GetObservabilityAnomaliesResponse,
 	MethodGoldenMetrics,
+	ObservabilityError,
 } from "@codestream/protocols/agent";
 
 export const getAnomalyDetectionMockResponse = (
-	request: GetObservabilityAnomaliesRequest
+	entityGuid: string
 ): GetObservabilityAnomaliesResponse | undefined => {
-	if (request.entityGuid === anomalyDetectionMockEntityGuid) {
+	if (entityGuid === anomalyDetectionMockEntityGuid) {
 		return recursivelyReplaceTemplates(
 			anomalyDetectionMockResponseTemplate
 		) as GetObservabilityAnomaliesResponse;
@@ -17,7 +18,9 @@ export const getAnomalyDetectionMockResponse = (
 	return undefined;
 };
 
-const getMethodLevelTelemetryMockResponseCheckout = (request: GetMethodLevelTelemetryRequest) => {
+const getMethodLevelTelemetryMockResponseConfirmationJsp = (
+	request: GetMethodLevelTelemetryRequest
+) => {
 	const methodGoldenMetrics = [
 		{
 			...errorRateChartTemplate,
@@ -37,16 +40,16 @@ const getMethodLevelTelemetryMockResponseCheckout = (request: GetMethodLevelTele
 		{
 			...durationChartTemplate,
 			result: [
-				buildChartDataForNDaysAgo(10, "23.24", null, null),
-				buildChartDataForNDaysAgo(9, "25.12", null, null),
-				buildChartDataForNDaysAgo(8, "24.00", null, null),
-				buildChartDataForNDaysAgo(7, "24.12", null, null),
-				buildChartDataForNDaysAgo(6, "23.45", null, null),
-				buildChartDataForNDaysAgo(5, "25.09", null, null),
-				buildChartDataForNDaysAgo(4, "25.03", null, null),
-				buildChartDataForNDaysAgo(3, "24.94", null, null),
-				buildChartDataForNDaysAgo(2, "23.98", null, null),
-				buildChartDataForNDaysAgo(1, "23.87", null, null),
+				buildChartDataForNDaysAgo(10, "27.14", null, null),
+				buildChartDataForNDaysAgo(9, "28.12", null, null),
+				buildChartDataForNDaysAgo(8, "27.00", null, null),
+				buildChartDataForNDaysAgo(7, "27.12", null, null),
+				buildChartDataForNDaysAgo(6, "26.45", null, null),
+				buildChartDataForNDaysAgo(5, "28.09", null, null),
+				buildChartDataForNDaysAgo(4, "28.03", null, null),
+				buildChartDataForNDaysAgo(3, "27.94", null, null),
+				buildChartDataForNDaysAgo(2, "26.98", null, null),
+				buildChartDataForNDaysAgo(1, "26.87", null, null),
 			],
 		},
 		{
@@ -66,19 +69,109 @@ const getMethodLevelTelemetryMockResponseCheckout = (request: GetMethodLevelTele
 		},
 	] as any as MethodGoldenMetrics[];
 
+	const errors: ObservabilityError[] = [
+		{
+			appName: "foo",
+			remote: "foo",
+			occurrenceId: "foo",
+			count: 67,
+			lastOccurrence: 0,
+			entityId: "foo",
+			errorClass: "java.lang.NullPointerException",
+			message:
+				'Cannot invoke "acme.storefront.action.report.UserDataManager$Phone.getCountryCode()" because the return value of "acme.storefront.action.report.UserDataManager$User.getPhone()" is null',
+			errorGroupGuid: "foo",
+		},
+	];
+
 	return {
 		newRelicEntityGuid: request.newRelicEntityGuid,
 		newRelicUrl: undefined,
 		goldenMetrics: methodGoldenMetrics,
 		deployments: deployments,
-		errors: undefined,
+		errors,
 		newRelicAlertSeverity: undefined,
 		newRelicEntityAccounts: [],
 		newRelicEntityName: "WebPortal",
 	};
 };
 
-const getMethodLevelTelemetryMockResponseLogin = (request: GetMethodLevelTelemetryRequest) => {
+const getMethodLevelTelemetryMockResponsePhoneJsp = (request: GetMethodLevelTelemetryRequest) => {
+	const methodGoldenMetrics = [
+		// {
+		// 	...errorRateChartTemplate,
+		// 	result: [
+		// 		buildChartDataForNDaysAgo(10, null, null, "0.00"),
+		// 		buildChartDataForNDaysAgo(9, null, null, "0.00"),
+		// 		buildChartDataForNDaysAgo(8, null, null, "0.00"),
+		// 		buildChartDataForNDaysAgo(7, null, null, "0.00"),
+		// 		buildChartDataForNDaysAgo(6, null, null, "0.00"),
+		// 		buildChartDataForNDaysAgo(5, null, null, "0.00"),
+		// 		buildChartDataForNDaysAgo(4, null, null, "0.00"),
+		// 		buildChartDataForNDaysAgo(3, null, null, "0.00"),
+		// 		buildChartDataForNDaysAgo(2, null, null, "0.00"),
+		// 		buildChartDataForNDaysAgo(1, null, null, "0.00"),
+		// 	],
+		// },
+		{
+			...durationChartTemplate,
+			result: [
+				buildChartDataForNDaysAgo(10, "159.34", null, null),
+				buildChartDataForNDaysAgo(9, "164.23", null, null),
+				buildChartDataForNDaysAgo(8, "161.34", null, null),
+				buildChartDataForNDaysAgo(7, "164.43", null, null),
+				buildChartDataForNDaysAgo(6, "156.90", null, null),
+				buildChartDataForNDaysAgo(5, "155.87", null, null),
+				buildChartDataForNDaysAgo(4, "167.93", null, null),
+				buildChartDataForNDaysAgo(3, "202.12", null, null),
+				buildChartDataForNDaysAgo(2, "198.34", null, null),
+				buildChartDataForNDaysAgo(1, "200.02", null, null),
+			],
+		},
+		{
+			...samplesChartTemplate,
+			result: [
+				buildChartDataForNDaysAgo(10, null, "1030.00", null),
+				buildChartDataForNDaysAgo(9, null, "998.00", null),
+				buildChartDataForNDaysAgo(8, null, "970.00", null),
+				buildChartDataForNDaysAgo(7, null, "1120.00", null),
+				buildChartDataForNDaysAgo(6, null, "1024.00", null),
+				buildChartDataForNDaysAgo(5, null, "1202.00", null),
+				buildChartDataForNDaysAgo(4, null, "1038.00", null),
+				buildChartDataForNDaysAgo(3, null, "972.00", null),
+				buildChartDataForNDaysAgo(2, null, "1049.00", null),
+				buildChartDataForNDaysAgo(1, null, "1002.00", null),
+			],
+		},
+	] as any as MethodGoldenMetrics[];
+
+	const criticalPath: CriticalPathSpan[] = [
+		{
+			name: "Custom/acme.storefront.serviceproxy.CouponServiceProxy/getCoupon",
+			duration: 180.3,
+		},
+		{
+			name: "Custom/acme.storefront.serviceproxy.InventoryServiceProxy/getPhone",
+			duration: 41.45,
+		},
+	];
+
+	return {
+		newRelicEntityGuid: request.newRelicEntityGuid,
+		newRelicUrl: undefined,
+		goldenMetrics: methodGoldenMetrics,
+		deployments: deployments,
+		errors: undefined,
+		criticalPath,
+		newRelicAlertSeverity: undefined,
+		newRelicEntityAccounts: [],
+		newRelicEntityName: "WebPortal",
+	};
+};
+
+const getMethodLevelTelemetryMockResponseBrowsePhone = (
+	request: GetMethodLevelTelemetryRequest
+) => {
 	const methodGoldenMetrics = [
 		{
 			...errorRateChartTemplate,
@@ -98,16 +191,16 @@ const getMethodLevelTelemetryMockResponseLogin = (request: GetMethodLevelTelemet
 		{
 			...durationChartTemplate,
 			result: [
-				buildChartDataForNDaysAgo(10, "159.34", null, null),
-				buildChartDataForNDaysAgo(9, "164.23", null, null),
-				buildChartDataForNDaysAgo(8, "161.34", null, null),
-				buildChartDataForNDaysAgo(7, "164.43", null, null),
-				buildChartDataForNDaysAgo(6, "156.90", null, null),
-				buildChartDataForNDaysAgo(5, "155.87", null, null),
-				buildChartDataForNDaysAgo(4, "167.93", null, null),
-				buildChartDataForNDaysAgo(3, "202.12", null, null),
-				buildChartDataForNDaysAgo(2, "198.34", null, null),
-				buildChartDataForNDaysAgo(1, "200.02", null, null),
+				buildChartDataForNDaysAgo(10, "103.34", null, null),
+				buildChartDataForNDaysAgo(9, "106.23", null, null),
+				buildChartDataForNDaysAgo(8, "103.34", null, null),
+				buildChartDataForNDaysAgo(7, "106.43", null, null),
+				buildChartDataForNDaysAgo(6, "110.90", null, null),
+				buildChartDataForNDaysAgo(5, "98.87", null, null),
+				buildChartDataForNDaysAgo(4, "112.93", null, null),
+				buildChartDataForNDaysAgo(3, "134.12", null, null),
+				buildChartDataForNDaysAgo(2, "127.34", null, null),
+				buildChartDataForNDaysAgo(1, "131.02", null, null),
 			],
 		},
 		{
@@ -144,16 +237,23 @@ export const getMethodLevelTelemetryMockResponse = (
 ): GetMethodLevelTelemetryResponse | undefined => {
 	if (request.newRelicEntityGuid !== anomalyDetectionMockEntityGuid) return undefined;
 
+	// WebTransaction/JSP/purchase/confirmation.jsp
+	// WebTransaction/JSP/browse/phone.jsp
+	// Java/acme.storefront.action.BrowsePhoneAction/browsePhone
+
 	if (
-		request.metricTimesliceNameMapping?.duration ===
-		"Java/acme.storefront.action.PurchaseAction/checkout"
+		request.metricTimesliceNameMapping?.duration === "WebTransaction/JSP/purchase/confirmation.jsp"
 	) {
-		return getMethodLevelTelemetryMockResponseCheckout(request);
+		return getMethodLevelTelemetryMockResponseConfirmationJsp(request);
+	}
+	if (request.metricTimesliceNameMapping?.duration === "WebTransaction/JSP/browse/phone.jsp") {
+		return getMethodLevelTelemetryMockResponsePhoneJsp(request);
 	}
 	if (
-		request.metricTimesliceNameMapping?.duration === "Java/acme.storefront.action.LoginAction/login"
+		request.metricTimesliceNameMapping?.duration ===
+		"Java/acme.storefront.action.BrowsePhoneAction/browsePhone"
 	) {
-		return getMethodLevelTelemetryMockResponseLogin(request);
+		return getMethodLevelTelemetryMockResponseBrowsePhone(request);
 	}
 	return undefined;
 };
@@ -225,254 +325,73 @@ const anomalyDetectionMockCompanyId = "61718eee4387f9127e6bcb3b";
 const anomalyDetectionMockRepoId = "61718ef0732aea12758207a6";
 const anomalyDetectionMockEntityGuid = "MTYwNjg2MnxBUE18QVBQTElDQVRJT058NDMxOTIyMTA";
 const anomalyDetectionMockResponseTemplate: GetObservabilityAnomaliesResponse = {
+	isMock: true,
 	responseTime: [
 		{
-			name: "Java/acme.storefront.action.LoginAction/login",
+			name: "WebTransaction/JSP/browse/phone.jsp",
+			type: "duration",
 			oldValue: 163.33,
 			newValue: 200.22,
 			ratio: 1.2259,
-			codeAttrs: {
-				codeFilepath: undefined,
-				codeNamespace: "acme.storefront.action.LoginAction",
-				codeFunction: "login",
-			},
 			language: "java",
-			text: "acme.storefront.action.LoginAction/login",
+			text: "WebTransaction/JSP/browse/phone.jsp",
 			totalDays: 10,
-			metricTimesliceName: "Java/acme.storefront.action.LoginAction/login",
+			metricTimesliceName: "WebTransaction/JSP/browse/phone.jsp",
 			sinceText: "release CS42 on $date",
-			errorMetricTimesliceName: "Java/acme.storefront.action.LoginAction/login",
+			errorMetricTimesliceName: "Errors/WebTransaction/JSP/browse/phone.jsp",
 			chartHeaderTexts: {
 				"Average duration (ms)": "+22.59% since release CS42 on $date",
 			},
 			notificationText: "Average duration (ms) +22.59% since release CS42 on $date",
 			entityName: "WebPortal",
+			children: [
+				{
+					name: "Java/acme.storefront.action.BrowsePhoneAction/browsePhone",
+					type: "duration",
+					oldValue: 97.2,
+					newValue: 130.64,
+					ratio: 1.3441,
+					codeAttrs: {
+						codeFilepath: undefined,
+						codeNamespace: "acme.storefront.action.BrowsePhoneAction",
+						codeFunction: "browsePhone",
+					},
+					language: "java",
+					text: "Java/acme.storefront.action.BrowsePhoneAction/browsePhone",
+					totalDays: 10,
+					metricTimesliceName: "Java/acme.storefront.action.BrowsePhoneAction/browsePhone",
+					sinceText: "release CS42 on $date",
+					errorMetricTimesliceName:
+						"Errors/Java/acme.storefront.action.BrowsePhoneAction/browsePhone",
+					chartHeaderTexts: {
+						"Average duration (ms)": "+34.41% since release CS42 on $date",
+					},
+					notificationText: "Average duration (ms) +34.41% since release CS42 on $date",
+					entityName: "WebPortal",
+					scope: "WebTransaction/JSP/browse/phone.jsp",
+				},
+			],
 		},
-		// {
-		// 	name: "Java/acme.storefront.action.PurchaseAction/checkout",
-		// 	oldValue: 177.15232468106115,
-		// 	newValue: 416.4159984105804,
-		// 	ratio: 2.3506098447213786,
-		// 	codeFilepath: undefined,
-		// 	codeNamespace: "acme.storefront.action.PurchaseAction",
-		// 	codeFunction: "checkout",
-		// 	language: "java",
-		// 	text: "acme.storefront.action.PurchaseAction/checkout",
-		// 	totalDays: 10,
-		// 	metricTimesliceName: "Java/acme.storefront.action.PurchaseAction/checkout",
-		// 	sinceText: "release CS42 on $date",
-		// 	errorMetricTimesliceName: "Java/acme.storefront.action.PurchaseAction/checkout",
-		// 	chartHeaderTexts: {
-		// 		"Average duration (ms)": "+135.06% since release CS42 on $date",
-		// 	},
-		// 	notificationText: "Average duration (ms) +135.06% since release CS42 on $date",
-		// 	entityName: "WebPortal",
-		// },
 	],
 	errorRate: [
 		{
-			name: "Java/acme.storefront.action.PurchaseAction/checkout",
+			name: "WebTransaction/JSP/purchase/confirmation.jsp",
+			type: "errorRate",
 			oldValue: 12.23,
 			newValue: 16.51,
 			ratio: 1.3506,
-			codeAttrs: {
-				codeFilepath: undefined,
-				codeNamespace: "acme.storefront.action.PurchaseAction",
-				codeFunction: "checkout",
-			},
 			language: "java",
-			text: "acme.storefront.action.PurchaseAction/checkout",
+			text: "WebTransaction/JSP/purchase/confirmation.jsp",
 			totalDays: 10,
-			metricTimesliceName: "Java/acme.storefront.action.PurchaseAction/checkout",
+			metricTimesliceName: "WebTransaction/JSP/purchase/confirmation.jsp",
 			sinceText: "release CS42 on $date",
-			errorMetricTimesliceName: "Java/acme.storefront.action.PurchaseAction/checkout",
+			errorMetricTimesliceName: "Errors/WebTransaction/JSP/purchase/confirmation.jsp",
 			chartHeaderTexts: {
 				"Errors (per minute)": "+35.06% since release CS42 on $date",
 			},
 			notificationText: "Errors (per minute) +35.06% since release CS42 on $date",
 			entityName: "WebPortal",
-		},
-	],
-	allOtherAnomalies: [
-		{
-			name: "Java/acme.storefront.action.ViewCartAction/view",
-			text: "acme.storefront.action.ViewCartAction/view",
-			codeAttrs: {
-				codeFilepath: undefined,
-				codeNamespace: "acme.storefront.action.ViewCartAction",
-				codeFunction: "view",
-			},
-			language: "java",
-			oldValue: 0,
-			newValue: 0,
-			ratio: 1,
-			sinceText: "",
-			totalDays: 10,
-			chartHeaderTexts: {},
-			metricTimesliceName: "Java/acme.storefront.action.ViewCartAction/view",
-			errorMetricTimesliceName: "Java/acme.storefront.action.ViewCartAction/view",
-			notificationText: "",
-			entityName: "",
-		},
-		{
-			name: "Java/acme.storefront.InsightsInterceptor/intercept",
-			text: "acme.storefront.InsightsInterceptor/intercept",
-			codeAttrs: {
-				codeFilepath: undefined,
-				codeNamespace: "acme.storefront.InsightsInterceptor",
-				codeFunction: "intercept",
-			},
-			language: "java",
-			oldValue: 0,
-			newValue: 0,
-			ratio: 1,
-			sinceText: "",
-			totalDays: 10,
-			chartHeaderTexts: {},
-			metricTimesliceName: "Java/acme.storefront.InsightsInterceptor/intercept",
-			errorMetricTimesliceName: "Java/acme.storefront.InsightsInterceptor/intercept",
-			notificationText: "",
-			entityName: "",
-		},
-		{
-			name: "Java/acme.storefront.action.BrowsePhoneAction/browsePhone",
-			text: "acme.storefront.action.BrowsePhoneAction/browsePhone",
-			codeAttrs: {
-				codeFilepath: undefined,
-				codeNamespace: "acme.storefront.action.BrowsePhoneAction",
-				codeFunction: "browsePhone",
-			},
-			language: "java",
-			oldValue: 0,
-			newValue: 0,
-			ratio: 1,
-			sinceText: "",
-			totalDays: 10,
-			chartHeaderTexts: {},
-			metricTimesliceName: "Java/acme.storefront.action.BrowsePhoneAction/browsePhone",
-			errorMetricTimesliceName: "Java/acme.storefront.action.BrowsePhoneAction/browsePhone",
-			notificationText: "",
-			entityName: "",
-		},
-		{
-			name: "Java/org.apache.http.impl.client.InternalHttpClient/execute",
-			text: "org.apache.http.impl.client.CloseableHttpClient/execute",
-			codeAttrs: {
-				codeFilepath: undefined,
-				codeNamespace: "org.apache.http.impl.client.CloseableHttpClient",
-				codeFunction: "execute",
-			},
-			language: "java",
-			oldValue: 0,
-			newValue: 0,
-			ratio: 1,
-			sinceText: "",
-			totalDays: 10,
-			chartHeaderTexts: {},
-			metricTimesliceName: "Java/org.apache.http.impl.client.InternalHttpClient/execute",
-			errorMetricTimesliceName: "Java/org.apache.http.impl.client.InternalHttpClient/execute",
-			notificationText: "",
-			entityName: "",
-		},
-		{
-			name: "Java/acme.storefront.InsightsInterceptor/intercept",
-			text: "acme.storefront.InsightsInterceptor/intercept",
-			codeAttrs: {
-				codeFilepath: undefined,
-				codeNamespace: "acme.storefront.InsightsInterceptor",
-				codeFunction: "intercept",
-			},
-			language: "java",
-			oldValue: 0,
-			newValue: 0,
-			ratio: 1,
-			sinceText: "",
-			totalDays: 10,
-			chartHeaderTexts: {},
-			metricTimesliceName: "Java/acme.storefront.InsightsInterceptor/intercept",
-			errorMetricTimesliceName: "Java/acme.storefront.InsightsInterceptor/intercept",
-			notificationText: "",
-			entityName: "",
-		},
-		{
-			name: "Java/org.apache.catalina.servlets.DefaultServlet/doPost",
-			text: "org.apache.catalina.servlets.DefaultServlet/doPost",
-			codeAttrs: {
-				codeFilepath: undefined,
-				codeNamespace: "org.apache.catalina.servlets.DefaultServlet",
-				codeFunction: "doPost",
-			},
-			language: "java",
-			oldValue: 0,
-			newValue: 0,
-			ratio: 1,
-			sinceText: "",
-			totalDays: 10,
-			chartHeaderTexts: {},
-			metricTimesliceName: "Java/org.apache.catalina.servlets.DefaultServlet/doPost",
-			errorMetricTimesliceName: "Java/org.apache.catalina.servlets.DefaultServlet/doPost",
-			notificationText: "",
-			entityName: "",
-		},
-		{
-			name: "Java/acme.storefront.action.ValidateCouponAction/validateCoupon",
-			text: "acme.storefront.action.ValidateCouponAction/validateCoupon",
-			codeAttrs: {
-				codeFilepath: undefined,
-				codeNamespace: "acme.storefront.action.ValidateCouponAction",
-				codeFunction: "validateCoupon",
-			},
-			language: "java",
-			oldValue: 0,
-			newValue: 0,
-			ratio: 1,
-			sinceText: "",
-			totalDays: 10,
-			chartHeaderTexts: {},
-			metricTimesliceName: "Java/acme.storefront.action.ValidateCouponAction/validateCoupon",
-			errorMetricTimesliceName: "Java/acme.storefront.action.ValidateCouponAction/validateCoupon",
-			notificationText: "",
-			entityName: "",
-		},
-		{
-			name: "Java/acme.storefront.action.BrowsePlanAction/browsePlan",
-			text: "acme.storefront.action.BrowsePlanAction/browsePlan",
-			codeAttrs: {
-				codeFilepath: undefined,
-				codeNamespace: "acme.storefront.action.BrowsePlanAction",
-				codeFunction: "browsePlan",
-			},
-			language: "java",
-			oldValue: 0,
-			newValue: 0,
-			ratio: 1,
-			sinceText: "",
-			totalDays: 10,
-			chartHeaderTexts: {},
-			metricTimesliceName: "Java/acme.storefront.action.BrowsePlanAction/browsePlan",
-			errorMetricTimesliceName: "Java/acme.storefront.action.BrowsePlanAction/browsePlan",
-			notificationText: "",
-			entityName: "",
-		},
-		{
-			name: "Java/acme.storefront.action.BrowsePlansAction/browsePlans",
-			text: "acme.storefront.action.BrowsePlansAction/browsePlans",
-			codeAttrs: {
-				codeFilepath: undefined,
-				codeNamespace: "acme.storefront.action.BrowsePlansAction",
-				codeFunction: "browsePlans",
-			},
-			language: "java",
-			oldValue: 0,
-			newValue: 0,
-			ratio: 1,
-			sinceText: "",
-			totalDays: 10,
-			chartHeaderTexts: {},
-			metricTimesliceName: "Java/acme.storefront.action.BrowsePlansAction/browsePlans",
-			errorMetricTimesliceName: "Java/acme.storefront.action.BrowsePlansAction/browsePlans",
-			notificationText: "",
-			entityName: "",
+			children: [],
 		},
 	],
 	detectionMethod: "Release Based",

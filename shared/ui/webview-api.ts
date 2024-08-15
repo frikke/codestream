@@ -1,4 +1,9 @@
-import { TelemetryRequestType, GetAnonymousIdRequestType } from "@codestream/protocols/agent";
+import {
+	TelemetryRequestType,
+	GetAnonymousIdRequestType,
+	TelemetryData,
+	TelemetryEventName,
+} from "@codestream/protocols/agent";
 import { URI } from "vscode-uri";
 
 import { NotificationType, RequestType } from "vscode-jsonrpc";
@@ -14,7 +19,7 @@ import {
 	NewReviewNotification,
 	NewReviewNotificationType,
 } from "./ipc/webview.protocol";
-import { AnyObject, Disposable, shortUuid } from "./utils";
+import { Disposable, shortUuid } from "./utils";
 import {
 	IpcHost,
 	isIpcRequestMessage,
@@ -33,9 +38,8 @@ type Listener<NT extends NotificationType<any, any> = NotificationType<any, any>
 	event: NotificationParamsOf<NT>
 ) => void;
 
-const ALERT_THRESHOLD = 20;
-
-const STALE_THRESHOLD = 60; // 1 minute
+const DEFAULT_ALERT_THRESHOLD_SECONDS = 20;
+const DEFAULT_TIMEOUT_THRESHOLD_SECONDS = 60;
 
 class StaleRequestGroup {
 	private _oldestDate: number | undefined = undefined;
@@ -166,6 +170,7 @@ export function nextId() {
 type WebviewApiRequest = {
 	method: string;
 	providerId?: string;
+	timeoutMs?: number;
 	resolve: (value?: any | PromiseLike<any>) => void;
 	reject: (reason?: unknown) => void;
 };
@@ -210,8 +215,8 @@ export class RequestApiManager {
 				continue;
 			}
 			const timestamp = parseInt(parts[3]);
-			const timeAgo = (now - timestamp) / 1000;
-			if (timeAgo > STALE_THRESHOLD) {
+			const timeAgoMs = (now - timestamp) / 1000;
+			if (timeAgoMs > (value.timeoutMs ?? DEFAULT_TIMEOUT_THRESHOLD_SECONDS)) {
 				const staleGroup = staleRequests.get(value.method) ?? new StaleRequestGroup();
 				staleRequests.set(value.method, staleGroup);
 				staleGroup.addRequest(key, timestamp);
@@ -232,59 +237,55 @@ export class RequestApiManager {
 		const identifier = value.providerId ? `${value.method}:${value.providerId}` : value.method;
 		const count = this.historyCounter.countAndGet(identifier);
 		// A rounded error allows the count to stay the same and the duplicate error suppression to work in the agent
-		const rounded = roundDownExponentially(count, ALERT_THRESHOLD);
-		if (count > ALERT_THRESHOLD && identifier != "codestream/reporting/message") {
+		const rounded = roundDownExponentially(count, DEFAULT_ALERT_THRESHOLD_SECONDS);
+		if (count > DEFAULT_ALERT_THRESHOLD_SECONDS && identifier != "codestream/reporting/message") {
 			logError(new Error(`More than ${rounded} calls pending for ${identifier}`));
 		}
 		return this.pendingRequests.set(key, value);
 	}
 }
 
-declare function acquireCodestreamHostForSidebar(): IpcHost;
+declare function acquireCodestreamHost(): IpcHost;
 
-let host: IpcHost;
-const findHost = (webview: string): IpcHost => {
+let _host: IpcHost;
+
+const findHost = (): IpcHost => {
 	try {
-		if (webview === "sidebar") {
-			host = acquireCodestreamHostForSidebar();
+		if (!_host) {
+			_host = acquireCodestreamHost();
 		}
+		return _host;
 	} catch (e) {
-		throw new Error("Host needs to provide global `acquireCodestreamHostForSidebar` function");
+		throw new Error("Host needs to provide global `acquireCodestreamHost` function");
 	}
-	return host;
 };
 
 export class HostApi extends EventEmitter {
 	private apiManager = new RequestApiManager();
 	private port: IpcHost;
 
-	private static _sidebarInstance: HostApi;
+	private static _hostApiInstance: HostApi;
 	static get instance(): HostApi {
-		if (this._sidebarInstance === undefined) {
-			this._sidebarInstance = new HostApi(findHost("sidebar"));
+		if (this._hostApiInstance === undefined) {
+			this._hostApiInstance = new HostApi(findHost());
 		}
-		return this._sidebarInstance;
+		return this._hostApiInstance;
 	}
-
-	// private static _editorInstance: HostApi;
-	// static locator(): HostApi {
-	// 	if (this._editorInstance === undefined) {
-	// 		this._editorInstance = new HostApi(findHost("editor"));
-	// 	}
-	// 	return this._editorInstance;
-	// }
 
 	protected constructor(port: any) {
 		super();
 		this.port = port;
 
 		port.onmessage = ({ data }: { data: WebviewIpcMessage }) => {
+			// For accurate debug logging use structuredClone but mind the high memory usage
+			// const dataSnapshot = structuredClone(data);
+			const dataSnapshot = data;
 			if (isIpcResponseMessage(data)) {
 				const pending = this.apiManager.get(data.id);
 				if (!pending) {
 					console.debug(
 						`received response from host for ${data.id}; unable to find a pending request`,
-						data
+						dataSnapshot
 					);
 
 					return;
@@ -292,7 +293,7 @@ export class HostApi extends EventEmitter {
 
 				console.debug(
 					`received response from host for ${data.id}; found pending request: ${pending.method}`,
-					data
+					dataSnapshot
 				);
 				if (data.error != null) {
 					if (!data.error.toString().includes("maintenance mode")) pending.reject(data.error);
@@ -309,7 +310,7 @@ export class HostApi extends EventEmitter {
 				return;
 			}
 
-			console.debug(`received notification ${data.method} from host`, data.params);
+			console.debug(`received notification ${data.method} from host`, dataSnapshot.params);
 			this.emit(data.method, data.params);
 		};
 	}
@@ -326,14 +327,20 @@ export class HostApi extends EventEmitter {
 	send<RT extends RequestType<any, any, any, any>>(
 		type: RT,
 		params: RequestParamsOf<RT>,
-		options?: { alternateReject?: (error) => {} }
+		options?: { alternateReject?: (error) => {}; timeoutMs?: number }
 	): Promise<RequestResponseOf<RT>> {
 		const id = nextId();
 
 		return new Promise((resolve, reject) => {
 			reject = (options && options.alternateReject) || reject;
 			const providerId: string | undefined = params?.providerId ? params.providerId : undefined;
-			this.apiManager.set(id, { resolve, reject, method: type.method, providerId });
+			this.apiManager.set(id, {
+				resolve,
+				reject,
+				method: type.method,
+				providerId,
+				timeoutMs: options?.timeoutMs,
+			});
 
 			const payload = {
 				id,
@@ -345,7 +352,7 @@ export class HostApi extends EventEmitter {
 		});
 	}
 
-	track(eventName: string, properties?: AnyObject) {
+	track(eventName: TelemetryEventName, properties?: TelemetryData) {
 		this.send(TelemetryRequestType, {
 			eventName,
 			properties,

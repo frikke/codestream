@@ -2,12 +2,12 @@ import {
 	GetObservabilityAnomaliesResponse,
 	LanguageAndVersionValidation,
 } from "@codestream/protocols/agent";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import Icon from "./Icon";
 import { Link } from "./Link";
 import { ObservabilityAnomaliesGroup } from "./ObservabilityAnomaliesGroup";
-import { ErrorRow } from "@codestream/webview/Stream/Observability";
+import { ErrorRow } from "@codestream/webview/Stream/ErrorRow";
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import { openModal } from "../store/context/actions";
 import { WebviewModals } from "@codestream/protocols/webview";
@@ -25,29 +25,37 @@ import {
 	RubyPluginLanguageServer,
 } from "./MethodLevelTelemetry/MissingExtension";
 import { WarningBoxRoot } from "./WarningBox";
-import { HostApi } from "@codestream/webview/webview-api";
+import { setUserPreference } from "./actions";
 
 interface Props {
+	accountId: number;
 	observabilityAnomalies: GetObservabilityAnomaliesResponse;
 	observabilityRepo: any;
 	entityGuid: string;
+	entityName?: string;
 	noAccess?: string;
 	calculatingAnomalies?: boolean;
 	distributedTracingEnabled?: boolean;
 	languageAndVersionValidation?: LanguageAndVersionValidation;
+	isServiceSearch?: boolean;
 }
 
 export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
+	const [isExpanded, setIsExpanded] = useState<boolean>(false);
+
 	const derivedState = useAppSelector((state: CodeStreamState) => {
+		const { preferences } = state;
+
+		const anomaliesDropdownIsExpanded = preferences?.anomaliesDropdownIsExpanded ?? false;
+
 		const clmSettings = state.preferences.clmSettings || {};
 		return {
+			anomaliesDropdownIsExpanded,
 			clmSettings,
 			currentMethodLevelTelemetry: (state.context.currentMethodLevelTelemetry ||
 				{}) as CurrentMethodLevelTelemetry,
 		};
 	}, shallowEqual);
-
-	const [expanded, setExpanded] = useState<boolean>(true);
 
 	const dispatch = useAppDispatch();
 
@@ -88,33 +96,37 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 		}
 	}
 
-	const showAgentWarning =
-		!_isEmpty(props.languageAndVersionValidation?.language) &&
-		!_isEmpty(props.languageAndVersionValidation?.required);
-	const showDistributedTracingWarning = !showAgentWarning && !props.distributedTracingEnabled;
-	const showExtensionWarning =
-		!showDistributedTracingWarning &&
-		!_isEmpty(props.languageAndVersionValidation?.languageExtensionValidation) &&
-		props.languageAndVersionValidation?.languageExtensionValidation !== "VALID";
+	// const showAgentWarning =
+	// 	!_isEmpty(props.languageAndVersionValidation?.language) &&
+	// 	!_isEmpty(props.languageAndVersionValidation?.required);
+	// const showDistributedTracingWarning = !showAgentWarning && !props.distributedTracingEnabled;
+	// const showExtensionWarning =
+	// 	!showDistributedTracingWarning &&
+	// 	!_isEmpty(props.languageAndVersionValidation?.languageExtensionValidation) &&
+	// 	props.languageAndVersionValidation?.languageExtensionValidation !== "VALID";
+
+	const showAgentWarning = false;
+	const showDistributedTracingWarning = false;
+	const showExtensionWarning = false;
 
 	useEffect(() => {
 		if (!_isEmpty(props.languageAndVersionValidation)) {
 			if (showAgentWarning) {
 				// Prevent dupe tracking call if user reloads IDE, can trigger rapid double mount
 				setTimeout(() => {
-					HostApi.instance.track("CLM Blocked", {
-						Cause: "Unsupported Agent",
-					});
+					// HostApi.instance.track("CLM Blocked", {
+					// 	Cause: "Unsupported Agent",
+					// });
 				}, 3000);
 			}
 
 			if (showExtensionWarning) {
 				// Prevent dupe tracking call if user reloads IDE, can trigger rapid double mount
-				setTimeout(() => {
-					HostApi.instance.track("CLM Blocked", {
-						Cause: "Missing Language Extension",
-					});
-				}, 3000);
+				// setTimeout(() => {
+				// 	HostApi.instance.track("CLM Blocked", {
+				// 		Cause: "Missing Language Extension",
+				// 	});
+				// }, 3000);
 			}
 		}
 	}, [props.languageAndVersionValidation]);
@@ -125,13 +137,36 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 				// Prevent dupe tracking call if user reloads IDE, can trigger rapid double mount
 				setTimeout(() => {
 					console.warn("distributedTracingEnabled", props.distributedTracingEnabled);
-					HostApi.instance.track("CLM Blocked", {
-						Cause: "DT Not Enabled",
-					});
+					// HostApi.instance.track("CLM Blocked", {
+					// 	Cause: "DT Not Enabled",
+					// });
 				}, 3000);
 			}
 		}
 	}, [props.distributedTracingEnabled]);
+
+	const handleRowOnClick = () => {
+		if (props.isServiceSearch) {
+			setIsExpanded(!isExpanded);
+		} else {
+			const { anomaliesDropdownIsExpanded } = derivedState;
+
+			dispatch(
+				setUserPreference({
+					prefPath: ["anomaliesDropdownIsExpanded"],
+					value: !anomaliesDropdownIsExpanded,
+				})
+			);
+		}
+	};
+
+	const anomalies = [
+		...props.observabilityAnomalies.responseTime,
+		...props.observabilityAnomalies.errorRate,
+	];
+	anomalies.sort((a, b) => b.ratio - a.ratio);
+
+	const expanded = props.isServiceSearch ? isExpanded : derivedState.anomaliesDropdownIsExpanded;
 
 	return (
 		<>
@@ -140,7 +175,7 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 					padding: "0px 10px 0px 30px",
 				}}
 				className={"pr-row"}
-				onClick={() => setExpanded(!expanded)}
+				onClick={() => handleRowOnClick()}
 				data-testid={`anomalies-dropdown`}
 			>
 				<span style={{ paddingTop: "3px" }}>
@@ -148,7 +183,7 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 					{!expanded && <Icon name="chevron-right-thin" />}
 				</span>
 				<div className="label">
-					<span style={{ margin: "0px 5px 0px 2px" }}>Code-Level Metrics</span>
+					<span style={{ margin: "0px 5px 0px 2px" }}>Transaction Performance</span>
 					{showWarningIcon && (
 						<Icon
 							name="alert"
@@ -160,23 +195,25 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 					)}
 				</div>
 
-				<div className="icons">
-					<span
-						onClick={e => {
-							e.preventDefault();
-							e.stopPropagation();
-							dispatch(openModal(WebviewModals.CLMSettings));
-						}}
-					>
-						<Icon
-							name="gear"
-							className="clickable"
-							title="Code-Level Metric Settings"
-							placement="bottomLeft"
-							delay={1}
-						/>
-					</span>
-				</div>
+				{false && (
+					<div className="icons">
+						<span
+							onClick={e => {
+								e.preventDefault();
+								e.stopPropagation();
+								dispatch(openModal(WebviewModals.CLMSettings));
+							}}
+						>
+							<Icon
+								name="gear"
+								className="clickable"
+								title="Code-Level Metric Settings"
+								placement="bottomLeft"
+								delay={1}
+							/>
+						</span>
+					</div>
+				)}
 			</Row>
 			{expanded && props.observabilityAnomalies.error && !props.calculatingAnomalies && (
 				<>
@@ -255,7 +292,7 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 							padding: "2px 10px 2px 40px",
 						}}
 						className={"pr-row"}
-						onClick={() => setExpanded(!expanded)}
+						onClick={() => handleRowOnClick()}
 					>
 						<span style={{ marginLeft: "2px", whiteSpace: "normal" }}>
 							{props.noAccess === "403" ? (
@@ -289,26 +326,12 @@ export const ObservabilityAnomaliesWrapper = React.memo((props: Props) => {
 							!showExtensionWarning && (
 								<>
 									<ObservabilityAnomaliesGroup
-										observabilityAnomalies={props.observabilityAnomalies.errorRate}
+										accountId={props.accountId}
+										observabilityAnomalies={anomalies}
 										observabilityRepo={props.observabilityRepo}
 										entityGuid={props.entityGuid}
-										title="Error Rate Increase"
-										detectionMethod={props.observabilityAnomalies.detectionMethod}
-									/>
-									<ObservabilityAnomaliesGroup
-										observabilityAnomalies={props.observabilityAnomalies.responseTime}
-										observabilityRepo={props.observabilityRepo}
-										entityGuid={props.entityGuid}
-										title="Average Duration Increase"
-										detectionMethod={props.observabilityAnomalies.detectionMethod}
-									/>
-									<ObservabilityAnomaliesGroup
-										observabilityAnomalies={props.observabilityAnomalies.allOtherAnomalies || []}
-										observabilityRepo={props.observabilityRepo}
-										entityGuid={props.entityGuid}
-										title="All other methods"
-										noAnomaly={true}
-										collapseDefault={true}
+										entityName={props.entityName}
+										title="Anomalies"
 										detectionMethod={props.observabilityAnomalies.detectionMethod}
 									/>
 								</>

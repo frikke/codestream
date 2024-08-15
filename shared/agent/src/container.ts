@@ -1,4 +1,3 @@
-"use strict";
 import { CodeStreamAgent } from "agent";
 import { DocumentManager } from "./documentManager";
 import { ErrorReporter } from "./errorReporter";
@@ -6,21 +5,14 @@ import { GitService } from "./git/gitService";
 import { GitServiceLite } from "./git/gitServiceLite";
 import { RepositoryLocator } from "./git/repositoryLocator";
 import { Logger } from "./logger";
-import { CodeErrorsManager } from "./managers/codeErrorsManager";
-import { CodemarksManager } from "./managers/codemarksManager";
 import { CompaniesManager } from "./managers/companiesManager";
-import { DocumentMarkerManager } from "./managers/documentMarkerManager";
 import { FilesManager } from "./managers/filesManager";
 import { IgnoreFilesManager } from "./managers/ignoreFilesManager";
-import { MarkerLocationManager } from "./managers/markerLocationManager";
-import { MarkersManager } from "./managers/markersManager";
 import { NRManager } from "./managers/NRManager";
-import { PixieManager } from "./managers/pixieManager";
 import { PostsManager } from "./managers/postsManager";
 import { RepoIdentificationManager } from "./managers/repoIdentificationManager";
 import { RepositoryMappingManager } from "./managers/repositoryMappingManager";
 import { ReposManager } from "./managers/reposManager";
-import { ReviewsManager } from "./managers/reviewsManager";
 import { ScmManager } from "./managers/scmManager";
 import { ServerManager } from "./managers/serverManager";
 import { StreamsManager } from "./managers/streamsManager";
@@ -32,6 +24,7 @@ import { UrlManager } from "./managers/urlManager";
 import { UsersManager } from "./managers/usersManager";
 import { ThirdPartyProviderRegistry } from "./providers/registry";
 import { CodeStreamSession } from "./session";
+import { injectNR } from "./providers/newrelic/nrContainer";
 
 let providerRegistry: ThirdPartyProviderRegistry | undefined = undefined;
 
@@ -44,21 +37,6 @@ export class SessionServiceContainer {
 	private readonly _files: FilesManager;
 	get files(): FilesManager {
 		return this._files;
-	}
-
-	private readonly _codemarks: CodemarksManager;
-	get codemarks(): CodemarksManager {
-		return this._codemarks;
-	}
-
-	private readonly _markerLocations: MarkerLocationManager;
-	get markerLocations(): MarkerLocationManager {
-		return this._markerLocations;
-	}
-
-	private readonly _markers: MarkersManager;
-	get markers(): MarkersManager {
-		return this._markers;
 	}
 
 	private readonly _posts: PostsManager;
@@ -96,11 +74,6 @@ export class SessionServiceContainer {
 		return this._users;
 	}
 
-	private readonly _documentMarkers: DocumentMarkerManager;
-	get documentMarkers() {
-		return this._documentMarkers;
-	}
-
 	private readonly _providerRegistry: ThirdPartyProviderRegistry;
 	get providerRegistry() {
 		return this._providerRegistry;
@@ -121,24 +94,9 @@ export class SessionServiceContainer {
 		return this._textFiles;
 	}
 
-	private readonly _reviews: ReviewsManager;
-	get reviews() {
-		return this._reviews;
-	}
-
-	private readonly _codeErrors: CodeErrorsManager;
-	get codeErrors() {
-		return this._codeErrors;
-	}
-
 	private readonly _nr: NRManager;
 	get nr() {
 		return this._nr;
-	}
-
-	private readonly _pixie: PixieManager;
-	get pixie() {
-		return this._pixie;
 	}
 
 	private readonly _repoIdentifier: RepoIdentificationManager;
@@ -151,31 +109,32 @@ export class SessionServiceContainer {
 		this._git = new GitService(session, cinstance.repositoryLocator, cinstance.gitServiceLite);
 		this._scm = new ScmManager(session);
 		this._files = new FilesManager(session);
-		this._markerLocations = new MarkerLocationManager(session);
-		this._codemarks = new CodemarksManager(session);
-		this._markers = new MarkersManager(session);
 		this._posts = new PostsManager(session);
-		this._repos = new ReposManager(session);
+		this._repos = new ReposManager();
 		this._streams = new StreamsManager(session);
 		this._teams = new TeamsManager(session);
 		this._users = new UsersManager(session);
-		this._documentMarkers = new DocumentMarkerManager(session);
 		this._providerRegistry = providerRegistry!.initialize(session);
 		this._repositoryMappings = new RepositoryMappingManager(session);
 		this._companies = new CompaniesManager(session);
 		this._ignoreFiles = new IgnoreFilesManager(session);
 		this._textFiles = new TextFilesManager(session);
-		this._reviews = new ReviewsManager(session);
-		this._codeErrors = new CodeErrorsManager(session);
 		this._nr = new NRManager(session);
 		this._repoIdentifier = new RepoIdentificationManager(session);
-		this._pixie = new PixieManager(session);
+	}
+
+	async inject() {
+		Logger.log("Injecting NR services");
+		await injectNR(this);
 	}
 }
 
 class ServiceContainer {
 	// TODO: [EA] I think we should try to rework this to avoid the need of the session here
-	constructor(public readonly agent: CodeStreamAgent, private session: CodeStreamSession) {
+	constructor(
+		public readonly agent: CodeStreamAgent,
+		private session: CodeStreamSession
+	) {
 		this._documents = agent.documents;
 		this._gitServiceLite = new GitServiceLite(session);
 		this._repositoryLocator = new RepositoryLocator(session, this._gitServiceLite);

@@ -6,41 +6,58 @@ import * as NewRelic from "newrelic";
 
 import {
 	CodeStreamDiffUriData,
-	EntityAccount,
+	FileLevelTelemetryAverageDuration,
+	FileLevelTelemetryErrorRate,
 	FileLevelTelemetryMetric,
+	FileLevelTelemetrySampleSize,
 	GetFileLevelTelemetryRequest,
 	GetFileLevelTelemetryResponse,
-	GetObservabilityResponseTimesRequest,
-	GetObservabilityResponseTimesResponse,
 	NRErrorResponse,
 	ObservabilityAnomaly,
-	ObservabilityRepo,
 } from "@codestream/protocols/agent";
-import { AdditionalMetadataInfo, MetricTimeslice, ResolutionMethod } from "../newrelic.types";
+import {
+	AdditionalMetadataInfo,
+	GraphqlNrqlError,
+	MetricTimeslice,
+	ResolutionMethod,
+} from "../newrelic.types";
 import { Logger } from "../../../logger";
-import { GraphqlNrqlError } from "../../newrelic.types";
-import { SessionContainer, SessionServiceContainer } from "../../../container";
+import { SessionServiceContainer } from "../../../container";
 import * as csUri from "../../../system/uri";
-import { ReviewsManager } from "../../../managers/reviewsManager";
-import path, { join, relative, sep } from "path";
+import path from "path";
 import { URI } from "vscode-uri";
-import { ContextLogger, INewRelicProvider } from "../../newrelic";
-import Cache from "timed-cache";
-import { GitRepository } from "../../../git/models/repository";
+import Cache from "@codestream/utils/system/timedCache";
 import { FLTStrategyFactory } from "./FLTStrategy";
+import { AnomaliesProvider } from "../anomalies/anomaliesProvider";
+import { ReposProvider } from "../repos/reposProvider";
+import { NrApiConfig } from "../nrApiConfig";
+import { NewRelicGraphqlClient } from "../newRelicGraphqlClient";
+import { EntityAccountResolver } from "./entityAccountResolver";
+import { lsp } from "../../../system/decorators/lsp";
+import { errorTypeMapper } from "../utils";
+import { ContextLogger } from "../../contextLogger";
+import { Disposable } from "../../../system/disposable";
+import { isEmpty } from "lodash";
+import { keyFromFacet } from "./FLTCodeAttributeStrategy";
+import { DeploymentsProvider } from "../deployments/deploymentsProvider";
+import { getRepoName } from "@codestream/utils/system/string";
 
-export class ClmManager {
-	constructor(private provider: INewRelicProvider) {}
+@lsp
+export class ClmManager implements Disposable {
+	constructor(
+		private anomaliesProvider: AnomaliesProvider,
+		private reposProvider: ReposProvider,
+		private sessionServiceContainer: SessionServiceContainer,
+		private nrApiConfig: NrApiConfig,
+		private graphqlClient: NewRelicGraphqlClient,
+		private entityAccountResolver: EntityAccountResolver,
+		private deploymentsProvider: DeploymentsProvider
+	) {}
 
 	// 2 minute cache
 	private _mltTimedCache = new Cache<GetFileLevelTelemetryResponse | null>({
 		defaultTtl: 120 * 1000,
 	});
-
-	private _sessionServiceContainer: SessionServiceContainer | undefined;
-	set sessionServiceContainer(value: SessionServiceContainer) {
-		this._sessionServiceContainer = value;
-	}
 
 	private addCustomAttribute(key: string, value: string) {
 		try {
@@ -53,7 +70,7 @@ export class ClmManager {
 	async getFileLevelTelemetry(
 		request: GetFileLevelTelemetryRequest
 	): Promise<GetFileLevelTelemetryResponse | NRErrorResponse | undefined> {
-		const { git } = this._sessionServiceContainer || SessionContainer.instance();
+		const { git } = this.sessionServiceContainer;
 		const languageId: LanguageId | undefined = isSupportedLanguage(request.languageId)
 			? request.languageId
 			: undefined;
@@ -75,7 +92,7 @@ export class ClmManager {
 			if (csUri.Uris.isCodeStreamDiffUri(request.fileUri)) {
 				parsedUri = csUri.Uris.fromCodeStreamDiffUri<CodeStreamDiffUriData>(request.fileUri);
 			} else {
-				parsedUri = ReviewsManager.parseUri(request.fileUri);
+				// parsedUri = ReviewsManager.parseUri(request.fileUri);
 			}
 			const repo = parsedUri?.repoId && (await git.getRepositoryById(parsedUri?.repoId));
 			filePath = repo && parsedUri?.path && path.join(repo.path, parsedUri.path);
@@ -96,7 +113,7 @@ export class ClmManager {
 			resolutionMethod === "locator" &&
 			!request.locator?.functionName &&
 			!request.locator?.namespace &&
-			!request.locator?.namespaces
+			isEmpty(request.locator?.namespaces)
 		) {
 			ContextLogger.warn("getFileLevelTelemetry: Missing locator for resolutionMethod 'locator'");
 			return undefined;
@@ -105,7 +122,10 @@ export class ClmManager {
 		const cacheKey =
 			resolutionMethod === "filePath"
 				? [filePath, request.languageId].join("-")
-				: [Object.values(request.locator!).join("-"), request.languageId].join("-");
+				: [
+						request.locator ? Object.values(request.locator).join("-") : "nolocator",
+						request.languageId,
+				  ].join("-");
 
 		if (request.resetCache) {
 			Logger.log("getFileLevelTelemetry: resetting cache", {
@@ -127,7 +147,7 @@ export class ClmManager {
 			}
 		}
 
-		const { result, error } = await this.resolveEntityAccount(filePath);
+		const { result, error } = await this.entityAccountResolver.resolveEntityAccount(filePath);
 		if (error) return error;
 		if (!result) return undefined;
 		const { entity, relativeFilePath, observabilityRepo, repoForFile, remote } = result;
@@ -146,7 +166,7 @@ export class ClmManager {
 				normalizedRelativeFilePath,
 				request,
 				resolutionMethod,
-				this.provider
+				this.graphqlClient
 			);
 			const results = await Promise.all(strategies.map(_ => _.execute()));
 
@@ -154,11 +174,38 @@ export class ClmManager {
 			const errorRate = this.mergeResults(results.map(_ => _.errorRate));
 			const sampleSize = this.mergeResults(results.map(_ => _.sampleSize));
 
-			const anomalies = this.provider.getLastObservabilityAnomaliesResponse(newRelicEntityGuid);
+			const anomalies =
+				this.anomaliesProvider.getLastObservabilityAnomaliesResponse(newRelicEntityGuid);
 			if (anomalies) {
 				this.addAnomalies(averageDuration, anomalies.responseTime);
+				for (const anomaly of anomalies.responseTime) {
+					this.addAnomalies(
+						averageDuration,
+						(anomaly.children || []).filter(_ => _.type === "duration")
+					);
+					this.addAnomalies(
+						errorRate,
+						(anomaly.children || []).filter(_ => _.type === "errorRate")
+					);
+				}
 				this.addAnomalies(errorRate, anomalies.errorRate);
+				for (const anomaly of anomalies.errorRate) {
+					this.addAnomalies(
+						averageDuration,
+						(anomaly.children || []).filter(_ => _.type === "duration")
+					);
+					this.addAnomalies(
+						errorRate,
+						(anomaly.children || []).filter(_ => _.type === "errorRate")
+					);
+				}
 			}
+
+			const deploymentCommit = await this.getDeploymentCommitIfNeeded(newRelicEntityGuid, {
+				averageDuration,
+				errorRate,
+				sampleSize,
+			});
 
 			const hasAnyData = sampleSize.length || averageDuration.length || errorRate.length;
 			const response: GetFileLevelTelemetryResponse = {
@@ -177,11 +224,12 @@ export class ClmManager {
 				newRelicEntityAccounts: observabilityRepo.entityAccounts,
 				repo: {
 					id: repoForFile.id!,
-					name: this.provider.getRepoName(repoForFile),
+					name: getRepoName(repoForFile),
 					remote: remote,
 				},
 				relativeFilePath: relativeFilePath,
-				newRelicUrl: `${this.provider.getProductUrl()}/redirect/entity/${newRelicEntityGuid}`,
+				newRelicUrl: `${this.nrApiConfig.productUrl}/redirect/entity/${newRelicEntityGuid}`,
+				deploymentCommit,
 			};
 
 			if (sampleSize?.length > 0) {
@@ -210,7 +258,7 @@ export class ClmManager {
 			return response;
 		} catch (ex) {
 			if (ex instanceof GraphqlNrqlError) {
-				const type = this.provider.errorTypeMapper(ex);
+				const type = errorTypeMapper(ex);
 				Logger.warn(`getFileLevelTelemetry error ${type}`, {
 					request,
 					newRelicEntityGuid,
@@ -239,145 +287,6 @@ export class ClmManager {
 		return undefined;
 	}
 
-	async getObservabilityResponseTimes(
-		request: GetObservabilityResponseTimesRequest
-	): Promise<GetObservabilityResponseTimesResponse> {
-		const parsedUri = URI.parse(request.fileUri);
-		const filePath = parsedUri.fsPath;
-		const { result, error } = await this.resolveEntityAccount(filePath);
-		if (!result)
-			return {
-				responseTimes: [],
-			};
-
-		// const query =
-		// 	`SELECT average(newrelic.timeslice.value) * 1000 AS 'value' ` +
-		// 	`FROM Metric WHERE \`entity.guid\` = '${result.entity.entityGuid}' ` +
-		// 	`AND (metricTimesliceName LIKE 'Java/%' OR metricTimesliceName LIKE 'Custom/%')` +
-		// 	`FACET metricTimesliceName AS name ` +
-		// 	`SINCE 7 days ago LIMIT MAX`;
-
-		const query =
-			`SELECT average(duration) * 1000 AS 'value' ` +
-			`FROM Span WHERE \`entity.guid\` = '${result.entity.entityGuid}' ` +
-			`AND (name LIKE 'Java/%' OR name LIKE 'Custom/%')` +
-			`FACET name ` +
-			`SINCE 7 days ago LIMIT MAX`;
-
-		const results = await this.provider.runNrql<{ name: string; value: number }>(
-			result.entity.accountId,
-			query,
-			200
-		);
-		return {
-			responseTimes: results,
-		};
-	}
-
-	private async resolveEntityAccount(filePath: string): Promise<{
-		result?: {
-			entity: EntityAccount;
-			relativeFilePath: string;
-			observabilityRepo: ObservabilityRepo;
-			repoForFile: GitRepository;
-			remote: string;
-		};
-		error?: NRErrorResponse;
-	}> {
-		const { git, users } = this._sessionServiceContainer || SessionContainer.instance();
-		const codeStreamUser = await users.getMe();
-
-		const isConnected = this.provider.isConnected(codeStreamUser);
-		if (!isConnected) {
-			ContextLogger.warn("getFileLevelTelemetry: not connected", {
-				filePath,
-			});
-			return {
-				error: <NRErrorResponse>{
-					isConnected: isConnected,
-					error: {
-						message: "Not connected to New Relic",
-						type: "NOT_CONNECTED",
-					},
-				},
-			};
-		}
-
-		const repoForFile = await git.getRepositoryByFilePath(filePath);
-		if (!repoForFile?.id) {
-			ContextLogger.warn("getFileLevelTelemetry: no repo for file", {
-				filePath,
-			});
-			return {};
-		}
-
-		try {
-			const { entityCount } = await this.provider.getEntityCount();
-			if (entityCount < 1) {
-				ContextLogger.log("getFileLevelTelemetry: no NR1 entities");
-				return {};
-			}
-		} catch (ex) {
-			if (ex instanceof GraphqlNrqlError) {
-				const type = this.provider.errorTypeMapper(ex);
-				Logger.warn(`getFileLevelTelemetry error ${type}`, {
-					filePath,
-				});
-				return {
-					error: <NRErrorResponse>{
-						error: {
-							message: ex.message,
-							type,
-						},
-					},
-				};
-			}
-			return {};
-		}
-
-		const remotes = await repoForFile.getWeightedRemotesByStrategy("prioritizeUpstream", undefined);
-		const remote = remotes.map(_ => _.rawUrl)[0];
-
-		let relativeFilePath = relative(repoForFile.path, filePath);
-		if (relativeFilePath[0] !== sep) {
-			relativeFilePath = join(sep, relativeFilePath);
-		}
-
-		// See if the git repo is associated with NR1
-		const observabilityRepo = await this.provider.getObservabilityEntityRepos(repoForFile.id);
-		if (!observabilityRepo) {
-			ContextLogger.warn("getFileLevelTelemetry: no observabilityRepo");
-			return {};
-		}
-		if (!observabilityRepo.entityAccounts?.length) {
-			ContextLogger.warn("getFileLevelTelemetry: no entityAccounts");
-			return {
-				error: <NRErrorResponse>{
-					repo: {
-						id: repoForFile.id,
-						name: this.provider.getRepoName(repoForFile),
-						remote: remote,
-					},
-					error: {
-						message: "",
-						type: "NOT_ASSOCIATED",
-					},
-				},
-			};
-		}
-
-		const entity = this.provider.getGoldenSignalsEntity(codeStreamUser!, observabilityRepo);
-		return {
-			result: {
-				entity,
-				relativeFilePath,
-				observabilityRepo,
-				repoForFile,
-				remote,
-			},
-		};
-	}
-
 	getResolutionMethod(languageId: LanguageId): ResolutionMethod {
 		switch (languageId) {
 			case "go":
@@ -396,8 +305,9 @@ export class ClmManager {
 		const consolidated = new Map<string, T>();
 		for (const resultSet of averageDurationResultSets) {
 			for (const result of resultSet) {
-				if (!consolidated.has(result.metricTimesliceName)) {
-					consolidated.set(result.metricTimesliceName, result);
+				const metricTimesliceKey = keyFromFacet(result.facet);
+				if (!consolidated.has(metricTimesliceKey)) {
+					consolidated.set(metricTimesliceKey, result);
 				}
 			}
 		}
@@ -412,7 +322,7 @@ export class ClmManager {
 			// is also based) is the name of the concrete class
 			const parts = anomaly.metricTimesliceName.split("/");
 			const altClassName = parts[parts.length - 2];
-			const metricMatch1 = metrics.find(_ => _.metricTimesliceName === anomaly.metricTimesliceName);
+			const metricMatch1 = metrics.find(_ => _.facet[0] === anomaly.metricTimesliceName[0]);
 			const metricMatch2 = metrics.find(
 				_ =>
 					(_.className === anomaly.codeAttrs?.codeNamespace || _.className === altClassName) &&
@@ -422,7 +332,7 @@ export class ClmManager {
 				(metricMatch1 || metricMatch2)!.anomaly = anomaly;
 			} else {
 				const metric: FileLevelTelemetryMetric = {
-					metricTimesliceName: anomaly.metricTimesliceName,
+					facet: [anomaly.metricTimesliceName],
 					functionName: anomaly.codeAttrs?.codeFunction,
 					className: anomaly.codeAttrs?.codeNamespace,
 					namespace: anomaly.codeAttrs?.codeNamespace,
@@ -431,6 +341,37 @@ export class ClmManager {
 				metrics.push(metric);
 			}
 		}
+	}
+
+	private async getDeploymentCommitIfNeeded(
+		newRelicEntityGuid: string,
+		results: {
+			errorRate: FileLevelTelemetryErrorRate[];
+			sampleSize: FileLevelTelemetrySampleSize[];
+			averageDuration: FileLevelTelemetryAverageDuration[];
+		}
+	) {
+		const missingCommit =
+			results.errorRate.find(_ => !_.commit) !== undefined ||
+			results.sampleSize.find(_ => !_.commit) !== undefined ||
+			results.averageDuration.find(_ => !_.commit) !== undefined;
+		if (!missingCommit) return undefined;
+		Logger.log("getDeploymentCommitIfNeeded: missing commit - calling getLatestDeployment");
+		const result = await this.deploymentsProvider.getLatestDeployment({
+			entityGuid: newRelicEntityGuid,
+		});
+		Logger.log(
+			`getDeploymentCommitIfNeeded: getLatestDeployment found commit ${result?.deployment.commit}`
+		);
+		return result?.deployment.commit;
+	}
+
+	/*
+Not actually used - agent is restarted at logout but keeping for
+possible future use
+*/
+	dispose(): void {
+		this._mltTimedCache.clear();
 	}
 }
 
@@ -459,6 +400,9 @@ export type LanguageId = (typeof supportedLanguages)[number];
 export type EnhancedMetricTimeslice = MetricTimeslice & {
 	className?: string;
 	functionName?: string;
+	lineno?: number;
+	column?: number;
 	metadata: AdditionalMetadataInfo;
 	namespace?: string;
+	commit?: string;
 };

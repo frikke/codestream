@@ -3,7 +3,9 @@ out
 .vscode-test
 src/protocols/
 editor.html
+!src/webviews/editor/editor.html
 sidebar.html
+!src/webviews/sidebar/sidebar.html
 node_modules
 npm-debug.log
 codestream-*.vsix

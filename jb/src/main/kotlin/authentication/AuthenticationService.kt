@@ -2,7 +2,9 @@ package com.codestream.authentication
 
 import com.codestream.agent.ApiVersionCompatibility
 import com.codestream.agent.DidChangeApiVersionCompatibilityNotification
+import com.codestream.agent.DidLogoutNotification
 import com.codestream.agent.DidRefreshAccessTokenNotification
+import com.codestream.agent.LogoutReason
 import com.codestream.agentService
 import com.codestream.codeStream
 import com.codestream.extensions.merge
@@ -21,7 +23,6 @@ import com.codestream.settings.SettingsService
 import com.codestream.settingsService
 import com.codestream.webViewService
 import com.github.salomonbrys.kotson.fromJson
-import com.github.salomonbrys.kotson.set
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.intellij.credentialStore.Credentials
@@ -146,6 +147,23 @@ class AuthenticationService(val project: Project) {
         }
     }
 
+    suspend fun onDidLogout(notification: DidLogoutNotification) {
+        logger.info("codeStream/didLogout: ${notification.reason}")
+        if (notification.reason == LogoutReason.UNSUPPORTED_VERSION) {
+            logout(CSLogoutReason.UNSUPPORTED_VERSION)
+        } else {
+            logout(CSLogoutReason.DID_LOGOUT)
+        }
+
+        if (notification.reason === LogoutReason.TOKEN ||
+            notification.reason === LogoutReason.INVALID_REFRESH_TOKEN) {
+            logger.info("codeStream/didLogout: LogoutReason.TOKEN -> resetting web context")
+            project.agentService?.onDidStart {
+                project.webViewService?.load(true)
+            }
+        }
+    }
+
     suspend fun logout(reason: CSLogoutReason, newServerUrl: String? = null) {
         val agent = project.agentService ?: return
         val session = project.sessionService ?: return
@@ -181,7 +199,7 @@ class AuthenticationService(val project: Project) {
     }
 
     fun onDidRefreshAccessToken(notification: DidRefreshAccessTokenNotification) {
-        //  Not that provider and providerAccess not provided on this notification, but it doesn't seem to be used
+        //  Note that provider and providerAccess not provided on this notification, but it doesn't seem to be used
         val token = AccessToken(
             email = notification.email,
             url = notification.url,
@@ -189,7 +207,9 @@ class AuthenticationService(val project: Project) {
             teamId = notification.teamId,
             provider = null,
             providerAccess = null,
-            notification.refreshToken)
+            notification.refreshToken,
+            tokenType = notification.tokenType,
+        )
         saveAccessToken(SaveTokenReason.REFRESH, token, notification.url, notification.teamId)
     }
 

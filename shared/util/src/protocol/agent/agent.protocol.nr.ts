@@ -3,11 +3,13 @@
 import { NotificationType, RequestType } from "vscode-languageserver-protocol";
 
 import { Project, RepoProjectType } from "./agent.protocol.scm";
-import { CSStackTraceInfo, CSStackTraceLine } from "./api.protocol.models";
+import { CSRepository, CSStackTraceInfo, CSStackTraceLine } from "./api.protocol.models";
 
 export interface ParseStackTraceRequest {
+	entityGuid: string;
 	errorGroupGuid: string;
 	stackTrace: string | string[];
+	occurrenceId: string | undefined;
 }
 
 export interface ParseStackTraceResponse extends CSStackTraceInfo {
@@ -23,6 +25,7 @@ export const ParseStackTraceRequestType = new RequestType<
 >("codestream/nr/parseStackTrace");
 
 export interface ResolveStackTraceRequest {
+	entityGuid: string;
 	// tracking
 	errorGroupGuid: string;
 	occurrenceId: string;
@@ -30,6 +33,8 @@ export interface ResolveStackTraceRequest {
 	repoId: string;
 	ref: string;
 	codeErrorId: string;
+	stackSourceMap: any;
+	domain: string;
 }
 
 export interface WarningOrError {
@@ -37,10 +42,22 @@ export interface WarningOrError {
 	helpUrl?: string;
 }
 
+export interface SourceMapEntry {
+	original: {
+		fileName: string;
+	};
+	mapped?: {
+		fileName: string;
+		columnNumber: number;
+		lineNumber: number;
+	};
+}
+
 export interface ResolveStackTraceResponse {
 	parsedStackInfo?: CSStackTraceInfo; // this is parsed info relative to the given sha, to be stored
 	resolvedStackInfo?: CSStackTraceInfo; // this is relative to the user's current sha, ephemeral
 	warning?: WarningOrError;
+	notification?: WarningOrError;
 	error?: string;
 }
 
@@ -64,9 +81,9 @@ export const DidResolveStackTraceLineNotificationType = new NotificationType<
 >("codestream/nr/didResolveStackTraceLine");
 
 export interface ResolveStackTracePositionRequest {
-	ref: string;
+	ref?: string;
 	repoId: string;
-	filePath: string;
+	fileRelativePath: string;
 	line?: number;
 	column?: number;
 }
@@ -169,6 +186,23 @@ export const AddNewRelicIncludeRequestType = new RequestType<
 	void
 >("codestream/nr/addNewRelicInclude");
 
+export interface GetRepoFileFromAbsolutePathRequest {
+	repo: CSRepository;
+	absoluteFilePath: string;
+}
+
+export interface GetRepoFileFromAbsolutePathResponse {
+	uri?: string;
+	error?: string;
+}
+
+export const GetRepoFileFromAbsolutePathRequestType = new RequestType<
+	GetRepoFileFromAbsolutePathRequest,
+	GetRepoFileFromAbsolutePathResponse,
+	void,
+	void
+>("codestream/nr/getRepoFileFromAbsolutePath");
+
 export interface GetNewRelicSignupJwtTokenRequest {}
 
 export interface GetNewRelicSignupJwtTokenResponse {
@@ -191,3 +225,16 @@ export type LookupNewRelicOrganizationsResponse = {
 	accountId: number;
 	orgId: number;
 }[];
+
+export interface DetectTeamAnomaliesRequest {}
+
+export interface DetectTeamAnomaliesResponse {
+	[key: string]: any;
+}
+
+export const DetectTeamAnomaliesRequestType = new RequestType<
+	DetectTeamAnomaliesRequest,
+	DetectTeamAnomaliesResponse,
+	void,
+	void
+>("codestream/detectTeamAnomalies");

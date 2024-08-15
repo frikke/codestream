@@ -5,7 +5,7 @@ import {
 	CSMe,
 	CSRepository,
 } from "@codestream/protocols/api";
-import { sortBy } from "lodash-es";
+import { sortBy } from "lodash";
 import { WorkspaceFolder } from "vscode-languageserver";
 
 import { SessionContainer } from "../../container";
@@ -26,25 +26,17 @@ export class GitRepository {
 		public readonly path: string,
 		public readonly root: boolean,
 		public readonly folder: WorkspaceFolder,
-
 		public readonly isInWorkspace?: boolean
 	) {
 		this.normalizedPath = (this.path.endsWith("/") ? this.path : `${this.path}/`).toLowerCase();
 	}
 
-	async withKnownRepo(knownRepos: Map<string, CSRepository>): Promise<GitRepository> {
-		await this.searchForKnownRepository(knownRepos);
-		this._defaultRemoteBranchReferencesPromise = this.getDefaultRemoteBranchReferencesPromise();
-
-		return this;
-	}
-
 	get id() {
-		return this._knownRepository !== undefined ? this._knownRepository.id : undefined;
+		return this.path;
 	}
 
 	getRemotes() {
-		return SessionContainer.instance().git.getRepoRemotes(this.path);
+		return SessionContainer.instance().git.getRepoRemotes(this.path, true);
 	}
 
 	/**

@@ -4,6 +4,7 @@
 		"allowJs": true,
 		"baseUrl": ".",
 		"forceConsistentCasingInFileNames": false,
+		"incremental": true,
 		"paths": {
 			"@codestream/protocols/agent": ["../util/src/protocol/agent/agent.protocol.ts"],
 			"@codestream/protocols/api": ["../util/src/protocol/agent/api.protocol.ts"],
@@ -11,12 +12,13 @@
 			"@codestream/webview/webview-api": ["webview-api.ts"],
 			"@codestream/webview/*": ["./*"],
 			"@codestream/utils/*": ["../util/src/utils/*"],
-			"vscode-jsonrpc": ["../webviews/vscode-jsonrpc.shim.ts"]
+			"vscode-jsonrpc": ["vscode-jsonrpc.shim.ts"]
 		},
 		"jsx": "react",
 		"lib": ["es2019", "dom", "dom.iterable"],
 		"noImplicitAny": false,
 		"resolveJsonModule": false,
+		"tsBuildInfoFile": ".tsbuildinfo",
 		"types": ["styled-components", "jest"]
 	},
 	"exclude": ["dist", "node_modules", "coverage"],

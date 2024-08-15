@@ -30,7 +30,7 @@
  */
 import { setInterval } from "timers";
 
-import { debounce as _debounce, memoize as _memoize } from "lodash-es";
+import { debounce as _debounce, memoize as _memoize } from "lodash";
 import { CancellationToken } from "vscode-jsonrpc";
 
 export interface IDeferrable {
@@ -369,6 +369,7 @@ export namespace Functions {
 	}
 
 	export async function wait(ms: number) {
+		if (ms === 0) return;
 		await new Promise(resolve => setTimeout(resolve, ms));
 	}
 

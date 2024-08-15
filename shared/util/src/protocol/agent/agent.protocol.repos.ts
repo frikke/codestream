@@ -38,7 +38,7 @@ export interface GetRepoRequest {
 }
 
 export interface GetRepoResponse {
-	repo: CSRepository;
+	repo?: CSRepository;
 }
 
 export const GetRepoRequestType = new RequestType<GetRepoRequest, GetRepoResponse, void, void>(
@@ -48,6 +48,7 @@ export const GetRepoRequestType = new RequestType<GetRepoRequest, GetRepoRespons
 export interface RepoMap {
 	path: string;
 	repoId: string;
+	isInWorkspace?: boolean;
 }
 
 export interface MapReposRequest {

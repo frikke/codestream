@@ -5,9 +5,15 @@ import { ParsedDiff } from "diff";
 import {
 	EnvironmentHost,
 	FetchProviderDefaultPullResponse,
+	RiskSeverity,
 	ThirdPartyProviders,
 } from "./agent.protocol";
-import { CSEligibleJoinCompany, CSPossibleAuthDomain, CSReviewCheckpoint } from "./api.protocol";
+import {
+	CSEligibleJoinCompany,
+	CSPossibleAuthDomain,
+	CSReviewCheckpoint,
+	ObjectInfo,
+} from "./api.protocol";
 
 /* NOTE: there can be dynamic panel names that begin with configure-provider- or configure-enterprise- */
 export enum WebviewPanels {
@@ -46,6 +52,9 @@ export enum WebviewPanels {
 	ObservabilityAnomaly = "observability-anomaly",
 	CICD = "ci-cd",
 	CodeAnalyzers = "code-analyzers",
+	TransactionSpan = "transaction-span",
+	// TODO remove me [unused?]
+	APMLoggingSearch = "apm-logging-search",
 }
 export interface CSEntity {
 	deactivated?: boolean;
@@ -322,15 +331,6 @@ export interface CSReview extends CSEntity {
 	pullRequestProviderId?: string;
 }
 
-export function isCSCodeError(object: any): object is CSCodeError {
-	const maybeCodeError: Partial<CSCodeError> = object;
-	return (
-		maybeCodeError.objectId != null &&
-		maybeCodeError.objectType != null &&
-		maybeCodeError.objectType.toLowerCase() === "errorgroup"
-	);
-}
-
 export interface CSCodeErrorResolutions {
 	[userId: string]: { resolvedAt: number };
 }
@@ -352,7 +352,6 @@ export interface CSStackTraceLine {
 }
 
 export interface CSStackTraceInfo {
-	// TODO required??
 	language?: string;
 	occurrenceId?: string;
 	text?: string;
@@ -363,35 +362,27 @@ export interface CSStackTraceInfo {
 	error?: string;
 }
 
-export interface CSStackTraceError {
-	error: string;
-}
-
-export interface CSCodeError extends CSEntity {
+export interface CSCodeError {
+	entityGuid: string;
 	title: string;
 	text?: string;
 	stackTraces: CSStackTraceInfo[]; // (CSStackTraceInfo | CSStackTraceError)[];
 	providerUrl?: string;
 	assignees?: string[];
-
 	// an array of people who have resolved the code error
 	resolvedBy?: CSCodeErrorResolutions;
-
-	teamId: string;
-	streamId: string;
-	postId: string;
-	fileStreamIds: string[];
-	status: CSCodeErrorStatus;
+	teamId?: string;
+	fileStreamIds?: string[];
+	status?: CSCodeErrorStatus;
 	numReplies: number;
 	lastActivityAt: number;
-	followerIds?: string[];
 	codeAuthorIds?: string[];
 	permalink?: string;
 	resolvedAt?: number;
-	objectId?: string;
 	objectType?: "errorGroup";
-	objectInfo?: { [key: string]: string };
+	objectInfo: ObjectInfo;
 	accountId?: number;
+	traceId?: string;
 }
 
 export interface Attachment {
@@ -403,14 +394,21 @@ export interface Attachment {
 	size: number;
 }
 
+export type PostParts = {
+	intro: string;
+	codeFix: string;
+	description: string;
+};
+
 export interface CSPost extends CSEntity {
 	teamId: string;
 	streamId: string;
 	parentPostId?: string;
 	numReplies: number;
 	text: string;
+	parts?: PostParts;
 	seqNum: number | string;
-	hasBeenEdited: boolean;
+	hasBeenEdited?: boolean;
 	mentionedUserIds?: string[];
 	origin?: "email" | "slack" | "msteams" | "editor";
 	reactions?: { [key: string]: string[] };
@@ -421,6 +419,8 @@ export interface CSPost extends CSEntity {
 	sharedTo?: ShareTarget[];
 	codeErrorId?: string;
 	forGrok?: boolean;
+	language?: string;
+	analyze?: boolean;
 }
 
 export interface CSRemote {
@@ -448,7 +448,7 @@ export enum ChannelServiceType {
 }
 
 export interface CSBaseStream extends CSEntity {
-	isArchived: boolean;
+	isArchived?: boolean;
 	privacy: "public" | "private";
 	sortId: string;
 	teamId: string;
@@ -608,6 +608,7 @@ export interface CSProviderInfo {
 	userId?: string;
 	isApiToken?: boolean;
 	bearerToken?: boolean;
+	tokenType?: string;
 	hosts?: { [host: string]: CSProviderInfos };
 	orgIds?: number[];
 	data?: {
@@ -748,7 +749,7 @@ export interface CSUser extends CSEntity {
 	firstSessionStartedAt?: number;
 	hasGitLens?: boolean;
 	countryCode?: string;
-	nrUserId?: number;
+	nrUserId: number;
 }
 
 export interface CSLastReads {
@@ -849,6 +850,7 @@ export interface CSMePreferences {
 	hiddenPaneNodes?: {
 		[nodeId: string]: boolean;
 	};
+	vulnerabilitySeverityFilter?: RiskSeverity[];
 
 	// repoId -> o11y entityGuid mapping
 	activeO11y?: {
@@ -882,6 +884,9 @@ export interface CSMePreferences {
 	};
 	codeErrorTimeWindow?: CodeErrorTimeWindow;
 	clmSettings?: CLMSettings;
+
+	whatsNewNotificationsSent?: string[];
+
 	[key: string]: any;
 }
 
@@ -891,7 +896,7 @@ export interface CLMSettings {
 	againstDataPrecedingValue: string;
 	minimumChangeValue: string;
 	minimumBaselineValue: string;
-	minimumErrorRateValue: string;
+	minimumErrorPercentage: string;
 	minimumAverageDurationValue: string;
 }
 
@@ -901,7 +906,7 @@ export const DEFAULT_CLM_SETTINGS: CLMSettings = {
 	againstDataPrecedingValue: "21",
 	minimumChangeValue: "10",
 	minimumBaselineValue: "30",
-	minimumErrorRateValue: "1",
+	minimumErrorPercentage: "0.01",
 	minimumAverageDurationValue: "0.1",
 };
 
@@ -956,6 +961,7 @@ export interface CSMe extends CSUser {
 	inMaintenanceMode?: boolean;
 	nrUserInfo?: CSNRUserInfo;
 	accessTokens?: { web: { token: string } };
+	broadcasterV3Token?: string;
 }
 
 export interface CSApiCapability {

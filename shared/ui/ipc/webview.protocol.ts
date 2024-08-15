@@ -19,6 +19,7 @@ export * from "./webview.protocol.common";
 export interface ShowCodemarkNotification {
 	codemarkId: string;
 	sourceUri?: string;
+	source?: string;
 }
 
 export const ShowCodemarkNotificationType = new NotificationType<ShowCodemarkNotification, void>(
@@ -41,10 +42,6 @@ export interface ShowCodeErrorNotification {
 	codeErrorId: string;
 }
 
-export const ShowCodeErrorNotificationType = new NotificationType<ShowCodeErrorNotification, void>(
-	`${IpcRoutes.Webview}/codeError/show`
-);
-
 // TODO: This should be a request to the webview -- not a notification
 export interface ShowPullRequestwNotification {
 	providerId: string;
@@ -65,6 +62,7 @@ export interface ShowStreamNotification {
 	streamId: string;
 	threadId?: string;
 	codemarkId?: string;
+	source?: string;
 }
 
 export const ShowStreamNotificationType = new NotificationType<ShowStreamNotification, void>(
@@ -204,3 +202,42 @@ export const HandlePullRequestDirectivesNotificationType = new NotificationType<
 	HandlePullRequestDirectivesNotification,
 	void
 >(`${IpcRoutes.Webview}/pullRequest/handleDirectives`);
+
+export interface InitiateLogSearchNotification {
+	query?: string;
+	entryPoint: "global_nav" | "context_menu" | "tree_view";
+	traceId?: string;
+}
+
+export const InitiateLogSearchNotificationType = new NotificationType<
+	InitiateLogSearchNotification,
+	void
+>(`${IpcRoutes.Webview}/logs/search`);
+
+export interface InitiateNrqlExecutionNotification {
+	query: string;
+	/** Used for internally keying mechanisms */
+	hash?: string;
+
+	entryPoint: "global_nav" | "context_menu" | "tree_view" | "nrql_file";
+}
+
+export const InitiateNrqlExecutionNotificationType = new NotificationType<
+	InitiateNrqlExecutionNotification,
+	void
+>(`${IpcRoutes.Webview}/nrql/execute`);
+
+export interface OpenErrorGroupNotification {
+	errorGroupGuid: string;
+	occurrenceId: string;
+	lastOccurrence: number;
+	sessionStart?: number;
+	openType: string;
+	remote?: string;
+	entityId: string;
+}
+
+export const OpenErrorGroupNotificationType = new NotificationType<
+	OpenErrorGroupNotification,
+	void
+>(`${IpcRoutes.Webview}/errorGroup/open`);

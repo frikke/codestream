@@ -43,14 +43,8 @@ namespace CodeStream.VisualStudio.Shared.UI.Margins
 			var markerType = _viewModel.Marker?.Type.ToString();
 
 			var markerImage = $"marker-{markerType}-{markerColor}.png";
-
-#if X86
 			ImageUri =
-				$"pack://application:,,,/CodeStream.VisualStudio.Vsix.x86;component/resources/assets/{markerImage}";
-#else
-			ImageUri =
-				$"pack://application:,,,/CodeStream.VisualStudio.Vsix.x64;component/resources/assets/{markerImage}";
-#endif
+				$"pack://application:,,,/CodeStream.VisualStudio.Vsix.x64;component/dist/assets/{markerImage}";
 		}
 
 		protected override void OnMouseEnter(MouseEventArgs e)
@@ -120,7 +114,8 @@ namespace CodeStream.VisualStudio.Shared.UI.Margins
 				if (codeStreamService == null)
 					return;
 
-				if (toolWindowProvider?.ShowToolWindowSafe(Guids.WebViewToolWindowGuid) == true) { }
+				if (toolWindowProvider?.ShowToolWindowSafe(Guids.SidebarControlWindowGuid) == true)
+				{ }
 				else
 				{
 					Log.Warning("Could not activate tool window");

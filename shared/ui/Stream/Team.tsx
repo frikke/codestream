@@ -290,11 +290,11 @@ class Team extends React.Component<Props, State> {
 					}, 1000);
 				}
 			});
-		HostApi.instance.track("Teammate Invited", {
-			"Invitee Email Address": newMemberEmail,
-			"Invitee Name": newMemberName,
-			"Invitation Method": "Manual",
-		});
+		// HostApi.instance.track("Teammate Invited", {
+		// 	"Invitee Email Address": newMemberEmail,
+		// 	"Invitee Name": newMemberName,
+		// 	"Invitation Method": "Manual",
+		// });
 	};
 
 	onClickReinvite = (user, type) => {
@@ -316,11 +316,11 @@ class Team extends React.Component<Props, State> {
 					this.setState({ invitingEmails: { ...this.state.invitingEmails, [email]: 0 } });
 				}, 3000);
 			});
-		HostApi.instance.track("Teammate Invited", {
-			"Invitee Email Address": user.email,
-			"Invitee Name": user.fullName,
-			"Invitation Method": type === "reinvite" ? "Reinvite" : "Suggested",
-		});
+		// HostApi.instance.track("Teammate Invited", {
+		// 	"Invitee Email Address": user.email,
+		// 	"Invitee Name": user.fullName,
+		// 	"Invitation Method": type === "reinvite" ? "Reinvite" : "Suggested",
+		// });
 	};
 
 	focusEmailInput = () => {
@@ -786,7 +786,7 @@ const mapStateToProps = state => {
 	const teammates = mapFilter(memberIds, id => {
 		const user = users[id as string];
 		if (!user || !user.isRegistered || user.deactivated || user.externalUserId) return;
-		if (user.username === "Grok") {
+		if (user.username === "AI") {
 			return;
 		}
 		if (!user.fullName) {
@@ -808,7 +808,7 @@ const mapStateToProps = state => {
 	const invited = mapFilter(memberIds, id => {
 		const user = users[id as string];
 		if (!user || user.isRegistered || user.deactivated || user.externalUserId) return;
-		if (user.username === "Grok") {
+		if (user.username === "AI") {
 			return;
 		}
 		let email = user.email;

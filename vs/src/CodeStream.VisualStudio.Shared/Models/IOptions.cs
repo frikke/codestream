@@ -8,16 +8,11 @@ namespace CodeStream.VisualStudio.Shared.Models
 		string Email { get; set; }
 		string Team { get; set; }
 		bool AutoSignIn { get; set; }
-
-		bool ShowMarkerGlyphs { get; set; }
-
 		string ServerUrl { get; set; }
 		bool ProxyStrictSsl { get; set; }
 		ProxySupport ProxySupport { get; set; }
 		bool DisableStrictSSL { get; set; }
 		string ExtraCertificates { get; set; }
-
-		bool ShowContextMenuCommands { get; set; }
 	}
 
 	public interface IOptionsDialogPage : IOptions, INotifyPropertyChanged

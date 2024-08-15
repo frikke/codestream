@@ -28,10 +28,8 @@ import {
 } from "@codestream/webview/ipc/host.protocol";
 import { LoadingMessage } from "@codestream/webview/src/components/LoadingMessage";
 import { CodeStreamState } from "@codestream/webview/store";
-import {
-	closeAllPanels,
-	setCurrentMethodLevelTelemetry,
-} from "@codestream/webview/store/context/actions";
+import { setCurrentMethodLevelTelemetry } from "@codestream/webview/store/context/actions";
+import { closeAllPanels } from "@codestream/webview/store/context/thunks";
 import { CurrentMethodLevelTelemetry } from "@codestream/webview/store/context/types";
 import { useDidMount, usePrevious } from "@codestream/webview/utilities/hooks";
 import { HostApi } from "@codestream/webview/webview-api";
@@ -53,7 +51,7 @@ import {
 	RubyPluginLanguageServer,
 } from "./MissingExtension";
 import { MetaLabel } from "../Codemark/BaseCodemark";
-import { ErrorRow } from "../Observability";
+import { ErrorRow } from "../ErrorRow";
 import { openErrorGroup } from "@codestream/webview/store/codeErrors/thunks";
 
 const Root = styled.div``;
@@ -145,9 +143,12 @@ export const MethodLevelTelemetryPanel = () => {
 	};
 
 	useDidMount(() => {
-		HostApi.instance.track("MLT Codelens Clicked", {
-			"NR Account ID": derivedState.currentMethodLevelTelemetry?.newRelicAccountId + "",
-			Language: derivedState.currentMethodLevelTelemetry.languageId,
+		HostApi.instance.track("codestream/codelens_link clicked", {
+			account_id: derivedState.currentMethodLevelTelemetry?.newRelicAccountId,
+			entity_guid: derivedState.currentMethodLevelTelemetry?.newRelicEntityGuid,
+			target: "codelens",
+			meta_data: `language: ${derivedState.currentMethodLevelTelemetry.languageId}`,
+			event_type: "click",
 		});
 		if (!derivedState.currentMethodLevelTelemetry.error) {
 			loadData(derivedState.currentMethodLevelTelemetry.newRelicEntityGuid!);
@@ -192,9 +193,6 @@ export const MethodLevelTelemetryPanel = () => {
 						title="Code-Level Metrics"
 						label="Select the service on New Relic that is built from this repository to see how it's performing."
 						onSuccess={async e => {
-							HostApi.instance.track("MLT Repo Association", {
-								"NR Account ID": derivedState.currentMethodLevelTelemetry.newRelicAccountId + "",
-							});
 							HostApi.instance.send(RefreshEditorsCodeLensRequestType, {});
 							HostApi.instance.emit(DidChangeObservabilityDataNotificationType.method, {
 								type: "RepositoryAssociation",
@@ -375,8 +373,14 @@ export const MethodLevelTelemetryPanel = () => {
 														<Link
 															onClick={e => {
 																e.preventDefault();
-																HostApi.instance.track("Open Service Summary on NR", {
-																	Section: "Code-level Metrics",
+																HostApi.instance.track("codestream/newrelic_link clicked", {
+																	entity_guid:
+																		derivedState.currentMethodLevelTelemetry.newRelicEntityGuid,
+																	account_id:
+																		derivedState.currentMethodLevelTelemetry.newRelicAccountId,
+																	meta_data: "destination: apm_service_summary",
+																	meta_data_2: `codestream_section: clm_details`,
+																	event_type: "click",
 																});
 																HostApi.instance.send(OpenUrlRequestType, {
 																	url: telemetryResponse.newRelicUrl!,
@@ -424,16 +428,26 @@ export const MethodLevelTelemetryPanel = () => {
 																		{ errorGroupGuid: _.errorGroupGuid }
 																	)) as GetObservabilityErrorGroupMetadataResponse;
 																	dispatch(
-																		openErrorGroup(_.errorGroupGuid, _.occurrenceId, {
-																			multipleRepos: response?.relatedRepos?.length > 1,
-																			relatedRepos: response?.relatedRepos || undefined,
-																			timestamp: _.lastOccurrence,
-																			sessionStart: derivedState.sessionStart,
-																			pendingEntityId: response?.entityId || _.entityId,
-																			occurrenceId: response?.occurrenceId || _.occurrenceId,
-																			pendingErrorGroupGuid: _.errorGroupGuid,
-																			openType: "CLM Details",
-																			remote: _?.remote || undefined,
+																		openErrorGroup({
+																			errorGroupGuid: _.errorGroupGuid,
+																			occurrenceId: _.occurrenceId,
+																			data: {
+																				multipleRepos: response?.relatedRepos?.length > 1,
+																				relatedRepos: response?.relatedRepos || undefined,
+																				timestamp: _.lastOccurrence,
+																				sessionStart: derivedState.sessionStart,
+																				occurrenceId: response?.occurrenceId || _.occurrenceId,
+																				openType: "CLM Details",
+																				remote: _?.remote || undefined,
+																				stackSourceMap: response?.stackSourceMap,
+																				errorGroupGuid: _.errorGroupGuid,
+																				accountId:
+																					derivedState.currentMethodLevelTelemetry
+																						.newRelicAccountId,
+																				entityGuid:
+																					derivedState.currentMethodLevelTelemetry
+																						.newRelicEntityGuid,
+																			},
 																		})
 																	);
 																} catch (ex) {

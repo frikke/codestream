@@ -11,19 +11,15 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)authentication\CredentialManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CamelCaseStringEnumConverter.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Commands\AddCodemarkCommandBase.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Commands\AddCodemarkCommands.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\AuthenticationCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\IVsCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\IVsCommandBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\MenuCommandServiceExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Commands\UserCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\VsCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\VsCommandBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\WebViewReloadCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\WebViewToggleCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Authentication\AuthenticationController.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Controllers\ConfigurationController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Exceptions\NRApiErrorException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Exceptions\VisualStudioSettingException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITextSelectionExtensions.cs" />
@@ -31,7 +27,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\PackageExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\RangeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TextViewExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IVisualStudioSettingsManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IpcLogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServer\CustomCamelCasePropertyNamesContractResolver.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServer\CustomMessageHandler.cs" />
@@ -95,11 +90,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\AuthenticationService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\AuthenticationServiceFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\BrowserServiceExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Services\CodeLevelMetricsCallbackService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\CodeStreamAgentService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\CodeStreamAgentServiceFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\CodeStreamService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Services\DotNetBrowserService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SidebarBrowserService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\EditorService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\EventAggregator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\FileResolutionService.cs" />
@@ -132,10 +126,18 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\SymbolService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\ThemeEventsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\UserSettingsService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Services\VisualStudioSettingsManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\WebviewUserSettingsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\WpfTextViewCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UI\ActiveTextEditorExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UI\CodeLevelMetrics\CodeLevelMetricsGlyph.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UI\CodeLevelMetrics\CodeLevelMetricsGlyphFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UI\CodeLevelMetrics\CodeLevelMetricsGlyphFactoryProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UI\CodeLevelMetrics\CodeLevelMetricsGlyphTagger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UI\CodeLevelMetrics\CodeLevelMetricsGlyphTaggerProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UI\CodeLevelMetrics\CodeLevelMetricsControl.xaml.cs">
+      <DependentUpon>CodeLevelMetricsControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)UI\Converters\StringNullToVisibilityConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UI\DocumentMarkerManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UI\Extensions\AnimationExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UI\Glyphs\DocumentMarkGlyphFactory.cs" />
@@ -160,42 +162,32 @@
     <Compile Include="$(MSBuildThisFileDirectory)UI\Settings\OptionsDialogPage.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)UI\SuggestedActions\CodemarkSuggestedActionsSource.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UI\SuggestedActions\CodemarkSuggestedActionsSourceProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UI\Taggers\DocumentMarkTagger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UI\Taggers\DocumentMarkTaggerProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UI\TextDocumentExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UI\TextViewCreationListener.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UI\TextViewExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UI\TextViewRoles.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UI\ToolWindows\CodeLevelMetricsDetails.xaml.cs">
-      <DependentUpon>CodeLevelMetricsDetails.xaml</DependentUpon>
+    <Compile Include="$(MSBuildThisFileDirectory)UI\ToolWindows\SidebarControl.xaml.cs">
+      <DependentUpon>SidebarControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)UI\ToolWindows\CodeLevelMetricsDetailsViewFactory.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UI\ToolWindows\WebViewControl.xaml.cs">
-      <DependentUpon>WebViewControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)UI\ToolWindows\WebViewToolWindowPane.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UI\ToolWindows\SidebarControlWindowPane.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UI\Wpf\KeyChordGesture.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)WebViewRouter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SidebarRouter.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="$(MSBuildThisFileDirectory)UI\CodeLevelMetrics\CodeLevelMetricsControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="$(MSBuildThisFileDirectory)UI\Margins\DocumentMark.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="$(MSBuildThisFileDirectory)UI\ToolWindows\SidebarControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="$(MSBuildThisFileDirectory)UI\ToolWindows\CodeLevelMetricsDetails.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="$(MSBuildThisFileDirectory)UI\ToolWindows\WebViewControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)UI\WebViews\styles\ui-variables.less" />
-    <None Include="$(MSBuildThisFileDirectory)UI\WebViews\styles\webview.less" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="$(MSBuildThisFileDirectory)LanguageServer\ContentDefinitions.tt">
@@ -205,10 +197,6 @@
     <Content Include="$(MSBuildThisFileDirectory)LanguageServer\ContentTypesVisualStudio.txt" />
     <Content Include="$(MSBuildThisFileDirectory)LanguageServer\FileExtensionExclusions.txt" />
     <Content Include="$(MSBuildThisFileDirectory)LanguageServer\FileExtensionsGeneric.txt" />
-    <Content Include="$(MSBuildThisFileDirectory)UI\WebViews\index.html" />
-    <Content Include="$(MSBuildThisFileDirectory)UI\WebViews\index.ts" />
-    <Content Include="$(MSBuildThisFileDirectory)UI\WebViews\theme.css" />
-    <Content Include="$(MSBuildThisFileDirectory)UI\WebViews\waiting.html" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Authentication\" />

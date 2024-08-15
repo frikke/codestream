@@ -78,6 +78,13 @@ class JxBrowserEngineService : Disposable {
                         if (it.urlRequest().resourceType() == ResourceType.IMAGE
                             || it.urlRequest().url().startsWith("file://")
                             || it.urlRequest().url().contains("/dns-query")
+                            || it.urlRequest().url().equals("https://cdn.jsdelivr.net/npm/monaco-editor@0.43.0/min/vs/loader.js")
+                            || it.urlRequest().url().equals("https://cdn.jsdelivr.net/npm/monaco-editor@0.43.0/min/vs/editor/editor.main.js")
+                            || it.urlRequest().url().equals("https://cdn.jsdelivr.net/npm/monaco-editor@0.43.0/min/vs/editor/editor.main.css")
+                            || it.urlRequest().url().equals("https://cdn.jsdelivr.net/npm/monaco-editor@0.43.0/min/vs/editor/editor.main.nls.js")
+                            || it.urlRequest().url().equals("https://cdn.jsdelivr.net/npm/monaco-editor@0.43.0/min/vs/base/worker/workerMain.js")
+                            || it.urlRequest().url().equals("https://cdn.jsdelivr.net/npm/monaco-editor@0.43.0/min/vs/base/common/worker/simpleWorker.nls.js")
+                            || it.urlRequest().url().equals("https://cdn.jsdelivr.net/npm/monaco-editor@0.43.0/min/vs/base/browser/ui/codicons/codicon/codicon.ttf")
                         ) {
                             BeforeUrlRequestCallback.Response.proceed()
                         } else {
@@ -99,7 +106,7 @@ class JxBrowserEngineService : Disposable {
         }
     }
 
-    suspend fun newBrowser(): Browser {
+    fun newBrowser(): Browser {
         // browser.audio().mute()
         // browser.set(ConfirmCallback::class.java, ConfirmCallback { _, tell -> tell.cancel() })
         // browser.set(CertificateErrorCallback::class.java, CertificateErrorCallback { _, action -> action.deny() })
@@ -112,7 +119,7 @@ class JxBrowserEngineService : Disposable {
         // browser.set(PromptCallback::class.java, PromptCallback { _, action -> action.cancel() })
         // browser.set(SelectColorCallback::class.java, SelectColorCallback { _, action -> action.cancel() })
         // browser.set(SelectClientCertificateCallback::class.java, SelectClientCertificateCallback { _, action -> action.cancel() })
-        return getEngine().await().newBrowser()
+        return getEngine().get().newBrowser()
     }
 
     override fun dispose() {

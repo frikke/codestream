@@ -1,6 +1,6 @@
 import { ServiceLevelObjectiveResult } from "@codestream/protocols/agent";
 import React, { useState } from "react";
-
+import { useAppDispatch } from "../utilities/hooks";
 import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import Tooltip from "@codestream/webview/Stream/Tooltip";
 import { HostApi } from "@codestream/webview/webview-api";
@@ -22,7 +22,7 @@ export const ObjectiveRow = (props: {
 	const sloColor = props.objectiveResult === "UNDER" ? "rgb(188,20,24)" : "#6a6";
 
 	return (
-		<Row className={"pr-row no-shrink"} style={{ padding: "0 10px 0 40px" }}>
+		<Row className={"pr-row no-shrink"} style={{ padding: "0 10px 0 50px" }}>
 			<div>
 				<Tooltip delay={1} placement="bottom" title={props.objectiveName}>
 					<span>{props.objectiveName}</span>
@@ -56,7 +56,9 @@ export const ObjectiveRow = (props: {
 };
 
 export const ObservabilityServiceLevelObjectives = React.memo((props: Props) => {
-	const [expanded, setExpanded] = useState<boolean>(false);
+	const dispatch = useAppDispatch();
+
+	const [isExpanded, setIsExpanded] = useState<boolean>(false);
 	const { errorMsg, serviceLevelObjectives } = props;
 
 	const unmetObjectives = serviceLevelObjectives.filter(v => {
@@ -68,17 +70,21 @@ export const ObservabilityServiceLevelObjectives = React.memo((props: Props) => 
 			? "1 non-compliant SLO"
 			: `${unmetObjectives?.length} non-compliant SLOs`;
 
+	const handleRowOnClick = () => {
+		setIsExpanded(!isExpanded);
+	};
+
 	return (
 		<>
 			<Row
 				style={{
-					padding: "2px 10px 2px 30px",
+					padding: "2px 10px 2px 40px",
 				}}
 				className={"pr-row"}
-				onClick={() => setExpanded(!expanded)}
+				onClick={() => handleRowOnClick()}
 			>
-				{expanded && <Icon name="chevron-down-thin" />}
-				{!expanded && <Icon name="chevron-right-thin" />}
+				{isExpanded && <Icon name="chevron-down-thin" />}
+				{!isExpanded && <Icon name="chevron-right-thin" />}
 				<span style={{ marginLeft: "2px", marginRight: "5px" }}>Service Level Objectives</span>
 				{showWarningIcon && (
 					<Icon
@@ -91,7 +97,7 @@ export const ObservabilityServiceLevelObjectives = React.memo((props: Props) => 
 				)}
 				{errorMsg && <Icon name="alert" className="alert" title={errorMsg} delay={1} />}
 			</Row>
-			{expanded && (
+			{isExpanded && (
 				<>
 					{serviceLevelObjectives.map((slo, index) => {
 						return (

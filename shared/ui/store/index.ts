@@ -4,6 +4,7 @@ import { batchedSubscribe } from "redux-batched-subscribe";
 import { ThunkAction } from "redux-thunk";
 import { reduceApiVersioning } from "../store/apiVersioning/reducer";
 import { reduceCodeErrors } from "../store/codeErrors/reducer";
+import reduceDiscussions from "../store/discussions/discussionsSlice";
 import { reduceCodemarks } from "../store/codemarks/reducer";
 import { reduceConnectivity } from "../store/connectivity/reducer";
 import { reduceContext } from "../store/context/reducer";
@@ -16,7 +17,6 @@ import { reduceServices } from "../store/services/reducer";
 import { reduceSession } from "../store/session/reducer";
 import { reduceStreams } from "../store/streams/reducer";
 import { reduceTeams } from "../store/teams/reducer";
-import { reduceUnreads } from "../store/unreads/reducer";
 import { reduceUsers } from "../store/users/reducer";
 import { reduceVersioning } from "../store/versioning/reducer";
 import { debounceToAnimationFrame } from "../utils";
@@ -31,6 +31,8 @@ import { reduceEditorContext } from "./editorContext/reducer";
 import reduceIde from "./ide/slice";
 import providerPullRequests from "./providerPullRequests/slice";
 import { reduceReviews } from "./reviews/reducer";
+import { reduceNrCapabilities } from "./nrCapabilities/reducer";
+import { reduceAnomalyData } from "./anomalyData/reducer";
 
 const pluginVersion = (state = "", action) => {
 	if (action.type === "@pluginVersion/Set") return action.payload;
@@ -59,7 +61,6 @@ export const store = configureStore({
 		session: reduceSession,
 		streams: reduceStreams,
 		teams: reduceTeams,
-		umis: reduceUnreads,
 		users: reduceUsers,
 		services: reduceServices,
 		providers: reduceProviders,
@@ -67,7 +68,10 @@ export const store = configureStore({
 		apiVersioning: reduceApiVersioning,
 		providerPullRequests: providerPullRequests,
 		codeErrors: reduceCodeErrors,
+		discussions: reduceDiscussions,
 		dynamicLogging: reduceDynamicLogging,
+		nrCapabilities: reduceNrCapabilities,
+		anomalyData: reduceAnomalyData,
 	},
 	middleware: getDefaultMiddleware => getDefaultMiddleware().concat(middleware),
 	enhancers: [batchedSubscribe(debounceToAnimationFrame((notify: Function) => notify()))],
@@ -75,6 +79,7 @@ export const store = configureStore({
 
 export type AppDispatch = typeof store.dispatch;
 export type CodeStreamState = ReturnType<typeof store.getState>;
+export type StoreType = typeof store;
 export type AppThunk<ReturnType = void> = ThunkAction<
 	ReturnType,
 	CodeStreamState,

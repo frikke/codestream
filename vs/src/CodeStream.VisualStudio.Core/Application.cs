@@ -16,6 +16,9 @@ namespace CodeStream.VisualStudio.Core
 		public const string FullName = "New Relic CodeStream";
 		public const string ShortName = "CodeStream";
 
+		public const string ProductionDescription =
+			"Shift left by making code performance, code quality and code discussion part of the earliest stages of the development process.";
+
 		/// <summary>
 		/// Returns Major.Minor.Build for the Extension
 		/// </summary>
@@ -76,8 +79,8 @@ namespace CodeStream.VisualStudio.Core
 
 		public static DeveloperSettings DeveloperOptions = new DeveloperSettings();
 
-		public static string LogNameExtension { get; set; } = "vs-extension.log";
-		public static string LogNameAgent { get; set; } = "vs-agent.log";
+		public static string LogNameExtension { get; }
+		public static string LogNameAgent { get; }
 
 		private static readonly Regex VersionPathRegex = new Regex(
 			@"Microsoft Visual Studio\\(\w+)\\(\w+)\\Common7\\IDE\\devenv.exe$",
@@ -133,9 +136,6 @@ namespace CodeStream.VisualStudio.Core
 
 			switch (VisualStudioVersion.Major)
 			{
-				case 15:
-					VisualStudioVersionYear = "2017";
-					break;
 				case 16:
 					VisualStudioVersionYear = "2019";
 					break;
@@ -144,10 +144,8 @@ namespace CodeStream.VisualStudio.Core
 					break;
 			}
 
-#if DEBUG
 			LogNameExtension = $"vs-{VisualStudioVersionYear}-extension.log";
 			LogNameAgent = $"vs-{VisualStudioVersionYear}-agent.log";
-#endif
 
 			LogPath = Path.Combine(localApplicationData, "Logs") + @"\";
 			TempDataPath = Path.Combine(tempData, "Data") + @"\";
@@ -198,7 +196,7 @@ namespace CodeStream.VisualStudio.Core
 		/// Tries to get the actual VS version (edition/year) from vswhere.exe, falls back on parsing the currently
 		/// running productPath
 		/// </summary>
-		/// <param name="productPath">is a string like C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\Common7\\IDE\\devenv.exe</param>
+		/// <param name="productPath">is a string like C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\devenv.exe</param>
 		/// <returns></returns>
 		private static string TryGetDisplayNameFromProcess(string productPath)
 		{

@@ -1,5 +1,4 @@
-﻿using CodeStream.VisualStudio.Core.Events;
-using CodeStream.VisualStudio.Core.Extensions;
+﻿using CodeStream.VisualStudio.Core.Extensions;
 using CodeStream.VisualStudio.Core.Logging;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -13,16 +12,10 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using CodeStream.VisualStudio.Core;
 using CodeStream.VisualStudio.Shared.Commands;
-using CodeStream.VisualStudio.Shared.Events;
 using CodeStream.VisualStudio.Shared.Services;
 using CodeStream.VisualStudio.Shared.UI;
 using Task = System.Threading.Tasks.Task;
-
-#if X86
-using CodeStream.VisualStudio.Vsix.x86;
-#else
 using CodeStream.VisualStudio.Vsix.x64;
-#endif
 
 namespace CodeStream.VisualStudio.Shared.Packages
 {
@@ -99,40 +92,11 @@ namespace CodeStream.VisualStudio.Shared.Packages
 			{
 				using (Log.WithMetrics(nameof(InitializeCommandsAsync)))
 				{
-					var userCommand = new UserCommand(_sessionService, _codeStreamSettingsManager);
-
 					_commands = new List<VsCommandBase>
 					{
-						new AddCodemarkCommentCommand(
-							_sessionService,
-							_ideService,
-							_codeStreamSettingsManager,
-							PackageGuids.guidWebViewPackageCodeWindowContextMenuCmdSet
-						),
-						new AddCodemarkIssueCommand(
-							_sessionService,
-							_ideService,
-							_codeStreamSettingsManager,
-							PackageGuids.guidWebViewPackageCodeWindowContextMenuCmdSet
-						),
-						new AddCodemarkCommentCommand(
-							_sessionService,
-							_ideService,
-							_codeStreamSettingsManager,
-							PackageGuids.guidWebViewPackageShortcutCmdSet
-						),
-						new AddCodemarkIssueCommand(
-							_sessionService,
-							_ideService,
-							_codeStreamSettingsManager,
-							PackageGuids.guidWebViewPackageShortcutCmdSet
-						),
 						new WebViewReloadCommand(_sessionService),
 						new WebViewToggleCommand(),
-						new WebViewToggleTopLevelMenuCommand(),
-						new AuthenticationCommand(_componentModel, _sessionService),
-						new AuthenticationTopLevelCommand(_componentModel, _sessionService),
-						userCommand
+						new AuthenticationCommand(_componentModel, _sessionService)
 					};
 					await JoinableTaskFactory.SwitchToMainThreadAsync();
 					await InfoBarProvider.InitializeAsync(this);
@@ -143,45 +107,6 @@ namespace CodeStream.VisualStudio.Shared.Packages
 					foreach (var command in _commands)
 					{
 						menuCommandService.AddCommand(command);
-					}
-
-					var eventAggregator = _componentModel.GetService<IEventAggregator>();
-					_disposables = new List<IDisposable>
-					{
-						//when a user has logged in/out we alter the text of some of the commands
-						eventAggregator
-							?.GetEvent<SessionReadyEvent>()
-							.ObserveOnApplicationDispatcher()
-							.Subscribe(_ =>
-							{
-								userCommand.Update();
-							}),
-						eventAggregator
-							?.GetEvent<SessionLogoutEvent>()
-							.ObserveOnApplicationDispatcher()
-							.Subscribe(_ =>
-							{
-								userCommand.Update();
-							}),
-						eventAggregator
-							?.GetEvent<LanguageServerDisconnectedEvent>()
-							.ObserveOnApplicationDispatcher()
-							.Subscribe(_ =>
-							{
-								userCommand.Update();
-							}),
-						eventAggregator
-							?.GetEvent<UserUnreadsChangedEvent>()
-							.ObserveOnApplicationDispatcher()
-							.Subscribe(e =>
-							{
-								userCommand.UpdateAfterLogin(e);
-							})
-					};
-
-					if (_sessionService.IsAgentReady)
-					{
-						userCommand.Update();
 					}
 				}
 			}

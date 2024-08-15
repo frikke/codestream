@@ -4629,7 +4629,7 @@ Microsoft.VisualStudio.TextManager.Interop@7.10.6071 - license: https://aka.ms/p
 Microsoft.VisualStudio.Threading.Analyzers@15.8.192 - license: https://raw.githubusercontent.com/Microsoft/vs-threading/677433150d/LICENSE
 Microsoft.VisualStudio.Threading@15.4.4 - license: https://raw.githubusercontent.com/Microsoft/vs-threading/da0daeef0c/LICENSE
 Microsoft.VisualStudio.Threading@16.0.102 - license: https://licenses.nuget.org/MIT
-Microsoft.VisualStudio.Utilities@15.6.27413 - license: https://aka.ms/pexunj
+Microsoft.VisualStudio.Utilities@15.8.07413 - license: https://aka.ms/pexunj
 Microsoft.VisualStudio.Utilities@16.0.28729 - license: https://aka.ms/AA43ofb
 Microsoft.VisualStudio.Validation@15.3.15 - license: https://raw.githubusercontent.com/Microsoft/vs-validation/e23f2c02b7/LICENSE
 Microsoft.VisualStudio.Validation@15.3.58 - license: https://raw.githubusercontent.com/Microsoft/vs-validation/69d1b8e8a9/LICENSE

@@ -1,0 +1,21 @@
+{
+	"$schema": "http://json.schemastore.org/vsix-publish",
+	"categories": [
+		"performance",
+		"security"
+	],
+	"identity": {
+		"internalName": "codestream-vs-22",
+		"displayName": "New Relic CodeStream",
+		"tags": [
+			"insights",
+			"observability"
+		]
+	},
+	"overview": "README.md",
+	"priceCategory": "free",
+	"publisher": "CodeStream",
+	"private": false,
+	"qna": false,
+	"repo": "https://github.com/TeamCodeStream/codestream"
+}

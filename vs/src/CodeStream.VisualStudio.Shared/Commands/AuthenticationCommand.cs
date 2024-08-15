@@ -7,29 +7,22 @@ using Serilog;
 using System;
 using CodeStream.VisualStudio.Shared.Packages;
 using CodeStream.VisualStudio.Shared.Services;
-
-#if X86
-using CodeStream.VisualStudio.Vsix.x86;
-#else
 using CodeStream.VisualStudio.Vsix.x64;
-#endif
 
 namespace CodeStream.VisualStudio.Shared.Commands
 {
-	internal abstract class AuthenticationCommandBase : VsCommandBase
+	internal sealed class AuthenticationCommand : VsCommandBase
 	{
 		private static readonly ILogger Log = LogManager.ForContext<AuthenticationCommand>();
 
 		private readonly IComponentModel _componentModel;
 		private readonly ISessionService _sessionService;
 
-		protected AuthenticationCommandBase(
-			IComponentModel componentModel,
-			ISessionService sessionService,
-			Guid commandSet,
-			int commandId
-		)
-			: base(commandSet, commandId)
+		public AuthenticationCommand(IComponentModel componentModel, ISessionService sessionService)
+			: base(
+				PackageGuids.guidVSPackageCommandTopMenuCmdSet,
+				PackageIds.CodeStreamTopLevelMenuSignOutCommand
+			)
 		{
 			_componentModel = componentModel;
 			_sessionService = sessionService;
@@ -63,7 +56,7 @@ namespace CodeStream.VisualStudio.Shared.Commands
 					var toolWindowProvider =
 						Package.GetGlobalService(typeof(SToolWindowProvider))
 						as IToolWindowProvider;
-					toolWindowProvider?.ShowToolWindowSafe(Guids.WebViewToolWindowGuid);
+					toolWindowProvider?.ShowToolWindowSafe(Guids.SidebarControlWindowGuid);
 				}
 			}
 			catch (Exception ex)
@@ -91,30 +84,5 @@ namespace CodeStream.VisualStudio.Shared.Commands
 				Log.Error(ex, nameof(AuthenticationCommand));
 			}
 		}
-	}
-
-	internal class AuthenticationCommand : AuthenticationCommandBase
-	{
-		public AuthenticationCommand(IComponentModel componentModel, ISessionService sessionService)
-			: base(
-				componentModel,
-				sessionService,
-				PackageGuids.guidWebViewPackageCmdSet,
-				PackageIds.AuthenticationCommandId
-			) { }
-	}
-
-	internal class AuthenticationTopLevelCommand : AuthenticationCommandBase
-	{
-		public AuthenticationTopLevelCommand(
-			IComponentModel componentModel,
-			ISessionService sessionService
-		)
-			: base(
-				componentModel,
-				sessionService,
-				PackageGuids.guidVSPackageCommandTopMenuCmdSet,
-				PackageIds.CodeStreamTopLevelMenuSignOutCommand
-			) { }
 	}
 }

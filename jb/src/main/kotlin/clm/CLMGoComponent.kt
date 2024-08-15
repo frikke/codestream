@@ -12,11 +12,11 @@ import com.intellij.psi.NavigatablePsiElement
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.stubs.StringStubIndexExtension
+import com.intellij.psi.util.findParentOfType
 
 
 class CLMGoComponent(project: Project) :
-    CLMLanguageComponent<CLMGoEditorManager>(project, GoFile::class.java, ::CLMGoEditorManager, GoSymbolResolver()) {
+    CLMLanguageComponent<CLMGoEditorManager>(project, "go", GoFile::class.java, ::CLMGoEditorManager, GoSymbolResolver()) {
 
     private val logger = Logger.getInstance(CLMGoComponent::class.java)
 
@@ -70,12 +70,16 @@ class GoSymbolResolver : SymbolResolver {
         return function
     }
 
+    override fun findParentFunction(psiElement: PsiElement): PsiElement? {
+        return psiElement.findParentOfType<GoFunctionDeclaration>()
+    }
+
     override fun clmElements(psiFile: PsiFile, clmResult: ClmResult?): List<ClmElements> {
         return listOf()
     }
 }
 
-class CLMGoEditorManager(editor: Editor) : CLMEditorManager(editor, "go", true, false, GoSymbolResolver()) {
+class CLMGoEditorManager(editor: Editor, languageId: String) : CLMEditorManager(editor, languageId, true, false, GoSymbolResolver()) {
 
 
 }

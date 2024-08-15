@@ -10,8 +10,6 @@ import {
 	env,
 	ExtensionContext,
 	extensions,
-	MessageItem,
-	Uri,
 	version as vscodeVersion,
 	window,
 	workspace
@@ -30,6 +28,7 @@ import { Logger, TraceLevel } from "./logger";
 import { FileSystem, Strings, Versions } from "./system";
 import * as TokenManager from "./api/tokenManager";
 import { SaveTokenReason } from "./api/tokenManager";
+import { EntityEditorDecorationProvider } from "./providers/entityEditorDecorationProvider";
 
 const extension = extensions.getExtension(extensionQualifiedId);
 export const extensionVersion = extension?.packageJSON?.version ?? "1.0.0";
@@ -42,9 +41,21 @@ interface BuildInfoMetadata {
 export const IDE_NAME = "VS Code";
 
 const serverUrlMigrations: { [url: string]: string } = {
-	"https://staging-api.codestream.us": "https://codestream-stg.staging-service.newrelic.com",
-	"https://api.codestream.com": "https://codestream-us1.service.newrelic.com",
-	"https://eu-api.codestream.com": "https://codestream-eu1.service.eu.newrelic.com"
+	"https://staging-api.codestream.us": "https://codestream-api-v2-stg.staging-service.nr-ops.net",
+	"https://api.codestream.com": "https://codestream-api-v2-us1.service.newrelic.com",
+	"https://eu-api.codestream.com": "https://codestream-api-v2-eu1.service.eu.newrelic.com",
+	"https://codestream-pd.staging-service.nr-ops.net":
+		"https://codestream-api-v2-pd.staging-service.nr-ops.net",
+	"https://codestream-qa.staging-service.nr-ops.net":
+		"https://codestream-api-v2-qa.staging-service.nr-ops.net",
+	"https://codestream.eu.service.newrelic.com":
+		"https://codestream-api-v2-eu1.service.eu.newrelic.com",
+	"https://codestream-us1.service.newrelic.com":
+		"https://codestream-api-v2-us1.service.newrelic.com",
+	"https://codestream-eu1.service.eu.newrelic.com":
+		"https://codestream-api-v2-eu1.service.eu.newrelic.com",
+	"https://codestream-stg.staging-service.newrelic.com":
+		"https://codestream-api-v2-stg.staging-service.nr-ops.net"
 };
 
 export async function activate(context: ExtensionContext) {
@@ -140,8 +151,6 @@ export async function activate(context: ExtensionContext) {
 	}
 
 	let webviewSidebar: (WebviewLike & CodeStreamWebviewSidebar) | undefined = undefined;
-	//let webviewEditor: (WebviewViewProvider & WebviewEditor) | undefined = undefined;
-
 	// this plumping lives here rather than the WebviewController as it needs to get activated here
 	webviewSidebar = new CodeStreamWebviewSidebar(Container.session, context.extensionUri);
 
@@ -152,10 +161,6 @@ export async function activate(context: ExtensionContext) {
 			}
 		})
 	);
-
-	// const codelensProvider = new CodelensProvider();
-
-	// languages.registerCodeLensProvider("*", codelensProvider);
 
 	await Container.initialize(
 		context,
@@ -196,6 +201,14 @@ export async function activate(context: ExtensionContext) {
 	}
 
 	context.globalState.update(GlobalState.Version, extensionVersion);
+	context.subscriptions.push(
+		new EntityEditorDecorationProvider(
+			Container.agent,
+			Container.session,
+			configuration,
+			() => Container.config
+		)
+	);
 
 	Logger.log(
 		`CodeStream${editionFormat} v${formattedVersion} started \u2022 ${Strings.getDurationMilliseconds(
@@ -266,29 +279,26 @@ async function showStartupUpgradeMessage(version: string, previousVersion: strin
 	if (skipVersions.some(v => Versions.compare(compareTo, v) === 0)) return;
 
 	// only show for new releases that are in the X.0 format
-	if (major > prevMajor && minor === "0") {
-		const actions: MessageItem[] = [{ title: "What's New" } /* , { title: "Release Notes" } */];
+	// blog going away...
 
-		const result = await window.showInformationMessage(
-			`CodeStream has been updated to v${version} — check out what's new!`,
-			...actions
-		);
+	// if (major > prevMajor && minor === "0") {
+	// 	const actions: MessageItem[] = [{ title: "What's New" } /* , { title: "Release Notes" } */];
 
-		if (result != null) {
-			if (result === actions[0]) {
-				await env.openExternal(
-					Uri.parse(
-						`https://www.codestream.com/blog/codestream-v${major}-${minor}?utm_source=ext_vsc&utm_medium=popup&utm_campaign=v${major}-${minor}`
-					)
-				);
-			}
-			// else if (result === actions[1]) {
-			// 	await env.openExternal(
-			// 		Uri.parse("https://marketplace.visualstudio.com/items/CodeStream.codestream/changelog")
-			// 	);
-			// }
-		}
-	}
+	// 	const result = await window.showInformationMessage(
+	// 		`CodeStream has been updated to v${version} — check out what's new!`,
+	// 		...actions
+	// 	);
+
+	// 	if (result != null) {
+	// 		if (result === actions[0]) {
+	// 			await env.openExternal(
+	// 				Uri.parse(
+	// 					`https://www.codestream.com/blog/codestream-v${major}-${minor}?utm_source=ext_vsc&utm_medium=popup&utm_campaign=v${major}-${minor}`
+	// 				)
+	// 			);
+	// 		}
+	// 	}
+	// }
 }
 
 export function getHttpsProxyAgent(options: {

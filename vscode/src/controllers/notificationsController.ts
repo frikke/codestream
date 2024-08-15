@@ -16,8 +16,8 @@ export class NotificationsController implements Disposable {
 
 	constructor() {
 		this._disposable = Disposable.from(
-			Container.session.onDidChangePosts(this.onSessionPostsReceived, this),
-			Container.agent.onDidDetectObservabilityAnomalies(this.onObservabilityAnomaliesDetected, this)
+			Container.session.onDidChangePosts(this.onSessionPostsReceived, this)
+			// Container.agent.onDidDetectObservabilityAnomalies(this.onObservabilityAnomaliesDetected, this)
 		);
 	}
 
@@ -79,30 +79,38 @@ export class NotificationsController implements Disposable {
 			{ title: "Ignore", isCloseAffordance: true }
 		];
 		const { duration, errorRate } = notification;
-
-		Container.agent.telemetry.track("Toast Notification", { Content: "CLM Anomaly" });
 		const count = duration.length + errorRate.length;
+		if (count === 0) return;
+
+		Container.agent.telemetry.track("codestream/toast displayed", {
+			meta_data: `content: anomaly`,
+			event_type: "modal_display"
+		});
 		const title = count === 1 ? "Performance issue found" : `${count} performance issues found`;
 		const allAnomalies = [...duration, ...errorRate].sort((a, b) => b.ratio - a.ratio);
 		const firstAnomaly = allAnomalies[0];
-		const message =
-			count === 1
-				? `${title} - ${firstAnomaly.notificationText} (${firstAnomaly.entityName})`
-				: `${title} - #1: ${firstAnomaly.notificationText} (${firstAnomaly.entityName})`;
+		const anomalyCounter = count > 1 ? "#1:" : "";
+		const message = `${title} ${anomalyCounter} ${firstAnomaly.notificationText} (${firstAnomaly.entityName})`;
 		const result = await window.showInformationMessage(message, ...actions);
 
 		if (result === actions[0]) {
-			Container.agent.telemetry.track("Toast Clicked", { Content: "CLM Anomaly" });
+			Container.agent.telemetry.track("codestream/toast_button clicked", {
+				meta_data: `content: anomaly`,
+				target: "toast",
+				event_type: "click"
+			});
 			Container.sidebar.viewAnomaly({
 				anomaly: firstAnomaly,
 				entityGuid: notification.entityGuid
 			});
-			Container.sidebar.goToClassMethodDefinition(
-				firstAnomaly.codeFilepath,
-				firstAnomaly.codeNamespace,
-				firstAnomaly.codeFunction,
-				firstAnomaly.language
-			);
+			if (firstAnomaly.codeAttrs) {
+				Container.sidebar.goToClassMethodDefinition(
+					firstAnomaly.codeAttrs.codeFilepath,
+					firstAnomaly.codeAttrs.codeNamespace,
+					firstAnomaly.codeAttrs.codeFunction,
+					firstAnomaly.language
+				);
+			}
 		}
 	}
 
@@ -119,7 +127,10 @@ export class NotificationsController implements Disposable {
 
 		const toastContentType: ToastType = codemark ? "Codemark" : "Review";
 
-		Container.agent.telemetry.track("Toast Notification", { Content: toastContentType });
+		Container.agent.telemetry.track("codestream/toast displayed", {
+			meta_data: `content: ${toastContentType === "Codemark" ? "codemark" : ""}`,
+			event_type: "modal_display"
+		});
 
 		const result = await window.showInformationMessage(
 			`${sender !== undefined ? sender.name : "Someone"}${colon} ${text}`,
@@ -132,7 +143,11 @@ export class NotificationsController implements Disposable {
 			} else if (review) {
 				Container.sidebar.openReview(review.id);
 			}
-			Container.agent.telemetry.track("Toast Clicked", { Content: toastContentType });
+			Container.agent.telemetry.track("codestream/toast_button clicked", {
+				meta_data: `content: ${toastContentType === "Codemark" ? "codemark" : ""}`,
+				target: "toast",
+				event_type: "click"
+			});
 		}
 	}
 }

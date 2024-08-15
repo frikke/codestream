@@ -1,19 +1,29 @@
 "use strict";
-import { NotificationType, RequestType } from "vscode-languageserver-protocol";
+import {
+	CompletionItem,
+	NotificationType,
+	RequestType,
+	TextDocumentPositionParams,
+} from "vscode-languageserver-protocol";
 
 import {
 	BitbucketParticipantRole,
 	CrossPostIssueValues,
-	DidResolveStackTraceLineNotification,
 	GitLabMergeRequest,
 } from "./agent.protocol";
 import { CodeErrorPlus } from "./agent.protocol.codeErrors";
 import { CodemarkPlus } from "./agent.protocol.codemarks";
-import { IssueParams, LicenseDependencyIssue, VulnerabilityIssue } from "./agent.protocol.fossa";
+import { LicenseDependencyIssue, VulnerabilityIssue } from "./agent.protocol.fossa";
 import { ReviewPlus } from "./agent.protocol.reviews";
 import { CSRepository, PullRequestQuery } from "./api.protocol.models";
 import { TrunkCheckResults } from "./agent.protocol.trunk";
 
+export interface NewThirdPartyProviderConfig {
+	id: string;
+	apiUrl: string;
+	name: string;
+	baseHeaders: { [key: string]: string };
+}
 export interface ThirdPartyProviderConfig {
 	id: string;
 	name: string; // e.g. "trello"
@@ -1134,7 +1144,7 @@ export const ProviderTokenRequestType = new RequestType<ProviderTokenRequest, vo
 );
 
 export interface WebviewErrorRequest {
-	error: { message: string; stack: string };
+	error: { message: string; stack?: string };
 }
 
 export const WebviewErrorRequestType = new RequestType<WebviewErrorRequest, void, void, void>(
@@ -1150,6 +1160,24 @@ export interface GetNewRelicErrorGroupRequest {
 	src?: string;
 	timestamp?: number;
 }
+
+export interface GetNewRelicErrorGroupResponse {
+	errorGroup?: NewRelicErrorGroup;
+	accountId: number;
+	error?: {
+		message: string;
+		details?: {
+			settings?: { key: string; value: any }[];
+		};
+	};
+}
+
+export const GetNewRelicErrorGroupRequestType = new RequestType<
+	GetNewRelicErrorGroupRequest,
+	GetNewRelicErrorGroupResponse,
+	void,
+	void
+>("codestream/newrelic/errorGroup");
 
 export interface GetNewRelicRelatedEntitiesRequest {
 	entityGuid: string;
@@ -1174,7 +1202,7 @@ export interface NewRelicErrorGroup {
 	entityName?: string;
 
 	occurrenceId?: string;
-
+	traceId?: string;
 	entityUrl?: string;
 	errorGroupUrl?: string;
 
@@ -1233,17 +1261,6 @@ export interface NewRelicErrorGroup {
 	releaseTag?: string;
 }
 
-export interface GetNewRelicErrorGroupResponse {
-	errorGroup?: NewRelicErrorGroup;
-	accountId: number;
-	error?: {
-		message: string;
-		details?: {
-			settings?: { key: string; value: any }[] | undefined;
-		};
-	};
-}
-
 export interface GetNewRelicRelatedEntitiesResponse extends Array<RelatedEntityByType> {
 	error?: {
 		message: string;
@@ -1254,13 +1271,6 @@ export interface GetNewRelicRelatedEntitiesResponse extends Array<RelatedEntityB
 export interface GetNewRelicUrlResponse {
 	newRelicUrl: string;
 }
-
-export const GetNewRelicErrorGroupRequestType = new RequestType<
-	GetNewRelicErrorGroupRequest,
-	GetNewRelicErrorGroupResponse,
-	void,
-	void
->("codestream/newrelic/errorGroup");
 
 export const GetNewRelicRelatedEntitiesRequestType = new RequestType<
 	GetNewRelicRelatedEntitiesRequest,
@@ -1288,6 +1298,10 @@ export const GetNewRelicAssigneesRequestType = new RequestType<
 	void,
 	void
 >("codestream/newrelic/assignees");
+
+export const GetNewRelicAIEligibilityRequestType = new RequestType<void, boolean, void, void>(
+	"codestream/newrelic/aiEligibility"
+);
 
 export interface NewRelicAccount {
 	id: number;
@@ -1345,21 +1359,36 @@ export interface GetObservabilityErrorsRequest {
 	timeWindow?: string;
 }
 
+export interface GetObservabilityErrorsWithoutReposRequest {
+	entityGuid: string;
+	accountId: number;
+	entityType: string;
+	timeWindow: string;
+}
+
+export interface GetObservabilityErrorsWithoutReposResponse {
+	repos?: ObservabilityRepoError[];
+	error?: NRErrorResponse;
+}
+
 export interface ObservabilityErrorCore {
 	entityId: string;
 	errorClass: string;
 	message: string;
 	errorGroupGuid: string;
 	errorGroupUrl?: string;
+	lastSeenAt?: number;
 }
 
 export interface ObservabilityError extends ObservabilityErrorCore {
 	appName: string;
 	remote: string;
 	occurrenceId: string;
+	traceId?: string;
 	count: number;
 	lastOccurrence: number;
 	releaseTag?: number;
+	showAI?: boolean;
 }
 
 export interface ObservabilityRepoError {
@@ -1372,6 +1401,8 @@ export interface ObservabilityRepo {
 	repoId: string;
 	repoName: string;
 	repoRemote: string;
+	repoGuid: string;
+	repoNameOnNr: string;
 	hasRepoAssociation?: boolean;
 	hasCodeLevelMetricSpanData: boolean | NRErrorResponse;
 	entityAccounts: EntityAccount[];
@@ -1389,12 +1420,180 @@ export const GetObservabilityErrorsRequestType = new RequestType<
 	void
 >("codestream/newrelic/errors");
 
+export const GetObservabilityErrorsWithoutReposRequestType = new RequestType<
+	GetObservabilityErrorsWithoutReposRequest,
+	GetObservabilityErrorsWithoutReposResponse,
+	void,
+	void
+>("codestream/newrelic/errorsWithoutRepos");
+
+export interface CollaborationAttachment {
+	id: string;
+	fileName: string;
+	filePath: string;
+}
+
+export interface CollaborationComment {
+	id: string;
+	body: string;
+	createdAt: string;
+	deactivated: boolean;
+	systemMessageType?: string;
+	creator: {
+		email?: string;
+		name: string;
+		userId: string;
+	};
+	externalApplicationType?: string;
+	attachments?: CollaborationAttachment[];
+}
+
+export interface InitiateNrAiRequest {
+	entityGuid: string;
+	errorGroupGuid: string;
+
+	codeBlock?: string;
+	stackTrace: string;
+	errorText: string;
+	language?: string;
+
+	threadId: string;
+}
+
+export interface InitiateNrAiResponse {
+	commentId?: string;
+	nrError?: NRErrorResponse;
+}
+
+export const InitiateNrAiRequestType = new RequestType<
+	InitiateNrAiRequest,
+	InitiateNrAiResponse,
+	void,
+	void
+>("codestream/newrelic/collaboration/initiateNrAi");
+
+export interface GetErrorInboxCommentsRequest {
+	errorGroupGuid: string;
+	entityGuid: string;
+}
+
+export interface GetErrorInboxCommentsResponse {
+	threadId?: string;
+	comments?: CollaborationComment[];
+	nrError?: NRErrorResponse;
+}
+
+export const GetErrorInboxCommentsRequestType = new RequestType<
+	GetErrorInboxCommentsRequest,
+	GetErrorInboxCommentsResponse,
+	void,
+	void
+>("codestream/newrelic/collaboration/getErrorComments");
+
+export interface CreateCollaborationCommentRequest {
+	errorGroupGuid: string;
+	entityGuid: string;
+	threadId: string;
+	body: string;
+}
+
+export interface CreateCollaborationCommentResponse {
+	comment?: CollaborationComment;
+	nrError?: NRErrorResponse;
+}
+
+export const CreateCollaborationCommentRequestType = new RequestType<
+	CreateCollaborationCommentRequest,
+	CreateCollaborationCommentResponse,
+	void,
+	void
+>("codestream/newrelic/collaboration/createComment");
+
+export interface CloseCollaborationThreadRequest {
+	threadId: string;
+}
+
+export interface CloseCollaborationThreadResponse {
+	success?: boolean;
+	nrError?: NRErrorResponse;
+}
+
+export const CloseCollaborationThreadRequestType = new RequestType<
+	CloseCollaborationThreadRequest,
+	CloseCollaborationThreadResponse,
+	void,
+	void
+>("codestream/newrelic/collaboration/closeThread");
+
+export interface DeleteCollaborationCommentRequest {
+	commentId: string;
+}
+
+export interface DeleteCollaborationCommentResponse {
+	commentId?: string;
+	nrError?: NRErrorResponse;
+}
+
+export const DeleteCollaborationCommentRequestType = new RequestType<
+	DeleteCollaborationCommentRequest,
+	DeleteCollaborationCommentResponse,
+	void,
+	void
+>("codestream/newrelic/collaboration/deleteComment");
+
+export interface GetCollaborationCommentRequest {
+	commentId: string;
+}
+
+export interface GetCollaborationCommentResponse {
+	comment?: CollaborationComment;
+	nrError?: NRErrorResponse;
+}
+
+export const GetCollaborationCommentRequestType = new RequestType<
+	GetCollaborationCommentRequest,
+	GetCollaborationCommentResponse,
+	void,
+	void
+>("codestream/newrelic/collaboration/getComment");
+
+export interface GetCollaborationWebsocketInfoRequest {}
+
+export interface GetCollaborationWebsocketInfoResponse {
+	url: string;
+	NRConnectionId: string;
+}
+
+export const GetCollaborationWebsocketInfoRequestType = new RequestType<
+	GetCollaborationWebsocketInfoRequest,
+	GetCollaborationWebsocketInfoResponse,
+	void,
+	void
+>("codestream/newrelic/collaboration/websocketInfo");
+
+export interface UpdateCollaborationCommentRequest {
+	commentId: string;
+	body: string;
+}
+
+export interface UpdateCollaborationCommentResponse {
+	commentId?: string;
+	nrError?: NRErrorResponse;
+}
+
+export const UpdateCollaborationCommentRequestType = new RequestType<
+	UpdateCollaborationCommentRequest,
+	UpdateCollaborationCommentResponse,
+	void,
+	void
+>("codestream/newrelic/collaboration/updateComment");
+
 export interface GetObservabilityAnomaliesRequest {
 	entityGuid: string;
 	sinceDaysAgo: number;
 	baselineDays: number;
 	sinceLastRelease: boolean;
-	minimumErrorRate: number;
+	minimumErrorPercentage: number;
 	minimumResponseTime: number;
 	minimumSampleRate: number;
 	minimumRatio: number;
@@ -1404,6 +1603,9 @@ export interface GetObservabilityAnomaliesRequest {
 export interface ObservabilityAnomaly {
 	language: string;
 	name: string;
+	scope?: string;
+	children?: ObservabilityAnomaly[];
+	type: "duration" | "errorRate";
 	codeAttrs?: CodeAttributes;
 	oldValue: number;
 	newValue: number;
@@ -1420,6 +1622,13 @@ export interface ObservabilityAnomaly {
 	entityName: string;
 }
 
+export interface EntityObservabilityAnomalies {
+	entityGuid: string;
+	durationAnomalies: ObservabilityAnomaly[];
+	errorRateAnomalies: ObservabilityAnomaly[];
+	detectionMethod?: DetectionMethod;
+}
+
 export type DetectionMethod = "Release Based" | "Time Based";
 
 export interface Named {
@@ -1429,7 +1638,11 @@ export interface NameValue extends Named {
 	value: number;
 }
 
-export interface Comparison extends Named {
+export interface Scoped {
+	scope?: string;
+}
+
+export interface Comparison extends Named, Scoped {
 	oldValue: number;
 	newValue: number;
 	ratio: number;
@@ -1450,7 +1663,7 @@ export interface GetObservabilityAnomaliesResponse {
 	error?: string;
 	isSupported?: boolean;
 	didNotifyNewAnomalies: boolean;
-	allOtherAnomalies?: ObservabilityAnomaly[];
+	isMock?: boolean;
 }
 
 export const GetObservabilityAnomaliesRequestType = new RequestType<
@@ -1478,12 +1691,9 @@ export interface CodeLevelMetrics {
 	errorRate?: number;
 }
 
-export const GetClmRequestType = new RequestType<
-	GetClmRequest,
-	GetClmResponse,
-	void,
-	void
->("codestream/newrelic/clm");
+export const GetClmRequestType = new RequestType<GetClmRequest, GetClmResponse, void, void>(
+	"codestream/newrelic/clm"
+);
 
 export interface GetObservabilityResponseTimesRequest {
 	fileUri: string;
@@ -1515,12 +1725,19 @@ export interface EntityAccount {
 	accountName: string;
 	entityGuid: string;
 	entityName: string;
+	entityType?: EntityType;
+	type?: string;
+	entityTypeDescription?: string;
 	domain?: string;
+	name?: string;
+	guid?: string;
 	url?: string;
+	displayName?: string;
 	tags: {
 		key: string;
 		values: string[];
 	}[];
+	repoEntities?: RelatedRepoWithRemotes[];
 }
 
 export interface LanguageAndVersionValidation {
@@ -1541,6 +1758,25 @@ export const GetObservabilityReposRequestType = new RequestType<
 	void
 >("codestream/newrelic/repos");
 
+export interface GetEntityAccountFromGuidRequest {
+	id: string;
+}
+
+export interface GetObservabilityEntityByGuidRequest {
+	id: string;
+}
+
+export interface GetObservabilityEntityByGuidResponse {
+	entity: EntityAccount;
+}
+
+export const GetObservabilityEntityByGuidRequestType = new RequestType<
+	GetObservabilityEntityByGuidRequest,
+	GetObservabilityEntityByGuidResponse,
+	void,
+	void
+>("codestream/newrelic/entity");
+
 export interface GetObservabilityEntitiesRequest {
 	searchCharacters: string;
 	nextCursor?: string;
@@ -1549,7 +1785,14 @@ export interface GetObservabilityEntitiesRequest {
 
 export interface GetObservabilityEntitiesResponse {
 	totalResults: number;
-	entities: { guid: string; name: string; account: string; entityType: EntityType }[];
+	entities: {
+		guid: string;
+		name: string;
+		account: string;
+		entityType: EntityType;
+		entityTypeDescription: string;
+		displayName: string;
+	}[];
 	nextCursor?: string;
 }
 
@@ -1559,6 +1802,68 @@ export const GetObservabilityEntitiesRequestType = new RequestType<
 	void,
 	void
 >("codestream/newrelic/entities");
+
+export interface GetObservabilityEntitiesByIdRequest {
+	guids: string[];
+}
+
+export interface GetObservabilityEntitiesByIdResponse {
+	entities: Entity[];
+}
+
+export const GetObservabilityEntitiesByIdRequestType = new RequestType<
+	GetObservabilityEntitiesByIdRequest,
+	GetObservabilityEntitiesByIdResponse,
+	void,
+	void
+>("codestream/newrelic/entities/list");
+
+export interface EditorEntityGuidsRequest {
+	documentUri: string;
+}
+
+export interface EntityGuidToken {
+	guid: string;
+	range: {
+		start: number;
+		end: number;
+	};
+	markdownString?: string;
+	entity: Entity;
+	url: string;
+	metadata: {
+		found: boolean;
+	};
+}
+export interface EditorEntityGuidsResponse {
+	items: EntityGuidToken[];
+}
+
+export const GetEditorEntityGuidsRequestType = new RequestType<
+	EditorEntityGuidsRequest,
+	EditorEntityGuidsResponse,
+	void,
+	void
+>("codestream/document/parse/newrelic/entity");
+
+export interface GetAllAccountsRequest {
+	force?: boolean;
+}
+export interface Account {
+	id: number;
+	name: string;
+}
+
+export interface GetAllAccountsResponse {
+	accounts: Account[];
+}
+
+export const GetAllAccountsRequestType = new RequestType<
+	GetAllAccountsRequest,
+	GetAllAccountsResponse,
+	void,
+	void
+>("codestream/newrelic/accounts/all");
 
 export interface GetObservabilityErrorAssignmentsRequest {}
 
@@ -1576,13 +1881,17 @@ export const GetObservabilityErrorAssignmentsRequestType = new RequestType<
 export interface GetObservabilityErrorGroupMetadataRequest {
 	errorGroupGuid?: string;
 	entityGuid?: string;
+	traceId?: string;
+	lastSeenAt?: number;
 }
 
 export interface GetObservabilityErrorGroupMetadataResponse {
 	occurrenceId?: string;
 	entityId?: string;
 	remote?: string;
-	relatedRepos: RelatedRepository;
+	relatedRepos: RelatedRepoWithRemotes[];
+	stackSourceMap?: string;
+	traceId?: string;
 }
 
 export const GetObservabilityErrorGroupMetadataRequestType = new RequestType<
@@ -1628,6 +1937,7 @@ export interface GetMethodLevelTelemetryRequest {
 		functionName?: string;
 		relativeFilePath?: string;
 	};
+	scope?: string;
 	since?: string;
 	timeseriesGroup?: string;
 	includeDeployments?: boolean;
@@ -1654,6 +1964,7 @@ export const NRErrorTypes = [
 	"NR_UNKNOWN",
 	"GENERIC",
 	"INTERNAL_RATE",
+	"INTERNAL_RATE_FORCE_LOGOUT",
 ] as const;
 
 export type NRErrorType = (typeof NRErrorTypes)[number];
@@ -1690,6 +2001,7 @@ export interface GetServiceLevelTelemetryRequest {
 	skipRepoFetch?: boolean;
 	fetchRecentIssues?: boolean;
 	force?: boolean;
+	isServiceSearch?: boolean;
 }
 
 export interface UpdateAzureFullNameRequest {
@@ -1711,24 +2023,28 @@ export type MetricTimesliceNameMapping = {
 };
 
 export interface FileLevelTelemetryMetric {
-	metricTimesliceName: string;
+	// metricTimesliceName: string;
+	facet: string[];
 	namespace?: string;
 	className?: string;
+	lineno?: number;
+	column?: number;
+	commit?: string;
 	functionName?: string;
 	anomaly?: ObservabilityAnomaly;
 }
 
 export interface FileLevelTelemetryAverageDuration extends FileLevelTelemetryMetric {
-	averageDuration: any;
+	averageDuration: number;
 }
 
 export interface FileLevelTelemetrySampleSize extends FileLevelTelemetryMetric {
-	sampleSize: any;
+	sampleSize: number;
 	source: string;
 }
 
 export interface FileLevelTelemetryErrorRate extends FileLevelTelemetryMetric {
-	errorRate: any;
+	errorRate: number;
 }
 
 export interface GetFileLevelTelemetryResponse {
@@ -1752,6 +2068,7 @@ export interface GetFileLevelTelemetryResponse {
 	newRelicAlertSeverity?: string;
 	codeNamespace?: string;
 	relativeFilePath: string;
+	deploymentCommit?: string;
 	error?: {
 		message?: string;
 		type?: "NOT_CONNECTED" | "NOT_ASSOCIATED";
@@ -1768,7 +2085,9 @@ export interface GetMethodLevelTelemetryResponse {
 	newRelicUrl?: string;
 	goldenMetrics?: MethodGoldenMetrics[];
 	deployments?: Deployment[];
+	criticalPath?: CriticalPathSpan[];
 	errors?: ObservabilityError[];
+	slowestQueries?: DbQuery[];
 	newRelicAlertSeverity?: string;
 	newRelicEntityAccounts: EntityAccount[];
 	newRelicEntityName: string;
@@ -1799,9 +2118,72 @@ export interface GetIssuesResponse {
 	recentIssues?: RecentIssue[];
 }
 
+export interface SpanLineChartDataValue {
+	beginTimeSeconds: number;
+	endTimeSeconds: number;
+	value: number;
+}
+
+/*export interface SpanLineChartData {
+	thisHost: SpanLineChartDataValue[];
+	allHosts: SpanLineChartDataValue[];
+}*/
+export type SpanLineChartData = SpanLineChartDataPoint[];
+
+export interface SpanLineChartDataPoint {
+	endTimeMs: number;
+	thisHost?: number;
+	allHosts?: number;
+}
+
+/*export interface SpanHistogramData {
+	bucketSize: number;
+	minValue: number;
+	maxValue: number;
+	values: number[];
+}*/
+export type SpanHistogramData = SpanHistogramDataPoint[];
+
+export interface SpanHistogramDataPoint {
+	durationRange: string;
+	count: number;
+}
+
+export interface GetSpanChartDataRequest {
+	accountId: number;
+	entityGuid: string;
+	spanName: string;
+	spanHost: string;
+	timeRange: string;
+}
+
+export interface GetSpanChartDataResponse {
+	responseTime: SpanLineChartDataPoint[];
+	throughput: SpanLineChartDataPoint[];
+	duration: SpanHistogramDataPoint[];
+}
+
+export const GetSpanChartDataRequestType = new RequestType<
+	GetSpanChartDataRequest,
+	GetSpanChartDataResponse,
+	void,
+	void
+>("codestream/newrelic/spanChartData");
+
+export interface CriticalPathSpan {
+	name: string;
+	duration: number;
+}
+
+export interface DbQuery {
+	statement: string;
+	duration: number;
+}
+
 export interface Deployment {
 	seconds: number;
 	version: string;
+	commit?: string;
 }
 
 export interface GetDeploymentsRequest {
@@ -1819,6 +2201,15 @@ export const GetDeploymentsRequestType = new RequestType<
 	void,
 	void
 >("codestream/newrelic/deployments");
+
+// Not yet LSP but might be someday
+export interface GetLatestDeploymentRequest {
+	entityGuid: string;
+}
+
+export interface GetLatestDeploymentResponse {
+	deployment: Deployment;
+}
 
 export const GetFileLevelTelemetryRequestType = new RequestType<
 	GetFileLevelTelemetryRequest,
@@ -1921,7 +2312,31 @@ export interface StackTraceResponse {
 	};
 }
 
-export type EntityType =
+/**
+ * Entity.type
+ *
+ * NOTE: this is not a complete list
+ */
+type Type =
+	| "APPLICATION"
+	| "AWSLAMBDAFUNCTION"
+	| "AWS_ELASTICSEARCH"
+	| "AWS_LAMBDA"
+	| "BUILT_FROM"
+	| "AWS_SQS_QUEUE"
+	| "CLUSTER"
+	| "CONTAINER"
+	| "DATABASE"
+	| "EXTERNAL"
+	| "HOST"
+	| "REPOSITORY"
+	| "SERVICE"
+	| "USER";
+
+/**
+ * Entity.entityType
+ */
+export type EntityTypeKey =
 	| "APM_APPLICATION_ENTITY"
 	| "APM_DATABASE_INSTANCE_ENTITY"
 	| "APM_EXTERNAL_SERVICE_ENTITY"
@@ -1936,20 +2351,46 @@ export type EntityType =
 	| "MOBILE_APPLICATION_ENTITY"
 	| "SECURE_CREDENTIAL_ENTITY"
 	| "SYNTHETIC_MONITOR_ENTITY"
+	| "TEAM"
 	| "THIRD_PARTY_SERVICE_ENTITY"
 	| "UNAVAILABLE_ENTITY"
 	| "WORKLOAD_ENTITY";
 
+export type EntityType = EntityTypeKey;
+
+export const EntityTypeMap: Record<EntityTypeKey, string> = {
+	APM_APPLICATION_ENTITY: "APM Application",
+	APM_DATABASE_INSTANCE_ENTITY: "APM Database",
+	APM_EXTERNAL_SERVICE_ENTITY: "APM External",
+	BROWSER_APPLICATION_ENTITY: "Browser",
+	DASHBOARD_ENTITY: "Dashboard",
+	EXTERNAL_ENTITY: "External",
+	GENERIC_ENTITY: "Generic",
+	GENERIC_INFRASTRUCTURE_ENTITY: "Generic Infrastructure",
+	INFRASTRUCTURE_AWS_LAMBDA_FUNCTION_ENTITY: "Lambda",
+	INFRASTRUCTURE_HOST_ENTITY: "Infrastructure Host",
+	KEY_TRANSACTION_ENTITY: "Key Transaction",
+	MOBILE_APPLICATION_ENTITY: "Mobile",
+	SECURE_CREDENTIAL_ENTITY: "Secure Credential",
+	SYNTHETIC_MONITOR_ENTITY: "Synthetic Monitor",
+	TEAM: "Team",
+	THIRD_PARTY_SERVICE_ENTITY: "OTEL",
+	UNAVAILABLE_ENTITY: "Unavailable",
+	WORKLOAD_ENTITY: "Workload",
+};
+
 export interface Entity {
+	accountId?: number;
 	account?: {
 		name: string;
 		id: number;
 	};
 	domain?: string;
 	alertSeverity?: string;
+	goldenMetrics?: { metrics?: MethodGoldenMetrics[] };
 	guid: string;
 	name: string;
-	type?: "APPLICATION" | "REPOSITORY";
+	type?: string;
 	entityType?: EntityType;
 	tags?: {
 		key: string;
@@ -1968,6 +2409,7 @@ export interface ErrorGroupsResponse {
 					message: string;
 					id: string;
 					entityGuid: string;
+					lastSeenAt: number;
 				}[];
 			};
 		};
@@ -1981,7 +2423,7 @@ export interface RelatedEntity {
 	target: {
 		entity: Entity;
 	};
-	type: string;
+	type: Type;
 }
 
 export interface RelatedEntityByType {
@@ -2127,6 +2569,12 @@ export interface GetAlertViolationsQueryResult {
 	};
 }
 
+export interface GetEntityFromGuid {
+	alertSeverity: string;
+	entityName: string;
+	entityGuid: string;
+}
+
 export interface GetIssuesQueryResult {
 	actor?: {
 		account?: {
@@ -2198,21 +2646,25 @@ export interface RecentIssue {
 	issueId?: string;
 }
 
+export interface GoldenMetric {
+	definition: {
+		from: string;
+		select: string;
+		where?: string;
+	};
+	name: string;
+	title: string;
+	unit: string;
+}
+
+export interface GoldenMetrics {
+	metrics: GoldenMetric[];
+}
+
 export interface EntityGoldenMetricsQueries {
 	actor: {
 		entity: {
-			goldenMetrics: {
-				metrics: {
-					definition: {
-						from: string;
-						select: string;
-						where?: string;
-					};
-					name: string;
-					title: string;
-					unit: string;
-				}[];
-			};
+			goldenMetrics: GoldenMetrics;
 		};
 	};
 }
@@ -2257,6 +2709,28 @@ export const GoldenMetricUnitMappings: UnitMappings = {
 	TIMESTAMP: "time",
 };
 
+export interface GoldenMetricsQueries {
+	/**
+	 * The TIMESERIES query for a golden metric (e.g. `SELECT average(duration) FROM Transaction TIMESERIES`)
+	 */
+	timeseries: string;
+	/**
+	 * The default query for a golden metric (e.g. `SELECT average(duration) FROM Transaction`)
+	 */
+	default?: string;
+}
+
+export interface DeploymentDiff {
+	errorRateData?: {
+		percentChange: number | undefined;
+		permalinkUrl: string;
+	};
+	responseTimeData?: {
+		percentChange: number | undefined;
+		permalinkUrl: string;
+	};
+}
+
 export interface EntityGoldenMetrics {
 	lastUpdated: string;
 	/**
@@ -2264,13 +2738,36 @@ export interface EntityGoldenMetrics {
 	 */
 	since: string;
 	metrics: {
-		name: string;
+		queries?: GoldenMetricsQueries;
+		name: "errorRate" | "responseTimeMs" | "throughput" | string;
 		title: string;
 		unit: string;
 		displayUnit: string;
 		value: number;
 		displayValue: string;
 	}[];
+	pillsData?: DeploymentDiff;
+}
+
+export interface MethodGoldenMetricsResult {
+	beginTimeSeconds?: number;
+	endDate?: Date;
+	endTimeSeconds?: number;
+
+	/* old/deprecated -- used in CLM[?], but let's move to the new props*/
+	"Error %"?: string;
+	"Error rate"?: number;
+	"Error Rate"?: number;
+	"Response Time Ms"?: number | undefined;
+	"Response time (ms)"?: number | undefined;
+	Throughput?: number;
+	/* end old */
+
+	/* new */
+	throughput?: number;
+	errorRate?: number;
+	responseTimeMs?: number;
+	/* end new  */
 }
 
 export interface MethodGoldenMetrics {
@@ -2280,26 +2777,7 @@ export interface MethodGoldenMetrics {
 	name: "responseTimeMs" | "throughput" | "errorRate" | string;
 	/** this title field is deprecated. use `name`as a query "key" and set the title with calling code */
 	title?: "Error Rate" | "Throughput" | "Response Time Ms" | string | undefined;
-	result: {
-		beginTimeSeconds?: number;
-		endDate?: Date;
-		endTimeSeconds?: number;
-
-		/* old/deprecated -- used in CLM[?], but let's move to the new props*/
-		"Error %"?: string;
-		"Error rate"?: number;
-		"Error Rate"?: number;
-		"Response Time Ms"?: number | undefined;
-		"Response time (ms)"?: number | undefined;
-		Throughput?: number;
-		/* end old */
-
-		/* new */
-		throughput?: number;
-		errorRate?: number;
-		responseTimeMs?: number;
-		/* end new  */
-	}[];
+	result: MethodGoldenMetricsResult[];
 	scopes?: {
 		name: string;
 		value: number;
@@ -2328,42 +2806,13 @@ export interface RelatedEntityByRepositoryGuidsResult {
 	};
 }
 
-export type VulnerabilityStatus =
-	| "ASSIGNED"
-	| "NEW"
-	| "MITIGATED"
-	| "REMEDIATED"
-	| "IGNORED"
-	| "NO_LONGER_DETECTED";
-
 export const riskSeverityList = ["CRITICAL", "HIGH", "MEDIUM", "LOW", "UNKNOWN", "INFO"] as const;
 
 export type RiskSeverity = (typeof riskSeverityList)[number];
 
-export const criticalityList = ["CRITICAL", "HIGH", "MODERATE", "LOW"] as const;
+export const severityList = ["CRITICAL", "HIGH", "MODERATE", "LOW"] as const;
 
-export type CriticalityType = (typeof criticalityList)[number];
-
-// /v1/issues/ response
-// https://source.datanerd.us/incubator/nrsec-workflow-api/blob/dacb63f32aa836a4b90f6345a83e0ae95f7d3463/src/main/java/com/newrelic/nrsecworkflowapi/api/SecurityIssueSummary.java
-export type SecurityIssueSummary = {
-	issueId: string;
-	title: string;
-	sources: Array<string>;
-	issueType: string;
-	severity: RiskSeverity;
-	status: VulnerabilityStatus;
-	entityCount: number;
-	issueCount: number;
-	assignedCount: number;
-	uniqueUserCount: number;
-	assignedUsers: Array<number>;
-	accountId?: number;
-	firstSeen: string;
-	lastSeen: string;
-};
-
-export type SecurityIssueSummaryResponse = Array<SecurityIssueSummary>;
+export type SeverityType = (typeof severityList)[number];
 
 export type GetLibraryDetailsRequest = {
 	entityGuid: string;
@@ -2372,16 +2821,14 @@ export type GetLibraryDetailsRequest = {
 	rows?: number | "all";
 };
 
-export type Vuln = {
-	remediation: Array<string>;
-	issueId: string; // cve
+export type Vulnerability = {
+	cveId: string;
 	title: string;
 	url: string;
-	source: string;
 	vector: string;
 	description: string;
 	score: number;
-	criticality: CriticalityType;
+	severity: SeverityType;
 };
 
 export type LibraryDetails = {
@@ -2389,9 +2836,9 @@ export type LibraryDetails = {
 	version: string;
 	suggestedVersion?: string;
 	highestScore: number;
-	highestCriticality: CriticalityType;
+	highestSeverity: SeverityType;
 	language?: string;
-	vulns: Array<Vuln>;
+	vulnerabilities: Array<Vulnerability>;
 };
 
 export type GetLibraryDetailsResponse = {
@@ -2437,3 +2884,262 @@ export const DidDetectObservabilityAnomaliesNotificationType = new NotificationT
 	DidDetectObservabilityAnomaliesNotification,
 	void
 >("codestream/didDetectObservabilityAnomalies");
+
+export interface GetLoggingEntitiesResponse {
+	totalResults: number;
+	entities: EntityAccount[];
+	nextCursor?: string;
+}
+
+// reusing request type - internally we're just omitting a filter
+export const GetLoggingEntitiesRequestType = new RequestType<
+	GetObservabilityEntitiesRequest,
+	GetLoggingEntitiesResponse,
+	void,
+	void
+>("codestream/newrelic/logs/entities");
+
+export interface GetLogsRequest {
+	entity: EntityAccount;
+	traceId?: string;
+	partitions: string[];
+	filterText: string;
+	order: {
+		field: string;
+		direction: string;
+	};
+	since: string;
+	limit: number | "MAX";
+}
+
+export interface LogResult {
+	[key: string]: string;
+}
+
+export const LogResultSpecialColumns = {
+	message: "__cs_message",
+	severity: "__cs_severity",
+	summary: "__cs_log_summary",
+};
+
+export interface GetLogsResponse {
+	logs?: LogResult[];
+	accountId: number;
+	error?: NRErrorResponse;
+}
+
+export const GetLogsRequestType = new RequestType<GetLogsRequest, GetLogsResponse, void, void>(
+	"codestream/newrelic/logs/search"
+);
+
+export interface GetSurroundingLogsRequest {
+	entity: EntityAccount;
+	messageId: string;
+	since: number;
+}
+
+export interface GetSurroundingLogsResponse {
+	beforeLogs?: LogResult[];
+	afterLogs?: LogResult[];
+	error?: NRErrorResponse;
+}
+
+export const GetSurroundingLogsRequestType = new RequestType<
+	GetSurroundingLogsRequest,
+	GetSurroundingLogsResponse,
+	void,
+	void
+>("codestream/newrelic/logs/surrounding");
+
+export interface GetLogFieldDefinitionsRequest {
+	entity: EntityAccount;
+}
+
+export interface LogFieldDefinition {
+	key?: string;
+	type?: "string" | "boolean" | "numeric";
+}
+
+export interface GetLogFieldDefinitionsResponse {
+	logDefinitions?: LogFieldDefinition[];
+	error?: NRErrorResponse;
+}
+
+export const GetLogFieldDefinitionsRequestType = new RequestType<
+	GetLogFieldDefinitionsRequest,
+	GetLogFieldDefinitionsResponse,
+	void,
+	void
+>("codestream/newrelic/logs/fieldDefinitions");
+
+export interface GetLoggingPartitionsRequest {
+	accountId: number;
+}
+
+export interface GetLoggingPartitionsResponse {
+	partitions?: string[];
+	error?: NRErrorResponse;
+}
+
+export const GetLoggingPartitionsRequestType = new RequestType<
+	GetLoggingPartitionsRequest,
+	GetLoggingPartitionsResponse,
+	void,
+	void
+>("codestream/newrelic/logs/partitions");
+
+export interface SaveRecentQueryRequest {
+	accountId?: number;
+	query: string;
+}
+
+export interface SaveRecentQueryResponse {
+	createdAt?: number;
+}
+
+export interface GetNRQLRequest {
+	accountId: number;
+	query: string;
+}
+
+export interface NRQLResult {
+	[key: string]: string;
+}
+
+export interface GetNRQLResponse {
+	results?: NRQLResult[];
+	accountId: number;
+	metadata?: {
+		facet?: string[];
+		eventType?: string;
+		since?: string;
+		hasAlias: boolean;
+	};
+	error?: NRErrorResponse;
+	resultsTypeGuess?: ResultsTypeGuess;
+}
+
+export interface ResultsTypeGuess {
+	selected?: string;
+	enabled?: string[];
+}
+
+export const GetNRQLRequestType = new RequestType<GetNRQLRequest, GetNRQLResponse, void, void>(
+	"codestream/newrelic/nrql/search"
+);
+
+export interface GetNRQLConstantsRequest {}
+
+export interface GetNRQLConstantsResponse {
+	operators: CompletionItem[];
+	keywords: CompletionItem[];
+	functions: CompletionItem[];
+}
+
+export const GetNRQLConstantsRequestType = new RequestType<
+	GetNRQLConstantsRequest,
+	GetNRQLConstantsResponse,
+	void,
+	void
+>("codestream/newrelic/nrql/constants");
+
+export interface GetNRQLCollectionsRequest {}
+export interface GetNRQLCollectionsResponse {
+	list: string[];
+	obj: any;
+}
+export const GetNRQLCollectionsRequestType = new RequestType<
+	GetNRQLCollectionsRequest,
+	GetNRQLCollectionsResponse,
+	void,
+	void
+>("codestream/newrelic/nrql/collections");
+
+export interface GetNRQLColumnsRequest {
+	/**
+	 * The user-entered query (unmodified)
+	 */
+	query?: string;
+	/**
+	 * The name of a specific collection
+	 */
+	collectionName?: string;
+}
+export interface GetNRQLColumnsResponse {
+	columns: string[];
+}
+export const GetNRQLColumnsRequestType = new RequestType<
+	GetNRQLColumnsRequest,
+	GetNRQLColumnsResponse,
+	void,
+	void
+>("codestream/newrelic/nrql/columns");
+
+export interface GetNRQLCompletionItemsRequest {
+	/**
+	 * This may refer to an entire query or a single line in a multi-line or multi-queries in a file
+	 */
+	query?: string;
+	textDocumentPosition?: TextDocumentPositionParams;
+}
+
+export interface GetNRQLCompletionItemsResponse {
+	items: CompletionItem[];
+}
+export const GetNRQLCompletionItemsType = new RequestType<
+	GetNRQLCompletionItemsRequest,
+	GetNRQLCompletionItemsResponse,
+	void,
+	void
+>("codestream/newrelic/nrql/completions");
+
+export interface NRQLRecentQuery {
+	/**
+	 * Recent, runnable, query from the current user
+	 */
+	query: string;
+	accounts: Account[];
+	createdAt: number;
+	dayString?: string;
+}
+
+export interface GetNRQLRecentQueriesRequest {}
+export interface GetNRQLRecentQueriesResponse {
+	items: NRQLRecentQuery[];
+}
+export const GetNRQLRecentQueriesType = new RequestType<
+	GetNRQLRecentQueriesRequest,
+	GetNRQLRecentQueriesResponse,
+	void,
+	void
+>("codestream/newrelic/nrql/queries/recent");
+
+export type ApplyPatchRequest = {
+	fileUri: string;
+	patch: string;
+};
+
+export type ApplyPatchResponse = {
+	success: boolean;
+};
+
+export const ApplyPatchType = new RequestType<ApplyPatchRequest, ApplyPatchResponse, void, void>(
+	"codestream/newrelic/applyPatch"
+);
+
+export type UserSearchRequest = {
+	query?: string;
+	nextCursor?: string;
+};
+
+export type UserSearchResponse = {
+	users: NewRelicUser[];
+	nextCursor?: string;
+};
+
+export const UserSearchRequestType = new RequestType<
+	UserSearchRequest,
+	UserSearchResponse,
+	void,
+	void
+>("codestream/newrelic/userSearch");

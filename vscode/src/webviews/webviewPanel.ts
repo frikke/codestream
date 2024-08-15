@@ -1,4 +1,5 @@
 "use strict";
+import { promises as fs } from "fs";
 import {
 	HostDidChangeFocusNotificationType,
 	ShowStreamNotificationType,
@@ -6,12 +7,14 @@ import {
 	WebviewIpcMessage,
 	WebviewIpcNotificationMessage,
 	WebviewIpcRequestMessage,
-	WebviewIpcResponseMessage
+	WebviewIpcResponseMessage,
+	OpenEditorViewNotification
 } from "@codestream/protocols/webview";
 import {
 	Disposable,
 	Event,
 	EventEmitter,
+	ExtensionContext,
 	Uri,
 	ViewColumn,
 	WebviewPanel,
@@ -38,6 +41,8 @@ let ipcSequence = 0;
 
 export class CodeStreamWebviewPanel implements WebviewLike, Disposable {
 	type = "panel";
+	// human readable name for debugging
+	private _name: string | undefined = undefined;
 	static readonly IpcQueueThreshold = 100;
 
 	private _onDidClose = new EventEmitter<void>();
@@ -68,20 +73,23 @@ export class CodeStreamWebviewPanel implements WebviewLike, Disposable {
 	private _ipcReady: boolean = false;
 
 	private _disposable: Disposable | undefined;
+	private _panelDisposable: Disposable | undefined;
 	private _onIpcReadyResolver: ((cancelled: boolean) => void) | undefined;
 	private readonly _panel: WebviewPanel;
+	private _html: string | undefined;
 
 	constructor(
 		public readonly session: CodeStreamSession,
-		private readonly _html: string,
+		private readonly context: ExtensionContext,
+		public readonly parameters: OpenEditorViewNotification,
 		private onInitializedCallback: Function
 	) {
 		this._ipcPending = new Map();
 
 		this._panel = window.createWebviewPanel(
-			"CodeStream.stream",
-			"CodeStream",
-			{ viewColumn: ViewColumn.Beside, preserveFocus: false },
+			"CodeStream.editor",
+			`CodeStream (${parameters.title})`,
+			{ viewColumn: parameters.panelLocation ?? ViewColumn.Active, preserveFocus: false },
 			{
 				retainContextWhenHidden: true,
 				enableFindWidget: true,
@@ -89,21 +97,47 @@ export class CodeStreamWebviewPanel implements WebviewLike, Disposable {
 				enableScripts: true
 			}
 		);
+		this._name = parameters.title || "none";
 		this._panel.iconPath = Uri.file(
 			Container.context.asAbsolutePath("assets/images/codestream.png")
 		);
 
 		this._disposable = Disposable.from(
 			this._panel,
-			this._panel.onDidDispose(this.onPanelDisposed, this),
+			this._panel.onDidDispose(this.onPanelDisposed, this)
+		);
+		this._panelDisposable = Disposable.from(
 			this._panel.onDidChangeViewState(this.onPanelViewStateChanged, this),
 			window.onDidChangeWindowState(this.onWindowStateChanged, this)
 		);
-		this._panel.webview.html = this._html;
-		this.onInitializedCallback();
+		const pathToExt = this._panel.webview
+			.asWebviewUri(Uri.file(this.context.extensionUri.fsPath))
+			.toString();
+
+		const webviewPath = Uri.joinPath(this.context.extensionUri, "editor.html");
+
+		fs.readFile(webviewPath.fsPath, {
+			encoding: "utf8"
+		}).then(data => {
+			this._panel.webview.html = data
+				.replace(/{{root}}/g, pathToExt)
+				.replace(/{{panel}}/g, parameters.panel)
+				// here's some magic for inserting default data onload
+				.replace(
+					"</head>",
+					`<script>window._cs = ${JSON.stringify(parameters || {})};</script></head>`
+				);
+			this._html = this._panel.webview.html;
+			this.onInitializedCallback();
+			this.triggerIpc();
+		});
+	}
+	get name() {
+		return this._name;
 	}
 
 	dispose() {
+		this._panelDisposable && this._panelDisposable.dispose();
 		this._disposable && this._disposable.dispose();
 	}
 
@@ -111,6 +145,7 @@ export class CodeStreamWebviewPanel implements WebviewLike, Disposable {
 		if (this._onIpcReadyResolver !== undefined) {
 			this._onIpcReadyResolver(true);
 		}
+		this._panelDisposable && this._panelDisposable.dispose();
 
 		this._onDidClose.fire();
 	}
@@ -196,7 +231,7 @@ export class CodeStreamWebviewPanel implements WebviewLike, Disposable {
 	async reload(): Promise<void> {
 		// Reset the html to get the webview to reload
 		this._panel.webview.html = "";
-		this._panel.webview.html = this._html;
+		this._panel.webview.html = this._html!;
 		this._panel.reveal(this._panel.viewColumn, false);
 
 		void (await this.waitForWebviewIpcReadyNotification());
@@ -219,7 +254,7 @@ export class CodeStreamWebviewPanel implements WebviewLike, Disposable {
 				params: params
 			};
 			this.postMessage(payload);
-			Logger.log(`Request ${id}:${type.method} sent to webview`, payload);
+			Logger.log(`Request ${id}:${type.method} sent to webview (${this._name})`, payload);
 		});
 	}
 
@@ -232,9 +267,9 @@ export class CodeStreamWebviewPanel implements WebviewLike, Disposable {
 			this._panel.reveal(this._panel.viewColumn, false);
 
 			if (!this._ipcReady) {
-				Logger.log(cc, "waiting for WebView ready");
+				Logger.log(cc, `waiting for WebView ready (${this._name})`);
 				const cancelled = await this.waitForWebviewIpcReadyNotification();
-				Logger.log(cc, `waiting for WebView complete. cancelled=${cancelled}`);
+				Logger.log(cc, `waiting for WebView complete. cancelled=${cancelled} (${this._name})`);
 				if (cancelled) return;
 			}
 		}
@@ -251,7 +286,15 @@ export class CodeStreamWebviewPanel implements WebviewLike, Disposable {
 	@log({
 		args: false
 	})
-	async triggerIpc() {}
+	async triggerIpc() {
+		const cc = Logger.getCorrelationContext();
+
+		if (!this._ipcReady) {
+			Logger.log(cc, `waiting for WebView ready (${this._name})`);
+			const cancelled = await this.waitForWebviewIpcReadyNotification();
+			Logger.log(cc, `waiting for WebView complete. cancelled=${cancelled} (${this._name})`);
+		}
+	}
 
 	private clearIpc() {
 		this._ipcQueue.length = 0;
@@ -277,7 +320,7 @@ export class CodeStreamWebviewPanel implements WebviewLike, Disposable {
 	}
 
 	private async flushIpcQueueCore() {
-		Logger.log("WebviewPanel: Flushing pending queue");
+		Logger.log(`WebviewPanel: Flushing pending queue (${this._name})`);
 
 		while (this._ipcQueue.length !== 0) {
 			const msg = this._ipcQueue.shift();
@@ -286,12 +329,12 @@ export class CodeStreamWebviewPanel implements WebviewLike, Disposable {
 			if (!(await this.postMessageCore(msg))) {
 				this._ipcQueue.unshift(msg);
 
-				Logger.log("WebviewPanel: FAILED flushing pending queue");
+				Logger.log(`WebviewPanel: FAILED flushing pending queue (${this._name})`);
 				return false;
 			}
 		}
 
-		Logger.log("WebviewPanel: Completed flushing pending queue");
+		Logger.log(`WebviewPanel: Completed flushing pending queue (${this._name})`);
 		return true;
 	}
 
@@ -320,7 +363,7 @@ export class CodeStreamWebviewPanel implements WebviewLike, Disposable {
 			Logger.log(
 				`WebviewPanel: FAILED posting ${toLoggableIpcMessage(
 					msg
-				)} to the webview; Webview is invisible and can't receive messages`
+				)} to the webview; Webview is invisible and can't receive messages (${this._name})`
 			);
 
 			return false;
@@ -329,7 +372,9 @@ export class CodeStreamWebviewPanel implements WebviewLike, Disposable {
 		// If there is a pending flush operation, wait until it completes
 		if (this._flushingPromise !== undefined) {
 			if (!(await this._flushingPromise)) {
-				Logger.log(`WebviewPanel: FAILED posting ${toLoggableIpcMessage(msg)} to the webview`);
+				Logger.log(
+					`WebviewPanel: FAILED posting ${toLoggableIpcMessage(msg)} to the webview (${this._name})`
+				);
 
 				return false;
 			}
@@ -358,7 +403,7 @@ export class CodeStreamWebviewPanel implements WebviewLike, Disposable {
 		Logger.log(
 			`WebviewPanel: ${success ? "Completed" : "FAILED"} posting ${toLoggableIpcMessage(
 				msg
-			)} to the webview`
+			)} to the webview (${this._name})`
 		);
 
 		return success;
@@ -369,7 +414,7 @@ export class CodeStreamWebviewPanel implements WebviewLike, Disposable {
 
 		this._ipcPaused = false;
 		if (this._ipcQueue.length > CodeStreamWebviewPanel.IpcQueueThreshold) {
-			Logger.log("WebviewPanel: Too out of date; reloading...");
+			Logger.log(`WebviewPanel: Too out of date; reloading... (${this._name})`);
 
 			this._ipcQueue.length = 0;
 			await this.reload();
@@ -377,7 +422,7 @@ export class CodeStreamWebviewPanel implements WebviewLike, Disposable {
 			return false;
 		}
 
-		Logger.log("WebviewPanel: Resuming communication...");
+		Logger.log(`WebviewPanel: Resuming communication... (${this._name})`);
 
 		return this.flushIpcQueue();
 	}
@@ -415,7 +460,9 @@ export class CodeStreamWebviewPanel implements WebviewLike, Disposable {
 			let timer: NodeJS.Timeout;
 			if (Logger.level !== TraceLevel.Debug && !Logger.isDebugging) {
 				timer = setTimeout(() => {
-					Logger.warn("WebviewPanel: FAILED waiting for webview ready event; closing webview...");
+					Logger.warn(
+						`WebviewPanel: FAILED waiting for webview ready event; closing webview... (${this._name})`
+					);
 					this.dispose();
 					resolve(true);
 				}, 30000);
@@ -427,7 +474,7 @@ export class CodeStreamWebviewPanel implements WebviewLike, Disposable {
 				}
 
 				if (cancelled) {
-					Logger.log("WebviewPanel: CANCELLED waiting for webview ready event");
+					Logger.log(`WebviewPanel: CANCELLED waiting for webview ready event (${this._name})`);
 					this.clearIpc();
 				} else {
 					this._ipcReady = true;

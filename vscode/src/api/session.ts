@@ -14,8 +14,7 @@ import {
 	AgentOpenUrlRequest,
 	AgentValidateLanguageExtensionRequest,
 	PasswordLoginRequestType,
-	TokenLoginRequestType,
-	Unreads
+	TokenLoginRequestType
 } from "@codestream/protocols/agent";
 import {
 	ChannelServiceType,
@@ -55,7 +54,6 @@ import {
 	SessionStatusChangedEvent,
 	TextDocumentMarkersChangedEvent,
 	PullRequestCommentsChangedEvent,
-	UnreadsChangedEvent,
 	ReviewsChangedEvent,
 	PullRequestsChangedEvent,
 	PreferencesChangedEvent
@@ -80,7 +78,6 @@ export {
 	StreamType,
 	Team,
 	TextDocumentMarkersChangedEvent,
-	UnreadsChangedEvent,
 	User
 };
 
@@ -92,13 +89,14 @@ export interface StreamThread {
 }
 
 export enum SessionSignedOutReason {
+	InvalidRefreshToken = "invalidRefreshToken",
+	MaintenanceMode = "maintenanceMode",
 	NetworkIssue = "networkIssue",
 	SignInFailure = "signInFailure",
-	UserSignedOutFromWebview = "userSignedOutFromWebview",
+	UnsupportedVersion = "unsupportedVersion",
 	UserSignedOutFromExtension = "userSignedOutFromExtension",
-	UserWentOffline = "userWentOffline",
-	MaintenanceMode = "maintenanceMode",
-	UnsupportedVersion = "unsupportedVersion"
+	UserSignedOutFromWebview = "userSignedOutFromWebview",
+	UserWentOffline = "userWentOffline"
 }
 
 export enum SessionStatus {
@@ -137,17 +135,6 @@ export class CodeStreamSession implements Disposable {
 	get onDidChangeSessionStatus(): Event<SessionStatusChangedEvent> {
 		return this._onDidChangeSessionStatus.event;
 	}
-
-	private _onDidChangeUnreads = new EventEmitter<UnreadsChangedEvent>();
-	get onDidChangeUnreads(): Event<UnreadsChangedEvent> {
-		return this._onDidChangeUnreads.event;
-	}
-
-	private fireDidChangeUnreads = Functions.debounce(
-		(e: UnreadsChangedEvent) => this._onDidChangeUnreads.fire(e),
-		250,
-		{ maxWait: 1000 }
-	);
 
 	private _onDidChangePreferences = new EventEmitter<PreferencesChangedEvent>();
 	get onDidChangePreferences(): Event<PreferencesChangedEvent> {
@@ -316,9 +303,6 @@ export class CodeStreamSession implements Disposable {
 					this._state!.updateUser(user);
 				}
 				break;
-			case ChangeDataType.Unreads:
-				this.fireDidChangeUnreads(new UnreadsChangedEvent(this, e));
-				break;
 			case ChangeDataType.Preferences:
 				this._state!.updatePreferences(e.data);
 				this.fireDidChangePreferences(new PreferencesChangedEvent(this, e));
@@ -387,6 +371,7 @@ export class CodeStreamSession implements Disposable {
 			email: e.email,
 			value: e.token,
 			refreshToken: e.refreshToken,
+			tokenType: e.tokenType,
 			teamId: e.teamId
 		});
 	}
@@ -403,7 +388,6 @@ export class CodeStreamSession implements Disposable {
 	private setStatus(
 		status: SessionStatus,
 		signedOutReason?: SessionSignedOutReason,
-		unreads?: Unreads,
 		force: boolean = false
 	) {
 		if (!force && this._status === status) return;
@@ -411,8 +395,7 @@ export class CodeStreamSession implements Disposable {
 		this._status = status;
 		const e: SessionStatusChangedEvent = {
 			getStatus: () => this._status,
-			session: this,
-			unreads: unreads
+			session: this
 		};
 		e.reason = signedOutReason;
 
@@ -643,7 +626,8 @@ export class CodeStreamSession implements Disposable {
 		try {
 			if (
 				reason === SessionSignedOutReason.UserSignedOutFromExtension ||
-				reason === SessionSignedOutReason.UserSignedOutFromWebview
+				reason === SessionSignedOutReason.UserSignedOutFromWebview ||
+				reason === SessionSignedOutReason.InvalidRefreshToken
 			) {
 				// Clear the access token
 				await Container.context.workspaceState.update(WorkspaceState.TeamId, undefined);
@@ -677,7 +661,7 @@ export class CodeStreamSession implements Disposable {
 			// Clean up saved state
 			this._state = undefined;
 
-			setImmediate(() => this.setStatus(SessionStatus.SignedOut, reason, undefined, true));
+			setImmediate(() => this.setStatus(SessionStatus.SignedOut, reason, true));
 		}
 	}
 
@@ -805,14 +789,11 @@ export class CodeStreamSession implements Disposable {
 			Container.agent.onDidChangeData(this.onDataChanged, this)
 		);
 
-		const unreadsResponse = await Container.agent.users.unreads();
-		const unreads = unreadsResponse.unreads;
-
 		Logger.log(
 			`${email} signed into CodeStream (${this.serverUrl}); userId=${this.userId}, teamId=${teamId}`
 		);
 
-		this.setStatus(SessionStatus.SignedIn, undefined, unreads);
+		this.setStatus(SessionStatus.SignedIn, undefined);
 	}
 }
 

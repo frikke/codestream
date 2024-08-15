@@ -1,5 +1,5 @@
 "use strict";
-import { CodeStreamEnvironmentInfo, EnvironmentHost } from "./agent.protocol";
+import { CodeBlock, CodeStreamEnvironmentInfo, EnvironmentHost } from "./agent.protocol";
 import { RepoScmStatus } from "./agent.protocol.scm";
 import {
 	Attachment,
@@ -112,9 +112,15 @@ export interface CSPossibleAuthDomain {
 	useDomainName: boolean;
 }
 
+export enum CSAccessTokenType {
+	ACCESS_TOKEN = "access",
+	ID_TOKEN = "id",
+}
+
 export interface CSAccessTokenInfo {
 	refreshToken: string;
 	expiresAt: number;
+	tokenType: CSAccessTokenType;
 }
 
 export interface CSLoginResponse {
@@ -122,12 +128,9 @@ export interface CSLoginResponse {
 	accessToken: string;
 	accessTokenInfo?: CSAccessTokenInfo;
 	pubnubKey: string;
-	pubnubToken: string;
+	pubnubCipherKey?: string;
 	broadcasterToken?: string;
-	socketCluster?: {
-		host: string;
-		port: string;
-	};
+	broadcasterV3Token: string;
 	teams: CSTeam[];
 	companies: CSCompany[];
 	repos: CSRepository[];
@@ -677,50 +680,44 @@ export interface CSGetReviewsResponse {
 	markers?: CSMarker[];
 }
 
-export interface CSCreateCodeErrorResponse {
-	codeError: CSCodeError;
-	streams?: CSStream[];
-	repos?: CSRepository[];
+export interface ObjectInfo {
+	repoId: string;
+	remote: string;
+	accountId: string;
+	hasRelatedRepos: boolean;
+	entityName?: string; // APM service name
+	entityId?: string; // APM service entityId
 }
 
 export interface CSCreateCodeErrorRequest {
-	teamId: string;
-	stackTraces: CSStackTraceInfo[];
-	providerUrl?: string;
-	streamId?: string;
-	postId?: string;
+	accountId: number;
+	errorGuid: string;
 	parentPostId?: string;
-	status?: string;
+	objectType?: "errorGroup";
+	objectInfo?: ObjectInfo;
+	title: string;
+	text?: string;
+	stackTraces: CSStackTraceInfo[];
 	assignees?: string[];
-	followerIds?: string[];
-	codeAuthorIds?: string[];
+	addedUsers?: string[];
+	entryPoint?: string;
+	mentionedUserIds?: string[];
+	replyPost?: {
+		text: string;
+		mentionedUserIds?: string[];
+	};
+	codeBlock?: CodeBlock;
+	language?: string;
+	analyze: boolean;
+	reinitialize: boolean;
 
 	markers?: CSCreateMarkerRequest[];
-	remotes?: string[];
-}
-
-export interface CSCreateCodeErrorResponse {
-	codeError: CSCodeError;
-	streams?: CSStream[];
-	repos?: CSRepository[];
-}
-
-export interface CSCreateChangeSetRequest {}
-
-export interface CSGetCodeErrorRequest {
-	id: string;
 }
 
 export interface CSGetCodeErrorResponse {
 	codeError: CSCodeError;
 	post: CSPost;
 	markers?: CSMarker[];
-}
-
-export interface CSGetCodeErrorsRequest {
-	teamId: string;
-	streamId?: string;
-	ids?: string[];
 }
 
 export interface CSGetCodeErrorsResponse {
@@ -797,11 +794,6 @@ export interface CSDeleteReviewRequest {
 }
 export interface CSDeleteReviewResponse {}
 
-export interface CSDeleteCodeErrorRequest {
-	id: string;
-}
-export interface CSDeleteCodeErrorResponse {}
-
 export interface CSUpdateMarkerRequest {
 	commitHashWhenCreated?: string;
 }
@@ -874,10 +866,6 @@ export interface CSTrackProviderPostRequest {
 	streamId: string;
 	postId: string;
 	parentPostId?: string;
-}
-
-export interface CSGetTelemetryKeyResponse {
-	key: string;
 }
 
 export interface CSGetApiCapabilitiesResponse {

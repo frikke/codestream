@@ -1,13 +1,9 @@
 import { CSCodeError } from "@codestream/protocols/api";
-import { createSelector } from "reselect";
 
-import { CodeStreamState } from "..";
 import { toMapBy } from "../../utils";
 import * as activeIntegrationsActions from "../activeIntegrations/actions";
 import { ActiveIntegrationsActionType } from "../activeIntegrations/types";
 import { ActionType } from "../common";
-import { ContextState } from "../context/types";
-import { getTeamMates } from "../users/reducer";
 import * as actions from "./actions";
 import { CodeErrorsActionsTypes, CodeErrorsState } from "./types";
 import { NewRelicErrorGroup } from "@codestream/protocols/agent";
@@ -22,6 +18,8 @@ const initialState: CodeErrorsState = {
 	grokRepliesLength: 0,
 	grokError: undefined,
 	functionToEditFailed: false,
+	demoMode: { enabled: false, count: 0 },
+	discussion: { threadId: "", comments: [] },
 };
 
 export function reduceCodeErrors(
@@ -29,26 +27,8 @@ export function reduceCodeErrors(
 	action: CodeErrorsActions | ActiveIntegrationsActions
 ): CodeErrorsState {
 	switch (action.type) {
-		case CodeErrorsActionsTypes.Bootstrap:
-			return {
-				bootstrapped: true,
-				errorGroups: state.errorGroups,
-				grokRepliesLength: state.grokRepliesLength,
-				grokError: state.grokError,
-				functionToEditFailed: state.functionToEditFailed,
-				codeErrors: {
-					...state.codeErrors,
-					...toMapBy(
-						"id",
-						action.payload.filter(_ => !_.deactivated)
-					),
-				},
-			};
 		case CodeErrorsActionsTypes.AddCodeErrors: {
-			const newCodeErrors = toMapBy(
-				"id",
-				action.payload.filter(_ => !_.deactivated)
-			);
+			const newCodeErrors = toMapBy("entityGuid", action.payload);
 			for (const id in newCodeErrors) {
 				const existingCodeError = state.codeErrors[id];
 				if (existingCodeError) {
@@ -64,32 +44,46 @@ export function reduceCodeErrors(
 				codeErrors: { ...state.codeErrors, ...newCodeErrors },
 				functionToEdit: state.functionToEdit,
 				functionToEditFailed: state.functionToEditFailed,
+				demoMode: state.demoMode,
 			};
 		}
-		case CodeErrorsActionsTypes.UpdateCodeErrors:
-		case CodeErrorsActionsTypes.SaveCodeErrors: {
+		case CodeErrorsActionsTypes.UpdateCodeErrors: {
 			return {
 				bootstrapped: state.bootstrapped,
 				errorGroups: state.errorGroups,
 				grokRepliesLength: state.grokRepliesLength,
 				grokError: state.grokError,
-				codeErrors: { ...state.codeErrors, ...toMapBy("id", action.payload) },
+				codeErrors: { ...state.codeErrors, ...toMapBy("entityGuid", action.payload) },
 				functionToEdit: state.functionToEdit,
 				functionToEditFailed: state.functionToEditFailed,
+				demoMode: state.demoMode,
 			};
+		}
+
+		case CodeErrorsActionsTypes.SetDiscussion: {
+			return { ...state, discussion: action.payload };
 		}
 		case CodeErrorsActionsTypes.SetFunctionToEdit: {
 			if (action.payload) {
-				console.debug(`grokFunctionToEdit: ${JSON.stringify(action.payload).substring(0, 100)}`);
+				console.debug("nraiFunctionToEdit", action.payload);
 			}
 			return { ...state, functionToEdit: action.payload };
+		}
+		case CodeErrorsActionsTypes.ResetNrAi: {
+			return {
+				...state,
+				functionToEdit: undefined,
+				functionToEditFailed: false,
+				grokError: undefined,
+				grokRepliesLength: 0,
+			};
 		}
 		case CodeErrorsActionsTypes.SetFunctionToEditFailed: {
 			return { ...state, functionToEditFailed: action.payload };
 		}
-		case CodeErrorsActionsTypes.SetGrokError: {
-			return { ...state, grokError: action.payload };
-		}
+		// case CodeErrorsActionsTypes.SetGrokError: {
+		// 	return { ...state, grokError: action.payload };
+		// }
 		case CodeErrorsActionsTypes.SetGrokRepliesLength: {
 			return { ...state, grokRepliesLength: action.payload };
 		}
@@ -104,6 +98,7 @@ export function reduceCodeErrors(
 				grokRepliesLength: state.grokRepliesLength,
 				grokError: state.grokError,
 				functionToEditFailed: state.functionToEditFailed,
+				demoMode: state.demoMode,
 			};
 		}
 		case CodeErrorsActionsTypes.SetErrorGroup: {
@@ -173,6 +168,12 @@ export function reduceCodeErrors(
 			}
 			return { ...state, errorGroups: nextErrorGroups };
 		}
+		case CodeErrorsActionsTypes.SetDemoMode: {
+			return {
+				...state,
+				demoMode: { enabled: action.payload, count: state.demoMode.count + 1 },
+			};
+		}
 		case "RESET":
 			return initialState;
 		default:
@@ -189,33 +190,7 @@ export function getErrorGroup(
 	state: CodeErrorsState,
 	codeError: CSCodeError | undefined
 ): NewRelicErrorGroup | undefined {
-	if (
-		!codeError ||
-		codeError.objectType !== "errorGroup" ||
-		!codeError.objectId ||
-		codeError.deactivated
-	)
+	if (!codeError || codeError.objectType !== "errorGroup" || !codeError.entityGuid)
 		return undefined;
-	return state.errorGroups[codeError.objectId!]?.errorGroup;
+	return state.errorGroups[codeError.entityGuid!]?.errorGroup;
 }
-
-const getCodeErrors = (state: CodeStreamState) => state.codeErrors.codeErrors;
-
-export const getCurrentCodeErrorId = createSelector(
-	(state: CodeStreamState) => state.context,
-	(context: ContextState) => {
-		return context.currentCodeErrorId || "";
-	}
-);
-
-export const getCodeErrorCreator = createSelector(
-	getCodeErrors,
-	getCurrentCodeErrorId,
-	getTeamMates,
-	(codeErrors, id, teamMates) => {
-		if (!teamMates) return undefined;
-		const codeError = codeErrors[id];
-		if (!codeError || !codeError.creatorId) return undefined;
-		return teamMates.find(_ => _.id === codeError.creatorId);
-	}
-);

@@ -6,7 +6,7 @@ import {
 } from "@codestream/protocols/agent";
 import { Logger } from "../../../logger";
 import { FLTStrategy } from "./FLTStrategy";
-import { INewRelicProvider } from "../../newrelic";
+import { NewRelicGraphqlClient } from "../newRelicGraphqlClient";
 
 interface NameValue {
 	name: string;
@@ -26,7 +26,7 @@ export abstract class FLTNameInferenceStrategy implements FLTStrategy {
 		protected accountId: number,
 		protected relativeFilePath: string,
 		protected request: GetFileLevelTelemetryRequest,
-		protected provider: INewRelicProvider
+		private graphqlClient: NewRelicGraphqlClient
 	) {}
 
 	abstract getMetricLookup(): string;
@@ -139,7 +139,7 @@ export abstract class FLTNameInferenceStrategy implements FLTStrategy {
 		return {
 			...symbol,
 			averageDuration: record.value,
-			metricTimesliceName: record.name,
+			facet: [record.name], // facet is [metricTimesliceName, lineno, colno]
 		};
 	}
 
@@ -172,14 +172,12 @@ export abstract class FLTNameInferenceStrategy implements FLTStrategy {
 		sampleSizes: FileLevelTelemetrySampleSize[]
 	): FileLevelTelemetryErrorRate {
 		const symbol = this.extractSymbol(record.name);
-		const sampleSize = sampleSizes.find(_ =>
-			this.extractSymbol(_.metricTimesliceName).equals(symbol)
-		);
+		const sampleSize = sampleSizes.find(_ => this.extractSymbol(_.facet[0]).equals(symbol));
 		const errorRate = sampleSize ? record.value / sampleSize.sampleSize : 0;
 		return {
 			...symbol,
 			errorRate,
-			metricTimesliceName: record.name,
+			facet: [record.name], // facet is [metricTimesliceName, lineno, colno]
 		};
 	}
 
@@ -207,12 +205,12 @@ export abstract class FLTNameInferenceStrategy implements FLTStrategy {
 		return {
 			...symbol,
 			sampleSize: record.value,
-			metricTimesliceName: record.name,
+			facet: [record.name], // facet is [metricTimesliceName, lineno, colno]
 			source,
 		};
 	}
 
 	private runNrql<T>(nrql: string): Promise<T[]> {
-		return this.provider.runNrql(this.accountId, nrql, 200);
+		return this.graphqlClient.runNrql(this.accountId, nrql, 200);
 	}
 }

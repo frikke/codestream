@@ -2,11 +2,12 @@ import {
 	ApiVersionCompatibility,
 	Capabilities,
 	CodeStreamEnvironmentInfo,
+	ObservabilityAnomaly,
 	ThirdPartyProviders,
-	Unreads,
 	VersionCompatibility,
 } from "@codestream/protocols/agent";
 import {
+	CLMSettings,
 	CSApiCapabilities,
 	CSCompany,
 	CSMarker,
@@ -17,7 +18,7 @@ import {
 	CSUser,
 } from "@codestream/protocols/api";
 
-import { RequestType } from "vscode-jsonrpc";
+import { NotificationType, RequestType } from "vscode-jsonrpc";
 import { EditorContext, IpcRoutes, SessionState, WebviewContext } from "./webview.protocol.common";
 
 export interface Collaborator {
@@ -28,6 +29,9 @@ export interface Collaborator {
 	};
 }
 
+export type IdeNames = "VSC" | "VS" | "JETBRAINS";
+export type BrowserEngines = "JCEF" | "JxBrowser" | "DotNetBrowser";
+
 export interface BootstrapInHostResponse {
 	capabilities: Capabilities;
 	configs: {
@@ -37,7 +41,7 @@ export interface BootstrapInHostResponse {
 	context: Partial<WebviewContext>;
 	environmentInfo?: CodeStreamEnvironmentInfo;
 	ide?: {
-		name: string | undefined;
+		name?: IdeNames;
 		detail: string | undefined;
 	};
 	session: SessionState;
@@ -62,13 +66,13 @@ export interface SignedInBootstrapData extends BootstrapInHostResponse {
 	teams: CSTeam[];
 	companies: CSCompany[];
 	users: CSUser[];
-	unreads: Unreads;
 	providers: ThirdPartyProviders;
 }
 
 export enum LogoutReason {
 	Unknown = "unknown",
 	ReAuthenticating = "reAuthenticating",
+	InvalidRefreshToken = "InvalidRefreshToken",
 }
 
 export interface LogoutRequest {
@@ -155,6 +159,53 @@ export const UpdateConfigurationRequestType = new RequestType<
 	void,
 	void
 >(`${IpcRoutes.Host}/configuration/update`);
+
+export interface SaveFileRequest {
+	path: string;
+	data: any;
+}
+export interface SaveFileResponse {
+	success: boolean;
+}
+
+export const SaveFileRequestType = new RequestType<SaveFileRequest, SaveFileResponse, void, void>(
+	`${IpcRoutes.Host}/file/save`
+);
+
+export interface OpenErrorGroupRequest {
+	errorGroupGuid: string;
+	occurrenceId: string;
+	lastOccurrence: number;
+	sessionStart?: number;
+	openType: string;
+	remote?: string;
+	entityId: string;
+}
+export interface OpenErrorGroupResponse {
+	success: boolean;
+}
+
+export const OpenErrorGroupRequestType = new RequestType<
+	OpenErrorGroupRequest,
+	OpenErrorGroupResponse,
+	void,
+	void
+>(`${IpcRoutes.Host}/errorGroup/open`);
+
+export interface OpenInBufferRequest {
+	contentType: "json" | "csv";
+	data: any;
+}
+export interface OpenInBufferResponse {
+	success: boolean;
+}
+
+export const OpenInBufferRequestType = new RequestType<
+	OpenInBufferRequest,
+	OpenInBufferResponse,
+	void,
+	void
+>(`${IpcRoutes.Host}/buffer/open`);
 
 export interface ShellPromptFolderRequest {
 	message: string;
@@ -272,3 +323,60 @@ export const RefreshEditorsCodeLensRequestType = new RequestType<
 	void,
 	void
 >(`${IpcRoutes.Host}/editors/codelens/refresh`);
+
+// for now, this needs to stay synced with vscode.ViewColumn
+export enum ViewColumn {
+	Active = -1,
+	Beside = -2,
+	One = 1,
+	Two = 2,
+	Three = 3,
+	Four = 4,
+	Five = 5,
+	Six = 6,
+	Seven = 7,
+	Eight = 8,
+	Nine = 9,
+}
+
+export interface OpenEditorViewNotification {
+	panel: "anomaly" | "logs" | "nrql" | "whatsnew";
+	title: string;
+	entryPoint: // logs
+	| "global_nav"
+		| "context_menu"
+		| "tree_view"
+		| "open_in_ide"
+		| "code_error"
+		// nrql
+		| "query_builder"
+		| "recent_queries"
+		| "nrql_file"
+		// other
+		| "notification"
+		| "golden_metrics"
+		| "profile"
+		| "entity_guid_finder";
+	ide: {
+		name?: IdeNames;
+		browserEngine?: BrowserEngines;
+	};
+	accountId?: number;
+	panelLocation?: ViewColumn;
+	entityGuid?: string;
+	query?: string;
+	hash?: string;
+	traceId?: string;
+	entityName?: string;
+	anomaly?: ObservabilityAnomaly;
+	clmSettings?: CLMSettings;
+	isProductionCloud?: boolean;
+	nrAiUserId?: string;
+	userId?: string;
+	demoMode?: boolean;
+}
+
+export const OpenEditorViewNotificationType = new NotificationType<
+	OpenEditorViewNotification,
+	void
+>(`${IpcRoutes.Host}/editor/open`);

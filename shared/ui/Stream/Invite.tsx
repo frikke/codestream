@@ -333,11 +333,11 @@ class Invite extends React.Component<Props, State> {
 					}, 1000);
 				}
 			});
-		HostApi.instance.track("Teammate Invited", {
-			"Invitee Email Address": newMemberEmail,
-			"Invitee Name": newMemberName,
-			"Invitation Method": "Manual",
-		});
+		// HostApi.instance.track("Teammate Invited", {
+		// 	"Invitee Email Address": newMemberEmail,
+		// 	"Invitee Name": newMemberName,
+		// 	"Invitation Method": "Manual",
+		// });
 	};
 
 	onSubmitNRUsers = event => {
@@ -385,11 +385,11 @@ class Invite extends React.Component<Props, State> {
 			default:
 				inviteMethod = "Suggested";
 		}
-		HostApi.instance.track("Teammate Invited", {
-			"Invitee Email Address": user.email,
-			"Invitee Name": user.fullName,
-			"Invitation Method": inviteMethod,
-		});
+		// HostApi.instance.track("Teammate Invited", {
+		// 	"Invitee Email Address": user.email,
+		// 	"Invitee Name": user.fullName,
+		// 	"Invitation Method": inviteMethod,
+		// });
 	};
 
 	focusEmailInput = () => {
@@ -796,7 +796,7 @@ const mapStateToProps = state => {
 	const teammates = mapFilter(memberIds, id => {
 		const user = users[id as string];
 		if (!user || !user.isRegistered || user.deactivated || user.externalUserId) return;
-		if (user.username === "Grok") {
+		if (user.username === "AI") {
 			return;
 		}
 		if (!user.fullName) {
@@ -819,7 +819,7 @@ const mapStateToProps = state => {
 	const invited = mapFilter(memberIds, id => {
 		const user = users[id as string];
 		if (!user || user.isRegistered || user.deactivated || user.externalUserId) return;
-		if (user.username === "Grok") {
+		if (user.username === "AI") {
 			return;
 		}
 		let email = user.email;

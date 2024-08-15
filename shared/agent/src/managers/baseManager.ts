@@ -145,14 +145,8 @@ export abstract class ManagerBase<T> {
 
 	cacheResponse(response: any) {
 		const container = SessionContainer.instance();
-		this.cacheResponseEntities(container.codemarks, [response.codemark]);
-		this.cacheResponseEntities(container.codemarks, response.codemarks);
-		this.cacheResponseEntities(container.codeErrors, response.codeErrors);
 		this.cacheResponseEntities(container.companies, response.companies);
-		this.cacheResponseEntities(container.markers, response.markers);
-		this.cacheResponseEntities(container.markerLocations, response.markerLocations);
 		this.cacheResponseEntities(container.posts, response.posts);
-		this.cacheResponseEntities(container.repos, response.repos);
 		this.cacheResponseEntities(container.streams, response.streams);
 		this.cacheResponseEntities(container.users, response.users);
 	}
@@ -166,7 +160,7 @@ export abstract class ManagerBase<T> {
 			entities = entities.filter(e => e && !isDirective(e));
 			manager.cache.set(entities);
 		} catch (ex) {
-			Logger.warn("Error caching response entities: " + ex.message);
+			Logger.warn(`Error caching response entities: ${ex.message}\n${ex.stack}`);
 		}
 	}
 

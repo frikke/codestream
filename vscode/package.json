@@ -2,7 +2,7 @@
 	"name": "codestream",
 	"displayName": "New Relic CodeStream",
 	"description": "Bring production telemetry into your IDE to quickly identify and resolve performance issues.",
-	"version": "14.30.2",
+	"version": "15.14.1",
 	"author": "CodeStream",
 	"publisher": "CodeStream",
 	"extensionKind": [
@@ -11,14 +11,14 @@
 	"license": "UNLICENSED",
 	"homepage": "https://codestream.com",
 	"bugs": {
-		"url": "https://github.com/TeamCodeStream/CodeStream/issues"
+		"url": "https://support.newrelic.com"
 	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/TeamCodeStream/CodeStream"
 	},
 	"engines": {
-		"vscode": "^1.50.0"
+		"vscode": "^1.73.0"
 	},
 	"main": "./dist/extension",
 	"icon": "assets/images/codestream.png",
@@ -31,13 +31,32 @@
 		"theme": "light"
 	},
 	"keywords": [
-		"gitlab",
-		"collaboration",
-		"bitbucket",
-		"github",
-		"slack"
+		"insights",
+		"observability"
 	],
 	"contributes": {
+		"snippets": [
+			{
+				"language": "nrql",
+				"path": "./nrql.snippets.json"
+			}
+		],
+		"languages": [
+			{
+				"id": "nrql",
+				"extensions": [
+					".nrql"
+				],
+				"configuration": "./nrql.configuration.json"
+			}
+		],
+		"grammars": [
+			{
+				"language": "nrql",
+				"scopeName": "source.nrql",
+				"path": "./nrql.tmGrammar.json"
+			}
+		],
 		"viewsContainers": {
 			"activitybar": [
 				{
@@ -98,30 +117,14 @@
 				},
 				"codestream.serverUrl": {
 					"type": "string",
-					"default": "https://codestream-us1.service.newrelic.com",
+					"default": "https://codestream-api-v2-us1.service.newrelic.com",
 					"description": "Specifies the url to use to connect to the CodeStream service",
 					"scope": "window"
 				},
-				"codestream.showInStatusBar": {
-					"type": "string",
-					"enum": [
-						"left",
-						"right",
-						false
-					],
-					"enumDescriptions": [
-						"Shows the CodeStream status bar item on the left",
-						"Shows the CodeStream status bar item on the right",
-						"No CodeStream status bar item will be shown"
-					],
-					"default": "left",
-					"description": "Specifies whether to show CodeStream in the status bar",
-					"scope": "window"
-				},
-				"codestream.showMarkerGlyphs": {
+				"codestream.highlightEntityGuids": {
 					"type": "boolean",
 					"default": true,
-					"description": "Specifies whether to show glyph indicators at the start of lines with associated codemarks in the editor",
+					"description": "Specifies whether to highlight entity guids in the editor",
 					"scope": "window"
 				},
 				"codestream.traceLevel": {
@@ -152,8 +155,8 @@
 		},
 		"commands": [
 			{
-				"command": "codestream.goOffline",
-				"title": "Go Offline",
+				"command": "codestream.debugProtocol",
+				"title": "debugProtocol",
 				"category": "CodeStream"
 			},
 			{
@@ -172,18 +175,16 @@
 				"category": "CodeStream"
 			},
 			{
-				"command": "codestream.newComment",
-				"title": "Add Comment",
-				"category": "CodeStream"
-			},
-			{
-				"command": "codestream.newIssue",
-				"title": "Create Issue",
-				"category": "CodeStream"
-			},
-			{
 				"command": "codestream.viewMethodLevelTelemetry",
 				"title": "View Method Level Telemetry"
+			},
+			{
+				"command": "codestream.logSearch",
+				"title": "Find in Logs"
+			},
+			{
+				"command": "codestream.executeNrql",
+				"title": "Execute Selected NRQL"
 			}
 		],
 		"keybindings": [
@@ -206,48 +207,17 @@
 				"when": "codestream:status == signedIn"
 			},
 			{
-				"command": "codestream.newComment",
+				"command": "codestream.executeNrql",
 				"args": {
 					"source": "Shortcut"
 				},
-				"key": "ctrl+shift+/ c",
-				"mac": "ctrl+/ c",
-				"when": "codestream:status == signedIn"
-			},
-			{
-				"command": "codestream.newComment",
-				"args": {
-					"source": "Shortcut"
-				},
-				"key": "ctrl+shift+/ ctrl+shift+c",
-				"mac": "ctrl+/ ctrl+c",
-				"when": "codestream:status == signedIn"
-			},
-			{
-				"command": "codestream.newIssue",
-				"args": {
-					"source": "Shortcut"
-				},
-				"key": "ctrl+shift+/ i",
-				"mac": "ctrl+/ i",
-				"when": "codestream:status == signedIn"
-			},
-			{
-				"command": "codestream.newIssue",
-				"args": {
-					"source": "Shortcut"
-				},
-				"key": "ctrl+shift+/ ctrl+shift+i",
-				"mac": "ctrl+/ ctrl+i",
-				"when": "codestream:status == signedIn"
+				"key": "ctrl+enter",
+				"mac": "cmd+enter",
+				"when": "codestream:status == signedIn && resourceExtname == .nrql"
 			}
 		],
 		"menus": {
 			"commandPalette": [
-				{
-					"command": "codestream.goOffline",
-					"when": "codestream:status != signedOut"
-				},
 				{
 					"command": "codestream.signIn",
 					"when": "codestream:status != signedIn && codestream:status != signingIn"
@@ -259,26 +229,18 @@
 				{
 					"command": "codestream.toggle",
 					"when": "codestream:status == signedIn"
-				},
-				{
-					"command": "codestream.newComment",
-					"when": "codestream:status == signedIn"
-				},
-				{
-					"command": "codestream.newIssue",
-					"when": "codestream:status == signedIn"
 				}
 			],
 			"editor/context": [
 				{
-					"command": "codestream.newComment",
-					"when": "codestream:status == signedIn",
-					"group": "9_zcodestream@1"
+					"command": "codestream.logSearch",
+					"when": "codestream:status == signedIn && editorTextFocus",
+					"group": "9_zcodestream@3"
 				},
 				{
-					"command": "codestream.newIssue",
-					"when": "codestream:status == signedIn && resourceScheme == file",
-					"group": "9_zcodestream@2"
+					"command": "codestream.executeNrql",
+					"when": "codestream:status == signedIn && editorTextFocus && resourceExtname == .nrql && editorHasSelection",
+					"group": "9_zcodestream@4"
 				}
 			]
 		},
@@ -309,10 +271,10 @@
 		"agent:watch": "pushd \"../shared/agent\" && npm run watch -- --ide vscode && popd",
 		"build": "tsx esbuild.ts",
 		"bundle:ci": "npm run clean:ci && npm run bundle",
-		"bundle": "npm install --no-save && npm run webview:verify && npm run agent:bundle && tsx esbuild.ts --prod",
+		"bundle": "npm install --no-save && npm run verify:compile && npm run webview:verify && npm run agent:bundle && tsx esbuild.ts --prod",
 		"cistart": "echo 'starting tests'",
 		"cistop": "echo 'starting tests'",
-		"citest": "npm run agent:test:ci && npm run webview:test:ci",
+		"citest": "npm run vscode:test:ci && npm run agent:test:ci && npm run webview:test:ci",
 		"clean:ci": "git clean -xdf && npm run webview:clean:ci && npm run agent:clean:ci",
 		"dev:vscode:test": "node ./out/src/__test__/runTest.js",
 		"dev:vscode:watch-tests": "tsc -p tsconfig.test.json -w --outDir out",
@@ -320,12 +282,14 @@
 		"mwatch": "tmux new-session 'npm run watch' \\; split-window -h 'npm run agent:watch'",
 		"pack": "vsce package",
 		"postinstall": "patch-package",
-		"preinstall": "pushd \"../shared/ui\" && npm install --no-save && popd && pushd \"../shared/util\" && npm install --no-save && popd && pushd \"../shared/build\" && npm install --no-save && popd",
+		"preinstall": "pushd \"../shared/ui\" && npm install --no-save && popd && pushd \"../shared/util\" && npm install --no-save && popd && pushd \"../shared/build\" && npm install --no-save && popd && pushd \"../shared/agent\" && npm install --no-save && popd",
 		"pretty": "prettier  --write \"./src/**/*.ts\" \"./src/**/*.js\" ./package.json ./.prettierrc.js",
 		"rebuild": "npm install --no-save && npm run agent:rebuild && npm run build",
 		"test": "npm run agent:test && npm run webview:test && npm run vscode:test",
 		"vscode:compile-tests": "rimraf out .tsbuildinfo && tsc --outDir out && tsc-alias --dir out && regex-replace '\".*\\.\\./vscode\"' '\"vscode\"' ./out",
-		"vscode:test": "npm run vscode:compile-tests && node ./out/vscode/src/__test__/runTest.js",
+		"vscode:test": "npx jest --forceExit --runInBand --testPathPattern=\"__test__\\/unit\\/.*\\.spec\\.ts$\"",
+		"vscode:test:ci": "npm run vscode:test",
+		"vscode:test-OLD": "npm run vscode:compile-tests && node ./out/vscode/src/__test__/runTest.js",
 		"verify:compile": "tsc --noEmit",
 		"verify:lint": "npx eslint  src/** *.js *.ts",
 		"verify:prettier": "prettier --check src/** docs/** *.ts *.js *.md package.json",
@@ -345,31 +309,35 @@
 		"node-abort-controller": "3.0.1",
 		"node-fetch": "2.6.7",
 		"source-map-support": "0.5.21",
+		"timed-cache": "2.0.0",
 		"uuid": "3.3.2",
 		"vscode-languageclient": "5.2.1"
 	},
 	"devDependencies": {
 		"@types/diff": "4.0.2",
 		"@types/glob": "7.2.0",
+		"@types/jest": "29.5.11",
 		"@types/keytar": "4.4.2",
 		"@types/lodash": "4.14.178",
 		"@types/mocha": "9.1.0",
 		"@types/node": "18",
 		"@types/node-fetch": "2.6.1",
 		"@types/sinon": "10.0.11",
+		"@types/timed-cache": "2.0.2",
 		"@types/uuid": "3.4.5",
-		"@types/vscode": "1.49.0",
-		"@typescript-eslint/eslint-plugin": "6.0.0",
-		"@typescript-eslint/parser": "6.0.0",
+		"@types/vscode": "1.73.1",
+		"@typescript-eslint/eslint-plugin": "7.10.0",
+		"@typescript-eslint/parser": "7.10.0",
 		"@vscode/test-electron": "2.1.2",
 		"babel-plugin-styled-components": "2.0.2",
-		"esbuild": "0.18.12",
-		"eslint": "8.44.0",
+		"esbuild": "0.21.3",
+		"eslint": "8.57.0",
 		"eslint-filtered-fix": "0.3.0",
-		"eslint-import-resolver-typescript": "3.5.5",
-		"eslint-plugin-import": "2.27.5",
-		"eslint-plugin-unused-imports": "3.0.0",
+		"eslint-import-resolver-typescript": "3.6.1",
+		"eslint-plugin-import": "2.29.1",
+		"eslint-plugin-unused-imports": "3.2.0",
 		"glob": "7.2.0",
+		"jest-teamcity": "1.11.0",
 		"less": "4.1.3",
 		"lint-staged": "13.2.3",
 		"mocha": "9.2.1",
@@ -378,9 +346,10 @@
 		"regex-replace": "2.3.1",
 		"rimraf": "3.0.2",
 		"sinon": "14.0.0",
-		"tsc-alias": "1.8.7",
-		"tsx": "3.12.7",
-		"typescript": "5.1.6",
+		"ts-jest": "29.1.3",
+		"tsc-alias": "1.8.10",
+		"tsx": "4.10.5",
+		"typescript": "5.4.5",
 		"vsce": "2.6.7"
 	},
 	"lint-staged": {
@@ -389,5 +358,8 @@
 			"eslint-filtered-fix --rule 'unused-imports/no-unused-imports' --rule 'unused-imports/no-unused-vars'"
 		],
 		"src/*.{js,jsx,ts,tsx}": "eslint"
+	},
+	"overrides": {
+		"braces": "3.0.3"
 	}
 }

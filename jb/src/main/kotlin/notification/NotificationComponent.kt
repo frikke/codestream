@@ -5,25 +5,31 @@ import com.codestream.agentService
 import com.codestream.appDispatcher
 import com.codestream.clmService
 import com.codestream.codeStream
+import com.codestream.gson
 import com.codestream.protocols.agent.Codemark
-import com.codestream.protocols.agent.FollowReviewParams
 import com.codestream.protocols.agent.ObservabilityAnomaly
 import com.codestream.protocols.agent.Post
-import com.codestream.protocols.agent.PullRequestNotification
 import com.codestream.protocols.agent.Review
 import com.codestream.protocols.agent.TelemetryParams
 import com.codestream.protocols.webview.CodemarkNotifications
+import com.codestream.protocols.webview.EditorOpenNotification
 import com.codestream.protocols.webview.ObservabilityAnomalyNotifications
-import com.codestream.protocols.webview.PullRequestNotifications
 import com.codestream.protocols.webview.ReviewNotifications
 import com.codestream.sessionService
 import com.codestream.settingsService
+import com.codestream.webViewEditorService
 import com.codestream.webViewService
+import com.codestream.webview.WebViewEditor
+import com.codestream.webview.WebViewEditorFile
+import com.intellij.notification.Notification
 import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationDisplayType
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
 import kotlinx.coroutines.launch
@@ -107,6 +113,25 @@ class NotificationComponent(val project: Project) {
         notification.notify(project)
     }
 
+    fun whatsNew(content: String){
+        val notification = Notification("codestream.notifications", "New Relic Codestream", content, NotificationType.INFORMATION)
+        notification.addAction(NotificationAction.createSimple("See What's New") {
+            ApplicationManager.getApplication().invokeLater {
+                val editorManager = FileEditorManager.getInstance(project)
+                val editorNotification = EditorOpenNotification("What's New", "whatsnew", null, null)
+                val file = WebViewEditorFile.create(gson.toJsonTree(editorNotification))
+
+                val editor = editorManager.openFile(file, true, true).firstOrNull()
+                editor?.component?.repaint()
+
+                notification.expire()
+            }})
+        notification.addAction(NotificationAction.createSimple("Dismiss"){
+            notification.expire()
+        })
+        Notifications.Bus.notify(notification)
+    }
+
     fun didDetectObservabilityAnomalies(entityGuid: String, duration: List<ObservabilityAnomaly>, errorRate: List<ObservabilityAnomaly>) {
         val count = duration.size + errorRate.size
         val allAnomalies = (duration + errorRate).sortedByDescending { it.ratio }
@@ -135,10 +160,19 @@ class NotificationComponent(val project: Project) {
                 }
                 project.clmService?.revealSymbol(firstAnomaly.codeFilepath, firstAnomaly.codeNamespace, firstAnomaly.codeFunction)
             }
-            telemetry(TelemetryEvent.TOAST_CLICKED, "CLM Anomaly")
+            val params = TelemetryParams(TelemetryEvent.TOAST_CLICKED.value, mapOf(
+                "meta_data" to "content: anomaly",
+                "target" to "toast",
+                "event_type" to "click"
+            ))
+            project.agentService?.agent?.telemetry(params)
         })
 
-        telemetry(TelemetryEvent.TOAST_NOTIFICATION, "CLM Anomaly")
+        val params = TelemetryParams(TelemetryEvent.TOAST_NOTIFICATION.value, mapOf(
+            "meta_data" to "content: anomaly",
+            "event_type" to "modal_display"
+        ))
+        project.agentService?.agent?.telemetry(params)
         notification.notify(project)
     }
 
@@ -187,12 +221,15 @@ class NotificationComponent(val project: Project) {
     }
 
     private enum class TelemetryEvent(val value: String) {
-        TOAST_NOTIFICATION("Toast Notification"),
-        TOAST_CLICKED("Toast Clicked")
+        TOAST_NOTIFICATION("codestream/toast displayed"),
+        TOAST_CLICKED("codestream/toast_button clicked")
     }
 
     private fun telemetry(event: TelemetryEvent, content: String) {
-        val params = TelemetryParams(event.value, mapOf("Content" to content))
+        val params = TelemetryParams(event.value, mapOf(
+            "meta_data" to "content: $content",
+            "event_type" to "modal_display"
+        ))
         project.agentService?.agent?.telemetry(params)
     }
 

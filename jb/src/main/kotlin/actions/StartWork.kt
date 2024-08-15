@@ -6,6 +6,7 @@ import com.codestream.protocols.webview.WorkNotifications
 import com.codestream.webViewService
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.LowPriorityAction
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -51,4 +52,8 @@ class StartWork : DumbAwareAction(), IntentionAction, LowPriorityAction, Iconabl
     override fun getText() = "Start work"
 
     override fun getIcon(flags: Int) = IconLoader.getIcon("/images/startwork.svg", this::class.java)
+
+    override fun getActionUpdateThread(): ActionUpdateThread {
+        return ActionUpdateThread.EDT
+    }
 }

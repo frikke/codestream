@@ -1,4 +1,3 @@
-import { Container } from "../../../container";
 import {
 	CodeLevelMetrics,
 	EntityAccount,
@@ -8,16 +7,18 @@ import {
 	ObservabilityRepo,
 	SpanWithCodeAttrs,
 } from "@codestream/protocols/agent";
-import { INewRelicProvider, NewRelicProvider } from "../../newrelic";
-import { Logger } from "../../../logger";
 import { getLanguageSupport, LanguageSupport } from "./languageSupport";
+import { NewRelicGraphqlClient } from "../newRelicGraphqlClient";
+import { ReposProvider } from "../repos/reposProvider";
+import { parseId } from "../utils";
 
 export class ClmManagerNew {
 	constructor(
 		private _request: GetClmRequest,
-		private _provider: INewRelicProvider
+		private graphqlClient: NewRelicGraphqlClient,
+		private reposProvider: ReposProvider
 	) {
-		this._accountId = NewRelicProvider.parseId(_request.entityGuid)!.accountId;
+		this._accountId = parseId(_request.entityGuid)!.accountId;
 	}
 
 	private _dataTimeFrame = "SINCE 30 minutes AGO";
@@ -52,20 +53,6 @@ export class ClmManagerNew {
 				duration: duration.value,
 			};
 			codeLevelMetrics.push(metric);
-		}
-
-		try {
-			const telemetry = Container.instance().telemetry;
-			const event = {
-				// "Total Methods": symbolStrs.size,
-				"Entity GUID": this._request.entityGuid,
-			};
-			telemetry?.track({
-				eventName: "CLM Anomalies Calculated",
-				properties: event,
-			});
-		} catch (e) {
-			Logger.warn("Error generating anomaly detection telemetry", e);
 		}
 
 		return {
@@ -151,7 +138,7 @@ export class ClmManagerNew {
 	}
 
 	private runNrql<T>(nrql: string): Promise<T[]> {
-		return this._provider.runNrql(this._accountId, nrql, 400);
+		return this.graphqlClient.runNrql(this._accountId, nrql, 400);
 	}
 
 	private _entityAccount: EntityAccount | undefined;
@@ -167,7 +154,7 @@ export class ClmManagerNew {
 	private async getObservabilityRepo(): Promise<ObservabilityRepo | undefined> {
 		if (this._observabilityRepo) return this._observabilityRepo;
 
-		const { repos: observabilityRepos } = await this._provider.getObservabilityRepos({});
+		const { repos: observabilityRepos } = await this.reposProvider.getObservabilityRepos({});
 		const { entityGuid } = this._request;
 
 		if (!observabilityRepos) return undefined;

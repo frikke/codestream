@@ -9,7 +9,6 @@ using System;
 using System.Threading.Tasks;
 using CodeStream.VisualStudio.Core;
 using CodeStream.VisualStudio.Shared.Authentication;
-using CodeStream.VisualStudio.Shared.Controllers;
 using CodeStream.VisualStudio.Shared.Events;
 using CodeStream.VisualStudio.Shared.Models;
 using CodeStream.VisualStudio.Shared.Services;

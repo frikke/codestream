@@ -1,4 +1,4 @@
-﻿using System.Collections.Specialized;
+using System.Collections.Specialized;
 using System.IO;
 using System.Reflection;
 using CodeStream.VisualStudio.Core;
@@ -20,17 +20,22 @@ namespace CodeStream.VisualStudio.Shared.LanguageServer
 		{
 			var assembly = Assembly.GetAssembly(typeof(LanguageServerClientProcess));
 			string arguments = null;
-			var exe = @"node.exe";
+			string exe = null;
 			var logPath = $"{Application.LogPath}{Application.LogNameAgent}";
 
+			var path = Path.GetDirectoryName(assembly.Location) + @"\dist\agent\agent.js";
+
 #if DEBUG
-			var path = Path.GetDirectoryName(assembly.Location) + @"\agent\agent.js";
-			arguments = $@"--nolazy --inspect=6009 ""{path}"" --stdio --log={logPath}";
-			Node.EnsureVersion(exe);
+			// globally installed node
+			exe = "node.exe";
+			arguments = $@"--nolazy --inspect=1337 ""{path}"" --stdio --log={logPath}";
 #else
-			exe = Path.GetDirectoryName(assembly.Location) + @"\agent\agent.exe";
-			arguments = $@"--stdio --nolazy --log={logPath}";
+			// the specific version we ship in the VSIX
+			exe = Path.GetDirectoryName(assembly.Location) + @"\dist\agent\node.exe";
+			arguments = $@"--nolazy ""{path}"" --stdio --log={logPath}";
 #endif
+
+			Node.EnsureVersion(exe);
 
 			var nrSettings = httpClient.GetNREnvironmentSettings();
 

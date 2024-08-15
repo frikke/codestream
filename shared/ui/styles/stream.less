@@ -1124,9 +1124,19 @@
 				max-height: none;
 			}
 		}
+		.error-markdown-content code {
+			display: inline;
+		}
+		.error-markdown-content .code,
+		code,
+		pre code {
+			white-space: pre-wrap;
+			display: inline;
+		}
 		.code.prettyprint {
 			position: relative;
 			padding-left: 0;
+			display: block;
 		}
 		x.prettyprint::before {
 			content: "";
@@ -2417,6 +2427,12 @@
 				transform: scale(1.4);
 			}
 		}
+		.markdown-code-language {
+			display: block;
+			padding: 0;
+			background: none;
+			border: 0;
+		}
 	}
 	.headshot-popup {
 		position: relative;
@@ -3373,4 +3389,8 @@ li,
 .vuln .subtle {
 	font-size: 11px;
 	color: var(--text-color-subtle);
+}
+
+.customDiffEditor {
+	min-height: 200px;
 }

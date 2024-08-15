@@ -1,11 +1,11 @@
 "use strict";
 import { ReviewDiffContentProvider } from "./providers/diffContentProvider";
-import { ExtensionContext, workspace } from "vscode";
+import { ExtensionContext, languages, workspace } from "vscode";
 import { WebviewLike } from "./webviews/webviewLike";
 import { GitContentProvider } from "./providers/gitContentProvider";
 import { InstrumentableCodeLensController } from "./controllers/instrumentableCodeLensController";
 import { BaseAgentOptions, CodeStreamAgentConnection } from "./agent/agentConnection";
-import { CodeStreamSession } from "./api/session";
+import { CodeStreamSession, SessionStatus } from "./api/session";
 import { Commands } from "./commands";
 import {
 	Config,
@@ -17,12 +17,13 @@ import { NotificationsController } from "./controllers/notificationsController";
 import { StatusBarController } from "./controllers/statusBarController";
 import { SidebarController } from "./controllers/sidebarController";
 import { Logger, TraceLevel } from "./logger";
-import { CodeStreamCodeActionProvider } from "./providers/codeActionProvider";
-import { CodemarkDecorationProvider } from "./providers/markerDecorationProvider";
 import { CodemarkPatchContentProvider } from "./providers/patchContentProvider";
 import { SetServerUrlRequestType } from "@codestream/protocols/agent";
-import { EditorController } from "controllers/editorController";
-// import { WebviewSidebarActivator } from "./views/webviewSidebarActivator";
+import { EditorController } from "./controllers/editorController";
+import { NrqlCodeLensController } from "./controllers/nrqlCodeLensController";
+import { PanelController } from "./controllers/panelController";
+import { NrqlDocumentSymbolProvider } from "./providers/nrqlDocumentSymbolProvider";
+import { CodeStreamInlayHintsProvider } from "providers/inlayHintProvider";
 
 export class Container {
 	static telemetryOptions?: TelemetryOptions;
@@ -52,19 +53,54 @@ export class Container {
 		context.subscriptions.push((this._session = new CodeStreamSession(config.serverUrl)));
 		context.subscriptions.push((this._notifications = new NotificationsController()));
 		context.subscriptions.push((this._commands = new Commands()));
-		context.subscriptions.push((this._codeActions = new CodeStreamCodeActionProvider()));
 		context.subscriptions.push((this._diffContents = new ReviewDiffContentProvider()));
 		context.subscriptions.push((this._gitContents = new GitContentProvider()));
-		context.subscriptions.push((this._markerDecorations = new CodemarkDecorationProvider()));
 		context.subscriptions.push(
 			(this._instrumentableCodeLensController = new InstrumentableCodeLensController())
 		);
+		context.subscriptions.push((this._inlayHintsProvider = new CodeStreamInlayHintsProvider()));
 		context.subscriptions.push(new CodemarkPatchContentProvider());
 		context.subscriptions.push((this._statusBar = new StatusBarController()));
 
-		context.subscriptions.push((this._sidebar = new SidebarController(this._session, sidebar)));
+		context.subscriptions.push(
+			(this._sidebar = new SidebarController(context, this._session, sidebar))
+		);
+		context.subscriptions.push((this._panel = new PanelController(context, this._session)));
 		context.subscriptions.push(configuration.onWillChange(this.onConfigurationChanging, this));
 		context.subscriptions.push(configuration.onDidChangeAny(this.onConfigurationChangeAny, this));
+
+		// we want this to be created even before a user logs in
+		// there is a non-authed codelens
+		this._nrqlCodeLensController = new NrqlCodeLensController(this._session);
+		this._nrqlCodeLensController.create();
+
+		context.subscriptions.push(this._nrqlCodeLensController);
+		const onDidStartDisposable = this._session.onDidChangeSessionStatus(e => {
+			const status = e.getStatus();
+			this._nrqlCodeLensController?.update(status);
+			this._nrqlDocumentSymbolProvider?.update(status);
+
+			if (status === SessionStatus.SignedIn) {
+				// only create this once!
+				// _nrqlDocumentSymbolProvider requires a working lsp agent connection
+				// and we won't have that until the user auths
+				if (!this._nrqlDocumentSymbolProvider && !this._nrqlDocumentSymbolProvider) {
+					this._nrqlDocumentSymbolProvider = new NrqlDocumentSymbolProvider(
+						this._session,
+						Container._agent
+					);
+
+					context.subscriptions.push(
+						languages.registerDocumentSymbolProvider(
+							{ scheme: "file", language: "nrql" },
+							this._nrqlDocumentSymbolProvider
+						)
+					);
+				}
+			}
+		});
+
+		context.subscriptions.push(onDidStartDisposable);
 
 		await this._agent.start();
 	}
@@ -133,9 +169,9 @@ export class Container {
 		return this._agent;
 	}
 
-	private static _codeActions: CodeStreamCodeActionProvider;
-	static get codeActions() {
-		return this._codeActions;
+	private static _inlayHintsProvider: CodeStreamInlayHintsProvider;
+	static get inlayHintsProvider() {
+		return this._inlayHintsProvider;
 	}
 
 	private static _commands: Commands;
@@ -166,14 +202,18 @@ export class Container {
 		return this._context;
 	}
 
-	private static _markerDecorations: CodemarkDecorationProvider;
-	static get markerDecorations() {
-		return this._markerDecorations;
-	}
-
 	private static _instrumentableCodeLensController: InstrumentableCodeLensController;
 	static get instrumentableCodeLensController() {
 		return this._instrumentableCodeLensController;
+	}
+	private static _nrqlCodeLensController: NrqlCodeLensController;
+	static get nrqlCodeLensController() {
+		return this._nrqlCodeLensController;
+	}
+
+	private static _nrqlDocumentSymbolProvider: NrqlDocumentSymbolProvider;
+	static get nrqlDocumentSymbolProvider() {
+		return this._nrqlDocumentSymbolProvider;
 	}
 
 	private static _notifications: NotificationsController;
@@ -209,6 +249,10 @@ export class Container {
 	private static _sidebar: SidebarController;
 	static get sidebar() {
 		return this._sidebar;
+	}
+	private static _panel: PanelController;
+	static get panel() {
+		return this._panel;
 	}
 
 	private static _editor: EditorController;

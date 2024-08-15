@@ -13,21 +13,20 @@ import { removeSymlinks } from "../shared/build/src/symlinks";
 import { statsPlugin } from "../shared/build/src/statsPlugin";
 
 async function webBuild(args: Args) {
-	const webview = args.webview ?? "sidebar";
-	const context = path.resolve(__dirname, "src/webviews", webview);
-	const target = path.resolve(__dirname, "dist/webviews", webview);
+	const webviewName = args.webview ?? "sidebar";
+	const context = path.resolve(__dirname, "src/webviews", webviewName);
+	const target = path.resolve(__dirname, "dist/webviews", webviewName);
 	const dist = path.resolve(__dirname, "dist");
 
 	const webCopy = copyPlugin({
 		onEnd: [
 			{
-				from: path.resolve(context, "index.html"),
-				to: __dirname,
-				options: { rename: `${webview}.html` }
+				from: path.resolve(context, `${webviewName}.html`),
+				to: path.join(__dirname, `${webviewName}.html`)
 			},
 			{
-				from: path.resolve(target, "index.js.map"),
-				to: dist
+				from: path.resolve(target, `${webviewName}.js.map`),
+				to: path.join(dist, `${webviewName}.js.map`)
 			}
 		]
 	});
@@ -35,8 +34,8 @@ async function webBuild(args: Args) {
 	const buildOptions: BuildOptions = {
 		...commonEsbuildOptions(true, args, [webCopy]),
 		entryPoints: [
-			path.resolve(context, "./index.ts"),
-			path.resolve(context, "styles", "webview.less")
+			path.resolve(context, `./${webviewName}.ts`),
+			path.resolve(context, "styles", `./${webviewName}.less`)
 		],
 		sourcemap: args.mode === "production" ? "linked" : "both",
 		outdir: target
@@ -52,7 +51,8 @@ async function extensionBuild(args: Args) {
 	const postBuildCopy: CopyStuff[] = [
 		{
 			from: path.resolve(__dirname, "../shared/agent/dist/**"),
-			to: dist
+			to: dist,
+			options: { ignore: ["**/agent-vs*"] }
 		},
 		{
 			from: path.resolve(__dirname, "codestream-*.info"),
@@ -60,8 +60,8 @@ async function extensionBuild(args: Args) {
 			to: dist
 		},
 		{
-			from: path.resolve(__dirname, "../shared/webviews/newrelic-browser.js"),
-			to: dist
+			from: path.resolve(__dirname, "../shared/ui/newrelic-browser.js"),
+			to: `${dist}/newrelic-browser.js`
 		}
 	];
 
@@ -84,10 +84,13 @@ async function extensionBuild(args: Args) {
 (async function () {
 	const args = processArgs();
 	removeSymlinks(__dirname);
+
 	console.info("Starting Primary Webview Build...");
 	await webBuild({ ...args, webview: "sidebar" });
-	//console.info("Starting Secondary Webview Build...");
-	//await webBuild({ ...args, webview: "editor" });
+
+	console.info("Starting Secondary Webview Build...");
+	await webBuild({ ...args, webview: "editor" });
+
 	console.info("Starting extensionBuild");
 	await extensionBuild(args);
 })();

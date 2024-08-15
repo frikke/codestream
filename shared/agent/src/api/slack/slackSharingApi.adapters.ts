@@ -1,11 +1,10 @@
 "use strict";
-import { CodeErrorPlus, CodemarkPlus, ReviewPlus } from "@codestream/protocols/agent";
+import { CodemarkPlus, ReviewPlus } from "@codestream/protocols/agent";
 import {
 	CodemarkType,
 	CSChannelStream,
 	CSCodemark,
 	CSDirectStream,
-	CSMarker,
 	CSPost,
 	CSRepository,
 	CSTeam,
@@ -14,16 +13,9 @@ import {
 } from "@codestream/protocols/api";
 import { ActionsBlock, KnownBlock, MessageAttachment } from "@slack/web-api";
 
-import { SessionContainer } from "../../container";
 import { Logger } from "../../logger";
 import { providerDisplayNamesByNameKey } from "../../providers/provider";
-import {
-	Marker,
-	toActionId,
-	toCodeErrorActionId,
-	toExternalActionId,
-	toReviewActionId,
-} from "../extensions";
+import { Marker, toActionId, toExternalActionId, toReviewActionId } from "../extensions";
 
 import getProviderDisplayName = Marker.getProviderDisplayName;
 
@@ -277,28 +269,6 @@ export async function fromSlackPost(
 	if (post.attachments != null && post.attachments.length !== 0) {
 		// Filter out unfurled links
 		// TODO: Turn unfurled images into files
-
-		if (codemark == null) {
-			// legacy slack posts with codemarks
-			const attachments = post.attachments.filter((a: any) => a.from_url == null);
-			if (attachments.length !== 0) {
-				codemark = await fromSlackPostAttachmentToCodemark(attachments, teamId);
-				if (codemark == null) {
-					// legacy markers
-					const marker = await fromSlackPostAttachmentToMarker(attachments);
-					if (marker) {
-						codemark = await SessionContainer.instance().codemarks.getById(marker.codemarkId);
-					}
-				}
-				if (codemark == null) {
-					// Get text/fallback for attachments
-					text += "\n";
-					for (const attachment of attachments) {
-						text += `\n${attachment.text || attachment.fallback}`;
-					}
-				}
-			}
-		}
 	}
 
 	let files;
@@ -390,12 +360,7 @@ async function fromSlackPostAttachmentToCodemark(
 		return undefined;
 	}
 
-	try {
-		return await SessionContainer.instance().codemarks.getById(codemarkId);
-	} catch (ex) {
-		Logger.error(ex, `Failed to find codemark=${codemarkId}`);
-		return undefined;
-	}
+	return undefined;
 }
 
 async function fromSlackPostBlocksToCodemark(
@@ -417,12 +382,7 @@ async function fromSlackPostBlocksToCodemark(
 		return undefined;
 	}
 
-	try {
-		return await SessionContainer.instance().codemarks.getById(codemarkId);
-	} catch (ex) {
-		Logger.error(ex, `Failed to find codemark=${codemarkId}`);
-		return undefined;
-	}
+	return undefined;
 }
 
 export function fromSlackPostFile(file: any) {
@@ -466,27 +426,6 @@ export function fromSlackPostFile(file: any) {
 		url: file.permalink,
 		preview: preview,
 	};
-}
-
-export async function fromSlackPostAttachmentToMarker(
-	attachments: MessageAttachment[]
-): Promise<CSMarker | undefined> {
-	const attachment = attachments.find(
-		(a: any) => a.callback_id != null && markerAttachmentRegex.test(a.callback_id)
-	);
-	if (attachment == null) return undefined;
-
-	const match = markerAttachmentRegex.exec(attachment.callback_id || "");
-	if (match == null) return undefined;
-
-	const [, markerId] = match;
-
-	try {
-		return await SessionContainer.instance().markers.getById(markerId);
-	} catch (ex) {
-		Logger.error(ex, `Failed to find marker=${markerId}`);
-		return undefined;
-	}
 }
 
 export function fromSlackPostText(
@@ -550,6 +489,7 @@ export function fromSlackUser(user: any, teamId: string): CSUser {
 		firstName: user.profile.first_name,
 		fullName: user.real_name,
 		id: user.id,
+		nrUserId: user.nrUserId,
 		codestreamId: codestreamId,
 		isRegistered: codestreamId !== undefined,
 		iWorkOn: undefined,
@@ -1090,98 +1030,6 @@ export function toSlackReviewPostBlocks(
 		type: "context",
 		// MUST keep this data in sync with codemarkAttachmentRegex above
 		block_id: `codestream://review/${review.id}?teamId=${review.teamId}`,
-		elements: [
-			{
-				type: "plain_text",
-				text: "Replies in thread will be shared to CodeStream",
-			},
-		],
-	});
-
-	return blocks;
-}
-
-export function toSlackCodeErrorPostBlocks(
-	codeError: CodeErrorPlus,
-	userMaps: UserMaps,
-	repos?: { [key: string]: CSRepository } | undefined,
-	slackUserId?: string
-): Blocks {
-	const blocks: Blocks = [];
-	const creator = userMaps.codeStreamUsersByUserId.get(codeError.creatorId);
-	let creatorName = "Someone ";
-	if (creator && creator.username) {
-		creatorName = `${creator.username} `;
-	}
-	blocks.push({
-		type: "context",
-		elements: [
-			{
-				type: "mrkdwn",
-				text: `${creatorName}is diagnosing an issue`,
-			},
-		],
-	});
-
-	if (codeError.title) {
-		blocks.push({
-			type: "section",
-			text: {
-				type: "mrkdwn",
-				text: toSlackText(codeError.title, userMaps),
-			},
-		});
-	}
-
-	if (codeError.stackTraces && codeError.stackTraces[0]) {
-		// 9 = ```*2 + ...
-		const stackTrace = codeError.stackTraces[0].text || (codeError as any).stackTrace || "";
-		const contentLength = stackTrace.length + 9;
-		const isTruncated = contentLength > slackBlockTextCodeMax;
-		blocks.push({
-			type: "section",
-			text: {
-				type: "mrkdwn",
-				text: `\`\`\`${stackTrace.substring(0, slackBlockTextCodeMax - 9)}${
-					isTruncated ? "..." : ""
-				}\`\`\``,
-			},
-		});
-
-		if (isTruncated) {
-			blocks.push(blockTruncated());
-		}
-	}
-
-	const permalink = codeError.permalink;
-	if (permalink) {
-		const counter = 0;
-		const actionId = toCodeErrorActionId(counter, "ide", codeError);
-		const actions: ActionsBlock = {
-			type: "actions",
-			block_id: "codeerror_actions",
-			elements: [
-				{
-					type: "button",
-					action_id: actionId,
-					text: {
-						type: "plain_text",
-						text: "Open in IDE",
-					},
-					url: `${permalink}?ide=default&src=${encodeURIComponent(
-						providerDisplayNamesByNameKey.get("slack") || ""
-					)}`,
-				},
-			],
-		};
-
-		blocks.push(actions);
-	}
-
-	blocks.push({
-		type: "context",
-		// MUST keep this data in sync with codemarkAttachmentRegex above
-		block_id: `codestream://review/${codeError.id}?teamId=${codeError.teamId}`,
 		elements: [
 			{
 				type: "plain_text",

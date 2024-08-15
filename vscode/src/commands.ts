@@ -1,12 +1,23 @@
 import * as paths from "path";
 
-import { CodemarkType, CSMarkerIdentifier, CSReviewCheckpoint } from "@codestream/protocols/api";
-import { commands, Disposable, env, Range, Uri, ViewColumn, window, workspace } from "vscode";
+import { CSMarkerIdentifier, CSReviewCheckpoint } from "@codestream/protocols/api";
+import {
+	commands,
+	Disposable,
+	env,
+	Range,
+	Uri,
+	ViewColumn,
+	window,
+	workspace,
+	TextDocument
+} from "vscode";
 import {
 	FileLevelTelemetryRequestOptions,
 	MetricTimesliceNameMapping,
 	ObservabilityAnomaly
 } from "@codestream/protocols/agent";
+import { SymbolLocator } from "providers/symbolLocator";
 
 import { Editor } from "./extensions/editor";
 import { openUrl } from "./urlHandler";
@@ -19,6 +30,8 @@ import { Container } from "./container";
 import { Logger } from "./logger";
 import { Command, createCommandDecorator, Strings } from "./system";
 import * as csUri from "./system/uri";
+import { md5 } from "@codestream/utils/system/string";
+// import { md5 } from "@codestream/utils/system/string";
 
 const commandRegistry: Command[] = [];
 const command = createCommandDecorator(commandRegistry);
@@ -76,6 +89,7 @@ export interface OpenCodemarkCommandArgs {
 	codemarkId: string;
 	onlyWhenVisible?: boolean;
 	sourceUri?: Uri;
+	source?: string;
 }
 
 export interface OpenPullRequestCommandArgs {
@@ -123,8 +137,24 @@ export interface ViewMethodLevelTelemetryCommandArgs
 	anomaly?: ObservabilityAnomaly;
 }
 
+export interface ExecuteNrqlCommandArgs {
+	fileUri: Uri;
+	text: string;
+	lineNumber?: number;
+	accountId?: number;
+	entryPoint?: "nrql_file" | "entity_guid_finder";
+}
+
+export interface ExecuteLogCommandArgs {
+	entityGuid?: string;
+	lineNumber?: number;
+	entryPoint?: "context_menu" | "entity_guid_finder";
+	ignoreSearch?: boolean;
+}
+
 export class Commands implements Disposable {
 	private readonly _disposable: Disposable;
+	private readonly _symbolLocator: SymbolLocator;
 
 	constructor() {
 		this._disposable = Disposable.from(
@@ -135,15 +165,11 @@ export class Commands implements Disposable {
 				Container.sidebar.show()
 			)
 		);
+		this._symbolLocator = new SymbolLocator();
 	}
 
 	dispose() {
 		this._disposable && this._disposable.dispose();
-	}
-
-	@command("goOffline")
-	goOffline() {
-		return Container.session.goOffline();
 	}
 
 	@command("insertText", { showErrorMessage: "Unable to insertText" })
@@ -286,6 +312,24 @@ export class Commands implements Disposable {
 		return true;
 	}
 
+	@command("debugProtocol")
+	async debugProtocol(args: any) {
+		try {
+			const query =
+				(await window.showInputBox({
+					value: "",
+					placeHolder: "Paste a url here"
+				})) || "";
+			if (query) {
+				Container.sidebar.handleProtocol(Uri.parse(query));
+			} else {
+				Logger.warn("invalid query");
+			}
+		} catch (ex) {
+			Logger.error(ex);
+		}
+	}
+
 	async showLocalDiff(args: {
 		repoId: string;
 		filePath: string;
@@ -363,16 +407,6 @@ export class Commands implements Disposable {
 		return this.startWorkRequest();
 	}
 
-	@command("newComment", { showErrorMessage: "Unable to add comment" })
-	newComment(args?: NewCodemarkCommandArgs) {
-		return this.newCodemarkRequest(CodemarkType.Comment, args);
-	}
-
-	@command("newIssue", { showErrorMessage: "Unable to create issue" })
-	newIssue(args?: NewCodemarkCommandArgs) {
-		return this.newCodemarkRequest(CodemarkType.Issue, args);
-	}
-
 	@command("newReview", { showErrorMessage: "Unable to request a review" })
 	newReview(args?: NewReviewCommandArgs) {
 		return this.newReviewRequest(args);
@@ -386,16 +420,6 @@ export class Commands implements Disposable {
 	@command("showPreviousChangedFile", { showErrorMessage: "Unable to show previous changed file" })
 	showPreviousChangedFile() {
 		return this.showPreviousChangedFileRequest();
-	}
-
-	@command("newBookmark", { showErrorMessage: "Unable to add bookmark" })
-	newBookmark(args?: NewCodemarkCommandArgs) {
-		return this.newCodemarkRequest(CodemarkType.Bookmark, args);
-	}
-
-	@command("newPermalink", { showErrorMessage: "Unable to get permalink" })
-	newPermalink(args?: NewCodemarkCommandArgs) {
-		return this.newCodemarkRequest(CodemarkType.Link, args);
 	}
 
 	@command("newPullRequest", { showErrorMessage: "Unable to create Pull Request" })
@@ -418,83 +442,12 @@ export class Commands implements Disposable {
 		return env.clipboard.writeText(response.linkUrl);
 	}
 
-	// @command("gotoCodemark0", {
-	// 	args: ([args]) => [{ ...(args || {}), index: 0 }],
-	// 	showErrorMessage: "Unable to jump to codemark #0"
-	// })
-	// @command("gotoCodemark1", {
-	// 	args: ([args]) => [{ ...(args || {}), index: 1 }],
-	// 	showErrorMessage: "Unable to jump to codemark #1"
-	// })
-	// @command("gotoCodemark2", {
-	// 	args: ([args]) => [{ ...(args || {}), index: 2 }],
-	// 	showErrorMessage: "Unable to jump to codemark #2"
-	// })
-	// @command("gotoCodemark3", {
-	// 	args: ([args]) => [{ ...(args || {}), index: 3 }],
-	// 	showErrorMessage: "Unable to jump to codemark #3"
-	// })
-	// @command("gotoCodemark4", {
-	// 	args: ([args]) => [{ ...(args || {}), index: 4 }],
-	// 	showErrorMessage: "Unable to jump to codemark #4"
-	// })
-	// @command("gotoCodemark5", {
-	// 	args: ([args]) => [{ ...(args || {}), index: 5 }],
-	// 	showErrorMessage: "Unable to jump to codemark #5"
-	// })
-	// @command("gotoCodemark6", {
-	// 	args: ([args]) => [{ ...(args || {}), index: 6 }],
-	// 	showErrorMessage: "Unable to jump to codemark #6"
-	// })
-	// @command("gotoCodemark7", {
-	// 	args: ([args]) => [{ ...(args || {}), index: 7 }],
-	// 	showErrorMessage: "Unable to jump to codemark #7"
-	// })
-	// @command("gotoCodemark8", {
-	// 	args: ([args]) => [{ ...(args || {}), index: 8 }],
-	// 	showErrorMessage: "Unable to jump to codemark #8"
-	// })
-	// @command("gotoCodemark9", {
-	// 	args: ([args]) => [{ ...(args || {}), index: 9 }],
-	// 	showErrorMessage: "Unable to jump to codemark #9"
-	// })
-	// async gotoCodemark(args?: GotoCodemarkCommandArgs) {
-	// 	if (args === undefined) return;
-
-	// 	Container.agent.telemetry.track("Codemark Clicked", { "Codemark Location": "Shortcut" });
-	// 	const response = await Container.agent.documentMarkers.getDocumentFromKeyBinding(args.index);
-	// 	if (response == null) return;
-
-	// 	const uri = Uri.parse(response.textDocument.uri);
-
-	// 	await Editor.selectRange(
-	// 		uri,
-	// 		new Range(
-	// 			response.range.start.line,
-	// 			response.range.start.character,
-	// 			response.range.start.line,
-	// 			response.range.start.character
-	// 		),
-	// 		undefined,
-	// 		{
-	// 			preserveFocus: false
-	// 		}
-	// 	);
-
-	// 	await Container.sidebar.openCodemark(response.marker.codemarkId, {
-	// 		onlyWhenVisible: true,
-	// 		sourceUri: uri
-	// 	});
-	// }
-
 	@command("openCodemark", { showErrorMessage: "Unable to open comment" })
 	async openCodemark(args: OpenCodemarkCommandArgs): Promise<void> {
 		if (args === undefined) return;
 
-		Container.agent.telemetry.track("Codemark Clicked", { "Codemark Location": "Source File" });
-
 		const { codemarkId: _codemarkId, ...options } = args;
-		return Container.sidebar.openCodemark(args.codemarkId, options);
+		return Container.sidebar.openCodemark(args.codemarkId, { source: "source_file", ...options });
 	}
 
 	@command("openPullRequest", { showErrorMessage: "Unable to open pull request" })
@@ -512,7 +465,7 @@ export class Commands implements Disposable {
 			trackParams["Comment Location"] = "Diff Gutter";
 		}
 
-		Container.agent.telemetry.track("PR Comment Clicked", trackParams);
+		// Container.agent.telemetry.track("PR Comment Clicked", trackParams);
 
 		if (args.externalUrl) {
 			return openUrl(args.externalUrl);
@@ -588,9 +541,9 @@ export class Commands implements Disposable {
 		try {
 			parsedArgs = JSON.parse(args) as ViewMethodLevelTelemetryCommandArgs;
 			if (parsedArgs.error?.type === "NO_RUBY_VSCODE_EXTENSION") {
-				Container.agent.telemetry.track("MLT Language Extension Prompt", {
-					Language: parsedArgs.languageId
-				});
+				// Container.agent.telemetry.track("MLT Language Extension Prompt", {
+				// 	Language: parsedArgs.languageId
+				// });
 			}
 			if (parsedArgs.error?.type === "NO_SPANS") {
 				// no-op
@@ -610,6 +563,137 @@ export class Commands implements Disposable {
 		}
 	}
 
+	@command("executeNrql")
+	async executeNrql(args: ExecuteNrqlCommandArgs | Uri): Promise<void> {
+		const editor = window.activeTextEditor;
+		if (editor === undefined) return;
+
+		if (args instanceof Uri) {
+			args = {
+				fileUri: args,
+				text: ""
+			};
+		}
+
+		let nrqlQuery: string | undefined = undefined;
+
+		if (editor.selection && !editor.selection.isEmpty) {
+			nrqlQuery = editor.document.getText(editor.selection);
+		} else {
+			if (args.text) {
+				nrqlQuery = args.text;
+			} else if (args.lineNumber) {
+				nrqlQuery = editor.document.lineAt(args.lineNumber).text;
+			}
+		}
+		if (!nrqlQuery) {
+			// notification of some sort that we couldn't find anything to search on?
+			await window.showErrorMessage("Please select a NRQL query to execute", "Dismiss");
+		} else {
+			const currentRepoId = Container.session.user?.preferences?.currentO11yRepoId;
+			let currentEntityGuid;
+			if (!args.accountId) {
+				currentEntityGuid = currentRepoId
+					? (Container.session?.user?.preferences?.activeO11y?.[currentRepoId] as string)
+					: undefined;
+			}
+
+			await Container.panel.initializeOrShowEditor({
+				panelLocation: ViewColumn.Beside,
+				// UI can get the accountId based on the entityGuid (parsed)
+				accountId: args.accountId,
+				entityGuid: currentEntityGuid!,
+				panel: "nrql",
+				title: "NRQL",
+				query: nrqlQuery,
+				entryPoint: args.entryPoint || "nrql_file",
+				hash: args.fileUri ? md5(args.fileUri.toString()) : undefined,
+				ide: {
+					name: "VSC"
+				}
+			});
+		}
+	}
+
+	@command("logSearch")
+	async logSearch(args: ExecuteLogCommandArgs | Uri): Promise<void> {
+		const editor = window.activeTextEditor;
+		if (editor === undefined) return;
+
+		if (args instanceof Uri) {
+			args = {} as ExecuteLogCommandArgs;
+		}
+
+		let searchTerm;
+		if (!args.ignoreSearch) {
+			searchTerm = editor.document.getText(editor.selection);
+
+			if (!searchTerm) {
+				// cursor sitting on a line, but nothing actually highlighted
+				searchTerm = this.extractStringsFromLine(editor.document, editor.selection.start.line);
+			} else {
+				// take highlighted section minus leading/trailing quotes & spaces.
+				searchTerm = searchTerm
+					.trim()
+					.replace(/^["'`]|["'`]$/g, "")
+					.trim();
+			}
+
+			if (!searchTerm) {
+				// notification of some sort that we couldn't find anything to search on?
+				await window.showErrorMessage(
+					"We were unable to determine the search criteria from your selection or line of code.",
+					"Dismiss"
+				);
+				return;
+			}
+		}
+
+		let currentEntityGuid: string | undefined;
+		if (args?.entityGuid) {
+			currentEntityGuid = args.entityGuid;
+		} else {
+			const currentRepoId = Container.session.user?.preferences?.currentO11yRepoId;
+			currentEntityGuid = currentRepoId
+				? (Container.session?.user?.preferences?.activeO11y?.[currentRepoId] as string)
+				: undefined;
+		}
+
+		Container.panel.initializeOrShowEditor({
+			panelLocation: ViewColumn.Active,
+			entityGuid: currentEntityGuid!,
+			panel: "logs",
+			title: "Logs",
+			query: searchTerm,
+			entryPoint: args?.entryPoint || "context_menu",
+			ide: {
+				name: "VSC"
+			}
+		});
+	}
+
+	private extractStringsFromLine(document: TextDocument, lineNumber: number): string {
+		const line = document.lineAt(lineNumber);
+
+		// https://regex101.com/r/Pky4GV/6
+		const matches = line.text.match(
+			/"(?:[^"]|"")*(?:"|$)|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^'\\]|\\.)*`/gim
+		);
+		const match = matches?.[0];
+
+		if (!match) {
+			return "";
+		}
+
+		const fixed = match
+			.trim()
+			.replace(/\$?{.*}/g, "") // replace interpolated values - {0}, {variable2}, ${something}, ${variable23}
+			.replace(/^["'`]|["'`]$/g, "") // replace leading and trailing quotes - ' / " / `
+			.trim();
+
+		return fixed;
+	}
+
 	async updateEditorCodeLens(): Promise<boolean> {
 		Container.instrumentableCodeLensController.refresh();
 		return true;
@@ -617,14 +701,6 @@ export class Commands implements Disposable {
 
 	private async startWorkRequest() {
 		await Container.sidebar.startWorkRequest(window.activeTextEditor, "Context Menu");
-	}
-
-	private async newCodemarkRequest(type: CodemarkType, args: NewCodemarkCommandArgs = {}) {
-		await Container.sidebar.newCodemarkRequest(
-			type,
-			window.activeTextEditor,
-			args.source || "Context Menu"
-		);
 	}
 
 	private async newReviewRequest(args: NewCodemarkCommandArgs = {}) {

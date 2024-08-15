@@ -13,6 +13,9 @@ import {
 	FindCandidateMainFilesRequest,
 	FindCandidateMainFilesRequestType,
 	FindCandidateMainFilesResponse,
+	GetRepoFileFromAbsolutePathRequest,
+	GetRepoFileFromAbsolutePathRequestType,
+	GetRepoFileFromAbsolutePathResponse,
 	InstallNewRelicRequest,
 	InstallNewRelicRequestType,
 	InstallNewRelicResponse,
@@ -27,16 +30,17 @@ import {
 	ResolveStackTraceRequest,
 	ResolveStackTraceRequestType,
 	ResolveStackTraceResponse,
+	SourceMapEntry,
+	TelemetryData,
 	WarningOrError,
 } from "@codestream/protocols/agent";
 import { CSStackTraceInfo, CSStackTraceLine } from "@codestream/protocols/api";
 import { structuredPatch } from "diff";
-
+import { isEmpty } from "lodash";
 import { Container, SessionContainer } from "../container";
 import { isWindows } from "../git/shell";
 import { Logger } from "../logger";
 import { calculateLocation, MAX_RANGE_VALUE } from "../markerLocation/calculator";
-import { NewRelicProvider } from "../providers/newrelic";
 import { CodeStreamSession } from "../session";
 import { log } from "../system/decorators/log";
 import { lsp, lspHandler } from "../system/decorators/lsp";
@@ -55,6 +59,7 @@ import { Parser as phpParser } from "./stackTraceParsers/phpStackTraceParser";
 import { Parser as pythonParser } from "./stackTraceParsers/pythonStackTraceParser";
 import { Parser as rubyParser } from "./stackTraceParsers/rubyStackTraceParser";
 import fs from "fs";
+import { parseId } from "../providers/newrelic/utils";
 
 const ExtensionToLanguageMap: { [key: string]: string } = {
 	js: "javascript",
@@ -111,7 +116,10 @@ export class NRManager {
 			return exists;
 		} catch (e) {
 			// OK if rev doesn't exist - ganbaru!
-			if (e.message && e.message.includes("invalid object name")) {
+			if (
+				e.message &&
+				(e.message.includes("invalid object name") || e.message.includes("Not a valid object name"))
+			) {
 				return fs.existsSync(resolvedPath);
 			}
 		}
@@ -122,9 +130,11 @@ export class NRManager {
 	@lspHandler(ParseStackTraceRequestType)
 	@log()
 	async parseStackTrace({
+		entityGuid,
 		errorGroupGuid,
 		stackTrace,
-	}: ParseStackTraceRequest): Promise<ParseStackTraceResponse> {
+		occurrenceId,
+	}: ParseStackTraceRequest): Promise<ParseStackTraceResponse | undefined> {
 		const lines: string[] = typeof stackTrace === "string" ? stackTrace.split("\n") : stackTrace;
 		const whole = lines.join("\n");
 
@@ -133,22 +143,31 @@ export class NRManager {
 		// avoid having to determine the language
 
 		// take an educated guess on the language, based on a simple search for file extension,
-		// before attempting to parse accoding to the generating language
+		// before attempting to parse according to the generating language
 		let lang = this.guessStackTraceLanguage(lines);
 		if (lang) {
 			return StackTraceParsers[lang](whole);
 		} else {
 			try {
 				const telemetry = Container.instance().telemetry;
-				const parsed = NewRelicProvider.parseId(errorGroupGuid || "");
+				const parsed = parseId(errorGroupGuid || "");
 
+				const properties: TelemetryData = {
+					meta_data: `error_group_id: ${errorGroupGuid!}`,
+					event_type: "response",
+				};
+				if (occurrenceId) {
+					properties.meta_data_2 = `trace_id: ${occurrenceId}`;
+				}
+				if (entityGuid) {
+					properties.entity_guid = entityGuid;
+				}
+				if (parsed?.accountId) {
+					properties.account_id = parsed.accountId;
+				}
 				telemetry.track({
-					eventName: "Error Parsing Trace",
-					properties: {
-						"Error Group ID": errorGroupGuid!,
-						"NR Account ID": parsed?.accountId || 0,
-						Language: lang || "Not Detected",
-					},
+					eventName: "codestream/errors/error_parsing_stack_trace displayed",
+					properties: properties,
 				});
 			} catch (ex) {
 				// ignore
@@ -169,38 +188,58 @@ export class NRManager {
 			}
 
 			// take the last one
-			const response = info || ({} as ParseStackTraceResponse);
-			response.warning = {
-				message: "Unable to parse language from stack trace",
-			};
+			const response = info;
+			if (response && !response?.language) {
+				// Only show this warning if language wasn't inferred from trying all
+				// the StackTraceParsers
+				response.warning = {
+					message: "Unable to parse language from stack trace",
+				};
+			}
 			return response;
 		}
 	}
-
 	// parses the passed stack, tries to determine if any of the user's open repos match it, and if so,
 	// given the commit hash of the code for which the stack trace was generated, tries to match each line
 	// of the stack trace with a line in the user's repo, given that the user may be on a different commit
 	@lspHandler(ResolveStackTraceRequestType)
 	@log()
 	async resolveStackTrace({
+		entityGuid,
 		errorGroupGuid,
 		stackTrace,
 		repoId,
 		ref,
 		occurrenceId,
 		codeErrorId,
+		stackSourceMap,
+		domain,
 	}: ResolveStackTraceRequest): Promise<ResolveStackTraceResponse> {
 		const { git, repos } = SessionContainer.instance();
 		const matchingRepo = await git.getRepositoryById(repoId);
 		const matchingRepoPath = matchingRepo?.path;
 		let firstWarning: WarningOrError | undefined = undefined;
 		let resolvedRef: string | undefined = ref;
+		let firstNotification: WarningOrError | undefined = undefined;
 
 		// NOTE: the warnings should not prevent a stack trace from being displayed
 		const setWarning = (warning: WarningOrError) => {
 			// only set the warning if we haven't already set it.
 			if (!firstWarning) firstWarning = warning;
 		};
+
+		const setNotification = (notification: WarningOrError) => {
+			// only set the warning if we haven't already set it.
+			if (!firstNotification) firstNotification = notification;
+		};
+
+		if (domain === "BROWSER" && isEmpty(stackSourceMap)) {
+			setWarning({
+				message: `[Upload a source map] so that an un-minified stack trace can be displayed.`,
+				helpUrl: `https://docs.newrelic.com/docs/browser/browser-monitoring/browser-pro-features/upload-source-maps-un-minify-js-errors/`,
+			});
+		}
+
 		if (!matchingRepoPath) {
 			const repo = await repos.getById(repoId);
 			setWarning({
@@ -211,7 +250,7 @@ export class NRManager {
 		}
 
 		if (!ref) {
-			setWarning({
+			setNotification({
 				message: `[Associate a build sha or release tag with your errors] so that CodeStream can help make sure you’re looking at the right version of the code.`,
 				helpUrl: CONFIGURE_ERROR_REF_HELP_URL,
 			});
@@ -249,9 +288,14 @@ export class NRManager {
 		}
 
 		const parsedStackInfo = await this.parseStackTrace({
+			entityGuid,
 			errorGroupGuid,
 			stackTrace,
+			occurrenceId,
 		});
+		if (!parsedStackInfo) {
+			return { error: "Unable to parse stack trace" };
+		}
 		if (parsedStackInfo.parseError) {
 			return { error: parsedStackInfo.parseError };
 		} else if (ref && !parsedStackInfo.lines.find(line => !line.error)) {
@@ -280,6 +324,20 @@ export class NRManager {
 		};
 
 		if (parsedStackInfo.lines) {
+			if (stackSourceMap?.stackTrace?.length > 0) {
+				parsedStackInfo.lines.forEach(entry => {
+					const matchingEntry = stackSourceMap.stackTrace.find((sourceMapEntry: SourceMapEntry) => {
+						return sourceMapEntry.original.fileName === entry.fileFullPath;
+					});
+
+					if (matchingEntry && matchingEntry.mapped) {
+						entry.fileFullPath = matchingEntry.mapped.fileName;
+						entry.column = matchingEntry.mapped.columnNumber;
+						entry.line = matchingEntry.mapped.lineNumber;
+					}
+				});
+			}
+
 			void this.resolveStackTraceLines(
 				parsedStackInfo,
 				resolvedStackInfo,
@@ -293,6 +351,7 @@ export class NRManager {
 
 		return {
 			warning: firstWarning,
+			notification: firstNotification,
 			resolvedStackInfo,
 			parsedStackInfo,
 		};
@@ -346,44 +405,36 @@ export class NRManager {
 
 				if (!line.error && matchingRepoPath && parsedStackInfo.language) {
 					let resolvedLine: CSStackTraceLine;
-					if (resolveStackTracePathsResponse.notImplemented) {
-						// TODO remove if block once ResolveStackTracePathsRequestType is implemented in VS
-						resolvedLine = await this.resolveStackTraceLine(
-							line,
-							ref,
-							matchingRepoPath,
-							parsedStackInfo.language
-						);
-					} else {
-						const resolvedPath = resolveStackTracePathsResponse.resolvedPaths[i];
-						if (resolvedPath) {
-							const pathExists = await this.resolvePathAtRef(resolvedPath, ref);
-							if (pathExists) {
-								resolvedLine = {
-									fileFullPath: resolvedPath,
-									fileRelativePath: path.relative(matchingRepoPath, resolvedPath),
-									line: line.line,
-									column: line.column,
-									resolved: true,
-									warning: commitSha ? undefined : "Missing sha",
-								};
-							} else {
-								resolvedLine = {
-									error: `Unable to find matching file in revision ${ref} for path ${line.fileFullPath}`,
-								};
-							}
+					const resolvedPath = resolveStackTracePathsResponse.resolvedPaths[i];
+					if (resolvedPath) {
+						const pathExists = await this.resolvePathAtRef(resolvedPath, ref);
+						if (pathExists) {
+							resolvedLine = {
+								fileFullPath: resolvedPath,
+								fileRelativePath: path.relative(matchingRepoPath, resolvedPath),
+								line: line.line,
+								column: line.column,
+								resolved: true,
+								warning: commitSha ? undefined : "Missing sha",
+							};
 						} else {
 							resolvedLine = {
-								error: `Unable to find matching file for path ${line.fileFullPath}`,
+								error: `Unable to find matching file in revision ${ref} for path ${line.fileFullPath}`,
+								resolved: false,
 							};
 						}
+					} else {
+						resolvedLine = {
+							error: `Unable to find matching file for path ${line.fileFullPath}`,
+							resolved: false,
+						};
+					}
 
-						if (resolvedLine.error) {
-							Logger.log(`Stack trace line failed to resolve: ${resolvedLine.error}`);
-						} else {
-							const loggableLine = `${resolvedLine.fileRelativePath}:${resolvedLine.line}:${resolvedLine.column}`;
-							Logger.log(`Stack trace line resolved: ${loggableLine}`);
-						}
+					if (resolvedLine.error) {
+						Logger.log(`Stack trace line failed to resolve: ${resolvedLine.error}`);
+					} else {
+						const loggableLine = `${resolvedLine.fileRelativePath}:${resolvedLine.line}:${resolvedLine.column}`;
+						Logger.log(`Stack trace line resolved: ${loggableLine}`);
 					}
 
 					session.agent.sendNotification(DidResolveStackTraceLineNotificationType, {
@@ -404,11 +455,11 @@ export class NRManager {
 	async resolveStackTracePosition({
 		ref,
 		repoId,
-		filePath,
+		fileRelativePath,
 		line,
 		column,
 	}: ResolveStackTracePositionRequest): Promise<ResolveStackTracePositionResponse> {
-		const { git, repositoryMappings } = SessionContainer.instance();
+		const { git } = SessionContainer.instance();
 
 		const matchingRepo = await git.getRepositoryById(repoId);
 		const repoPath = matchingRepo?.path;
@@ -416,7 +467,7 @@ export class NRManager {
 			return { error: "Unable to find repo " + repoId };
 		}
 
-		const fullPath = path.join(repoPath, filePath);
+		const fullPath = path.join(repoPath, fileRelativePath);
 		let normalizedPath = Strings.normalizePath(fullPath, isWindows, {
 			addLeadingSlash: isWindows && !fullPath.startsWith("\\\\"),
 		});
@@ -535,6 +586,33 @@ export class NRManager {
 			Logger.warn(response.error);
 		}
 		return response;
+	}
+
+	@lspHandler(GetRepoFileFromAbsolutePathRequestType)
+	@log()
+	async getRepoFileFromAbsolutePath(
+		request: GetRepoFileFromAbsolutePathRequest
+	): Promise<GetRepoFileFromAbsolutePathResponse> {
+		const { git } = SessionContainer.instance();
+
+		const matchingRepo = await git.getRepositoryById(request.repo.id);
+		const matchingRepoPath = matchingRepo?.path;
+		const fileSearchResponse =
+			matchingRepoPath &&
+			(await SessionContainer.instance().session.onFileSearch(
+				matchingRepoPath,
+				request.absoluteFilePath
+			));
+		const bestPath =
+			fileSearchResponse &&
+			NRManager.getBestMatchingPath(request.absoluteFilePath, fileSearchResponse.files);
+		if (!bestPath) {
+			return { error: `Unable to find matching file for path ${request.absoluteFilePath}` };
+		}
+
+		return {
+			uri: bestPath,
+		};
 	}
 
 	static getBestMatchingPath(pathSuffix: string, allFilePaths: string[]) {

@@ -59,10 +59,10 @@ export const CLMSettings = React.memo(function CLMSettings(props: Props) {
 			? clmSettings.minimumBaselineValue
 			: DEFAULT_CLM_SETTINGS.minimumBaselineValue
 	);
-	const [minimumErrorRateValue, setMinimumErrorRateValue] = useState<string>(
-		!_isNil(clmSettings.minimumErrorRateValue)
-			? clmSettings.minimumErrorRateValue
-			: DEFAULT_CLM_SETTINGS.minimumErrorRateValue
+	const [minimumErrorPercentageValue, setMinimumErrorPercentageValue] = useState<string>(
+		!_isNil(clmSettings.minimumErrorPercentage)
+			? clmSettings.minimumErrorPercentage
+			: DEFAULT_CLM_SETTINGS.minimumErrorPercentage
 	);
 	const [minimumAverageDurationValue, setMinimumAverageDurationValue] = useState<string>(
 		!_isNil(clmSettings.minimumAverageDurationValue)
@@ -98,7 +98,7 @@ export const CLMSettings = React.memo(function CLMSettings(props: Props) {
 					["againstDataPrecedingValue"]: againstDataPrecedingValue,
 					["minimumChangeValue"]: minimumChangeValue,
 					["minimumBaselineValue"]: minimumBaselineValue,
-					["minimumErrorRateValue"]: minimumErrorRateValue,
+					["minimumErrorRateValue"]: minimumErrorPercentageValue,
 					["minimumAverageDurationValue"]: minimumAverageDurationValue,
 				},
 			})
@@ -120,8 +120,8 @@ export const CLMSettings = React.memo(function CLMSettings(props: Props) {
 			case "min-baseline":
 				setMinimumBaselineValue(value);
 				break;
-			case "min-error-rate":
-				setMinimumErrorRateValue(value);
+			case "min-error-percentage":
+				setMinimumErrorPercentageValue(value);
 				break;
 			case "min-average-duration":
 				setMinimumAverageDurationValue(value);
@@ -225,15 +225,15 @@ export const CLMSettings = React.memo(function CLMSettings(props: Props) {
 								<div style={{ marginLeft: "5px", width: "24px", paddingTop: "2px" }}>rpm</div>
 							</div>
 							<div style={{ marginTop: "5px", display: "flex" }}>
-								<div>Minimum error rate:</div>
+								<div>Minimum error percentage:</div>
 								<div style={{ marginLeft: "auto" }}>
 									<NumberInput
-										key="min-error-rate-key"
-										name="min-error-rate"
+										key="min-error-percentage-key"
+										name="min-error-percentage"
 										type="number"
 										min="0"
 										max="100"
-										value={minimumErrorRateValue}
+										value={minimumErrorPercentageValue}
 										onChange={handleNumberChange}
 									/>
 								</div>

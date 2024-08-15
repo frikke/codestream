@@ -4,23 +4,24 @@ import {
 	TelemetrySetAnonymousIdRequest,
 	TelemetrySetAnonymousIdRequestType,
 	GetAnonymousIdRequestType,
+	TelemetryData,
 } from "@codestream/protocols/agent";
 
 import { Logger } from "../logger";
 import { CodeStreamSession } from "../session";
 import { debug, lsp, lspHandler } from "../system";
 import { TelemetryService } from "../telemetry/telemetryService";
-import { SegmentTelemetryService } from "../telemetry/segmentTelemetry";
-import { NewRelicTelemetryService } from "../telemetry/newRelicTelemetry";
+import { NewRelicTelemetryService } from "../telemetry/newRelicTelemetryService";
+import UUID from "uuid";
+
 @lsp
 export class TelemetryManager {
 	private readonly _providers: TelemetryService[];
+	private _lastEventTime: number = 0;
+	private _sessionId: string | undefined;
 
 	constructor(session: CodeStreamSession) {
-		this._providers = [
-			new SegmentTelemetryService(session, false),
-			new NewRelicTelemetryService(session, false),
-		];
+		this._providers = [new NewRelicTelemetryService(session, false)];
 	}
 
 	setConsent(hasConsented: boolean) {
@@ -39,12 +40,6 @@ export class TelemetryManager {
 		this._providers.forEach(provider => provider.addSuperProps(props));
 	}
 
-	setFirstSessionProps(firstSessionStartedAt: number, firstSessionTimesOutAfter: number) {
-		this._providers.forEach(provider =>
-			provider.setFirstSessionProps(firstSessionStartedAt, firstSessionTimesOutAfter)
-		);
-	}
-
 	ready(): Promise<void[]> {
 		return Promise.all(
 			this._providers.map(provider => {
@@ -57,6 +52,16 @@ export class TelemetryManager {
 	@lspHandler(TelemetryRequestType)
 	track(request: TelemetryRequest) {
 		const cc = Logger.getCorrelationContext();
+		const now = Date.now();
+
+		// session ID times out after 30 minutes since last event
+		if (!this._sessionId || !this._lastEventTime || now - this._lastEventTime > 30 * 60 * 1000) {
+			this._sessionId = UUID();
+		}
+		this._lastEventTime = now;
+		request.properties = request.properties || ({} as TelemetryData);
+		request.properties["session_id"] = this._sessionId;
+
 		this._providers.forEach(provider => {
 			try {
 				void provider.track(request.eventName, request.properties);

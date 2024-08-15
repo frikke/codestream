@@ -1,16 +1,15 @@
-import React from "react";
-import ReactDOM from "react-dom";
+import React, { useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useDidMount } from "../utilities/hooks";
 import Headshot from "./Headshot";
-import Icon from "./Icon";
-import { ModalContext } from "./Modal";
+import { Icon } from "./Icon";
+import { ModalContext } from "./ModalContext";
 
 export interface Mention {
 	id?: string;
 	headshot?: {
 		email?: string;
-		username?: string;
-		fullName?: string;
+		name?: string;
 	};
 	description?: string;
 	help?: string;
@@ -21,22 +20,22 @@ export interface Mention {
 // on = show the popup, off = hide the popup
 // a people list, which is the possible list of people to at-mention
 // with the format:
-// [id, nickname, full name, email, headshot, presence]
+// [id, full name, email, headshot]
 // and a prefix, which is used to filter/match against the list
 export interface AtMentionsPopupProps {
-	items: Mention[];
-	handleSelectAtMention(selection?: string): void;
+	handleSelectAtMention(selection?: string | number): void;
 	handleHoverAtMention(selection?: string): void;
 	childRef: React.RefObject<HTMLElement>;
 	selected?: string;
 	on?: string;
 	prefix?: string;
+	items: Mention[];
 }
 
 export const AtMentionsPopup = (props: React.PropsWithChildren<AtMentionsPopupProps>) => {
-	const [renderTarget] = React.useState(() => document.createElement("div"));
-	const rootRef = React.useRef<HTMLDivElement>(null);
-
+	const [renderTarget] = useState(() => document.createElement("div"));
+	const rootRef = useRef<HTMLDivElement>(null);
+	const { items } = props;
 	useDidMount(() => {
 		const modalRoot = document.getElementById("modal-root");
 		modalRoot!.appendChild(renderTarget);
@@ -45,7 +44,7 @@ export const AtMentionsPopup = (props: React.PropsWithChildren<AtMentionsPopupPr
 		};
 	});
 
-	React.useLayoutEffect(() => {
+	useLayoutEffect(() => {
 		if (props.on && props.childRef.current && rootRef.current) {
 			const childRect = props.childRef.current.getBoundingClientRect();
 			const height = window.innerHeight;
@@ -67,7 +66,7 @@ export const AtMentionsPopup = (props: React.PropsWithChildren<AtMentionsPopupPr
 			{props.on && (
 				<ModalContext.Consumer>
 					{({ zIndex }) =>
-						ReactDOM.createPortal(
+						createPortal(
 							<div className="mentions-popup" style={{ zIndex }} ref={rootRef}>
 								<div className="body">
 									<div className="matches">
@@ -76,23 +75,7 @@ export const AtMentionsPopup = (props: React.PropsWithChildren<AtMentionsPopupPr
 											name="x"
 											className="close"
 										/>
-										{props.on === "slash-commands" ? (
-											<span>
-												Commands matching{" "}
-												<b>
-													"/
-													{props.prefix}"
-												</b>
-											</span>
-										) : props.on === "channels" ? (
-											<span>
-												Channels matching{" "}
-												<b>
-													"#
-													{props.prefix}"
-												</b>
-											</span>
-										) : props.on === "emojis" ? (
+										{props.on === "emojis" ? (
 											<span>
 												Emoji matching{" "}
 												<b>
@@ -112,10 +95,10 @@ export const AtMentionsPopup = (props: React.PropsWithChildren<AtMentionsPopupPr
 									</div>
 									<ul className="compact at-mentions-list">
 										{props.on === "at-mentions"
-											? props.items
+											? items
 													.filter(_ => !_.headshot?.email?.match(/noreply/))
 													.map((item: Mention) => {
-														let className = item.id == props.selected ? "hover" : "none";
+														const className = item.id == props.selected ? "hover" : "none";
 														// the handleClickPerson event needs to fire onMouseDown
 														// rather than onclick because there is a handleblur
 														// event on the parent element that will un-render
@@ -136,8 +119,8 @@ export const AtMentionsPopup = (props: React.PropsWithChildren<AtMentionsPopupPr
 															</li>
 														);
 													})
-											: props.items.map((item: Mention) => {
-													let className = item.id == props.selected ? "hover" : "none";
+											: items.map((item: Mention) => {
+													const className = item.id == props.selected ? "hover" : "none";
 													// the handleClickPerson event needs to fire onMouseDown
 													// rather than onclick because there is a handleblur
 													// event on the parent element that will un-render

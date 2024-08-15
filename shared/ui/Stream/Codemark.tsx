@@ -35,7 +35,7 @@ import { getCodeError } from "../store/codeErrors/reducer";
 import { addCodemarks, NewCodemarkAttributes } from "../store/codemarks/actions";
 import {
 	repositionCodemark,
-	setCurrentCodeError,
+	setCurrentCodeErrorData,
 	setCurrentCodemark,
 	setCurrentPullRequest,
 	setCurrentReview,
@@ -50,22 +50,13 @@ import {
 	getTeamTagsHash,
 	getUserByCsId,
 	getUsernames,
-	isUnread,
 } from "../store/users/reducer";
 import { emptyArray, range } from "../utils";
 import { HostApi } from "../webview-api";
-import {
-	createPost,
-	fetchThread,
-	setCodemarkPinned,
-	setCodemarkStatus,
-	setUserPreference,
-} from "./actions";
+import { fetchThread, setUserPreference } from "./actions";
 import { SetUserPreferenceRequest } from "./actions.types";
 import { getDocumentFromMarker } from "./api-functions";
-import { Attachments } from "./Attachments";
 import CodemarkDetails from "./CodemarkDetails";
-import { CodemarkForm } from "./CodemarkForm";
 import { confirmPopup } from "./Confirm";
 import { PROVIDER_MAPPINGS } from "./CrossPostIssueControls/types";
 import { DropdownButton } from "./DropdownButton";
@@ -98,12 +89,9 @@ interface State {
 }
 
 interface DispatchProps {
-	createPost: typeof createPost;
 	deleteCodemark: typeof deleteCodemark;
 	editCodemark: typeof editCodemark;
 	fetchThread: typeof fetchThread;
-	setCodemarkStatus: typeof setCodemarkStatus;
-	setCodemarkPinned: typeof setCodemarkPinned;
 	setUserPreference: (request: SetUserPreferenceRequest) => void;
 	getPosts: typeof getPosts;
 	setCurrentCodemark: typeof setCurrentCodemark;
@@ -112,7 +100,7 @@ interface DispatchProps {
 	addCodemarks: typeof addCodemarks;
 	setCurrentReview: typeof setCurrentReview;
 	setCurrentPullRequest: typeof setCurrentPullRequest;
-	setCurrentCodeError: typeof setCurrentCodeError;
+	setCurrentCodeErrorData: typeof setCurrentCodeErrorData;
 }
 
 interface ConnectedProps {
@@ -139,7 +127,6 @@ interface ConnectedProps {
 	codeError?: CSCodeError;
 	post?: CSPost;
 	moveMarkersEnabled: boolean;
-	unread: boolean;
 	isAdmin: boolean;
 }
 
@@ -290,7 +277,7 @@ export class Codemark extends React.Component<Props, State> {
 		if (this.state.isEditing)
 			return (
 				<div className="editing-codemark-container">
-					<CodemarkForm
+					{/* <CodemarkForm
 						isEditing
 						editingCodemark={this.props.codemark}
 						commentType={this.props.codemark!.type}
@@ -298,7 +285,7 @@ export class Codemark extends React.Component<Props, State> {
 						onClickClose={this.cancelEditing}
 						streamId={this.props.codemark!.streamId}
 						collapsed={false}
-					/>
+					/> */}
 				</div>
 			);
 
@@ -510,14 +497,14 @@ export class Codemark extends React.Component<Props, State> {
 	};
 
 	closeIssue = () => {
-		const { codemark, setCodemarkStatus } = this.props;
-		setCodemarkStatus(codemark!.id, "closed");
+		//const { codemark, setCodemarkStatus } = this.props;
+		//setCodemarkStatus(codemark!.id, "closed");
 		// this.submitReply("/me closed this issue");
 	};
 
 	openIssue = () => {
-		const { codemark, setCodemarkStatus } = this.props;
-		setCodemarkStatus(codemark!.id, "open");
+		//const { codemark, setCodemarkStatus } = this.props;
+		//setCodemarkStatus(codemark!.id, "open");
 		// this.submitReply("/me reopened this issue");
 	};
 
@@ -625,10 +612,19 @@ export class Codemark extends React.Component<Props, State> {
 		}
 
 		if (!this.props.selected) {
-			HostApi.instance.track("Codemark Clicked", {
-				"Codemark ID": this.props.codemark!.id,
-				"Codemark Location": this.props.contextName ? this.props.contextName : undefined,
-				Following: (this.props.codemark!.followerIds || []).includes(this.props.currentUser.id),
+			HostApi.instance.track("codestream/codemarks/codemark displayed", {
+				meta_data: `codemark_location: search`,
+				meta_data_2: `codemark_type: ${
+					this.props.codemark?.type === "issue"
+						? "issue"
+						: this.props.codemark?.type === "comment"
+						? "comment"
+						: ""
+				}`,
+				meta_data_3: `following: ${(this.props.codemark!.followerIds || []).includes(
+					this.props.currentUser.id
+				)}`,
+				event_type: "modal_display",
 			});
 		}
 
@@ -833,7 +829,7 @@ export class Codemark extends React.Component<Props, State> {
 		}
 		this.props.addCodemarks([updatedCodemark]);
 
-		this.props.setCodemarkPinned(codemark, value);
+		//this.props.setCodemarkPinned(codemark, value);
 		// HostApi.instance.send(SetCodemarkPinnedRequestType, {
 		// 	codemarkId: codemark.id,
 		// 	value
@@ -905,7 +901,6 @@ export class Codemark extends React.Component<Props, State> {
 
 		const color = codemark.pinned ? (codemark.status === "closed" ? "purple" : "green") : "gray";
 		const renderedTags = hideTags ? null : this.renderTags(codemark);
-		const unread = this.props.unread ? " unread" : "";
 		return (
 			<div
 				id={`codemark-${codemark.id}`}
@@ -932,21 +927,6 @@ export class Codemark extends React.Component<Props, State> {
 								className="subtle"
 								align={{ offset: [20, 0] }}
 							/>
-						)}
-						{(codemark.numReplies > 0 || unread) && (
-							<span
-								className={`badge${unread}`}
-								style={{ marginLeft: "10px", flexGrow: 0, flexShrink: 0 }}
-							>
-								{codemark.numReplies > 0 ? (
-									codemark.numReplies
-								) : (
-									<>
-										&nbsp;
-										<span className="dot" />
-									</>
-								)}
-							</span>
 						)}
 						{false && lines && (
 							<span
@@ -1641,7 +1621,7 @@ export class Codemark extends React.Component<Props, State> {
 												className="external-link"
 												onClick={() => {
 													this.props.setCurrentCodemark();
-													this.props.setCurrentCodeError(this.props.codeError!.id);
+													this.props.setCurrentCodeErrorData(this.props.codeError?.entityGuid);
 												}}
 											>
 												<Icon name="review" />
@@ -1651,7 +1631,7 @@ export class Codemark extends React.Component<Props, State> {
 									</div>
 								)}
 								{this.renderTagsAndAssigneesSelected(codemark)}
-								{this.props.post && <Attachments post={this.props.post} />}
+								{/* {this.props.post && <Attachments post={this.props.post} />} */}
 								{description && (
 									<div className="related">
 										<div className="related-label">Description</div>
@@ -1955,10 +1935,10 @@ export class Codemark extends React.Component<Props, State> {
 												onClick={e => {
 													e.preventDefault();
 													HostApi.instance.send(OpenUrlRequestType, { url: action.uri });
-													HostApi.instance.track("PR Comment Action", {
-														Host: marker.externalContent!.provider.name,
-														"Action Label": action.label
-													});
+													// HostApi.instance.track("PR Comment Action", {
+													// 	Host: marker.externalContent!.provider.name,
+													// 	"Action Label": action.label
+													// });
 												}}
 											>
 												{action.label}
@@ -2156,7 +2136,6 @@ const mapStateToProps = (state: CodeStreamState, props: InheritedProps): Connect
 			? getCodeError(state.codeErrors, codemark.codeErrorId)
 			: undefined;
 
-	const unread = isUnread(state, codemark!);
 	return {
 		post,
 		review,
@@ -2171,7 +2150,6 @@ const mapStateToProps = (state: CodeStreamState, props: InheritedProps): Connect
 		currentUser: users[session.userId!] as CSMe,
 		author: author as CSUser,
 		codemarkKeybindings: preferences.codemarkKeybindings || EMPTY_OBJECT,
-		unread,
 		teammates: getTeamMembers(state),
 		usernames: getUsernames(state),
 		teamTagsHash,
@@ -2190,8 +2168,6 @@ export default connect(
 	// @ts-ignore
 	mapStateToProps,
 	{
-		setCodemarkStatus,
-		setCodemarkPinned,
 		setUserPreference,
 		deleteCodemark,
 		editCodemark,
@@ -2201,10 +2177,9 @@ export default connect(
 		repositionCodemark,
 		addDocumentMarker,
 		addCodemarks,
-		createPost,
 		setCurrentReview,
 		setCurrentPullRequest,
-		setCurrentCodeError,
+		setCurrentCodeErrorData,
 		currentUserIsAdminSelector,
 	}
 	// @ts-ignore

@@ -11,11 +11,7 @@ import {
 } from "@codestream/protocols/webview";
 import { updateConfigs } from "@codestream/webview/store/configs/slice";
 import { setIde } from "@codestream/webview/store/ide/slice";
-import {
-	BootstrapInHostResponse,
-	SignedInBootstrapData,
-	UpdateServerUrlRequestType,
-} from "../ipc/host.protocol";
+import { BootstrapInHostResponse, SignedInBootstrapData } from "../ipc/host.protocol";
 import {
 	apiCapabilitiesUpdated,
 	apiUpgradeRecommended,
@@ -37,7 +33,6 @@ import { bootstrapServices } from "./services/actions";
 import * as sessionActions from "./session/actions";
 import { bootstrapStreams } from "./streams/actions";
 import { bootstrapTeams } from "./teams/actions";
-import { updateUnreads } from "./unreads/actions";
 import { bootstrapUsers } from "./users/actions";
 import {
 	clearForceRegion,
@@ -45,6 +40,7 @@ import {
 	handlePendingProtocolHandlerUrl,
 } from "../store/context/actions";
 import { logout } from "@codestream/webview/store/session/thunks";
+import { ContextState } from "@codestream/webview/store/context/types";
 
 export const reset = () => action("RESET");
 
@@ -52,6 +48,11 @@ export const bootstrap = (data?: SignedInBootstrapData) => async (dispatch, getS
 	if (data == undefined) {
 		const api = HostApi.instance;
 		const bootstrapCore = await api.send(BootstrapInHostRequestType, undefined);
+		// Delete legacy properties we don't want to bring into redux store from WebViewContext
+		delete bootstrapCore.context["panelStack"];
+		delete bootstrapCore.context["onboardStep"];
+		delete bootstrapCore.context["wantNewRelicOptions"];
+		delete bootstrapCore.context["currentCodeErrorGuid"];
 		if (bootstrapCore.session.userId === undefined) {
 			dispatch(
 				bootstrapEssentials({
@@ -84,23 +85,6 @@ export const bootstrap = (data?: SignedInBootstrapData) => async (dispatch, getS
 		return;
 	}
 
-	if (
-		data.configs.serverUrl &&
-		data.companies &&
-		data.companies.length &&
-		data.companies[0].switchToServerUrl &&
-		data.configs.serverUrl !== data.companies[0].switchToServerUrl
-	) {
-		console.log(
-			`This org uses a different server URL (${data.configs.serverUrl}), switching to ${data.companies[0].switchToServerUrl}...`
-		);
-		HostApi.instance.send(UpdateServerUrlRequestType, {
-			serverUrl: data.companies[0].switchToServerUrl,
-			copyToken: true,
-			currentTeamId: data.teams[0].id,
-		});
-	}
-
 	dispatch(bootstrapUsers(data.users));
 	dispatch(bootstrapTeams(data.teams));
 	dispatch(bootstrapCompanies(data.companies));
@@ -109,12 +93,12 @@ export const bootstrap = (data?: SignedInBootstrapData) => async (dispatch, getS
 	// TODO: I think this should be removed and just live with the caps below
 	if (data.capabilities && data.capabilities.services)
 		dispatch(bootstrapServices(data.capabilities.services));
-	dispatch(updateUnreads(data.unreads));
 	dispatch(updateProviders(data.providers));
 	dispatch(editorContextActions.setEditorContext(data.editorContext));
 	dispatch(preferencesActions.setPreferences(data.preferences));
 
 	dispatch(bootstrapEssentials(data));
+	dispatch(contextActions.setCurrentServiceSearchEntity(undefined));
 
 	const { context } = getState();
 
@@ -133,6 +117,13 @@ export const bootstrap = (data?: SignedInBootstrapData) => async (dispatch, getS
 const bootstrapEssentials = (data: BootstrapInHostResponse) => dispatch => {
 	dispatch(setIde(data.ide!));
 	dispatch(sessionActions.setSession(data.session));
+	const tmpCtx = data.context as Partial<ContextState>;
+	if (tmpCtx.route) {
+		// Route gets stuck on providerAuth (polling for login otc) even after logging in successfully and it is NOT part
+		// of WebViewContext type so just delete it.
+		// If this causes problems, scope the delete to the 'providerAuth' route
+		delete tmpCtx.route;
+	}
 	dispatch(
 		contextActions.setContext({
 			hasFocus: true,

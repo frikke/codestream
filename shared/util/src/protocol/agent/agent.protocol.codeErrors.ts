@@ -1,16 +1,16 @@
 "use strict";
-import { RequestType } from "vscode-languageserver-protocol";
-import { CreateMarkerRequest, NewRelicErrorGroup, PostPlus } from "./agent.protocol";
+import { RequestType, Range } from "vscode-languageserver-protocol";
+import {
+	NewRelicErrorGroup,
+	PostPlus,
+} from "./agent.protocol";
 import {
 	CSChannelStream,
 	CSCodeError,
 	CSCreateCodeErrorRequest,
 	CSDirectStream,
 	CSGetCodeErrorsResponse,
-	CSMarker,
 	CSMarkerLocations,
-	CSRepository,
-	CSStream,
 	CSUpdateCodeErrorRequest,
 	CSUpdateCodeErrorResponse,
 } from "./api.protocol";
@@ -20,38 +20,14 @@ export interface CodeErrorPlus extends CSCodeError {
 	errorGroup?: NewRelicErrorGroup;
 }
 
-export interface CreateCodeErrorRequest extends Omit<CSCreateCodeErrorRequest, "teamId"> {
-	markers?: CreateMarkerRequest[];
-	entryPoint?: string;
-}
+export type CodeBlock = {
+	uri: string;
+	code: string;
+	range: Range;
+	// scm?: CodeBlockSource;
+};
 
-export interface CreateCodeErrorResponse {
-	codeError: CSCodeError;
-	markers?: CSMarker[];
-	markerLocations?: CSMarkerLocations[];
-	streams?: CSStream[];
-	repos?: CSRepository[];
-}
-export const CreateCodeErrorRequestType = new RequestType<
-	CreateCodeErrorRequest,
-	CreateCodeErrorResponse,
-	void,
-	void
->("codestream/codeErrors/create");
-
-export interface ShareableCodeErrorAttributes extends Omit<CreateCodeErrorRequest, "markers"> {}
-
-export interface CreateShareableCodeErrorRequest {
-	attributes: ShareableCodeErrorAttributes;
-	entryPoint?: string;
-	mentionedUserIds?: string[];
-	addedUsers?: string[];
-	replyPost?: { text: string; mentionedUserIds?: string[] };
-	codeBlock?: string;
-	analyze: boolean;
-	reinitialize: boolean;
-	parentPostId?: string;
-}
+export type CreateShareableCodeErrorRequest = CSCreateCodeErrorRequest;
 
 export interface CreateShareableCodeErrorResponse {
 	codeError: CodeErrorPlus;
@@ -129,13 +105,6 @@ export interface GetCodeErrorRequest {
 export interface GetCodeErrorResponse {
 	codeError: CSCodeError;
 }
-
-export const GetCodeErrorRequestType = new RequestType<
-	GetCodeErrorRequest,
-	GetCodeErrorResponse,
-	void,
-	void
->("codestream/codeError");
 
 export interface SetCodeErrorStatusRequest {
 	id: string;

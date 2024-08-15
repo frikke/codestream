@@ -5,6 +5,8 @@ import com.codestream.agentService
 import com.codestream.codeStream
 import com.codestream.extensions.file
 import com.codestream.extensions.lspPosition
+import com.codestream.extensions.startWithName
+import com.codestream.extensions.stats
 import com.codestream.extensions.uri
 import com.codestream.protocols.agent.ClmParams
 import com.codestream.protocols.agent.ClmResult
@@ -39,10 +41,17 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.EditorCustomElementRenderer
 import com.intellij.openapi.editor.Inlay
+import com.intellij.openapi.editor.LogicalPosition
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.editor.impl.EditorImpl
+import com.intellij.openapi.editor.markup.HighlighterLayer
+import com.intellij.openapi.editor.markup.HighlighterTargetArea
+import com.intellij.openapi.editor.markup.RangeHighlighter
+import com.intellij.openapi.editor.markup.TextAttributes
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiComment
@@ -54,16 +63,19 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SyntaxTraverser
 import com.intellij.refactoring.suggested.endOffset
 import com.intellij.refactoring.suggested.startOffset
+import com.intellij.ui.JBColor
 import com.intellij.util.concurrency.NonUrgentExecutor
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.eclipse.lsp4j.Range
+import java.awt.Font
 import java.awt.Point
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
@@ -86,12 +98,32 @@ data class ClmElements(
     val type: String?
 )
 
+data class MetricLocation(
+    val metrics: Metrics,
+    val range: Range,
+)
+
+data class MetricSource(
+    val lineno: Int,
+    val column: Int,
+    val commit: String,
+    val functionName: String,
+    val uri: String,
+)
+
 class Metrics {
     var errorRate: MethodLevelTelemetryErrorRate? = null
     var averageDuration: MethodLevelTelemetryAverageDuration? = null
     var sampleSize: MethodLevelTelemetrySampleSize? = null
 
     fun format(template: String, since: String): Pair<String, Boolean> {
+        val functionName = errorRate?.functionName ?: averageDuration?.functionName ?: sampleSize?.functionName
+        ?: "<unknown>"
+        val functionNameFormatted = if (functionName == "(anonymous)") {
+            " - $functionName"
+        } else {
+            ""
+        }
         if (errorRate?.anomaly != null || averageDuration?.anomaly != null) {
             val anomalyTexts = mutableListOf<String>()
             errorRate?.anomaly?.let {
@@ -112,19 +144,22 @@ class Metrics {
         val text = template.replace("\${averageDuration}", averageDurationStr)
             .replace("\${errorRate}", errorRateStr)
             .replace("\${sampleSize}", sampleSizeStr)
-            .replace("\${since}", since)
+            .replace("\${since}", since) + functionNameFormatted
         return Pair(text, false)
     }
 
     val nameMapping: MethodLevelTelemetryNotifications.View.MetricTimesliceNameMapping
         get() = MethodLevelTelemetryNotifications.View.MetricTimesliceNameMapping(
-            averageDuration?.metricTimesliceName, sampleSize?.metricTimesliceName, errorRate?.metricTimesliceName, sampleSize?.source
+            averageDuration?.facet?.firstOrNull() ?: "",
+            sampleSize?.facet?.firstOrNull() ?: "",
+            errorRate?.facet?.firstOrNull() ?: "",
+            sampleSize?.source
         )
 }
 
 abstract class CLMEditorManager(
     val editor: Editor,
-    private val languageId: String,
+    protected val languageId: String,
     private val lookupByClassName: Boolean,
     private val lookupBySpan: Boolean = false,
     private val symbolResolver: SymbolResolver,
@@ -132,9 +167,12 @@ abstract class CLMEditorManager(
     private val tasksCoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.EDT)
     private val path = editor.document.getUserData(LOCAL_PATH) ?: editor.document.file?.path
     private val project = editor.project
+    private val metricsByLocationManager = MetricsByLocationManager()
     private var metricsBySymbol = mapOf<MethodLevelTelemetrySymbolIdentifier, Metrics>()
     private var clmResult: ClmResult? = null
-    private val inlays = mutableSetOf<Inlay<*>>()
+    // Store range in value so we can update locations when file changes
+    private var metricsByLocation = mapOf<MetricSource, MetricLocation>()
+    private val inlays = mutableSetOf<Inlay< out EditorCustomElementRenderer>>()
     private var lastResult: FileLevelTelemetryResult? = null
     private var currentError: FileLevelTelemetryResultError? = null
     private var analyticsTracked = false
@@ -171,16 +209,25 @@ abstract class CLMEditorManager(
         ReadAction.nonBlocking(toExecute).submit(NonUrgentExecutor.getInstance())
     }
 
+    private suspend fun updateLocations() {
+        val (result, project, path) = displayDeps() ?: return
+        // logger.info("*** calling getMetricsByLocation")
+        // logger.info("*** metricsByLocation before $metricsByLocation")
+        val stopwatch = startWithName("metricsByLocationManager.getMetricsByLocation")
+        // Slow operations are prohibited on EDT
+        val psiFile = ApplicationManager.getApplication().runReadAction<PsiFile> {
+            PsiDocumentManager.getInstance(project).getPsiFile(editor.document)
+        } ?: return
+        metricsByLocation = metricsByLocationManager.getMetricsByLocation(result, path, psiFile.modificationStamp, project)
+        stopwatch.stop()
+        logger.debug(stopwatch.stats())
+    }
+
     fun loadInlays(resetCache: Boolean = false, skipStaleCheck: Boolean = false) {
         if (path == null) return
         if (editor !is EditorImpl) return
         if (project == null || project.isDisposed) return
         if (!skipStaleCheck && !isStale()) return
-
-        // Slow operations are prohibited on EDT
-        val psiFile = ApplicationManager.getApplication().runReadAction<PsiFile> {
-            PsiDocumentManager.getInstance(project).getPsiFile(editor.document)
-        } ?: return
 
         project.agentService?.onDidStart {
             tasksCoroutineScope.launch {
@@ -192,6 +239,11 @@ abstract class CLMEditorManager(
                     withContext(Dispatchers.Default) { // Switch out of EDT thread
                         ApplicationManager.getApplication().runReadAction<List<String>> { // Requires read action
                             // Kotlin psi internals run stuff not compatible with EDT thread
+                            val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(editor.document)
+                            if (psiFile == null) {
+                                logger.warn("No psiFile for ${editor.document.uri}")
+                                return@runReadAction listOf<String>()
+                            }
                             symbolResolver.getLookupClassNames(psiFile)
                         }
                     }
@@ -202,6 +254,11 @@ abstract class CLMEditorManager(
                 val spanSuffixes = if (lookupBySpan) {
                     withContext(Dispatchers.Default) { // Switch out of EDT thread
                         ApplicationManager.getApplication().runReadAction<List<String>> { // Requires read action
+                            val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(editor.document)
+                            if (psiFile == null) {
+                                logger.warn("No psiFile for ${editor.document.uri}")
+                                return@runReadAction listOf<String>()
+                            }
                             symbolResolver.getLookupSpanSuffixes(psiFile)
                         }
                     }
@@ -211,12 +268,6 @@ abstract class CLMEditorManager(
 
                 logger.info("spanSuffixes $spanSuffixes")
 
-                // GlobalScope.launch {
-                //     val fileUri = editor.document.uri ?: return@launch
-                //     val result = project.agentService?.responseTimes(ResponseTimesParams(fileUri)) ?: return@launch
-                //     val symbols = findSymbols(psiFile, result.responseTimes.map { it.name })
-                // }
-
                 try {
                     lastFetchAttempt = System.currentTimeMillis()
                     if (project.sessionService?.userLoggedIn?.user == null) {
@@ -225,6 +276,7 @@ abstract class CLMEditorManager(
                     // logger.info("=== Calling fileLevelTelemetry for ${editor.document.uri} resetCache: $resetCache")
                     // next.js file path is like posts/[id].tsx - IntelliJ won't create an uri for this file name!
                     val uri = editor.document.uri ?: "file://${editor.document.file?.path}"
+                    val fileLevelTelemetryStopwatch = startWithName("fileLevelTelemetry");
                     val result = project.agentService?.fileLevelTelemetry(
                         FileLevelTelemetryParams(
                             uri,
@@ -236,6 +288,8 @@ abstract class CLMEditorManager(
                             OPTIONS
                         )
                     ) ?: return@launch
+                    fileLevelTelemetryStopwatch.stop()
+                    logger.debug(fileLevelTelemetryStopwatch.stats())
                     // result guaranteed to be non-null, don't overwrite previous result if we get a NR timeout
                     if (result.error != null) {
                         currentError = result.error
@@ -253,7 +307,7 @@ abstract class CLMEditorManager(
                     metricsBySymbol = mapOf()
 
                     val updatedMetrics = mutableMapOf<MethodLevelTelemetrySymbolIdentifier, Metrics>()
-
+                    val metricsCollectionStopWatch = startWithName("metricsCollection")
                     lastResult?.errorRate?.forEach { errorRate ->
                         val metrics = updatedMetrics.getOrPut(errorRate.symbolIdentifier) { Metrics() }
                         metrics.errorRate = errorRate
@@ -267,11 +321,17 @@ abstract class CLMEditorManager(
                         metrics.sampleSize = sampleSize
                     }
                     metricsBySymbol = updatedMetrics.toImmutableMap()
-
-                        clmResult = project.agentService?.clm(ClmParams(
-                            result.newRelicEntityGuid!!
-                        ))
-
+                    val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(editor.document)
+                    if (psiFile == null) {
+                        logger.warn("No psiFile for ${editor.document.uri}")
+                        return@launch // maybe not total abort?
+                    }
+                    metricsByLocation = metricsByLocationManager.getMetricsByLocation(result, uri, psiFile.modificationStamp, project)
+                    metricsCollectionStopWatch.stop()
+                    logger.debug(metricsCollectionStopWatch.stats())
+                    clmResult = project.agentService?.clm(ClmParams(
+                        result.newRelicEntityGuid!!
+                    ))
                     updateInlays()
                 } catch (ex: Exception) {
                     logger.error("Error getting fileLevelTelemetry", ex)
@@ -285,6 +345,7 @@ abstract class CLMEditorManager(
         debouncedRenderBlame?.cancel()
         debouncedRenderBlame = tasksCoroutineScope.launch {
             delay(750L)
+            logger.debug("debouncedRenderBlame updateInlays")
             updateInlays()
         }
     }
@@ -309,8 +370,11 @@ abstract class CLMEditorManager(
     }
 
     private fun updateInlays() {
-        runInBackground {
-            _updateInlays()
+        val thing = tasksCoroutineScope.async { updateLocations() }
+        thing.invokeOnCompletion {
+            runInBackground {
+                _updateInlays()
+            }
         }
     }
 
@@ -348,12 +412,14 @@ abstract class CLMEditorManager(
         }
     }
 
-    private fun updateInlaysCore() {
-        val (result, project, path, editor) = displayDeps() ?: return
-        if (project.isDisposed) {
-            return
+    private fun updateInlaysCore() = DumbService.getInstance(project!!).runWhenSmart {
+        val (result, project, path, editor) = displayDeps() ?: return@runWhenSmart
+        if (project.isDisposed || editor.isDisposed) {
+            return@runWhenSmart
         }
-        val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(editor.document) ?: return
+        val updateInlaysCoreStopWatch = startWithName("updateInlaysCore")
+        val updateInlaysCoreToRenderStopWatch = startWithName("updateInlaysCore toRender")
+        val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(editor.document) ?: return@runWhenSmart
 
         val clmElements: List<ClmElements> = symbolResolver.clmElements(psiFile, clmResult)
 
@@ -365,6 +431,9 @@ abstract class CLMEditorManager(
             val formatted = metrics.format(appSettings.goldenSignalsInEditorFormat, since)
             val anomaly = metrics.averageDuration?.anomaly ?: metrics.errorRate?.anomaly
             val range = getTextRangeWithoutLeadingCommentsAndWhitespaces(symbol)
+            // logger.info("got range $range for function ${symbolIdentifier.functionName} and textRange " +
+            // "${symbol.textRange} and lspPosition ${editor.document.lspPosition(symbol.textRange.startOffset)} " +
+            // "${editor.document.lspPosition(symbol.textRange.endOffset)}")
             val smartElement = SmartPointerManager.createPointer(symbol)
             val textPresentation = presentationFactory.text(formatted.first)
             val referenceOnHoverPresentation =
@@ -406,7 +475,7 @@ abstract class CLMEditorManager(
             RenderElements(range, referenceOnHoverPresentation, anomaly != null, null)
         }
 
-        val clmPresentationFactory = PresentationFactory(editor)
+        val clmPresentationFactory = HintsPresentationWorkaround.newPresentationFactory(editor)
         val clmToRender: List<RenderElements> = clmElements.map {
             val textPresentation = clmPresentationFactory.text(it.text)
             val smallPresentation = clmPresentationFactory.roundWithBackgroundAndSmallInset(textPresentation)
@@ -415,20 +484,129 @@ abstract class CLMEditorManager(
         }
 
 
+        updateInlaysCoreToRenderStopWatch.stop()
+        logger.debug(updateInlaysCoreToRenderStopWatch.stats())
+
+        val updateInlaysCoreToRenderByLocationStopWatch = startWithName("updateInlaysCore toRenderByLocation")
+        val toRenderByLocation: List<RenderElements> = metricsByLocation.mapNotNull { (metricSource, metricLocation) ->
+            val range = metricLocation.range
+            val metrics = metricLocation.metrics
+            val formatted = metrics.format(appSettings.goldenSignalsInEditorFormat, since)
+            val anomaly = metrics.averageDuration?.anomaly ?: metrics.errorRate?.anomaly
+            val textPresentation = presentationFactory.text(formatted.first)
+            val referenceOnHoverPresentation =
+                CLMInlayPresentation(editor, textPresentation, { event, translated ->
+                    project.codeStream?.show {
+                        val notification = if (anomaly != null) {
+                            ObservabilityAnomalyNotifications.View(
+                                anomaly,
+                                result.newRelicEntityGuid!!
+                            )
+                        } else {
+                            MethodLevelTelemetryNotifications.View(
+                                result.error,
+                                result.repo,
+                                result.codeNamespace,
+                                path,
+                                result.relativeFilePath,
+                                languageId,
+                                range,
+                                "(anonymous)",
+                                result.newRelicAccountId,
+                                result.newRelicEntityGuid,
+                                OPTIONS,
+                                metrics.nameMapping
+                            )
+                        }
+                        project.webViewService?.postNotification(notification)
+                    }
+                }, object : InlayPresentationFactory.HoverListener {
+                    var highlighter: RangeHighlighter? = null
+                    override fun onHover(event: MouseEvent, translated: Point) {
+                        // TODO better in gathering section above (find the element)
+//                        val offset = metricLocation.
+                        val currentLineNumber = metricLocation.range.start.line
+                        val offset = editor.logicalPositionToOffset(LogicalPosition(currentLineNumber,
+                            metricSource.column - 1))
+                        val element = psiFile.findElementAt(offset)
+                        val parentFunction = if (element != null) symbolResolver.findParentFunction(element) else null
+//                        if (element != null) {
+//                            logger.info("hovered element ${element.text} at ${element.textRange}")
+//                        }
+//                        val parent = element?.parent
+//                        if (parent != null) {
+//                            logger.info("hovered parent ${parent.text} at ${parent.textRange}")
+//                        }
+//
+//                        val grandParent = parent?.parent
+                        if (parentFunction != null) {
+                            logger.info("hovered parentFunction ${parentFunction.text} at ${parentFunction.textRange}")
+                            highlighter = editor.markupModel.addRangeHighlighter(
+                                parentFunction.textRange.startOffset,
+                                parentFunction.textRange.endOffset,
+                                HighlighterLayer.LAST,
+                                TextAttributes(
+                                    null,
+                                    JBColor(0x447F7F7F, 0x447F7F7F),
+                                    null,
+                                    null,
+                                    Font.PLAIN
+                                ),
+                                HighlighterTargetArea.EXACT_RANGE,
+                            )
+//                            highlighter?.errorStripeMarkColor = green
+//                            highlighter?.isThinErrorStripeMark = true
+                        } else {
+                            logger.debug("no parentFunction for ${metricSource.lineno}")
+                        }
+
+                        logger.debug("onHover ${metricSource.lineno}:${metricSource.column} ${metricSource.functionName}")
+                    }
+
+                    override fun onHoverFinished() {
+                        logger.debug("onHoverFinished ${metricSource.lineno}:${metricSource.column} ${metricSource.functionName}")
+                        highlighter?.let {
+                            editor.markupModel.removeHighlighter(it)
+                            highlighter = null
+                        }
+                    }
+                }
+                )
+            val textRange = TextRange.create(
+                editor.logicalPositionToOffset(LogicalPosition(range.start.line, range.start.character)),
+                editor.logicalPositionToOffset(LogicalPosition(range.end.line, range.end.character)))
+            RenderElements(textRange, referenceOnHoverPresentation, anomaly != null, null)
+        }
+
+        updateInlaysCoreToRenderByLocationStopWatch.stop()
+        logger.debug(updateInlaysCoreToRenderByLocationStopWatch.stats())
+
         ApplicationManager.getApplication().invokeLaterOnWriteThread {
+            val updateInlaysCoreRenderStopWatch = startWithName("updateInlaysCore render")
             if (!analyticsTracked && toRender.isNotEmpty()) {
                 val params = TelemetryParams(
-                    "MLT Codelenses Rendered", mapOf(
-                    "NR Account ID" to (result.newRelicAccountId ?: 0),
-                    "Language" to languageId,
-                    "Codelense Count" to toRender.size
-                )
+                    "codestream/codelenses displayed", mapOf(
+                        "account_id" to (result.newRelicAccountId ?: 0),
+                        "entity_guid" to (result.newRelicEntityGuid ?: 0),
+                        "meta_data" to "language: $languageId",
+                        "meta_data_2" to "codelense_count: ${toRender.size}",
+                        "event_type" to "state_load"
+                    )
                 )
                 project.agentService?.agent?.telemetry(params)
                 analyticsTracked = true
             }
             _clearInlays()
             for ((range, referenceOnHoverPresentation, isAnomaly) in toRender) {
+                val renderer = CLMCustomRenderer(referenceOnHoverPresentation, isAnomaly)
+
+                val inlay = editor.inlayModel.addBlockElement(range.startOffset, false, true, 1, renderer)
+
+                inlay.let {
+                    inlays.add(it)
+                }
+            }
+            for ((range, referenceOnHoverPresentation, isAnomaly) in toRenderByLocation) {
                 val renderer = CLMCustomRenderer(referenceOnHoverPresentation, isAnomaly)
 
                 val inlay = editor.inlayModel.addBlockElement(range.startOffset, false, true, 1, renderer)
@@ -451,7 +629,11 @@ abstract class CLMEditorManager(
                     inlays.add(it)
                 }
             }
+            updateInlaysCoreRenderStopWatch.stop()
+            logger.debug(updateInlaysCoreRenderStopWatch.stats())
         }
+        updateInlaysCoreStopWatch.stop()
+        logger.debug(updateInlaysCoreStopWatch.stats())
     }
 
     private fun updateInlayNotAssociated() {

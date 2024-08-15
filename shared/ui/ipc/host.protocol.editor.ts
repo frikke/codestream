@@ -51,6 +51,7 @@ export interface EditorReplaceSymbolRequest {
 	uri: string;
 	symbolName: string;
 	codeBlock: string;
+	namespace?: string;
 }
 
 export interface EditorReplaceSymbolResponse {
@@ -71,10 +72,21 @@ export interface EditorCopySymbolRequest {
 	ref?: string;
 }
 
+export type CSPosition = {
+	line: number;
+	character: number;
+};
+
+export type CSRange = {
+	start: CSPosition;
+	end: CSPosition;
+};
+
 export interface EditorCopySymbolResponse {
 	success: boolean;
+	language?: string;
 	text?: string;
-	range?: Range;
+	range?: CSRange;
 }
 
 export const EditorCopySymbolType = new RequestType<
@@ -83,6 +95,18 @@ export const EditorCopySymbolType = new RequestType<
 	void,
 	void
 >(`${IpcRoutes.Host}/editor/symbol/copy`);
+
+export type EditorUndoRequest = {
+	times: number;
+};
+
+export type EditorUndoResponse = {
+	success: boolean;
+};
+
+export const EditorUndoType = new RequestType<EditorUndoRequest, EditorUndoResponse, void, void>(
+	`${IpcRoutes.Host}/editor/undo`
+);
 
 export interface EditorRevealRangeRequest {
 	uri: string;

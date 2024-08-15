@@ -366,7 +366,7 @@ export function escapeHtml(text: string) {
 export function replaceHtml(text: string) {
 	const domParser = new DOMParser();
 	/*
-    // Because this stuff is sensitive, I'm leaving this comment here, but 
+    // Because this stuff is sensitive, I'm leaving this comment here, but
     // this code fails to account for newlines created via Shift-Enter
 
     //input text's newlines will be created with <div> or <br> tags
@@ -567,4 +567,13 @@ export function getDomainFromEmail(email: string): string | null {
 		return matches[1];
 	}
 	return null;
+}
+
+// Parses out "id" from mention markup string
+export function transformMentions(input: string): string {
+	const mentionPattern = /@\[[^\]]+\]\((<collab-mention[^>]+>[^<]+<\/collab-mention>)\)/g;
+	const transformedString = input.replace(mentionPattern, (match, p1) => {
+		return p1;
+	});
+	return transformedString;
 }

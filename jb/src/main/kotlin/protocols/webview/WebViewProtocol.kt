@@ -222,3 +222,21 @@ object DocumentMarkerNotifications {
         override fun getMethod(): String = "codestream/didChangeDocumentMarkers"
     }
 }
+
+object LogsNotifications {
+    class Search(
+        val query: String?,
+        val entryPoint: String = "context_menu"
+    ) : WebViewNotification {
+        override fun getMethod(): String = "webview/logs/search"
+    }
+}
+
+object NrqlNotifications {
+    class Execute(
+        val query: String?,
+        val entryPoint: String = "context_menu"
+    ) : WebViewNotification {
+        override fun getMethod(): String = "webview/nrql/execute"
+    }
+}

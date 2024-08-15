@@ -43,7 +43,7 @@ namespace CodeStream.VisualStudio.Shared.UI
 			_ = System.Threading.Tasks.Task.Run(
 				async delegate
 				{
-					_ = TrySetMarkersAsync(forceUpdate);
+					_ = TrySetMarkersAsync();
 				}
 			);
 		}
@@ -53,8 +53,12 @@ namespace CodeStream.VisualStudio.Shared.UI
 		/// </summary>
 		/// <param name="forceUpdate">When set to true, ignores if the collection is empty</param>
 		/// <returns></returns>
-		public async System.Threading.Tasks.Task<bool> TrySetMarkersAsync(bool forceUpdate = false)
+		public async System.Threading.Tasks.Task<bool> TrySetMarkersAsync()
 		{
+			// TODO: Make sure we don't force redrawing of codemarks for now until we can
+			// properly refactor the gutter stuff since we use it for Code Level Metrics.
+			bool forceUpdate = false;
+
 			Uri uri = null;
 			bool result = false;
 			using (
@@ -81,7 +85,10 @@ namespace CodeStream.VisualStudio.Shared.UI
 						return false;
 					}
 
-					_markers = await _agentService.GetMarkersForDocumentAsync(uri);
+					// TODO: For now, just turn off the call and pretend they don't exist.
+					// So much of the logic around markers is involved with Code Level Metrics,
+					// I didn't want to refactor all of that just for removing the code marks.
+					_markers = new DocumentMarkersResponse(); // await _agentService.GetMarkersForDocumentAsync(uri);
 					bool? previousResult = null;
 					if (_markers?.Markers.AnySafe() == true || forceUpdate)
 					{

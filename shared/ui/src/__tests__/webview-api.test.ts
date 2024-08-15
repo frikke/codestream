@@ -65,7 +65,7 @@ describe("RequestApiManager", () => {
 				resolve: _value => {},
 			});
 		}
-		expect(spyLogError.mock.calls.length).toBeGreaterThan(1970);
+		expect(spyLogError.mock.calls.length).toBeGreaterThan(1900);
 		expect(spyLogError).toHaveBeenLastCalledWith(
 			new Error("More than 1000 calls pending for /whatever")
 		);

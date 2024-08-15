@@ -35,7 +35,8 @@ import { GitRemote, GitRemoteType } from "../models/remote";
 
 const emptyStr = "";
 
-const remoteRegex = /^(.*)\t(.*)\s\((.*)\)$/gm;
+const remoteRegex = /^(\S+)\s+(\S+)\s+\((\w+)\)$/;
+
 const urlRegex =
 	/^(?:(git:\/\/)(.*?)(?::.*?)?\/|(https?:\/\/)(?:.*?@)?(.*?)(?::.*?)?\/|git@(.*):|(ssh:\/\/)(?:.*@)?(.*?)(?::.*?)?(?:\/|(?=~))|(?:.*?@)(.*?):)(.*)$/;
 const hostnameRegex = new RegExp("hostname (.*)");
@@ -52,45 +53,44 @@ export class GitRemoteParser {
 		const remotes: GitRemote[] = [];
 		const groups = Object.create(null);
 
-		let url: string;
-		let scheme: string;
-		let domain: string;
-		let path: string;
-		let uniqueness: string;
-		let remote: GitRemote | undefined;
-		let match: RegExpExecArray | null = null;
-		do {
-			match = remoteRegex.exec(data);
-			if (match == null) break;
+		const lines = data.trim().split("\n");
 
-			// Stops excessive memory usage -- https://bugs.chromium.org/p/v8/issues/detail?id=2869
-			url = ` ${match[2]}`.substr(1);
-
-			[scheme, domain, path] = await this.parseGitUrl(url);
-
-			uniqueness = `${domain}/${path}`;
-			remote = groups[uniqueness];
-			if (remote === undefined) {
-				remote = new GitRemote(
-					repoPath,
-					// Stops excessive memory usage -- https://bugs.chromium.org/p/v8/issues/detail?id=2869
-					` ${match[1]}`.substr(1),
-					url,
-					scheme,
-					domain,
-					path,
-					// Stops excessive memory usage -- https://bugs.chromium.org/p/v8/issues/detail?id=2869
-					[{ url: url, type: ` ${match[3]}`.substr(1) as GitRemoteType }]
-				);
-				remotes.push(remote);
-				groups[uniqueness] = remote;
-			} else {
+		for (const line of lines) {
+			const match = line.match(remoteRegex);
+			if (match) {
 				// Stops excessive memory usage -- https://bugs.chromium.org/p/v8/issues/detail?id=2869
-				remote.types.push({ url: url, type: ` ${match[3]}`.substr(1) as GitRemoteType });
-			}
-		} while (match != null);
+				const url = ` ${match[2]}`.substr(1);
 
-		if (!remotes.length) return [];
+				const [scheme, domain, path] = await this.parseGitUrl(url);
+
+				const uniqueness = `${domain}/${path}`;
+				let remote = groups[uniqueness];
+				if (remote === undefined) {
+					remote = new GitRemote(
+						repoPath,
+						// Stops excessive memory usage -- https://bugs.chromium.org/p/v8/issues/detail?id=2869
+						` ${match[1]}`.substr(1),
+						url,
+						scheme,
+						domain,
+						path,
+						// Stops excessive memory usage -- https://bugs.chromium.org/p/v8/issues/detail?id=2869
+						[{ url: url, type: ` ${match[3]}`.substr(1) as GitRemoteType }]
+					);
+					remotes.push(remote);
+					groups[uniqueness] = remote;
+				} else {
+					// Stops excessive memory usage -- https://bugs.chromium.org/p/v8/issues/detail?id=2869
+					remote.types.push({ url: url, type: ` ${match[3]}`.substr(1) as GitRemoteType });
+				}
+			} else {
+				Logger.warn("No match found for:", line);
+			}
+		}
+
+		if (!remotes.length) {
+			return [];
+		}
 
 		return remotes;
 	}
@@ -139,6 +139,7 @@ export class GitRemoteParser {
 				// support for github.repositoryUrl context https://docs.github.com/en/actions/learn-github-actions/contexts#github-context
 				results.push({ type: "git", value: `git://${parsed[1]}/${parsed[2]}.git` });
 				results.push({ type: "git", value: `git@${parsed[1]}:${parsed[2]}.git` });
+				results.push({ type: "git", value: `git@${parsed[1]}:${parsed[2]}` });
 			} else if (httpOrSshEndpoint.indexOf("http") === 0) {
 				results.push({ type: "https", value: httpOrSshEndpoint });
 				if (httpOrSshEndpoint.indexOf(".git") > -1) {

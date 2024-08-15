@@ -5,7 +5,7 @@
 			"type": "node",
 			"request": "attach",
 			"name": "Attach to Agent",
-			"port": 6009,
+			"port": 1337,
 			"cwd": "${workspaceFolder}",
 			"outFiles": ["${workspaceFolder}/dist/agent.js"],
 			"skipFiles": ["<node_internals>/**", "**/node_modules/**", "**/resources/app/out/vs/**"],
@@ -16,7 +16,7 @@
 			"type": "node",
 			"request": "attach",
 			"name": "Attach to Agent VS",
-			"port": 6009,
+			"port": 1337,
 			"cwd": "${workspaceFolder}",
 			"outFiles": [
 				"${userHome}/AppData/Local/Microsoft/VisualStudio/**/Extensions/New Relic/**/agent/agent.js"
@@ -29,17 +29,7 @@
 			"type": "node",
 			"request": "attach",
 			"name": "Attach to Agent (debug node_modules)",
-			"port": 6009,
-			"cwd": "${workspaceFolder}",
-			"outFiles": ["${workspaceFolder}/dist/agent.js"],
-			"smartStep": true,
-			"sourceMaps": true
-		},
-		{
-			"type": "node",
-			"request": "attach",
-			"name": "Attach to Unit Tests",
-			"port": 9229,
+			"port": 1337,
 			"cwd": "${workspaceFolder}",
 			"outFiles": ["${workspaceFolder}/dist/agent.js"],
 			"smartStep": true,
@@ -48,16 +38,13 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"runtimeExecutable": "node",
+			"runtimeExecutable": "npx",
 			"name": "Run UnitTests for File",
-			"program": "${workspaceFolder}/node_modules/.bin/mochapack",
+			"program": "jest",
 			"args": ["${file}"],
 			"cwd": "${workspaceFolder}/",
 			"console": "integratedTerminal",
-			"internalConsoleOptions": "neverOpen",
-			"env": {
-				"TS_NODE_COMPILER_OPTIONS": "{ \"module\": \"commonjs\", \"types\": [\"node\"] }"
-			}
+			"internalConsoleOptions": "neverOpen"
 		},
 		{
 			"type": "node",
@@ -85,6 +72,19 @@
 			"env": {
 				"TS_NODE_COMPILER_OPTIONS": "{ \"module\": \"commonjs\", \"types\": [\"node\"] }"
 			}
+		},
+		{
+			"name": "Debug/Watch Current File Jest Tests",
+			"type": "node",
+			"request": "launch",
+			"cwd": "${workspaceFolder}",
+			"program": "./node_modules/.bin/jest",
+			"args": ["--runInBand", "--watch", "${file}"],
+			"env": {
+				"NEW_RELIC_ENABLED": false
+			},
+			"console": "integratedTerminal",
+			"internalConsoleOptions": "neverOpen"
 		}
 	]
 }

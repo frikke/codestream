@@ -17,7 +17,6 @@ using Task = System.Threading.Tasks.Task;
 using TextDocumentIdentifier = CodeStream.VisualStudio.Shared.Models.TextDocumentIdentifier;
 using CodeStream.VisualStudio.Core.Models;
 using CodeStream.VisualStudio.Shared.Extensions;
-using CodeStream.VisualStudio.Shared.Interfaces;
 using CodeStream.VisualStudio.Shared.Models;
 
 using Microsoft;
@@ -35,7 +34,6 @@ namespace CodeStream.VisualStudio.Shared.Services
 		private readonly ISessionService _sessionService;
 		private readonly ISettingsServiceFactory _settingsServiceFactory;
 		private readonly IHttpClientService _httpClientService;
-		private readonly IVisualStudioSettingsManager _vsSettingsManager;
 		private readonly IMessageInterceptorService _messageInterceptorService;
 
 		[ImportingConstructor]
@@ -44,14 +42,12 @@ namespace CodeStream.VisualStudio.Shared.Services
 			ISessionService sessionService,
 			ISettingsServiceFactory settingsServiceFactory,
 			IHttpClientService httpClientService,
-			IVisualStudioSettingsManager vsSettingsManager,
 			IMessageInterceptorService messageInterceptorService
 		)
 		{
 			_sessionService = sessionService;
 			_settingsServiceFactory = settingsServiceFactory;
 			_httpClientService = httpClientService;
-			_vsSettingsManager = vsSettingsManager;
 			_messageInterceptorService = messageInterceptorService;
 
 			try
@@ -83,11 +79,6 @@ namespace CodeStream.VisualStudio.Shared.Services
 
 			try
 			{
-#if X86
-				var initializationResult = await InitializeAsync();
-				Log.Verbose(initializationResult?.ToString());
-#endif
-
 				_sessionService.SetAgentConnected();
 			}
 			catch (Exception ex)
@@ -488,8 +479,7 @@ namespace CodeStream.VisualStudio.Shared.Services
 						{
 							Email = settingsManager.Email,
 							ShowAvatars = true, // TODO O11y-Only
-							ShowGoldenSignalsInEditor =
-								_vsSettingsManager.IsCodeLevelMetricsEnabled(),
+							ShowGoldenSignalsInEditor = true,
 							ServerUrl = settingsManager.ServerUrl,
 							TraceLevel = settingsManager.GetAgentTraceLevel()
 						},
@@ -554,8 +544,7 @@ namespace CodeStream.VisualStudio.Shared.Services
 						{
 							Email = (string)state["email"],
 							ShowAvatars = true, // TODO: O11y-Only
-							ShowGoldenSignalsInEditor =
-								_vsSettingsManager.IsCodeLevelMetricsEnabled(),
+							ShowGoldenSignalsInEditor = true,
 							ServerUrl = settings.Options.ServerUrl,
 							TraceLevel = settingsManager.GetAgentTraceLevel()
 						},

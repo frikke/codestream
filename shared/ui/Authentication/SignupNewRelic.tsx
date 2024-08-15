@@ -59,7 +59,12 @@ export const SignupNewRelic = () => {
 
 	useDidMount(() => {
 		if (derivedState.webviewFocused) {
-			HostApi.instance.track("Page Viewed", { "Page Name": "Signup with NR" });
+			HostApi.instance.track("codestream/sign_in page_viewed", {
+				event_type: "page_view",
+				platform: "codestream",
+				path: "N/A (codestream)",
+				section: "N/A (codestream)",
+			});
 		}
 	});
 
@@ -118,14 +123,14 @@ export const SignupNewRelic = () => {
 			setLoading(false);
 
 			const sendTelemetry = () => {
-				HostApi.instance.track("Account Created", {
-					email: email,
-					"Auth Provider": "New Relic",
-					Source: derivedState.pendingProtocolHandlerQuerySource,
-				});
-				HostApi.instance.track("NR Connected", {
-					"Connection Location": "Onboarding",
-				});
+				// HostApi.instance.track("Account Created", {
+				// 	email: email,
+				// 	"Auth Provider": "New Relic",
+				// 	Source: derivedState.pendingProtocolHandlerQuerySource,
+				// });
+				// HostApi.instance.track("NR Connected", {
+				// 	"Connection Location": "Onboarding",
+				// });
 			};
 
 			switch (status) {
@@ -217,7 +222,7 @@ export const SignupNewRelic = () => {
 									<div className="error-message">
 										Invitation conflict.{" "}
 										<FormattedMessage id="contactSupport" defaultMessage="Contact support">
-											{text => <Link href="mailto:codestream@newrelic.com">{text}</Link>}
+											{text => <Link href="https://one.newrelic.com/help-xp">{text}</Link>}
 										</FormattedMessage>
 										.
 									</div>

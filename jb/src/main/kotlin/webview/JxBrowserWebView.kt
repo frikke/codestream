@@ -7,9 +7,10 @@ import com.teamdev.jxbrowser.browser.callback.InjectJsCallback
 import com.teamdev.jxbrowser.js.JsObject
 import com.teamdev.jxbrowser.view.swing.BrowserView
 
-class JxBrowserWebView(val jxBrowser: Browser, val router: WebViewRouter) : WebView {
+class JxBrowserWebView(val jxBrowser: Browser, override val router: WebViewRouter) : WebView {
 
-    private val logger = Logger.getInstance(JxBrowserWebView::class.java)
+    override fun type(): String = "JxBrowser"
+    override val logger = Logger.getInstance(JxBrowserWebView::class.java)
 
     override val component: BrowserView by lazy {
         BrowserView.newInstance(jxBrowser)
@@ -17,6 +18,7 @@ class JxBrowserWebView(val jxBrowser: Browser, val router: WebViewRouter) : WebV
 
     init {
         logger.info("Initializing JxBrowser WebView")
+        router.webView = this
         jxBrowser.set(InjectJsCallback::class.java, InjectJsCallback {
             val frame = it.frame()
 
@@ -41,6 +43,7 @@ class JxBrowserWebView(val jxBrowser: Browser, val router: WebViewRouter) : WebV
 
     override fun loadUrl(url: String) {
         jxBrowser.navigation().loadUrl(url)
+        println(jxBrowser.devTools().remoteDebuggingUrl())
     }
 
     override fun dispose() {

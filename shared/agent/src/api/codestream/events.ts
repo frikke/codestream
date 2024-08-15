@@ -4,7 +4,7 @@ import { Agent as HttpsAgent } from "https";
 import { ConnectionStatus } from "@codestream/protocols/agent";
 import { Disposable, Emitter, Event } from "vscode-languageserver";
 
-import HttpsProxyAgent from "https-proxy-agent";
+import { HttpsProxyAgent } from "https-proxy-agent";
 import {
 	Broadcaster,
 	BroadcasterStatus,
@@ -17,13 +17,8 @@ import { CodeStreamApiProvider } from "./codestreamApi";
 
 const messageToType: {
 	[key: string]:
-		| MessageType.Codemarks
 		| MessageType.Companies
-		| MessageType.MarkerLocations
-		| MessageType.Markers
 		| MessageType.Posts
-		| MessageType.Repositories
-		| MessageType.Reviews
 		| MessageType.CodeErrors
 		| MessageType.Streams
 		| MessageType.Teams
@@ -31,23 +26,15 @@ const messageToType: {
 		| MessageType.Echo
 		| MessageType.AsyncError
 		| MessageType.GrokStream
+		| MessageType.AnomalyData
 		| undefined;
 } = {
-	codemark: MessageType.Codemarks,
-	codemarks: MessageType.Codemarks,
 	codeError: MessageType.CodeErrors,
 	codeErrors: MessageType.CodeErrors,
 	company: MessageType.Companies,
 	companies: MessageType.Companies,
-	marker: MessageType.Markers,
-	markerLocations: MessageType.MarkerLocations,
-	markers: MessageType.Markers,
 	post: MessageType.Posts,
 	posts: MessageType.Posts,
-	repo: MessageType.Repositories,
-	repos: MessageType.Repositories,
-	review: MessageType.Reviews,
-	reviews: MessageType.Reviews,
 	stream: MessageType.Streams,
 	streams: MessageType.Streams,
 	team: MessageType.Teams,
@@ -57,20 +44,18 @@ const messageToType: {
 	echo: MessageType.Echo,
 	asyncError: MessageType.AsyncError,
 	grokStream: MessageType.GrokStream,
+	anomalyData: MessageType.AnomalyData,
 };
 
 export interface BroadcasterEventsInitializer {
 	accessToken: string;
 	broadcasterToken: string;
+	isV3Token?: boolean;
 	api: CodeStreamApiProvider;
 	pubnubSubscribeKey?: string;
-	socketCluster?: {
-		host: string;
-		port: string;
-		ignoreHttps?: boolean;
-	};
+	pubnubCipherKey?: string;
 	strictSSL: boolean;
-	httpsAgent?: HttpsAgent | HttpsProxyAgent;
+	httpsAgent?: HttpsAgent | HttpsProxyAgent<string>;
 	supportsEcho?: boolean;
 }
 
@@ -96,8 +81,9 @@ export class BroadcasterEvents implements Disposable {
 		this._disposable = await this._broadcaster.initialize({
 			accessToken: this._options.accessToken,
 			pubnubSubscribeKey: this._options.pubnubSubscribeKey,
-			socketCluster: this._options.socketCluster,
-			authKey: this._options.broadcasterToken,
+			pubnubCipherKey: this._options.pubnubCipherKey,
+			broadcasterToken: this._options.broadcasterToken,
+			isV3Token: this._options.isV3Token,
 			userId: this._options.api.userId,
 			strictSSL: this._options.strictSSL,
 			debug: this.debug.bind(this),
@@ -125,6 +111,12 @@ export class BroadcasterEvents implements Disposable {
 		this._broadcaster.subscribe(channels);
 
 		return this._disposable;
+	}
+
+	setV3BroadcasterToken(token: string) {
+		if (this._broadcaster) {
+			this._broadcaster.setV3Token(token);
+		}
 	}
 
 	dispose() {

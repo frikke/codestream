@@ -3,7 +3,7 @@ import React from "react";
 import ScrollBox from "./ScrollBox";
 import styled from "styled-components";
 import { CodeStreamState } from "../store";
-import { useAppDispatch, useAppSelector, useDidMount } from "../utilities/hooks";
+import { useAppDispatch, useAppSelector } from "../utilities/hooks";
 import { HostApi } from "../webview-api";
 import { PanelHeader } from "../src/components/PanelHeader";
 import { openModal, closeModal, setUserPreference } from "./actions";
@@ -115,11 +115,6 @@ export const ProfilePanel = () => {
 
 	const { person, isMe } = derivedState;
 
-	useDidMount(() => {
-		if (derivedState.webviewFocused)
-			HostApi.instance.track("Page Viewed", { "Page Name": "Profile" });
-	});
-
 	if (!derivedState.person) {
 		return (
 			<div className="panel full-height">
@@ -204,6 +199,7 @@ export const ProfilePanel = () => {
 		if (derivedState.demoMode) {
 			dispatch(setUserPreference({ prefPath: ["hideCodeErrorInstructions"], value: false }));
 			dispatch(setUserPreference({ prefPath: ["hideReviewInstructions"], value: false }));
+			dispatch(setUserPreference({ prefPath: ["o11yTour"], value: "globalNav" }));
 		}
 	};
 
@@ -252,20 +248,7 @@ export const ProfilePanel = () => {
 							/>
 						)}
 					</Row>
-					{(isMe || person.phoneNumber) && (
-						<Row>
-							<MetaLabel>Phone Number</MetaLabel>
-							<Value>{person.phoneNumber || "-not set-"}</Value>
-							{isMe && <RowIcon name="pencil" title="Edit Phone" onClick={editPhoneNumber} />}
-						</Row>
-					)}
-					{(isMe || person.iWorkOn) && (
-						<Row>
-							<MetaLabel>Works On</MetaLabel>
-							<Value>{person.iWorkOn || "-not set-"}</Value>
-							{isMe && <RowIcon name="pencil" title="Edit Works On" onClick={editWorksOn} />}
-						</Row>
-					)}
+
 					{person.lastLogin && (
 						<Row>
 							<MetaLabel

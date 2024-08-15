@@ -25,9 +25,10 @@ import org.cef.network.CefRequest
 
 private const val BASE_ZOOM_LEVEL = 1.0
 
-class JBCefWebView(val jbCefBrowser: JBCefBrowserBase, val router: WebViewRouter, val project: Project) : WebView {
+class JBCefWebView(val jbCefBrowser: JBCefBrowserBase, override val router: WebViewRouter, val project: Project) : WebView {
 
-    private val logger = Logger.getInstance(JBCefWebView::class.java)
+    override fun type(): String = "JCEF"
+    override val logger = Logger.getInstance(JBCefWebView::class.java)
     private var routerConnected = false
 
     val routerQuery: JBCefJSQuery = JBCefJSQuery.create(jbCefBrowser).also {
@@ -41,6 +42,8 @@ class JBCefWebView(val jbCefBrowser: JBCefBrowserBase, val router: WebViewRouter
 
     init {
         logger.info("Initializing JBCef WebView")
+        router.webView = this
+        jbCefBrowser.cefBrowser
         if (platform != Platform.LINUX_X64 && platform != Platform.LINUX_ARM64) {
             // we needed this to work around some blank webview glitches in the past,
             // but now it causes the very same glitch on Linux

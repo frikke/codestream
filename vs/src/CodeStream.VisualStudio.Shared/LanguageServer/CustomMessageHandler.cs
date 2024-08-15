@@ -14,7 +14,6 @@ using System.Reactive.Subjects;
 using System.Windows.Controls;
 
 using CodeStream.VisualStudio.Core;
-using CodeStream.VisualStudio.Shared.Controllers;
 using CodeStream.VisualStudio.Shared.Events;
 using CodeStream.VisualStudio.Shared.Extensions;
 using CodeStream.VisualStudio.Shared.Models;
@@ -219,10 +218,10 @@ namespace CodeStream.VisualStudio.Shared.LanguageServer
 									_serviceProvider.GetService(typeof(SToolWindowProvider))
 									as IToolWindowProvider;
 								Assumes.Present(toolWindowProvider);
-								if (!toolWindowProvider.IsVisible(Guids.WebViewToolWindowGuid))
+								if (!toolWindowProvider.IsVisible(Guids.SidebarControlWindowGuid))
 								{
 									toolWindowProvider?.ShowToolWindowSafe(
-										Guids.WebViewToolWindowGuid
+										Guids.SidebarControlWindowGuid
 									);
 								}
 							}
@@ -257,6 +256,20 @@ namespace CodeStream.VisualStudio.Shared.LanguageServer
 
 			public UserPreferencesChangedSubjectArgs(DidChangeUserPreferencesData data) =>
 				Data = data;
+		}
+
+		[JsonRpcMethod(DidDetectObservabilityAnomaliesNotificationType.MethodName)]
+		public void OnDidDetectObservabilityAnomalies(JToken e)
+		{
+			var @params = e.ToObject<DidDetectObservabilityAnomaliesNotification>();
+			if (@params == null)
+			{
+				return;
+			}
+
+			BrowserService.EnqueueNotification(
+				new DidDetectObservabilityAnomaliesNotificationType(@params)
+			);
 		}
 
 		/// <summary>
@@ -311,9 +324,11 @@ namespace CodeStream.VisualStudio.Shared.LanguageServer
 								_serviceProvider.GetService(typeof(SToolWindowProvider))
 								as IToolWindowProvider;
 							Assumes.Present(toolWindowProvider);
-							if (!toolWindowProvider.IsVisible(Guids.WebViewToolWindowGuid))
+							if (!toolWindowProvider.IsVisible(Guids.SidebarControlWindowGuid))
 							{
-								toolWindowProvider?.ShowToolWindowSafe(Guids.WebViewToolWindowGuid);
+								toolWindowProvider?.ShowToolWindowSafe(
+									Guids.SidebarControlWindowGuid
+								);
 							}
 						}
 						catch (Exception ex)
@@ -567,6 +582,23 @@ namespace CodeStream.VisualStudio.Shared.LanguageServer
 			}
 		}
 
+		[JsonRpcMethod(DidChangeSessionTokenStatusNotificationType.MethodName)]
+		public void OnDidChangeSessionTokenStatusNotification(JToken e)
+		{
+			try
+			{
+				var notification = e.ToObject<DidChangeSessionTokenStatusNotification>();
+
+				BrowserService.EnqueueNotification(
+					new DidChangeSessionTokenStatusNotificationType(notification)
+				);
+			}
+			catch (Exception ex)
+			{
+				Log.Error(ex, $"Problem with {nameof(OnDidChangeSessionTokenStatusNotification)}");
+			}
+		}
+
 		[JsonRpcMethod(DidRefreshAccessTokenNotificationType.MethodName)]
 		public async System.Threading.Tasks.Task OnDidRefreshAccessTokenNotificationAsync(JToken e)
 		{
@@ -581,6 +613,7 @@ namespace CodeStream.VisualStudio.Shared.LanguageServer
 					token.TeamId,
 					token.RefreshToken,
 					Value = token.Token,
+					token.TokenType
 				};
 
 				await _credentialManager.StoreCredentialAsync(

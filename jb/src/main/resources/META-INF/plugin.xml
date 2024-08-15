@@ -48,6 +48,7 @@
         <projectService serviceImplementation="com.codestream.settings.SettingsService"/>
         <projectService serviceImplementation="com.codestream.session.SessionService"/>
         <projectService serviceImplementation="com.codestream.webview.WebViewService"/>
+        <projectService serviceImplementation="com.codestream.webview.WebViewEditorService"/>
         <projectService serviceImplementation="com.codestream.editor.EditorService"/>
         <projectService serviceImplementation="com.codestream.review.ReviewService"/>
         <projectService serviceImplementation="com.codestream.telemetry.TelemetryService"/>
@@ -62,25 +63,19 @@
 
         <diff.DiffExtension implementation="com.codestream.review.ReviewDiffExtension"/>
 
-        <intentionAction>
-            <className>com.codestream.actions.AddComment</className>
-            <category>Other</category>
-        </intentionAction>
-        <intentionAction>
-            <className>com.codestream.actions.CreateIssue</className>
-            <category>Other</category>
-        </intentionAction>
-
         <jbProtocolCommand implementation="com.codestream.commands.CodeStreamCommand"/>
         <ignoredFileProvider implementation="com.codestream.vcs.CodeStreamIgnoredFileProvider"/>
-        <codeInsight.linkHandler prefix="#codemark/show/"
-                                 handlerClass="com.codestream.editor.GutterCodemarkTooltipLinkHandler"/>
-        <codeInsight.linkHandler prefix="#pr/show/"
-                                 handlerClass="com.codestream.editor.GutterPullRequestTooltipLinkHandler"/>
-        <codeInsight.linkHandler prefix="#pr/showExternal/"
-                                 handlerClass="com.codestream.editor.GutterPullRequestTooltipExternalLinkHandler"/>
-        <codeInsight.linkHandler prefix="#codemark/link/"
-                                 handlerClass="com.codestream.editor.GutterCodemarkLinkTooltipLinkHandler"/>
+
+        <fileEditorProvider implementation="com.codestream.webview.WebViewEditorProvider"/>
+        <iconProvider implementation="com.codestream.webview.WebViewEditorIconProvider"/>
+        <editorTabTitleProvider implementation="com.codestream.webview.WebViewEditorTabTitleProvider"/>
+
+        <fileType name="NRQL File" language="NRQL" extensions="nrql" implementationClass="com.codestream.language.NrqlFileType" fieldName="INSTANCE" />
+        <lang.parserDefinition language="NRQL" implementationClass="com.codestream.language.NrqlParserDefinition" />
+        <lang.syntaxHighlighterFactory language="NRQL" implementationClass="com.codestream.language.NrqlSyntaxHighlighterFactory" />
+        <completion.contributor language="NRQL" implementationClass="com.codestream.language.NrqlCompletionContributor" />
+
+        <notificationGroup id="codestream.notifications" displayType="BALLOON" isLogByDefault="false" />
     </extensions>
 
     <project-components>
@@ -107,23 +102,10 @@
         <group id="com.codestream.Actions" popup="true" text="New Relic CodeStream" icon="/images/codestream.svg"
                class="com.codestream.actions.CodeStreamActionGroup">
             <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="EditorPopupMenu2"/>
-            <action id="CodeStream.AddComment" class="com.codestream.actions.AddComment" text="Add _Comment"
-                    description="Add comment" icon="/images/marker-comment.svg">
-                <add-to-group group-id="Diff.EditorPopupMenu"/>
-                <keyboard-shortcut keymap="$default" first-keystroke="control shift SLASH" second-keystroke="C"/>
-                <keyboard-shortcut keymap="Mac OS X" first-keystroke="control SLASH" second-keystroke="C"
-                                   replace-all="true"/>
-                <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="control SLASH" second-keystroke="C"
-                                   replace-all="true"/>
-            </action>
-            <action id="CodeStream.CreateIssue" class="com.codestream.actions.CreateIssue" text="Create _Issue"
-                    description="Create issue" icon="/images/marker-issue.svg">
-                <keyboard-shortcut keymap="$default" first-keystroke="control shift SLASH" second-keystroke="I"/>
-                <keyboard-shortcut keymap="Mac OS X" first-keystroke="control SLASH" second-keystroke="I"
-                                   replace-all="true"/>
-                <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="control SLASH" second-keystroke="I"
-                                   replace-all="true"/>
-            </action>
+            <action id="CodeStream.LogSearch" class="com.codestream.actions.LogSearch" text="Find in _Logs"
+                    description="Find in Logs" icon="/images/logs.svg"/>
+            <action id="CodeStream.ExecuteNrql" class="com.codestream.actions.ExecuteNrql" text="Execute selected _NRQL"
+                    description="Execute selected NRQL" icon="/images/terminal.svg"/>
         </group>
 
         <action id="CodeStream.ToggleView" class="com.codestream.actions.ToggleView" text="Toggle CodeStream">
@@ -145,5 +127,5 @@
     </actions>
 
     <depends>Git4Idea</depends>
-    <idea-version since-build="223.8836.35"/>
+    <idea-version since-build="233.14808.21"/>
 </idea-plugin>

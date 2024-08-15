@@ -225,7 +225,12 @@ export const Signup = (props: Props) => {
 	useDidMount(() => {
 		getUserInfo();
 		if (derivedState.webviewFocused) {
-			HostApi.instance.track("Page Viewed", { "Page Name": "Sign In" });
+			HostApi.instance.track("codestream/sign_in_form displayed", {
+				event_type: "modal_display",
+				platform: "codestream",
+				path: "N/A (codestream)",
+				section: "N/A (codestream)",
+			});
 		}
 		if (props.teamId) getTeamAuthInfo(props.teamId);
 	});
@@ -284,12 +289,12 @@ export const Signup = (props: Props) => {
 			const { status, token } = await HostApi.instance.send(RegisterUserRequestType, attributes);
 
 			const sendTelemetry = () => {
-				HostApi.instance.track("Account Created", {
-					email: email,
-					"Auth Provider": "Email",
-					"Git Email Match?": email === scmEmail,
-					Source: derivedState.pendingProtocolHandlerQuerySource,
-				});
+				// HostApi.instance.track("Account Created", {
+				// 	email: email,
+				// 	"Auth Provider": "Email",
+				// 	"Git Email Match?": email === scmEmail,
+				// 	Source: derivedState.pendingProtocolHandlerQuerySource,
+				// });
 			};
 
 			switch (status) {
@@ -399,6 +404,12 @@ export const Signup = (props: Props) => {
 	const onClickNewRelicSignup = useCallback(
 		(event: React.SyntheticEvent, domain?: string) => {
 			event.preventDefault();
+			HostApi.instance.track("codestream/sign_in_button clicked", {
+				event_type: "click",
+				platform: "codestream",
+				path: "N/A (codestream)",
+				section: "N/A (codestream)",
+			});
 			dispatch(startSSOSignin("newrelicidp", buildSignupInfo(false, domain)));
 		},
 		[props.type]
@@ -433,7 +444,7 @@ export const Signup = (props: Props) => {
 								{(props.newOrg || props.joinCompanyId) && <h2>Create an account</h2>}
 								{!props.newOrg && !props.joinCompanyId && (
 									<>
-										<h3>Sign in to CodeStream with your New Relic account</h3>
+										<h3>Sign in to see your data</h3>
 										{!limitAuthentication && (
 											<>
 												<Button
@@ -442,7 +453,7 @@ export const Signup = (props: Props) => {
 													onClick={event => onClickNewRelicSignup(event)}
 												>
 													<Icon name="newrelic" />
-													<div className="copy">New Relic</div>
+													<div className="copy">Sign in to New Relic</div>
 													<Icon name="chevron-right" />
 												</Button>
 											</>
@@ -457,7 +468,7 @@ export const Signup = (props: Props) => {
 											)}
 											{!props.newOrg && !props.joinCompanyId && (
 												<>
-													Don't have a New Relic account?{" "}
+													Don't have an account?{" "}
 													<Link href="https://newrelic.com/signup?utm_source=codestream&utm_medium=programmatic&utm_campaign=global-ever-green-codestream-signin-form">
 														Sign up for free.
 													</Link>
@@ -511,7 +522,7 @@ export const Signup = (props: Props) => {
 									<div className="error-message form-error">
 										<FormattedMessage id="signUp.conflict" defaultMessage="Invitation conflict." />{" "}
 										<FormattedMessage id="contactSupport" defaultMessage="Contact support">
-											{text => <Link href="mailto:codestream@newrelic.com">{text}</Link>}
+											{text => <Link href="https://one.newrelic.com/help-xp">{text}</Link>}
 										</FormattedMessage>
 										.
 									</div>
@@ -578,8 +589,6 @@ export const Signup = (props: Props) => {
 
 					<p style={{ opacity: 0.5, fontSize: ".9em", textAlign: "center" }}>
 						CodeStream Version {derivedState.pluginVersion}
-						<br />
-						Connected to {derivedState.whichServer}.
 					</p>
 					{false && ( // enable me if you need CodeStream login
 						<div>

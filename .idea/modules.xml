@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/codestream.iml" filepath="$PROJECT_DIR$/.idea/codestream.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/codestream-jb.main.iml" filepath="$PROJECT_DIR$/.idea/modules/codestream-jb.main.iml" />
     </modules>
   </component>
 </project>

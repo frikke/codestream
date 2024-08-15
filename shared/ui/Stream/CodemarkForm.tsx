@@ -21,29 +21,27 @@ import {
 	CSStream,
 	CSUser,
 	StreamType,
+	WebviewPanels,
 } from "@codestream/protocols/api";
 import cx from "classnames";
 import { prettyPrintOne } from "code-prettify";
-import * as paths from "path-browserify";
+import paths from "path-browserify";
 import React, { SyntheticEvent } from "react";
 import { FormattedMessage } from "react-intl";
 import { connect } from "react-redux";
 import Select from "react-select";
 import { Range } from "vscode-languageserver-types";
 
-import { upgradePendingCodeError } from "@codestream/webview/store/codeErrors/thunks";
 import { EditorSelection } from "@codestream/webview/ipc/webview.protocol.common";
 import {
 	EditorHighlightRangeRequestType,
 	EditorSelectRangeRequestType,
 } from "@codestream/protocols/webview";
-import { WebviewPanels } from "@codestream/protocols/api";
 import { Checkbox } from "../src/components/Checkbox";
 import { CSText } from "../src/components/CSText";
 import { PanelHeader } from "../src/components/PanelHeader";
 import { CodeStreamState } from "../store";
 import { isFeatureEnabled } from "../store/apiVersioning/reducer";
-import { fetchCodeError } from "../store/codeErrors/actions";
 import { CodeErrorsState } from "../store/codeErrors/types";
 import { NewCodemarkAttributes, parseCodeStreamDiffUri } from "../store/codemarks/actions";
 import { getCodemark } from "../store/codemarks/reducer";
@@ -76,13 +74,7 @@ import {
 	safe,
 } from "../utils";
 import { HostApi } from "../webview-api";
-import {
-	createPostAndCodemark,
-	markItemRead,
-	openModal,
-	openPanel,
-	setUserPreference,
-} from "./actions";
+import { markItemRead, openModal, openPanel, setUserPreference } from "./actions";
 import { SetUserPreferenceRequest } from "./actions.types";
 import { getDocumentFromMarker } from "./api-functions";
 import Button from "./Button";
@@ -120,10 +112,7 @@ export const CrossPostIssueContext = React.createContext<ICrossPostIssueContext>
 interface Props extends ConnectedProps {
 	streamId: string;
 	collapseForm?: Function;
-	onSubmit: (
-		attributes: NewCodemarkAttributes,
-		event?: React.SyntheticEvent
-	) => Promise<void> | ReturnType<typeof createPostAndCodemark>;
+	onSubmit: (attributes: NewCodemarkAttributes, event?: React.SyntheticEvent) => Promise<void>;
 	onClickClose(e?: SyntheticEvent): void;
 	openCodemarkForm?(type: string): void;
 	slackInfo?: {};
@@ -149,10 +138,6 @@ interface Props extends ConnectedProps {
 	markItemRead(
 		...args: Parameters<typeof markItemRead>
 	): ReturnType<ReturnType<typeof markItemRead>>;
-	upgradePendingCodeError(
-		codeErrorId: string,
-		source: "Comment" | "Status Change" | "Assignee Change"
-	);
 }
 
 interface ConnectedProps {
@@ -180,7 +165,7 @@ interface ConnectedProps {
 	shouldShare: boolean;
 	currentTeamId: string;
 	currentReviewId?: string;
-	currentCodeErrorId?: string;
+	currentCodeErrorGuid?: string;
 	isCurrentUserAdmin?: boolean;
 	blameMap?: { [email: string]: string };
 	activePanel?: WebviewPanels;
@@ -870,19 +855,19 @@ class CodemarkForm extends React.Component<Props, State> {
 			this.setState({ isLoading: true });
 		}
 
-		if (this.props.currentPullRequestId) {
-			const { textEditorUriContext } = this.props;
-			const providerId =
-				textEditorUriContext &&
-				textEditorUriContext.context &&
-				textEditorUriContext.context.pullRequest
-					? textEditorUriContext.context.pullRequest.providerId
-					: "";
-			HostApi.instance.track("PR Comment Added", {
-				Host: providerId,
-				"Comment Type": this.state.isProviderReview ? "Review Comment" : "Single Comment",
-			});
-		}
+		// if (this.props.currentPullRequestId) {
+		// 	const { textEditorUriContext } = this.props;
+		// 	const providerId =
+		// 		textEditorUriContext &&
+		// 		textEditorUriContext.context &&
+		// 		textEditorUriContext.context.pullRequest
+		// 			? textEditorUriContext.context.pullRequest.providerId
+		// 			: "";
+		// 	HostApi.instance.track("PR Comment Added", {
+		// 		Host: providerId,
+		// 		"Comment Type": this.state.isProviderReview ? "Review Comment" : "Single Comment",
+		// 	});
+		// }
 
 		let parentPostId: string | undefined = undefined;
 		// all codemarks created while in a review are attached to that review
@@ -896,28 +881,6 @@ class CodemarkForm extends React.Component<Props, State> {
 				this.props.markItemRead(review.id, review.numReplies + 1);
 			} catch (error) {
 				// FIXME what do we do if we don't find the review?
-			}
-		}
-
-		if (this.props.currentCodeErrorId) {
-			try {
-				const codeErrorResponse = await this.props.upgradePendingCodeError(
-					this.props.currentCodeErrorId,
-					"Comment"
-				);
-				if (codeErrorResponse.wasPending) {
-					// if this codeError was pending, we know that we just created one, use the codeError
-					// that was created
-					parentPostId = codeErrorResponse.codeError.postId;
-				} else {
-					fetchCodeError(this.props.currentCodeErrorId);
-					const codeError = this.props.codeErrors.codeErrors[this.props.currentCodeErrorId];
-					parentPostId = codeError.postId;
-				}
-
-				//this.props.markItemRead(review.id, review.numReplies + 1);
-			} catch (error) {
-				// FIXME what do we do if we don't find the code error?
 			}
 		}
 
@@ -950,12 +913,12 @@ class CodemarkForm extends React.Component<Props, State> {
 				// will just kind of disappear.  similarly, if you prior panel was *not* spatial view
 				// the form will just disappear. in these cases, we want to show the user where the
 				// codemark ends up -- the actiivty feed and spatial view
-				if (
-					retVal &&
-					((codeBlocks.length == 0 && this.props.activePanel !== WebviewPanels.Activity) ||
-						this.props.activePanel !== WebviewPanels.CodemarksForFile)
-				)
-					this.showConfirmationForCodemarkLocation(type, codeBlocks.length);
+				// if (
+				// 	retVal &&
+				// 	((codeBlocks.length == 0 && this.props.activePanel !== WebviewPanels.Activity) ||
+				// 		this.props.activePanel !== WebviewPanels.CodemarksForFile)
+				// )
+				// 	this.showConfirmationForCodemarkLocation(type, codeBlocks.length);
 			} else {
 				await this.props.onSubmit({ ...baseAttributes, streamId: selectedChannelId! }, event);
 				this.props.setCurrentStream(selectedChannelId);
@@ -1071,7 +1034,7 @@ class CodemarkForm extends React.Component<Props, State> {
 			}
 		}
 
-		if (this.props.currentCodeErrorId) {
+		if (this.props.currentCodeErrorGuid) {
 			// do something cool?
 		} else if (this.props.textEditorUriHasPullRequestContext) {
 			// do something cool?
@@ -1342,7 +1305,7 @@ class CodemarkForm extends React.Component<Props, State> {
 		if (this.state.isPreviewing) return null;
 		if (this.props.isEditing) return null;
 		if (this.props.currentReviewId) return null;
-		if (this.props.currentCodeErrorId) return null;
+		if (this.props.currentCodeErrorGuid) return null;
 
 		// don't show the sharing controls for these types of diffs
 		if (this.props.textEditorUri && this.props.textEditorUri.match("codestream-diff://-[0-9]+-"))
@@ -1446,10 +1409,6 @@ class CodemarkForm extends React.Component<Props, State> {
 		if (relatedCodemarkIds[codemark.id]) delete relatedCodemarkIds[codemark.id];
 		else {
 			relatedCodemarkIds[codemark.id] = codemark;
-			HostApi.instance.track("Related Codemark Added", {
-				"Codemark ID": this.props.editingCodemark ? this.props.editingCodemark.id : undefined,
-				"Sibling Status": this.props.isEditing ? "Existing Codemark" : "New Codemark",
-			});
 		}
 		this.setState({ relatedCodemarkIds });
 	};
@@ -1671,27 +1630,27 @@ class CodemarkForm extends React.Component<Props, State> {
 		return (
 			<MessageInput
 				onKeypress={() => this.setState({ touchedText: true })}
-				teamProvider={this.props.teamProvider}
-				isDirectMessage={this.props.channel.type === StreamType.Direct}
+				//teamProvider={this.props.teamProvider}
+				//isDirectMessage={this.props.channel.type === StreamType.Direct}
 				text={text}
 				placeholder={placeholder}
 				multiCompose
 				onChange={this.handleChange}
-				withTags={!this.props.textEditorUriHasPullRequestContext}
-				toggleTag={this.handleToggleTag}
-				toggleCodemark={this.handleToggleCodemark}
-				shouldShowRelatableCodemark={codemark =>
-					this.props.editingCodemark ? codemark.id !== this.props.editingCodemark.id : true
-				}
+				//withTags={!this.props.textEditorUriHasPullRequestContext}
+				//toggleTag={this.handleToggleTag}
+				//toggleCodemark={this.handleToggleCodemark}
+				// shouldShowRelatableCodemark={codemark =>
+				// 	this.props.editingCodemark ? codemark.id !== this.props.editingCodemark.id : true
+				// }
 				onSubmit={
 					this.props.currentPullRequestId
 						? this.handlePullRequestKeyboardSubmit
 						: this.handleClickSubmit
 				}
-				selectedTags={this.state.selectedTags}
-				relatedCodemarkIds={
-					this.props.textEditorUriHasPullRequestContext ? undefined : this.state.relatedCodemarkIds
-				}
+				//selectedTags={this.state.selectedTags}
+				// relatedCodemarkIds={
+				// 	this.props.textEditorUriHasPullRequestContext ? undefined : this.state.relatedCodemarkIds
+				// }
 				setIsPreviewing={isPreviewing => this.setState({ isPreviewing })}
 				renderCodeBlock={this.renderCodeBlock}
 				renderCodeBlocks={this.renderCodeBlocks}
@@ -2084,7 +2043,7 @@ class CodemarkForm extends React.Component<Props, State> {
 
 	render() {
 		const { codeBlocks, scmError } = this.state;
-		const { editingCodemark, currentReviewId, currentCodeErrorId } = this.props;
+		const { editingCodemark, currentReviewId, currentCodeErrorGuid } = this.props;
 
 		const commentType = this.getCommentType();
 
@@ -2092,7 +2051,7 @@ class CodemarkForm extends React.Component<Props, State> {
 
 		// if you are conducting a review, and somehow are able to try to
 		// create an issue or a permalink, stop the user from doing that
-		if (commentType !== "comment" && (currentReviewId || currentCodeErrorId)) {
+		if (commentType !== "comment" && (currentReviewId || currentCodeErrorGuid)) {
 			const activity = currentReviewId ? "doing a review" : "investigating an error";
 			const additionalInfo = currentReviewId
 				? ' Mark your comment as a "change request" instead.'
@@ -2136,7 +2095,7 @@ class CodemarkForm extends React.Component<Props, State> {
 					<CancelButton onClick={this.cancelCompose} incrementKeystrokeLevel={true} />
 					<PanelHeader
 						title={
-							this.props.currentCodeErrorId
+							this.props.currentCodeErrorGuid
 								? this.props.isPDIdev
 									? "Codemarks in errors have been disabled."
 									: "Add Comment to Error"
@@ -2551,7 +2510,7 @@ class CodemarkForm extends React.Component<Props, State> {
 										width:
 											this.props.currentReviewId ||
 											this.props.textEditorUriHasPullRequestContext ||
-											this.props.currentCodeErrorId
+											this.props.currentCodeErrorGuid
 												? "auto"
 												: "80px",
 										marginRight: 0,
@@ -2584,7 +2543,7 @@ class CodemarkForm extends React.Component<Props, State> {
 										? this.props.prLabel.AddSingleComment
 										: this.props.editingCodemark
 										? "Save"
-										: this.props.currentCodeErrorId
+										: this.props.currentCodeErrorGuid
 										? "Add Comment to Error"
 										: "Submit"}
 								</Button>
@@ -2731,7 +2690,7 @@ const mapStateToProps = (state: CodeStreamState): ConnectedProps => {
 		codemarkState: codemarks,
 		multipleMarkersEnabled: isFeatureEnabled(state, "multipleMarkers"),
 		currentReviewId: context.currentReviewId,
-		currentCodeErrorId: context.currentCodeErrorId,
+		currentCodeErrorGuid: context.currentCodeErrorGuid,
 		inviteUsersOnTheFly,
 		prLabel: getPRLabel(state),
 		codeErrors: codeErrors,
@@ -2744,8 +2703,6 @@ const ConnectedCodemarkForm = connect(mapStateToProps, {
 	openModal,
 	markItemRead,
 	setUserPreference,
-	fetchCodeError,
-	upgradePendingCodeError,
 	getPullRequestConversationsFromProvider,
 	setCurrentPullRequestNeedsRefresh,
 	setCurrentStream,

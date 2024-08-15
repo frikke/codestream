@@ -1,21 +1,17 @@
-import {
-	GetNewRelicSignupJwtTokenRequestType,
-	GetReposScmRequestType,
-	RepoProjectType,
-} from "@codestream/protocols/agent";
+import { GetNewRelicSignupJwtTokenRequestType } from "@codestream/protocols/agent";
 import { CSProviderInfo } from "@codestream/protocols/api";
 import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { CodeStreamState } from "@codestream/webview/store";
 import { useAppDispatch, useAppSelector, useDidMount } from "@codestream/webview/utilities/hooks";
 import React, { useEffect, useRef, useState } from "react";
-import { closeAllPanels, setWantNewRelicOptions } from "../store/context/actions";
+import { closeAllPanels } from "@codestream/webview/store/context/thunks";
 import { configureProvider, disconnectProvider, ViewLocation } from "../store/providers/actions";
 import { isConnected } from "../store/providers/reducer";
 import { getUserProviderInfoFromState } from "../store/providers/utils";
 import { HostApi } from "../webview-api";
 import Button from "./Button";
 import { PROVIDER_MAPPINGS } from "./CrossPostIssueControls/types";
-import Icon from "./Icon";
+import { Icon } from "./Icon";
 import { Link } from "./Link";
 
 interface Props {
@@ -127,9 +123,9 @@ export default function ConfigureNewRelic(props: Props) {
 		}
 		setAlreadyConnected(true);
 		let isOnSubmittedPromise = false;
-		HostApi.instance.track("NR Connected", {
-			"Connection Location": props.originLocation,
-		});
+		// HostApi.instance.track("NR Connected", {
+		// 	"Connection Location": props.originLocation,
+		// });
 		if (props.onSubmited) {
 			const result = props.onSubmited();
 			if (typeof result?.then === "function") {
@@ -137,28 +133,6 @@ export default function ConfigureNewRelic(props: Props) {
 				result.then(_ => {
 					setLoading(false);
 				});
-			}
-		}
-
-		if (!props.disablePostConnectOnboarding) {
-			const reposResponse = await HostApi.instance.send(GetReposScmRequestType, {
-				inEditorOnly: true,
-				guessProjectTypes: true,
-			});
-			if (!reposResponse.error) {
-				const knownRepo = (reposResponse.repositories || []).find(repo => {
-					return repo.id && repo.projectType !== RepoProjectType.Unknown;
-				});
-				if (knownRepo && knownRepo.projectType) {
-					await dispatch(
-						setWantNewRelicOptions(
-							knownRepo.projectType,
-							knownRepo.id,
-							knownRepo.path,
-							knownRepo.projects
-						)
-					);
-				}
 			}
 		}
 
@@ -213,7 +187,7 @@ export default function ConfigureNewRelic(props: Props) {
 	if (derivedState.didConnect) {
 		return null;
 	}
-	const { providerId, headerChildren, showSignupUrl } = props;
+	const { headerChildren, showSignupUrl } = props;
 	const { displayName, getUrl } = derivedState.providerDisplay;
 	return (
 		<div className="standard-form vscroll">
@@ -272,7 +246,7 @@ export default function ConfigureNewRelic(props: Props) {
 								<Link
 									onClick={e => {
 										e.preventDefault();
-										HostApi.instance.track("NR Get API Key");
+										// HostApi.instance.track("NR Get API Key");
 										onClickSignup("nr_getapikey");
 									}}
 								>
@@ -289,7 +263,7 @@ export default function ConfigureNewRelic(props: Props) {
 								className="row-button"
 								onClick={e => {
 									e.preventDefault();
-									HostApi.instance.track("NR Signup Initiated");
+									// HostApi.instance.track("NR Signup Initiated");
 									onClickSignup("nr_signup");
 								}}
 							>

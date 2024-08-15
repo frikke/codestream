@@ -12,14 +12,19 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiMethodCallExpression
+import com.intellij.psi.PsiMethod
 import com.intellij.psi.impl.source.PsiJavaFileImpl
 import com.intellij.psi.impl.source.tree.java.PsiMethodCallExpressionImpl
 import com.intellij.psi.search.GlobalSearchScope
-import org.jetbrains.kotlin.idea.core.util.range
-import org.jetbrains.kotlin.idea.editor.fixers.range
+import com.intellij.psi.util.findParentOfType
 
 class CLMJavaComponent(project: Project) :
-    CLMLanguageComponent<CLMJavaEditorManager>(project, PsiJavaFileImpl::class.java, ::CLMJavaEditorManager, JavaSymbolResolver()) {
+    CLMLanguageComponent<CLMJavaEditorManager>(
+        project,
+        "java",
+        PsiJavaFileImpl::class.java,
+        ::CLMJavaEditorManager,
+        JavaSymbolResolver()) {
 
     private val logger = Logger.getInstance(CLMJavaComponent::class.java)
 
@@ -80,6 +85,9 @@ class JavaSymbolResolver : SymbolResolver {
         return null
     }
 
+    override fun findParentFunction(psiElement: PsiElement): PsiElement? {
+        return psiElement.findParentOfType<PsiMethod>()
+    }
     private val clmElementsProviders: List<CLMElementsProvider> = listOf(
         CLMJavaSpringDatastore()
     )
@@ -131,7 +139,7 @@ class JavaSymbolResolver : SymbolResolver {
     }
 }
 
-class CLMJavaEditorManager(editor: Editor) : CLMEditorManager(editor, "java", true, false, JavaSymbolResolver()) {
+class CLMJavaEditorManager(editor: Editor, languageId: String) : CLMEditorManager(editor, languageId, true, false, JavaSymbolResolver()) {
     override suspend fun findSymbols(psiFile: PsiFile, names: List<String>): Map<String, String> {
         if (psiFile !is PsiJavaFileImpl) return mapOf<String, String>()
         val foo = psiFile.findChildrenByClass(PsiMethodCallExpressionImpl::class.java)

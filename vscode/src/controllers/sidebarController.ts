@@ -16,15 +16,19 @@ import {
 	DidChangeProcessBufferNotificationType,
 	DidChangeServerUrlNotification,
 	DidChangeServerUrlNotificationType,
+	DidChangeSessionTokenStatusNotification,
+	DidChangeSessionTokenStatusNotificationType,
 	DidChangeVersionCompatibilityNotification,
 	DidChangeVersionCompatibilityNotificationType,
+	DidDetectObservabilityAnomaliesNotification,
+	DidDetectObservabilityAnomaliesNotificationType,
 	DidEncounterMaintenanceModeNotificationType,
 	DidResolveStackTraceLineNotificationType,
 	RefreshMaintenancePollNotificationType,
 	ReportingMessageType,
 	VersionCompatibility
 } from "@codestream/protocols/agent";
-import { CodemarkType, CSApiCapabilities, WebviewPanels } from "@codestream/protocols/api";
+import { CSApiCapabilities } from "@codestream/protocols/api";
 import {
 	ActiveEditorInfo,
 	ApplyMarkerRequestType,
@@ -35,29 +39,26 @@ import {
 	DisconnectFromIDEProviderRequestType,
 	EditorContext,
 	EditorCopySymbolType,
-	EditorHighlightRangeRequestType,
 	EditorReplaceSymbolType,
-	EditorRevealRangeRequestType,
 	EditorRevealSymbolRequestType,
 	EditorScrollToNotificationType,
 	EditorSelectRangeRequestType,
 	GetActiveEditorContextRequestType,
 	HostDidChangeActiveEditorNotificationType,
 	HostDidChangeConfigNotificationType,
-	HostDidChangeEditorSelectionNotificationType,
-	HostDidChangeEditorVisibleRangesNotificationType,
 	HostDidChangeLayoutNotificationType,
 	HostDidChangeVisibleEditorsNotificationType,
 	HostDidChangeWorkspaceFoldersNotificationType,
 	HostDidLogoutNotificationType,
 	HostDidReceiveRequestNotificationType,
+	InitiateLogSearchNotification,
+	InitiateLogSearchNotificationType,
 	InsertTextRequestType,
 	IpcRoutes,
 	isIpcRequestMessage,
 	isIpcResponseMessage,
 	LocalFilesCloseDiffRequestType,
 	LogoutRequestType,
-	NewCodemarkNotificationType,
 	NewPullRequestBranch,
 	NewPullRequestNotificationType,
 	NewReviewNotificationType,
@@ -68,6 +69,7 @@ import {
 	ReviewCloseDiffRequestType,
 	ReviewShowDiffRequestType,
 	ReviewShowLocalDiffRequestType,
+	OpenEditorViewNotificationType,
 	ShellPromptFolderRequestType,
 	ShowCodemarkNotificationType,
 	ShowNextChangedFileNotificationType,
@@ -90,7 +92,14 @@ import {
 	WebviewDidInitializeNotificationType,
 	WebviewIpcMessage,
 	WebviewIpcNotificationMessage,
-	WebviewIpcRequestMessage
+	WebviewIpcRequestMessage,
+	IdeNames,
+	LogoutReason,
+	EditorUndoType,
+	EditorRevealRangeRequestType,
+	EditorHighlightRangeRequestType,
+	OpenErrorGroupNotificationType,
+	OpenErrorGroupNotification
 } from "@codestream/protocols/webview";
 import {
 	authentication,
@@ -102,13 +111,12 @@ import {
 	Range,
 	Selection,
 	TextEditor,
-	TextEditorSelectionChangeEvent,
-	TextEditorVisibleRangesChangeEvent,
 	Uri,
 	ViewColumn,
 	window,
 	workspace,
-	SymbolInformation
+	SymbolInformation,
+	ExtensionContext
 } from "vscode";
 import { NotificationType, RequestType } from "vscode-languageclient";
 
@@ -116,7 +124,6 @@ import { gate } from "../system/decorators/gate";
 import { Functions, log, Strings } from "../system";
 import { openUrl } from "../urlHandler";
 import { toLoggableIpcMessage, WebviewLike } from "../webviews/webviewLike";
-import { toCSGitUri } from "../providers/gitContentProvider";
 import {
 	CodeStreamSession,
 	SessionSignedOutReason,
@@ -133,7 +140,8 @@ import { BuiltInCommands } from "../constants";
 import * as csUri from "../system/uri";
 import * as TokenManager from "../api/tokenManager";
 import { SaveTokenReason } from "../api/tokenManager";
-import { copySymbol, replaceSymbol } from "./symbolEditController";
+import { copySymbol, editorUndo, replaceSymbol } from "./symbolEditController";
+import { toCSGitUri } from "../providers/gitContentProvider";
 
 const emptyObj = {};
 
@@ -161,6 +169,7 @@ export class SidebarController implements Disposable {
 	private readonly _notifyActiveEditorChangedDebounced: (e: TextEditor | undefined) => void;
 
 	constructor(
+		private context: ExtensionContext,
 		public readonly session: CodeStreamSession,
 		private _sidebar?: WebviewLike
 	) {
@@ -226,12 +235,11 @@ export class SidebarController implements Disposable {
 				}
 
 				if (
-					this._sidebar !== undefined &&
-					e.reason === SessionSignedOutReason.UserSignedOutFromExtension
+					(this._sidebar !== undefined &&
+						e.reason === SessionSignedOutReason.UserSignedOutFromExtension) ||
+					e.reason === SessionSignedOutReason.InvalidRefreshToken
 				) {
-					if (this._sidebar !== undefined) {
-						this._sidebar.notify(HostDidLogoutNotificationType, {});
-					}
+					this._sidebar?.notify(HostDidLogoutNotificationType, {});
 					break;
 				}
 
@@ -239,7 +247,6 @@ export class SidebarController implements Disposable {
 					this._context = {
 						currentTeamId: "_",
 						hasFocus: true,
-						onboardStep: 0,
 						__teamless__: state.teamless
 					};
 				}
@@ -268,7 +275,7 @@ export class SidebarController implements Disposable {
 		}
 	}
 
-	private onVisibleEditorsChanged(e: TextEditor[]) {
+	private onVisibleEditorsChanged(e: readonly TextEditor[]) {
 		if (this._sidebar) {
 			this._sidebar.notify(HostDidChangeVisibleEditorsNotificationType, { count: e.length });
 		}
@@ -329,35 +336,6 @@ export class SidebarController implements Disposable {
 		// TODO: Change this to be a request vs a notification
 		this._sidebar!.notify(StartWorkNotificationType, {
 			uri: editor ? editor.document.uri.toString() : undefined,
-			source: source
-		});
-	}
-
-	@log()
-	async newCodemarkRequest(
-		type: CodemarkType,
-		editor: TextEditor | undefined = this._lastEditor,
-		source: string,
-		ignoreLastEditor?: boolean
-	): Promise<void> {
-		if (this.visible) {
-			await this._sidebar!.show();
-		} else {
-			await this.show();
-		}
-		if (ignoreLastEditor) {
-			editor = undefined;
-		}
-
-		if (!this._sidebar) {
-			// it's possible that the webview is closing...
-			return;
-		}
-		// TODO: Change this to be a request vs a notification
-		this._sidebar!.notify(NewCodemarkNotificationType, {
-			uri: editor ? editor.document.uri.toString() : undefined,
-			range: editor ? Editor.toSerializableRange(editor.selection) : undefined,
-			type: type,
 			source: source
 		});
 	}
@@ -427,7 +405,7 @@ export class SidebarController implements Disposable {
 	@log()
 	async openCodemark(
 		codemarkId: string,
-		options: { onlyWhenVisible?: boolean; sourceUri?: Uri } = {}
+		options: { source?: string; onlyWhenVisible?: boolean; sourceUri?: Uri } = {}
 	): Promise<void> {
 		if (!this.visible) {
 			if (options.onlyWhenVisible) return;
@@ -443,6 +421,7 @@ export class SidebarController implements Disposable {
 		// TODO: Change this to be a request vs a notification
 		this._sidebar!.notify(ShowCodemarkNotificationType, {
 			codemarkId: codemarkId,
+			source: "source_file",
 			sourceUri: options.sourceUri && options.sourceUri.toString()
 		});
 	}
@@ -530,6 +509,16 @@ export class SidebarController implements Disposable {
 	}
 
 	@log()
+	async logSearch(args: InitiateLogSearchNotification): Promise<void> {
+		if (!this._sidebar) {
+			// it's possible that the webview is closing...
+			return;
+		}
+
+		this._sidebar!.notify(InitiateLogSearchNotificationType, args);
+	}
+
+	@log()
 	async viewAnomaly(args: ViewAnomalyNotification): Promise<void> {
 		if (this.visible) {
 			await this._sidebar!.show();
@@ -542,6 +531,21 @@ export class SidebarController implements Disposable {
 			return;
 		}
 		this._sidebar!.notify(ViewAnomalyNotificationType, args);
+	}
+
+	@log()
+	async openErrorGroup(args: OpenErrorGroupNotification): Promise<void> {
+		if (this.visible) {
+			await this._sidebar!.show();
+		} else {
+			await this.show();
+		}
+
+		if (!this._sidebar) {
+			// it's possible that the webview is closing...
+			return;
+		}
+		this._sidebar!.notify(OpenErrorGroupNotificationType, args);
 	}
 
 	@log()
@@ -600,27 +604,20 @@ export class SidebarController implements Disposable {
 				(...args) => this.onConnectionStatusChanged(webview, ...args),
 				this
 			),
+			Container.agent.onDidChangeSessionTokenStatus(
+				(...args) => this.onSessionTokenStatusChanged(webview, ...args),
+				this
+			),
 			Container.agent.onDidChangeData((...args) => this.onDataChanged(webview, ...args), this),
 			Container.agent.onDidChangeDocumentMarkers(
 				(...args) => this.onDocumentMarkersChanged(webview, ...args),
 				this
 			),
-			window.onDidChangeTextEditorSelection(
-				Functions.debounce<(e: TextEditorSelectionChangeEvent) => any>(
-					(...args) => this.onEditorSelectionChanged(webview, ...args),
-					250,
-					{
-						maxWait: 250
-					}
-				),
-				this
-			),
-			window.onDidChangeTextEditorVisibleRanges(
-				(...args) => this.onEditorVisibleRangesChanged(webview, ...args),
-				this
-			),
 			configuration.onDidChange((...args) => this.onConfigurationChanged(webview, ...args), this),
-
+			Container.agent.onDidDetectObservabilityAnomalies(
+				(...args) => this.onDidDetectObservabilityAnomalies(webview, ...args),
+				this
+			),
 			// Keep this at the end otherwise the above subscriptions can fire while disposing
 			this._sidebar!
 		);
@@ -729,6 +726,13 @@ export class SidebarController implements Disposable {
 		}
 	}
 
+	private async onSessionTokenStatusChanged(
+		webview: WebviewLike,
+		e: DidChangeSessionTokenStatusNotification
+	) {
+		webview.notify(DidChangeSessionTokenStatusNotificationType, e);
+	}
+
 	private onConfigurationChanged(webview: WebviewLike, e: ConfigurationChangeEvent) {
 		if (
 			configuration.changed(e, configuration.name("traceLevel").value) ||
@@ -746,37 +750,15 @@ export class SidebarController implements Disposable {
 		webview.notify(DidChangeDataNotificationType, e);
 	}
 
+	private onDidDetectObservabilityAnomalies(
+		webview: WebviewLike,
+		e: DidDetectObservabilityAnomaliesNotification
+	) {
+		webview.notify(DidDetectObservabilityAnomaliesNotificationType, e);
+	}
+
 	private onDocumentMarkersChanged(webview: WebviewLike, e: DidChangeDocumentMarkersNotification) {
 		webview.notify(DidChangeDocumentMarkersNotificationType, e);
-	}
-
-	private async onEditorSelectionChanged(webview: WebviewLike, e: TextEditorSelectionChangeEvent) {
-		if (e.textEditor !== this._lastEditor || !this.isSupportedEditor(e.textEditor)) return;
-
-		const { fileUri, sha } = csUri.Uris.getFileUriAndSha(e.textEditor.document.uri);
-		webview.notify(HostDidChangeEditorSelectionNotificationType, {
-			uri: fileUri.toString(true),
-			gitSha: sha,
-			selections: Editor.toEditorSelections(e.selections),
-			visibleRanges: Editor.toSerializableRange(e.textEditor.visibleRanges),
-			lineCount: e.textEditor.document.lineCount
-		});
-	}
-
-	private onEditorVisibleRangesChanged(
-		webview: WebviewLike,
-		e: TextEditorVisibleRangesChangeEvent
-	) {
-		if (e.textEditor !== this._lastEditor || !this.isSupportedEditor(e.textEditor)) return;
-
-		const { fileUri, sha } = csUri.Uris.getFileUriAndSha(e.textEditor.document.uri);
-		webview.notify(HostDidChangeEditorVisibleRangesNotificationType, {
-			uri: fileUri.toString(true),
-			gitSha: sha,
-			selections: Editor.toEditorSelections(e.textEditor.selections),
-			visibleRanges: Editor.toSerializableRange(e.visibleRanges),
-			lineCount: e.textEditor.document.lineCount
-		});
 	}
 
 	private isSupportedEditor(textEditor: TextEditor): boolean {
@@ -804,7 +786,7 @@ export class SidebarController implements Disposable {
 		this.closeWebview("user");
 	}
 
-	private async onWebviewMessageReceived(webview: WebviewLike, e: WebviewIpcMessage) {
+	async onWebviewMessageReceived(webview: WebviewLike, e: WebviewIpcMessage) {
 		try {
 			Logger.log(`WebviewController: Received message ${toLoggableIpcMessage(e)} from the webview`);
 
@@ -843,6 +825,10 @@ export class SidebarController implements Disposable {
 
 	private onWebviewNotification(webview: WebviewLike, e: WebviewIpcNotificationMessage) {
 		switch (e.method) {
+			case OpenEditorViewNotificationType.method: {
+				Container.panel.initializeOrShowEditor(e.params);
+				break;
+			}
 			case WebviewDidInitializeNotificationType.method: {
 				// view is rendered and ready to receive messages
 				webview.onIpcReady();
@@ -1016,8 +1002,14 @@ export class SidebarController implements Disposable {
 			}
 			case LogoutRequestType.method: {
 				webview.onIpcRequest(LogoutRequestType, e, async (_type, _params) => {
+					let logoutReason = SessionSignedOutReason.UserSignedOutFromWebview;
+
+					if (_params.reason === LogoutReason.InvalidRefreshToken) {
+						logoutReason = SessionSignedOutReason.InvalidRefreshToken;
+					}
+
 					await Container.commands.signOut(
-						SessionSignedOutReason.UserSignedOutFromWebview,
+						logoutReason,
 						_params.newServerUrl,
 						_params.newEnvironment
 					);
@@ -1078,6 +1070,12 @@ export class SidebarController implements Disposable {
 			case EditorReplaceSymbolType.method: {
 				webview.onIpcRequest(EditorReplaceSymbolType, e, async (_type, params) => {
 					return await replaceSymbol(params);
+				});
+				break;
+			}
+			case EditorUndoType.method: {
+				webview.onIpcRequest(EditorUndoType, e, async (_type, params) => {
+					return await editorUndo(params);
 				});
 				break;
 			}
@@ -1374,7 +1372,7 @@ export class SidebarController implements Disposable {
 			},
 			environmentInfo: this.session.environmentInfo,
 			ide: {
-				name: "VSC",
+				name: "VSC" as IdeNames,
 				detail: env.appName
 			},
 			context: this._context
@@ -1464,7 +1462,7 @@ export class SidebarController implements Disposable {
 					fileName: workspace.asRelativePath(uri),
 					languageId: e.document.languageId,
 					metrics: Editor.getMetrics(uri),
-					selections: Editor.toEditorSelections(e.selections),
+					selections: [],
 					visibleRanges: Editor.toSerializableRange(e.visibleRanges),
 					lineCount: e.document.lineCount
 				};
@@ -1513,17 +1511,6 @@ export class SidebarController implements Disposable {
 				teams,
 				teamless
 			});
-
-			if (
-				!hidden &&
-				this._context &&
-				this._context.panelStack &&
-				this._context.panelStack[0] === WebviewPanels.CodemarksForFile
-			) {
-				Container.markerDecorations.suspend();
-			} else {
-				Container.markerDecorations.resume();
-			}
 		} catch {}
 	}
 

@@ -1,5 +1,5 @@
 import { CSPost } from "@codestream/protocols/api";
-import { sortBy as _sortBy } from "lodash-es";
+import { sortBy as _sortBy, isEmpty } from "lodash-es";
 import { createSelector } from "reselect";
 import { CodeStreamState } from "..";
 import { ActionType } from "../common";
@@ -7,10 +7,9 @@ import * as actions from "./actions";
 import { isPending, Post, PostsActionsType, PostsState } from "./types";
 import { PostPlus } from "@codestream/protocols/agent";
 import {
-	advanceRecombinedStream,
-	isGrokStreamDone,
-	RecombinedStream,
-} from "@codestream/webview/store/posts/recombinedStream";
+	extractParts,
+	isNrAiStreamDone,
+} from "@codestream/webview/store/discussions/recombinedStream";
 import { Index } from "@codestream/utils/types";
 
 type PostsActions = ActionType<typeof actions>;
@@ -25,6 +24,19 @@ const initialState: PostsState = {
 const addPost = (byStream: { [streamId: string]: Index<PostPlus> }, post: CSPost) => {
 	const streamId = post.streamId;
 	const streamPosts = byStream[streamId] || {};
+	if (post.forGrok) {
+		let parts = extractParts(post.text);
+		if (
+			!isEmpty(post.text) &&
+			isEmpty(parts.codeFix) &&
+			isEmpty(parts.intro) &&
+			isEmpty(parts.description)
+		) {
+			// Legacy NRAI post without sections
+			parts = { description: post.text, intro: "", codeFix: "" };
+		}
+		post.parts = parts;
+	}
 	return { ...byStream, [streamId]: { ...streamPosts, [post.id]: post } };
 };
 
@@ -50,32 +62,48 @@ export function reducePosts(state: PostsState = initialState, action: PostsActio
 			});
 			return nextState;
 		}
-		case PostsActionsType.AppendGrokStreamingResponse: {
-			const nextState: PostsState = {
-				pending: [...state.pending],
-				byStream: { ...state.byStream },
-				streamingPosts: { ...state.streamingPosts },
-				postThreadsLoading: state.postThreadsLoading,
-			};
-			const { streamId, postId } = action.payload[0];
-			const recombinedStream: RecombinedStream = nextState.streamingPosts[postId] ?? {
-				items: [],
-				receivedDoneEvent: false,
-				content: "",
-			};
-			advanceRecombinedStream(recombinedStream, action.payload);
-			// console.debug(`=== recombinedStream ${JSON.stringify(recombinedStream, null, 2)}`);
-			nextState.streamingPosts[postId] = recombinedStream;
-			const post = nextState.byStream[streamId][postId];
-			if (recombinedStream.content && post) {
-				post.text = recombinedStream.content;
-			}
-			return nextState;
-		}
+		// case PostsActionsType.AppendGrokStreamingResponse: {
+		// 	const nextState: PostsState = {
+		// 		pending: [...state.pending],
+		// 		byStream: { ...state.byStream },
+		// 		streamingPosts: { ...state.streamingPosts },
+		// 		postThreadsLoading: state.postThreadsLoading,
+		// 	};
+		// 	const { streamId, postId } = action.payload[0];
+		// 	const recombinedStream: RecombinedStream = nextState.streamingPosts[postId] ?? {
+		// 		items: [],
+		// 		receivedDoneEvent: false,
+		// 		content: "",
+		// 	};
+		// 	advanceRecombinedStream(recombinedStream, action.payload);
+		// 	// console.debug(`=== recombinedStream ${JSON.stringify(recombinedStream, null, 2)}`);
+		// 	nextState.streamingPosts[postId] = recombinedStream;
+		// 	const post = nextState.byStream[streamId][postId];
+		// 	if (recombinedStream.content && post) {
+		// 		post.text = recombinedStream.content;
+		// 	}
+		// 	if (recombinedStream.parts && post) {
+		// 		post.parts = recombinedStream.parts;
+		// 	}
+		// 	return nextState;
+		// }
 		case PostsActionsType.AddForStream: {
 			const { streamId, posts } = action.payload;
 			const streamPosts = { ...(state.byStream[streamId] || {}) };
 			posts.filter(Boolean).forEach(post => {
+				if (post.forGrok) {
+					let parts = extractParts(post.text);
+					if (
+						!isEmpty(post.text) &&
+						isEmpty(parts.codeFix) &&
+						isEmpty(parts.intro) &&
+						isEmpty(parts.description)
+					) {
+						// Legacy NRAI post without sections
+						parts = { description: post.text, intro: "", codeFix: "" };
+					}
+					post.parts = parts;
+				}
 				streamPosts[post.id] = post;
 			});
 
@@ -137,11 +165,11 @@ export function reducePosts(state: PostsState = initialState, action: PostsActio
 	}
 }
 
-const _isGrokLoading = (state: PostsState) => {
+const _isGrokLoading = (state: PostsState): boolean => {
 	const recombinedStreams = state.streamingPosts;
 	return Object.keys(recombinedStreams).some(postId => {
 		const stream = recombinedStreams[postId];
-		return !isGrokStreamDone(stream);
+		return !isNrAiStreamDone(stream);
 	});
 };
 
@@ -193,11 +221,11 @@ export const getThreadPosts = createSelector(
 	}
 );
 
-export const getGrokPostLength = createSelector(getThreadPosts, posts => {
-	const grokPostLength = posts.filter(post => isPostPlus(post) && post.forGrok).length;
+export const getNrAiPostLength = createSelector(getThreadPosts, posts => {
+	const nrAiPostLength = posts.filter(post => isPostPlus(post) && post.forGrok).length;
 	// console.debug(`===--- getThreadPosts: ${JSON.stringify(posts)}`);
 	// console.debug(`===--- getGrokPostLength: ${grokPostLength}`);
-	return grokPostLength;
+	return nrAiPostLength;
 });
 
 export const getPost = ({ byStream, pending }: PostsState, streamId: string, postId: string) => {

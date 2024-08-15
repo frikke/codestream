@@ -18,7 +18,6 @@ import {
 import { logError } from "@codestream/webview/logger";
 import { CodeStreamState } from "@codestream/webview/store";
 import { addPosts } from "@codestream/webview/store/posts/actions";
-import { getConnectedProviders } from "@codestream/webview/store/providers/reducer";
 import {
 	addReviews,
 	EditableAttributes,
@@ -30,9 +29,7 @@ import {
 } from "@codestream/webview/store/reviews/actions";
 import { addStreams } from "@codestream/webview/store/streams/actions";
 import { findMentionedUserIds, getTeamMembers } from "@codestream/webview/store/users/reducer";
-import { createPost } from "@codestream/webview/Stream/actions";
-import { phraseList } from "@codestream/webview/utilities/strings";
-import { capitalize, mapFilter } from "@codestream/webview/utils";
+import { mapFilter } from "@codestream/webview/utils";
 import { HostApi } from "@codestream/webview/webview-api";
 
 export interface CreateReviewError {
@@ -100,15 +97,15 @@ export const createReview =
 								],
 							});
 						}
-						HostApi.instance.track("Shared Review", {
-							Destination: capitalize(
-								getConnectedProviders(getState()).find(
-									config => config.id === attributes.sharingAttributes!.providerId
-								)!.name
-							),
-							"Review Status": "New",
-							"Conversation Type": sharingAttributes.type === "channel" ? "Channel" : "Group DM",
-						});
+						// HostApi.instance.track("Shared Review", {
+						// 	Destination: capitalize(
+						// 		getConnectedProviders(getState()).find(
+						// 			config => config.id === attributes.sharingAttributes!.providerId
+						// 		)!.name
+						// 	),
+						// 	"Review Status": "New",
+						// 	"Conversation Type": sharingAttributes.type === "channel" ? "Channel" : "Group DM",
+						// });
 					} catch (error) {
 						logError("Error sharing a review", { message: error.toString() });
 						// TODO: communicate failure to users
@@ -173,15 +170,15 @@ export const editReview =
 				}).filter(Boolean);
 
 				if (filteredUsers.length) {
-					dispatch(
-						createPost(
-							response.review.streamId,
-							response.review.postId,
-							`/me added ${phraseList(filteredUsers.map(u => `@${u.username}`))} to this review`,
-							null,
-							filteredUsers.map(u => u.id)
-						)
-					);
+					// dispatch(
+					// 	createPost(
+					// 		response.review.streamId,
+					// 		response.review.postId,
+					// 		`/me added ${phraseList(filteredUsers.map(u => `@${u.username}`))} to this review`,
+					// 		null,
+					// 		filteredUsers.map(u => u.id)
+					// 	)
+					// );
 				}
 			}
 
@@ -189,16 +186,16 @@ export const editReview =
 				// FIXME multiple-repo
 				const checkpoint = attributes.repoChanges[0].checkpoint || 0;
 
-				dispatch(
-					createPost(
-						response.review.streamId,
-						response.review.postId,
-						replyText || "",
-						undefined,
-						undefined,
-						{ reviewCheckpoint: checkpoint }
-					)
-				);
+				// dispatch(
+				// 	createPost(
+				// 		response.review.streamId,
+				// 		response.review.postId,
+				// 		replyText || "",
+				// 		undefined,
+				// 		undefined,
+				// 		{ reviewCheckpoint: checkpoint }
+				// 	)
+				// );
 			}
 
 			if (attributes.sharedTo) {
@@ -237,14 +234,14 @@ export const editReview =
 								],
 							});
 						}
-						HostApi.instance.track("Shared Review", {
-							Destination: capitalize(
-								getConnectedProviders(getState()).find(
-									config => config.id === shareTarget.providerId
-								)!.name
-							),
-							"Review Status": "Edited",
-						});
+						// HostApi.instance.track("Shared Review", {
+						// 	Destination: capitalize(
+						// 		getConnectedProviders(getState()).find(
+						// 			config => config.id === shareTarget.providerId
+						// 		)!.name
+						// 	),
+						// 	"Review Status": "Edited",
+						// });
 					} catch (error) {
 						logError("Error sharing a review", { message: error.toString() });
 						// TODO: communicate failure to users

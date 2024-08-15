@@ -4,20 +4,61 @@ import Icon from "./Icon";
 import { Link } from "./Link";
 import { ObservabilityAssignmentsDropdown } from "./ObservabilityAssignmentsDropdown";
 import { ObservabilityErrorDropdown } from "./ObservabilityErrorDropdown";
+import { CodeStreamState } from "@codestream/webview/store";
+import { setUserPreference } from "./actions";
+import { useAppSelector, useAppDispatch } from "../utilities/hooks";
+import {
+	ObservabilityErrorCore,
+	ObservabilityRepo,
+	ObservabilityRepoError,
+} from "@codestream/protocols/agent";
+import { shallowEqual } from "react-redux";
 
 interface Props {
-	observabilityErrors: any;
-	observabilityRepo: any;
-	observabilityAssignments: any;
-	entityGuid: string;
+	observabilityErrors: ObservabilityRepoError[];
+	observabilityRepo?: ObservabilityRepo;
+	observabilityAssignments: ObservabilityErrorCore[];
+	errorEntityGuid: string;
 	noAccess?: string;
 	errorMsg?: string;
 	errorInboxError?: string;
+	domain?: string;
+	isServiceSearch?: boolean;
+	hasRepoAssociated?: boolean;
 }
 
 export const ObservabilityErrorWrapper = React.memo((props: Props) => {
-	const [expanded, setExpanded] = useState<boolean>(true);
 	const { errorMsg } = props;
+	const [isExpanded, setIsExpanded] = useState<boolean>(false);
+
+	const dispatch = useAppDispatch();
+
+	const derivedState = useAppSelector((state: CodeStreamState) => {
+		const { preferences } = state;
+
+		const errorDropdownIsExpanded = preferences?.errorDropdownIsExpanded ?? false;
+
+		return {
+			errorDropdownIsExpanded,
+		};
+	}, shallowEqual);
+
+	const handleRowOnClick = () => {
+		if (props.isServiceSearch) {
+			setIsExpanded(!isExpanded);
+		} else {
+			const { errorDropdownIsExpanded } = derivedState;
+
+			dispatch(
+				setUserPreference({
+					prefPath: ["errorDropdownIsExpanded"],
+					value: !errorDropdownIsExpanded,
+				})
+			);
+		}
+	};
+
+	const expanded = props.isServiceSearch ? isExpanded : derivedState.errorDropdownIsExpanded;
 
 	return (
 		<>
@@ -26,7 +67,7 @@ export const ObservabilityErrorWrapper = React.memo((props: Props) => {
 					padding: "2px 10px 2px 30px",
 				}}
 				className={"pr-row"}
-				onClick={() => setExpanded(!expanded)}
+				onClick={() => handleRowOnClick()}
 				data-testid={`observabilty-errors-dropdown`}
 			>
 				{expanded && <Icon name="chevron-down-thin" />}
@@ -50,7 +91,7 @@ export const ObservabilityErrorWrapper = React.memo((props: Props) => {
 							padding: "2px 10px 2px 40px",
 						}}
 						className={"pr-row"}
-						onClick={() => setExpanded(!expanded)}
+						onClick={() => handleRowOnClick()}
 					>
 						<span style={{ marginLeft: "2px", whiteSpace: "normal" }}>
 							{props.noAccess === "403" ? (
@@ -74,13 +115,19 @@ export const ObservabilityErrorWrapper = React.memo((props: Props) => {
 					<>
 						<ObservabilityAssignmentsDropdown
 							observabilityAssignments={props.observabilityAssignments}
-							entityGuid={props.entityGuid}
+							entityGuid={props.errorEntityGuid}
 							errorInboxError={props.errorInboxError}
+							domain={props?.domain}
+							isServiceSearch={props?.isServiceSearch}
+							hasRepoAssociated={props?.hasRepoAssociated}
 						/>
 						<ObservabilityErrorDropdown
 							observabilityErrors={props.observabilityErrors}
 							observabilityRepo={props.observabilityRepo}
-							entityGuid={props.entityGuid}
+							entityGuid={props.errorEntityGuid}
+							domain={props?.domain}
+							isServiceSearch={props?.isServiceSearch}
+							hasRepoAssociated={props?.hasRepoAssociated}
 						/>
 					</>
 				))}

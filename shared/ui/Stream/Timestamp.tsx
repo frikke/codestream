@@ -114,6 +114,34 @@ export const distanceOfTimeInWords = (
 	}
 };
 
+export const fuzzyTimeAgoinWords = (time: number) => {
+	// Get the current time
+	const now = Date.now();
+
+	// Calculate the time difference in milliseconds
+	const timeDifference = now - time;
+
+	// Display the time difference in a human-readable format
+	const seconds = Math.floor(timeDifference / 1000);
+	const minutes = Math.floor(seconds / 60);
+	const hours = Math.floor(minutes / 60);
+	const days = Math.floor(hours / 24);
+
+	if (days) {
+		return `${days} day${days > 1 ? "s" : ""}`;
+	}
+	if (hours) {
+		return `${hours} hour${hours > 1 ? "s" : ""}`;
+	}
+	if (minutes) {
+		return `${minutes} minute${minutes > 1 ? "s" : ""}`;
+	}
+	if (seconds) {
+		return `${seconds} second${seconds > 1 ? "s" : ""}`;
+	}
+	return "";
+};
+
 const prettyDateDay = function (time, abbreviated?: boolean) {
 	if (time === 0 || time === null || time === undefined) return "";
 	try {
@@ -172,12 +200,23 @@ const prettyDateDayTime = function (time, abbreviated?: boolean) {
 	}
 };
 
-const prettyTime = function (time) {
+const prettyTime = function (time, expandedTime = false) {
 	try {
 		var prettyTime;
-		// time = this.adjustedTime(time, options.timezone_info);
-		prettyTime = new Intl.DateTimeFormat("en", { hour: "numeric", minute: "2-digit" }).format(time);
+		if (expandedTime) {
+			prettyTime = new Intl.DateTimeFormat("en", {
+				hour: "2-digit",
+				minute: "2-digit",
+				second: "2-digit",
+			}).format(time);
+		} else {
+			prettyTime = new Intl.DateTimeFormat("en", { hour: "numeric", minute: "2-digit" }).format(
+				time
+			);
+		}
+
 		prettyTime = prettyTime.replace(/^0:/, "12:");
+
 		return prettyTime;
 	} catch (ex) {
 		console.error(ex, time);
@@ -206,6 +245,7 @@ interface Props {
 	abbreviated?: boolean;
 	showTooltip?: boolean;
 	placement?: Placement;
+	expandedTime?: boolean;
 }
 
 const StyledTime = styled.time`
@@ -249,7 +289,7 @@ export default function Timestamp(props: PropsWithChildren<Props>) {
 			</StyledTime>
 		);
 	} else {
-		const timeText = prettyTime(time);
+		const timeText = prettyTime(time, props.expandedTime);
 		const timeDetails = prettyDateDay(time, props.abbreviated);
 
 		if (props.dateOnly)

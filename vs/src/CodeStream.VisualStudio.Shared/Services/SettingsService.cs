@@ -116,12 +116,6 @@ namespace CodeStream.VisualStudio.Shared.Services
 			set => DialogPage.ServerUrl = value;
 		}
 
-		public bool ShowMarkerGlyphs
-		{
-			get => DialogPage.ShowMarkerGlyphs;
-			set => DialogPage.ShowMarkerGlyphs = value;
-		}
-
 		public TraceLevel TraceLevel
 		{
 			get => DialogPage.TraceLevel;
@@ -158,12 +152,6 @@ namespace CodeStream.VisualStudio.Shared.Services
 		{
 			get => DialogPage.ExtraCertificates;
 			set => DialogPage.ExtraCertificates = value;
-		}
-
-		public bool ShowContextMenuCommands
-		{
-			get => DialogPage.ShowContextMenuCommands;
-			set => DialogPage.ShowContextMenuCommands = value;
 		}
 
 		public Ide GetIdeInfo() =>

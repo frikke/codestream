@@ -6,6 +6,7 @@ import com.codestream.protocols.webview.PixieNotifications
 import com.codestream.webViewService
 import com.goide.psi.GoFunctionOrMethodDeclaration
 import com.goide.psi.GoMethodDeclaration
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.application.ApplicationManager
@@ -46,6 +47,10 @@ class PixieDynamicLoggingAction : DumbAwareAction() {
         }
         // catalogue: 00000008-0000-1a41-0000-0000072e8792
         // simple gotracing: 00000004-0000-3d9e-0000-000001e9f7b4
+    }
+
+    override fun getActionUpdateThread(): ActionUpdateThread {
+        return ActionUpdateThread.EDT
     }
 
 }

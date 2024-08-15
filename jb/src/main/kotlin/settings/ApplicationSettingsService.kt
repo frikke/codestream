@@ -14,9 +14,9 @@ import com.intellij.openapi.extensions.PluginId
 import com.intellij.util.io.encodeUrlQueryParameter
 import com.intellij.util.net.HttpConfigurable
 
-const val API_PD = "https://codestream-pd.staging-service.nr-ops.net"
-const val API_QA = "https://codestream-qa.staging-service.nr-ops.net"
-const val API_PROD = "https://codestream-us1.service.newrelic.com"
+const val API_PD = "https://codestream-api-v2-pd.staging-service.nr-ops.net"
+const val API_QA = "https://codestream-api-v2-qa.staging-service.nr-ops.net"
+const val API_PROD = "https://codestream-api-v2-us1.service.newrelic.com"
 const val DEFAULT_GOLDEN_SIGNALS_FORMAT =
     "avg duration: \${averageDuration} | error rate: \${errorRate} - \${sampleSize} samples in the last \${since}"
 
@@ -42,13 +42,10 @@ data class ApplicationSettingsServiceState(
     var serverUrl: String = API_PROD,
     var disableStrictSSL: Boolean = false,
     var extraCerts: String? = null,
-    var showMarkers: Boolean = true,
-    var showNewCodemarkGutterIconOnHover: Boolean = true,
     var proxySupport: ProxySupport = ProxySupport.ON,
     var proxyStrictSSL: Boolean = true,
     var firstRun: Boolean = true,
     var jcef: Boolean = true,
-    var createReviewOnCommit: Boolean = true,
     var showGoldenSignalsInEditor: Boolean = true,
     var goldenSignalsInEditorFormat: String = DEFAULT_GOLDEN_SIGNALS_FORMAT,
     var teamId: String? = null
@@ -97,18 +94,6 @@ class ApplicationSettingsService : PersistentStateComponent<ApplicationSettingsS
     val traceLevel get() = if (logger.isDebugEnabled) TraceLevel.DEBUG else TraceLevel.VERBOSE
 
     val isDebugging get() = DEBUG
-
-    var showMarkers
-        get() = state.showMarkers
-        set(value) {
-            state.showMarkers = value
-        }
-
-    var showNewCodemarkGutterIconOnHover
-        get() = state.showNewCodemarkGutterIconOnHover
-        set(value) {
-            state.showNewCodemarkGutterIconOnHover = value
-        }
 
     var serverUrl
         get() = state.serverUrl

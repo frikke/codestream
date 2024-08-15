@@ -3,22 +3,21 @@
 	"compilerOptions": {
 		"allowJs": true,
 		"jsx": "react",
-		"lib": ["es2019", "dom", "dom.iterable"],
-		"noImplicitAny": false,
-		"module": "esnext",
-		"moduleResolution": "node",
+		"lib": [ "es2019", "dom", "dom.iterable" ],
 		"noEmit": true,
-		"paths": {
-			"@codestream/protocols/agent": ["../shared/util/src/protocol/agent/agent.protocol.ts"],
-			"@codestream/protocols/api": ["../shared/util/src/protocol/agent/api.protocol.ts"],
-			"@codestream/protocols/webview": ["../shared/ui/ipc/webview.protocol.ts"],
-			"@codestream/utils/*": ["../shared/util/src/utils/*"],
-			"@codestream/webview/*": ["../shared/ui/*"],
-			"vscode-jsonrpc": ["../shared/ui/vscode-jsonrpc.shim.ts"]
-		},
+		"noImplicitAny": false,
+		"resolveJsonModule": false,
 		"rootDir": "../",
-		"target": "es2017",
-		"resolveJsonModule": false
+		"tsBuildInfoFile": ".tsbuildinfo",
+		"incremental": true,
+		"paths": {
+			"@codestream/protocols/agent": [ "../shared/util/src/protocol/agent/agent.protocol.ts" ],
+			"@codestream/protocols/api": [ "../shared/util/src/protocol/agent/api.protocol.ts" ],
+			"@codestream/protocols/webview": [ "../shared/ui/ipc/webview.protocol.ts" ],
+			"@codestream/utils/*": [ "../shared/util/src/utils/*" ],
+			"@codestream/webview/*": [ "../shared/ui/*" ],
+			"vscode-jsonrpc": [ "../shared/ui/vscode-jsonrpc.shim.ts" ]
+		}
 	},
-	"include": ["src/CodeStream.VisualStudio.Shared/UI/WebViews/*.ts", "../shared/util/src/**/*", "../shared/build/src/**/*"]
+	"include": ["src/**/*.ts", "../shared/util/src/**/*", "../shared/build/src/**/*"]
 }

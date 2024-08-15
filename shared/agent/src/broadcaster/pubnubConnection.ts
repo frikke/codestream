@@ -2,7 +2,7 @@
 // messages in real-time
 "use strict";
 import { Agent as HttpsAgent } from "https";
-import HttpsProxyAgent from "https-proxy-agent";
+import { HttpsProxyAgent } from "https-proxy-agent";
 import Pubnub from "pubnub";
 import { inspect } from "util";
 import { Disposable } from "vscode-languageserver";
@@ -40,10 +40,12 @@ const PING_INTERVAL = 30000;
 // use this interface to initialize the PubnubConnection class
 export interface PubnubInitializer {
 	subscribeKey: string; // identifies our Pubnub account, comes from pubnubKey returned with the login response from the API
-	authKey: string; // unique Pubnub token provided in the login response
+	cipherKey?: string; // cipher used for encryption
+	broadcasterToken: string; // unique Pubnub token provided in the login response
+	isV3Token?: boolean;
 	userId: string; // ID of the current user
 	debug?(msg: string, info?: any): void; // for debug messages
-	httpsAgent?: HttpsAgent | HttpsProxyAgent;
+	httpsAgent?: HttpsAgent | HttpsProxyAgent<string>;
 	onMessage: MessageCallback;
 	onStatus: StatusCallback;
 	onFetchHistory?: HistoryFetchCallback;
@@ -75,16 +77,34 @@ export class PubnubConnection implements BroadcasterConnection {
 		this._debug(`Connection initializing...`);
 
 		this._userId = options.userId;
-		this._pubnub = new Pubnub({
-			authKey: options.authKey,
+		let proxy;
+		if (options.httpsAgent instanceof HttpsProxyAgent) {
+			proxy = {
+				protocol: options.httpsAgent.protocol,
+				host: options.httpsAgent.proxy.hostname,
+				port: options.httpsAgent.proxy.port,
+			};
+		}
+
+		const pubnubConfig: Pubnub.PubnubConfig = {
 			uuid: options.userId,
 			subscribeKey: options.subscribeKey,
+			authKey: !options.isV3Token ? options.broadcasterToken : undefined,
 			restore: true,
 			logVerbosity: false,
 			// heartbeatInterval: 30,
 			autoNetworkDetection: true,
-			proxy: options.httpsAgent instanceof HttpsProxyAgent && options.httpsAgent.proxy,
-		} as Pubnub.PubnubConfig);
+			//proxy: proxy,
+		};
+		if (options.cipherKey) {
+			pubnubConfig.cryptoModule = Pubnub.CryptoModule.aesCbcCryptoModule({
+				cipherKey: options.cipherKey,
+			});
+		}
+		this._pubnub = new Pubnub(pubnubConfig); // TODO @types/pubnub is very broken
+		if (options.isV3Token) {
+			this._pubnub.setToken(options.broadcasterToken);
+		}
 
 		this._messageCallback = options.onMessage;
 		this._statusCallback = options.onStatus;
@@ -98,6 +118,23 @@ export class PubnubConnection implements BroadcasterConnection {
 				this._pubnub!.stop();
 			},
 		};
+	}
+
+	// set a new (V3) broadcaster token
+	setV3Token(token: string) {
+		if (!this._pubnub) return;
+		this._pubnub.setToken(token);
+		const result = this._pubnub.parseToken(token);
+		const channels = Object.keys(result.resources?.channels || {}).filter(channel => {
+			return result.resources!.channels![channel].read;
+		});
+		const expiresAt = result.timestamp * 1000 + result.ttl * 60 * 1000;
+		this._debug(
+			`Did set PubNub token, token expires in ${
+				expiresAt - Date.now()
+			} ms, at ${expiresAt}, authorized channels are:`,
+			channels
+		);
 	}
 
 	// subscribe to the passed channels
@@ -198,13 +235,17 @@ export class PubnubConnection implements BroadcasterConnection {
 			status.category === Pubnub.CATEGORIES.PNAccessDeniedCategory
 		) {
 			// an access denied message, in direct response to a subscription attempt
-			const channels = status.errorData.payload.channels;
+			// BEWARE: the (commented) code below can leak our subscription key, and the user's pubnub token
+			//if (!status.errorData?.payload?.channels) {
+			//	this._debug(`Access denied status: ${JSON.stringify(status)}`);
+			//}
+			const channels = status.errorData?.payload?.channels || [];
 			this._debug(`Access denied for channels: ${channels}`);
 			const criticalChannels: string[] = [];
 			const nonCriticalChannels: string[] = [];
 			// HACK: whether a channel is critical should be passed as an option and processed through the
 			// chain, but the changes to the code are too complicated ... this all needs a refactor anyway
-			status.errorData?.payload?.channels.forEach((channel: string) => {
+			channels.forEach((channel: string) => {
 				if (channel.startsWith("object-")) {
 					nonCriticalChannels.push(channel);
 				} else {

@@ -1,33 +1,35 @@
 import {
 	LocalFilesCloseDiffRequestType,
+	OpenEditorViewNotificationType,
 	ReviewCloseDiffRequestType,
 } from "@codestream/protocols/webview";
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import cx from "classnames";
-import React from "react";
+import React, { useCallback } from "react";
 import { WebviewPanels } from "@codestream/protocols/api";
 import { HeadshotName } from "../src/components/HeadshotName";
 import { CodeStreamState } from "../store";
 import {
 	clearCurrentPullRequest,
 	setCreatePullRequest,
-	setCurrentCodemark,
 	setCurrentReview,
 } from "../store/context/actions";
 import { HostApi } from "../webview-api";
 import { openPanel } from "./actions";
 import { EllipsisMenu } from "./EllipsisMenu";
 import Icon from "./Icon";
-import { Link } from "./Link";
-import { PlusMenu } from "./PlusMenu";
-import Tooltip, { placeArrowTopRight, TipTitle } from "./Tooltip";
-
+import Tooltip from "./Tooltip";
+import { parseId } from "../utilities/newRelic";
+import { TourTip } from "../src/components/TourTip";
+import { getSidebarLocation } from "../store/editorContext/reducer";
+import { isEmpty as _isEmpty } from "lodash-es";
+import { StepOneContinue, StepOneEnd } from "./O11yTourTips";
 const sum = (total, num) => total + Math.round(num);
 
 export function GlobalNav() {
 	const dispatch = useAppDispatch();
 	const derivedState = useAppSelector((state: CodeStreamState) => {
-		const { users, umis, preferences } = state;
+		const { users } = state;
 		const user = users[state.session.userId!];
 		const eligibleJoinCompanies = user?.eligibleJoinCompanies;
 		let inviteCount: number = 0;
@@ -38,20 +40,28 @@ export function GlobalNav() {
 				}
 			});
 		}
+
+		const hasEntityAccounts = !_isEmpty(state.context.entityAccounts);
+
 		return {
 			currentUserId: state.session.userId,
 			activePanel: state.context.panelStack[0],
-			totalUnread: Object.values(umis.unreads).reduce(sum, 0),
-			totalMentions: Object.values(umis.mentions).reduce(sum, 0),
-			composeCodemarkActive: state.context.composeCodemarkActive,
 			currentReviewId: state.context.currentReviewId,
-			currentCodeErrorId: state.context.currentCodeErrorId,
-			currentCodemarkId: state.context.currentCodemarkId,
+			currentCodeErrorGuid: state.context.currentCodeErrorGuid,
+
 			currentPullRequestId: state.context.currentPullRequest
 				? state.context.currentPullRequest.id
 				: undefined,
+			currentEntityGuid: state.context.currentEntityGuid,
 			eligibleJoinCompanies,
 			inviteCount,
+			isVsCode: state.ide.name === "VSC",
+			ideName: state.ide.name,
+			showNrqlBuilder: state.ide.name === "VSC" || state.ide.name === "JETBRAINS",
+			showLogSearch: state.ide.name === "VSC" || state.ide.name === "JETBRAINS",
+			o11yTour: state.preferences.o11yTour ? state.preferences.o11yTour : "globalNav",
+			sidebarLocation: getSidebarLocation(state),
+			hasEntityAccounts,
 		};
 	});
 
@@ -59,27 +69,8 @@ export function GlobalNav() {
 	const [plusMenuOpen, setPlusMenuOpen] = React.useState();
 	const [teamMenuOpen, setTeamMenuOpen] = React.useState();
 
-	const {
-		activePanel,
-		eligibleJoinCompanies,
-		inviteCount,
-		totalUnread,
-		totalMentions,
-		currentCodemarkId,
-		currentReviewId,
-		currentCodeErrorId,
-		currentPullRequestId,
-	} = derivedState;
-
-	const umisClass = cx("umis", {
-		mentions: totalMentions > 0,
-		unread: totalMentions == 0 && totalUnread > 0,
-	});
-	const totalUMICount = totalMentions ? (
-		<div className="mentions-badge">{totalMentions > 99 ? "99+" : totalMentions}</div>
-	) : totalUnread ? (
-		<div className="unread-badge">.</div>
-	) : null;
+	const { activePanel, inviteCount, currentReviewId, currentCodeErrorGuid, currentPullRequestId } =
+		derivedState;
 
 	const toggleEllipsisMenu = event => {
 		setEllipsisMenuOpen(ellipsisMenuOpen ? undefined : event.target.closest("label"));
@@ -88,6 +79,31 @@ export function GlobalNav() {
 	const togglePlusMenu = event => {
 		setPlusMenuOpen(plusMenuOpen ? undefined : event.target.closest("label"));
 	};
+
+	const launchNrqlEditor = useCallback(() => {
+		HostApi.instance.notify(OpenEditorViewNotificationType, {
+			panel: "nrql",
+			title: "NRQL",
+			entryPoint: "global_nav",
+			accountId: parseId(derivedState.currentEntityGuid || "")?.accountId,
+			entityGuid: derivedState.currentEntityGuid!,
+			ide: {
+				name: derivedState.ideName,
+			},
+		});
+	}, [derivedState.currentEntityGuid]);
+
+	const launchLogSearch = useCallback(() => {
+		HostApi.instance.notify(OpenEditorViewNotificationType, {
+			panel: "logs",
+			title: "Logs",
+			entryPoint: "global_nav",
+			entityGuid: derivedState.currentEntityGuid,
+			ide: {
+				name: derivedState.ideName,
+			},
+		});
+	}, [derivedState.currentEntityGuid]);
 
 	const go = panel => {
 		close();
@@ -98,7 +114,7 @@ export function GlobalNav() {
 		dispatch(setCreatePullRequest());
 		dispatch(clearCurrentPullRequest());
 		dispatch(setCurrentReview());
-		dispatch(setCurrentCodemark());
+
 		if (currentReviewId) {
 			// tell the extension to close the diff panel in the editor
 			HostApi.instance.send(ReviewCloseDiffRequestType, {});
@@ -111,15 +127,25 @@ export function GlobalNav() {
 	// Plural handling
 	const tooltipText = inviteCount < 2 ? "Invitation" : "Invitations";
 
-	// const selected = panel => activePanel === panel && !currentPullRequestId && !currentReviewId; // && !plusMenuOpen && !menuOpen;
-	const selected = panel => false;
+	const globalNavTourTipTitle =
+		derivedState.o11yTour === "globalNav" &&
+		derivedState.showNrqlBuilder &&
+		derivedState.showLogSearch &&
+		derivedState.hasEntityAccounts ? (
+			<StepOneContinue />
+		) : derivedState.o11yTour === "globalNav" &&
+		  derivedState.showNrqlBuilder &&
+		  derivedState.showLogSearch &&
+		  !derivedState.hasEntityAccounts ? (
+			<StepOneEnd />
+		) : undefined;
+
 	return React.useMemo(() => {
-		if (currentCodemarkId) return null;
-		else if (activePanel === WebviewPanels.Onboard) return null;
+		if (activePanel === WebviewPanels.Onboard) return null;
 		else if (activePanel === WebviewPanels.OnboardNewRelic) return null;
 		else {
 			return (
-				<nav className="inline" id="global-nav">
+				<nav style={{ borderBottom: "none" }} className="inline" id="global-nav">
 					<label
 						onClick={toggleEllipsisMenu}
 						className={cx({ active: false && ellipsisMenuOpen })}
@@ -180,95 +206,58 @@ export function GlobalNav() {
 						)}
 					</label>
 
-					<label
-						className={cx({ active: plusMenuOpen })}
-						onClick={togglePlusMenu}
-						id="global-nav-plus-label"
-					>
-						<span>
-							<Icon
-								name="plus"
-								title="Create..."
-								placement="bottom"
-								delay={1}
-								trigger={["hover"]}
-							/>
-						</span>
-						{plusMenuOpen && (
-							<PlusMenu closeMenu={() => setPlusMenuOpen(undefined)} menuTarget={plusMenuOpen} />
-						)}
-					</label>
-					<label
-						className={cx({ selected: selected(WebviewPanels.Activity) })}
-						onClick={e => go(WebviewPanels.Activity)}
-						id="global-nav-activity-label"
-					>
-						<Tooltip
-							delay={1}
-							trigger={["hover"]}
-							title={
-								<TipTitle>
-									<h1>Activity Feed</h1>
-									Latest comments, issues,
-									<br />
-									and replies.
-									<Link
-										className="learn-more"
-										href="https://docs.newrelic.com/docs/codestream/code-discussion/activity-feed-search"
-									>
-										learn more
-									</Link>
-								</TipTitle>
-							}
-							placement="bottomRight"
+					<TourTip title={globalNavTourTipTitle} placement={"bottomLeft"}>
+						<div
+							style={{
+								backgroundColor: globalNavTourTipTitle
+									? "var(--panel-tool-background-color)"
+									: "inherit",
+								borderRadius: globalNavTourTipTitle ? "2px" : "none",
+								padding: globalNavTourTipTitle ? "1px 0px 0px 2px" : 0,
+							}}
 						>
-							<span>
-								<Icon name="activity" />
-								<span className={umisClass}>{totalUMICount}</span>
-							</span>
-						</Tooltip>
-					</label>
+							{derivedState.showNrqlBuilder && (
+								<label onClick={launchNrqlEditor} id="global-nav-query-label">
+									<span>
+										<Icon
+											name="terminal"
+											title="Query your data"
+											placement="bottom"
+											delay={1}
+											trigger={["hover"]}
+										/>
+									</span>
+								</label>
+							)}
 
-					<label
-						className={cx({ selected: selected(WebviewPanels.FilterSearch) })}
-						onClick={() => go(WebviewPanels.FilterSearch)}
-						id="global-nav-search-label"
-					>
-						<Icon
-							name="search"
-							delay={1}
-							trigger={["hover"]}
-							title={
-								<TipTitle>
-									<h1>Filter &amp; Search</h1>
-									Search comments and issues.
-									<Link
-										className="learn-more"
-										href="https://docs.newrelic.com/docs/codestream/code-discussion/activity-feed-search/#filtersearch"
-									>
-										learn more
-									</Link>
-								</TipTitle>
-							}
-							placement="bottomRight"
-							onPopupAlign={placeArrowTopRight}
-						/>
-					</label>
+							{derivedState.showLogSearch && (
+								<label onClick={launchLogSearch} id="global-nav-logs-label">
+									<span>
+										<Icon
+											name="logs"
+											title="View Logs"
+											placement="bottom"
+											delay={1}
+											trigger={["hover"]}
+										/>
+									</span>
+								</label>
+							)}
+						</div>
+					</TourTip>
 				</nav>
 			);
 		}
 	}, [
 		activePanel,
-		totalUnread,
-		totalMentions,
-		derivedState.composeCodemarkActive,
+		derivedState.currentEntityGuid,
 		currentReviewId,
-		currentCodeErrorId,
+		currentCodeErrorGuid,
 		currentPullRequestId,
-		currentCodemarkId,
 		plusMenuOpen,
 		teamMenuOpen,
 		ellipsisMenuOpen,
 		inviteCount,
+		derivedState.o11yTour,
 	]);
 }

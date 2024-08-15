@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import styled from "styled-components";
 
 import Icon from "./Icon";
@@ -19,8 +19,7 @@ const DropdownItemsContainer = styled.div`
 `;
 
 const DropdownItemContainer = styled.div`
-	margin: 8px 0 8px 0;
-	padding: 0 8px 0 8px;
+	padding: 8px 8px 8px 8px;
 	&:hover {
 		background: var(--button-background-color);
 	}
@@ -47,6 +46,7 @@ export type DropdownItem = {
 	type?: string;
 	placeholder?: string;
 	searchLabel?: string;
+	disabled?: boolean;
 };
 
 interface Props {
@@ -71,6 +71,10 @@ export const Dropdown = (props: Props) => {
 		props.selectedValue || ""
 	);
 
+	useEffect(() => {
+		setSelectedValue(props.selectedValue);
+	}, [props.selectedValue]);
+
 	return (
 		<>
 			{/* Just show label if only one dropdown item */}
@@ -78,8 +82,11 @@ export const Dropdown = (props: Props) => {
 			{/* If more than 1 dropdown item, render dropdown */}
 			{props.items.length > 1 && (
 				<DropdownLabel tabIndex={0} onBlur={handleOnBlur} onClick={handleOnClick}>
-					{selectedValue}
-					<Icon name="chevron-down-thin" className="smaller" style={{ verticalAlign: "-1px" }} />
+					<div style={{ display: "flex", justifyContent: "space-between" }}>
+						{selectedValue}
+						<Icon name="chevron-down-thin" className="smaller" style={{ verticalAlign: "-1px" }} />
+					</div>
+
 					{menuOpen && !props.noModal && (
 						<Menu
 							items={props.items.map(_ => {
@@ -104,11 +111,17 @@ export const Dropdown = (props: Props) => {
 								<DropdownItemContainer
 									key={`dropdown_item_${index}_${_?.label}`}
 									onClick={e => {
-										setSelectedValue(_.label);
-										if (typeof _.action === "function") {
-											_.action();
+										if (!_?.disabled) {
+											setSelectedValue(_.label);
+											if (typeof _.action === "function") {
+												_.action();
+											}
+										} else {
+											e.stopPropagation();
+											e.preventDefault();
 										}
 									}}
+									style={{ opacity: _?.disabled ? 0.5 : 1 }}
 								>
 									<CheckboxContainer>{selectedValue === _.label && <>✔</>}</CheckboxContainer>
 									{_?.label}

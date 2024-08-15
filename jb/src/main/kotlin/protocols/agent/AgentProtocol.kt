@@ -27,7 +27,7 @@ class InitializationOptions(
     val traceLevel: String,
     val gitPath: String?,
     val workspaceFolders: Set<WorkspaceFolder>,
-    val newRelicTelemetryEnabled : Boolean?,
+    val newRelicTelemetryEnabled: Boolean?,
     val recordRequests: Boolean = RECORD_REQUESTS
 )
 
@@ -74,6 +74,7 @@ data class AccessToken(
     val provider: String?,
     val providerAccess: String?,
     val refreshToken: String?,
+    val tokenType: String? // Tried enum but doesn't work with whatever serialization is on CodeStreamLanguageServer.loginToken
 )
 
 data class LoginState(
@@ -105,7 +106,7 @@ class UserLoggedIn(
             val avatarUrl = "https://www.gravatar.com/avatar/$emailHash.png?s=$size&d=identicon"
             val bytes: ByteArray = HttpRequests.request(avatarUrl).readBytes(null)
             ImageIcon(bytes)
-        } catch(ignore: Exception) {
+        } catch (ignore: Exception) {
             null
         }
     }
@@ -117,6 +118,7 @@ class EnvironmentHost(
     val publicApiUrl: String,
     val shortName: String
 )
+
 class EnvironmentInfo(
     val environment: String,
     val isOnPrem: Boolean,
@@ -208,6 +210,43 @@ enum class TraceLevel(val value: String) {
 class ReviewCoverageParams(val textDocument: TextDocument)
 
 class ReviewCoverageResult(val reviewIds: List<String?>)
+
+data class CSLocationMeta(
+    val createdAtCurrentCommit: Boolean?,
+    val startWasDeleted: Boolean?,
+    val endWasDeleted: Boolean?,
+    val entirelyDeleted: Boolean?,
+    val contentChanged: Boolean?,
+    val isAncestor: Boolean?,
+    val isDescendant: Boolean?,
+    val canonicalCommitDoesNotExist: Boolean?)
+
+
+//class CSLocation(val coordinates: Array<Int>, val locationMeta: CSLocationMeta?)
+
+// location coordinates: lineStart, colStart, lineEnd, colEnd, CSLocationMeta
+class CSReferenceLocation(val commitHash: String?, val location: Array<*>)
+
+data class Markerish(val id: String, val referenceLocations: Array<CSReferenceLocation>)
+
+data class CSMarkerLocation(
+    val id: String,
+    val lineStart: Int,
+    val colStart: Int,
+    val lineEnd: Int,
+    val colEnd: Int,
+    val meta: CSLocationMeta?,
+)
+
+typealias MarkerLocationsById = Map<String, CSMarkerLocation>
+
+data class ComputeCurrentLocationsRequest(val uri: String, val commit: String, val markers: Array<Markerish>)
+
+data class ComputeCurrentLocationsResult(val locations: MarkerLocationsById) {
+    override fun toString(): String {
+        return locations.toString()
+    }
+}
 
 class DocumentMarkersParams(val textDocument: TextDocument, val gitSha: String?, val applyFilters: Boolean)
 
@@ -558,11 +597,14 @@ class ResponseTime(
     val name: String,
     val value: Float
 )
+
 class ResponseTimesResult(
     val responseTimes: List<ResponseTime>
 )
 
 data class MethodLevelTelemetrySymbolIdentifier(
+    val lineno: Int?,
+    val column: Int?,
     val namespace: String?,
     val className: String?,
     val functionName: String?
@@ -592,40 +634,56 @@ open class MethodLevelTelemetryData(
     val namespace: String?,
     val className: String?,
     val functionName: String?,
-    val metricTimesliceName: String,
-    val anomaly: ObservabilityAnomaly?
+    val facet: List<String>,
+    val anomaly: ObservabilityAnomaly?,
+    val lineno: Int?,
+    val column: Int?,
+    val commit: String?,
 ) {
     val symbolIdentifier: MethodLevelTelemetrySymbolIdentifier
-        get() = MethodLevelTelemetrySymbolIdentifier(namespace, className, functionName)
+        get() = MethodLevelTelemetrySymbolIdentifier(lineno, column, namespace, className, functionName)
 }
 
-class MethodLevelTelemetrySampleSize (
+class MethodLevelTelemetrySampleSize(
     namespace: String?,
     className: String?,
     functionName: String,
-    metricTimesliceName: String,
+    lineno: Int?,
+    column: Int?,
+    commit: String?,
+    facet: List<String>,
     anomaly: ObservabilityAnomaly?,
     val sampleSize: Int,
     val source: String
-) : MethodLevelTelemetryData(namespace, className, functionName, metricTimesliceName, anomaly)
+) : MethodLevelTelemetryData(namespace, className, functionName, facet, anomaly, lineno, column, commit)
 
 class MethodLevelTelemetryAverageDuration(
     namespace: String?,
     className: String?,
     functionName: String,
-    metricTimesliceName: String,
+    lineno: Int?,
+    column: Int?,
+    commit: String?,
+    facet: List<String>,
     anomaly: ObservabilityAnomaly?,
     val averageDuration: Float
-) : MethodLevelTelemetryData(namespace, className, functionName, metricTimesliceName, anomaly)
+) : MethodLevelTelemetryData(namespace, className, functionName, facet, anomaly, lineno, column, commit) {
+    override fun toString(): String {
+        return "MethodLevelTelemetryAverageDuration(namespace=$namespace, className=$className, functionName=$functionName, lineno=$lineno, column=$column, commit=$commit, facet=$facet, anomaly=$anomaly, averageDuration=$averageDuration)"
+    }
+}
 
 class MethodLevelTelemetryErrorRate(
     namespace: String?,
     className: String?,
     functionName: String,
-    metricTimesliceName: String,
+    lineno: Int?,
+    column: Int?,
+    commit: String?,
+    facet: List<String>,
     anomaly: ObservabilityAnomaly?,
     val errorRate: Float
-) : MethodLevelTelemetryData(namespace, className, functionName, metricTimesliceName, anomaly)
+) : MethodLevelTelemetryData(namespace, className, functionName, facet, anomaly, lineno, column, commit)
 
 class FileLevelTelemetryResult(
     var error: FileLevelTelemetryResultError?,
@@ -642,7 +700,8 @@ class FileLevelTelemetryResult(
     val newRelicUrl: String?,
     // val newRelicEntityAccounts: EntityAccount[];
     val codeNamespace: String?,
-    val relativeFilePath: String?
+    val relativeFilePath: String?,
+    val deploymentCommit: String?,
 )
 
 class ClmParams(
@@ -709,6 +768,7 @@ class ScmRangeInfoResultScm(
     val remotes: List<GitRemote>,
     val branch: String?
 )
+
 class BlameAuthor()
 class GitRemote(
     val name: String,

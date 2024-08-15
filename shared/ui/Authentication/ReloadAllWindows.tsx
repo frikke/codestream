@@ -18,7 +18,7 @@ const ReloadButtonCopy = styled.b`
 	padding: 10px;
 `;
 
-const SERVER_URL_ON_RELOAD = "https://codestream-stg.staging-service.newrelic.com";
+const SERVER_URL_ON_RELOAD = "https://codestream-api-v2-stg.staging-service.nr-ops.net";
 
 interface ReloadAllWindowsProps {
 	handleClose: Function;
@@ -42,7 +42,7 @@ export const ReloadAllWindows = (props: PropsWithChildren<ReloadAllWindowsProps>
 		await HostApi.instance.send(UpdateServerUrlRequestType, {
 			serverUrl: SERVER_URL_ON_RELOAD,
 		});
-		HostApi.instance.track("NR Switched to Staging");
+		// HostApi.instance.track("NR Switched to Staging");
 		HostApi.instance.send(ReloadWebviewRequestType, void undefined);
 	};
 

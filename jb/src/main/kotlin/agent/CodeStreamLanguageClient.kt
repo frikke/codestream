@@ -66,7 +66,6 @@ class CodeStreamLanguageClient(private val project: Project) : LanguageClient {
 
     @JsonNotification("codestream/didChangePullRequestComments")
     fun didChangePullRequestComments(notification: DidChangePullRequestCommentsNotification) {
-        project.editorService?.updatePullRequestDiffMarkers()
         project.webViewService?.postNotification("codestream/didChangePullRequestComments", notification)
     }
 
@@ -86,6 +85,11 @@ class CodeStreamLanguageClient(private val project: Project) : LanguageClient {
             }
             "pullRequests" -> session.didChangePullRequests(gson.fromJson(notification.data))
         }
+    }
+
+    @JsonNotification("codestream/didChangeSessionTokenStatus")
+    fun didChangeSessionTokenStatus(json: JsonElement) {
+        project.webViewService?.postNotification("codestream/didChangeSessionTokenStatus", json)
     }
 
     @JsonNotification("codestream/didChangeConnectionStatus")
@@ -110,13 +114,9 @@ class CodeStreamLanguageClient(private val project: Project) : LanguageClient {
 
     @JsonNotification("codestream/didEncounterMaintenanceMode")
     fun didEncounterMaintenanceMode(json: JsonElement) {
-        ApplicationManager.getApplication().invokeLater {
-            project.codeStream?.show {
-                project.webViewService?.postNotification("codestream/didEncounterMaintenanceMode", json, true)
-                appDispatcher.launch {
-                    project.authenticationService?.logout(CSLogoutReason.MAINTAINENCE_MODE)
-                }
-            }
+        project.webViewService?.postNotification("codestream/didEncounterMaintenanceMode", json, true)
+        appDispatcher.launch {
+            project.authenticationService?.logout(CSLogoutReason.MAINTAINENCE_MODE)
         }
     }
 
@@ -155,18 +155,7 @@ class CodeStreamLanguageClient(private val project: Project) : LanguageClient {
         val notification = gson.fromJson<DidLogoutNotification>(json)
         logger.info("codeStream/didLogout: ${notification.reason}")
         appDispatcher.launch {
-            if (notification.reason == LogoutReason.UNSUPPORTED_VERSION) {
-                project.authenticationService?.logout(CSLogoutReason.UNSUPPORTED_VERSION)
-            } else {
-                project.authenticationService?.logout(CSLogoutReason.DID_LOGOUT)
-            }
-
-            if (notification.reason === LogoutReason.TOKEN) {
-                logger.info("codeStream/didLogout: LogoutReason.TOKEN -> resetting web context")
-                project.agentService?.onDidStart {
-                    project.webViewService?.load(true)
-                }
-            }
+            project.authenticationService?.onDidLogout(notification)
         }
     }
 
@@ -176,8 +165,9 @@ class CodeStreamLanguageClient(private val project: Project) : LanguageClient {
     }
 
     @JsonNotification("codestream/didDetectObservabilityAnomalies")
-    fun didDetectObservabilityAnomalies(notification: DidDetectObservabilityAnomaliesNotification) {
-        project.notificationComponent?.didDetectObservabilityAnomalies(notification.entityGuid, notification.duration, notification.errorRate)
+    fun didDetectObservabilityAnomalies(json: JsonElement) {
+        project.webViewService?.postNotification("codestream/didDetectObservabilityAnomalies", json, true)
+//        project.notificationComponent?.didDetectObservabilityAnomalies(notification.entityGuid, notification.duration, notification.errorRate)
     }
 
     @JsonNotification("codestream/didChangeBranch")
@@ -265,13 +255,17 @@ class CodeStreamLanguageClient(private val project: Project) : LanguageClient {
 
     @JsonNotification("codestream/refreshMaintenancePoll")
     fun refreshMaintenancePoll(json: JsonElement) {
-        // no-op justo register and stop getting Unsupported notification method logs
-        logger.info("codeStream/refreshMaintenancePoll $json")
+        project.webViewService?.postNotification("codestream/refreshMaintenancePoll", json, true)
     }
 
     @JsonNotification("codestream/didChangeCodelenses")
     fun didChangeCodelenses(json: JsonElement?) {
         project.sessionService?.didChangeCodelenses()
+    }
+
+    @JsonNotification("codestream/whatsNew")
+    fun whatsNew(notification: WhatsNewNotification){
+        project.notificationComponent?.whatsNew(notification.title)
     }
 
     override fun workspaceFolders(): CompletableFuture<MutableList<WorkspaceFolder>> {
@@ -355,6 +349,7 @@ class DidRefreshAccessTokenNotification(
     val teamId: String,
     val token: String,
     val refreshToken: String?,
+    val tokenType: String?, // Tried enum but doesn't work with whatever serialization is on CodeStreamLanguageServer.loginToken
 )
 
 enum class LogoutReason {
@@ -364,9 +359,10 @@ enum class LogoutReason {
     UNKNOWN,
     @SerializedName("unsupportedVersion")
     UNSUPPORTED_VERSION,
-
     @SerializedName("unsupportedApiVersion")
-    UNSUPPORTED_API_VERSION
+    UNSUPPORTED_API_VERSION,
+    @SerializedName("invalidRefreshToken")
+    INVALID_REFRESH_TOKEN,
 }
 
 class UserDidCommitNotification(val sha: String)
@@ -395,6 +391,8 @@ class FilterNamespacesResponse(val filteredNamespaces: List<String>)
 class ResolveStackTracePathsRequest(val paths: List<String?>?, val language: String?)
 
 class ResolveStackTracePathsResponse(val resolvedPaths: List<String?>)
+
+class WhatsNewNotification(val title: String)
 
 enum class ApiVersionCompatibility {
     @SerializedName("apiCompatible")

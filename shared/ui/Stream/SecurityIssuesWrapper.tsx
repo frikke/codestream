@@ -1,11 +1,11 @@
 import {
-	CriticalityType,
+	SeverityType,
 	ERROR_VM_NOT_SETUP,
 	GetLibraryDetailsType,
 	LibraryDetails,
 	RiskSeverity,
 	riskSeverityList,
-	Vuln,
+	Vulnerability,
 } from "@codestream/protocols/agent";
 import { isEmpty, lowerCase } from "lodash-es";
 import React, { useEffect, useState } from "react";
@@ -14,7 +14,7 @@ import styled from "styled-components";
 import { Link } from "@codestream/webview/Stream/Link";
 import { OpenUrlRequestType } from "@codestream/protocols/webview";
 import { HostApi } from "@codestream/webview/webview-api";
-import { ErrorRow } from "@codestream/webview/Stream/Observability";
+import { ErrorRow } from "@codestream/webview/Stream/ErrorRow";
 import { MarkdownText } from "@codestream/webview/Stream/MarkdownText";
 import { Modal } from "@codestream/webview/Stream/Modal";
 import { InlineMenu, MenuItem } from "@codestream/webview/src/components/controls/InlineMenu";
@@ -25,12 +25,19 @@ import { Row } from "./CrossPostIssueControls/IssuesPane";
 import Icon from "./Icon";
 import Tooltip from "./Tooltip";
 import { ObservabilityLoadingVulnerabilities } from "@codestream/webview/Stream/ObservabilityLoading";
+import { setUserPreference } from "./actions";
+import { useAppSelector, useAppDispatch } from "../utilities/hooks";
+import { CodeStreamState } from "@codestream/webview/store";
+import { setPreferences } from "../store/preferences/actions";
+import { Meta, MetaDescription, MetaSection, MinimumWidthCard } from "./Codemark/BaseCodemark";
+import { DataLabel, DataRow, DataValue } from "./CodeError/CodeError.Types";
+import { CardBody } from "../src/components/Card";
 
 interface Props {
-	currentRepoId: string;
 	entityGuid: string;
 	accountId: number;
-	setHasVulnerabilities: (value: boolean) => void;
+	setHasVulnerabilities: Function;
+	isServiceSearch?: boolean;
 }
 
 function isResponseUrlError<T>(obj: unknown): obj is ResponseError<{ url: string }> {
@@ -80,6 +87,28 @@ export const CardTitle = styled.div`
 	}
 `;
 
+const MarkdownStyle = styled.div`
+	font-size: 12px;
+	h1 {
+		font-size: 15px;
+	}
+	h2 {
+		font-size: 15px;
+	}
+	h3 {
+		font-size: 14px;
+	}
+	h4 {
+		font-size: 13px;
+	}
+	h5 {
+		font-size: 12px;
+	}
+	h6 {
+		font-size: 12px;
+	}
+`;
+
 const severityColorMap: Record<RiskSeverity, string> = {
 	CRITICAL: "#f52222",
 	HIGH: "#F5554B",
@@ -89,7 +118,7 @@ const severityColorMap: Record<RiskSeverity, string> = {
 	UNKNOWN: "#ee8608",
 };
 
-function criticalityToRiskSeverity(riskSeverity: CriticalityType): RiskSeverity {
+function criticalityToRiskSeverity(riskSeverity: SeverityType): RiskSeverity {
 	switch (riskSeverity) {
 		case "CRITICAL":
 			return "CRITICAL";
@@ -97,8 +126,6 @@ function criticalityToRiskSeverity(riskSeverity: CriticalityType): RiskSeverity 
 			return "HIGH";
 		case "MODERATE":
 			return "MEDIUM";
-		case "LOW":
-			return "LOW";
 		default:
 			return "LOW";
 	}
@@ -130,64 +157,90 @@ function Additional(props: { onClick: () => void; additional?: number }) {
 	) : null;
 }
 
-function VulnView(props: { vuln: Vuln; onClose: () => void }) {
-	const { vuln } = props;
-	HostApi.instance.track("Vulnerability Clicked");
+function VulnerabilityView(props: {
+	accountId: number;
+	entityGuid: string;
+	vulnerability: Vulnerability;
+	onClose: () => void;
+}) {
+	const { vulnerability: vuln } = props;
+
 	return (
-		<div className="codemark-form-container">
-			<div className="codemark-form standard-form vscroll">
-				<div className="form-body" style={{ padding: "20px 5px 20px 28px" }}>
-					<div className="contents">
-						<CardTitle>
-							<Icon name="lock" className="ticket-icon" />
-							<div className="title">{vuln.title}</div>
-							<div
-								className="link-to-ticket"
-								onClick={() => {
-									if (vuln.url) {
-										HostApi.instance.send(OpenUrlRequestType, {
-											url: vuln.url,
-										});
-									}
-								}}
-							>
-								<Icon title="Open on web" className="clickable" name="globe" />
-							</div>
-						</CardTitle>
-						<div style={{ margin: "10px 0" }}>
-							<div>
-								<b>Fix version(s): </b>
-								{vuln.remediation.join(", ")}
-							</div>
-							<div>
-								<b>Criticality: </b>
-								{vuln.criticality}
-							</div>
-							<div>
-								<b>Issue Id: </b> {vuln.issueId}
-							</div>
-							<div>
-								<b>Source: </b> {vuln.source}
-							</div>
-							<div>
-								<b>CVSS score: </b> {vuln.score}
-							</div>
-							<div>
-								<b>CVSS vector: </b> <span style={{ fontSize: "80%" }}>{vuln.vector}</span>
-							</div>
-						</div>
-						<div>
-							<MarkdownText className="less-space" text={vuln.description} inline={false} />
-						</div>
-					</div>
-				</div>
+		<MinimumWidthCard>
+			<div
+				style={{
+					display: "flex",
+					padding: "30px",
+					width: "100%",
+					flexDirection: "column",
+					height: "100%",
+				}}
+			>
+				<CardTitle
+					style={{ fontSize: "16px", paddingBottom: "10px" }}
+					className="title"
+					onClick={() => {
+						if (vuln.url) {
+							HostApi.instance.send(OpenUrlRequestType, {
+								url: vuln.url,
+							});
+						}
+					}}
+				>
+					<Icon style={{ transform: "scale(0.9)", paddingRight: "10px" }} name="lock" />
+					<span>
+						{vuln.title}{" "}
+						<Icon
+							style={{ transform: "scale(0.9)" }}
+							title="Open on web"
+							className="clickable"
+							name="globe"
+						/>
+					</span>
+				</CardTitle>
+
+				<CardBody style={{ paddingTop: "10px" }}>
+					<DataRow>
+						<DataLabel>Severity: </DataLabel>
+						<DataValue>{vuln.severity}</DataValue>
+					</DataRow>
+
+					<DataRow>
+						<DataLabel>CVE Id: </DataLabel>
+						<DataValue>{vuln.cveId}</DataValue>
+					</DataRow>
+
+					<DataRow>
+						<DataLabel>CVSS score: </DataLabel>
+						<DataValue>{vuln.score}</DataValue>
+					</DataRow>
+					<DataRow>
+						<DataLabel>CVSS vector: </DataLabel>
+						<DataValue>{vuln.vector}</DataValue>
+					</DataRow>
+				</CardBody>
+				<CardBody>
+					<MetaSection>
+						<Meta>
+							<MetaDescription>
+								<MarkdownStyle>
+									<MarkdownText className="less-space" text={vuln.description} inline={false} />
+								</MarkdownStyle>
+							</MetaDescription>
+						</Meta>
+					</MetaSection>
+				</CardBody>
 			</div>
-		</div>
+		</MinimumWidthCard>
 	);
 }
 
-function VulnRow(props: { vuln: Vuln }) {
-	const [expanded, setExpanded] = useState<boolean>(false);
+function VulnerabilityRow(props: {
+	accountId: number;
+	entityGuid: string;
+	vulnerability: Vulnerability;
+}) {
+	const [modalOpen, setModalOpen] = useState<boolean>(false);
 
 	return (
 		<>
@@ -195,35 +248,46 @@ function VulnRow(props: { vuln: Vuln }) {
 				style={{ padding: "0 10px 0 64px" }}
 				className={"pr-row"}
 				onClick={() => {
-					setExpanded(!expanded);
+					setModalOpen(true);
+					HostApi.instance.track("codestream/vulnerability_link clicked", {
+						entity_guid: props.entityGuid,
+						account_id: props.accountId,
+						target: "vulnerability",
+						event_type: "click",
+					});
 				}}
 			>
 				<div>
 					<Icon style={{ transform: "scale(0.9)" }} name="lock" />
 				</div>
-				<div>{props.vuln.title}</div>
-				<Severity severity={criticalityToRiskSeverity(props.vuln.criticality)} />
+				<div>{props.vulnerability.title}</div>
+				<Severity severity={criticalityToRiskSeverity(props.vulnerability.severity)} />
 			</Row>
-			{expanded && (
+			{modalOpen && (
 				<Modal
 					translucent
 					onClose={() => {
-						setExpanded(false);
+						setModalOpen(false);
 					}}
 				>
-					<VulnView vuln={props.vuln} onClose={() => setExpanded(false)} />
+					<VulnerabilityView
+						vulnerability={props.vulnerability}
+						accountId={props.accountId}
+						entityGuid={props.entityGuid}
+						onClose={() => setModalOpen(false)}
+					/>
 				</Modal>
 			)}
 		</>
 	);
 }
 
-function LibraryRow(props: { library: LibraryDetails }) {
+function LibraryRow(props: { accountId: number; entityGuid: string; library: LibraryDetails }) {
 	const [expanded, setExpanded] = useState<boolean>(false);
 	const { library } = props;
 	const subtleText = library.suggestedVersion
-		? `${library.version} -> ${library.suggestedVersion} (${library.vulns.length})`
-		: `${library.version} (${library.vulns.length})`;
+		? `${library.version} -> ${library.suggestedVersion} (${library.vulnerabilities.length})`
+		: `${library.version} (${library.vulnerabilities.length})`;
 	const tooltipText = library.suggestedVersion
 		? `Recommended fix: upgrade ${library.version} to ${library.suggestedVersion}`
 		: undefined;
@@ -247,17 +311,40 @@ function LibraryRow(props: { library: LibraryDetails }) {
 						<span className="subtle">{subtleText}</span>
 					</Tooltip>
 				</div>
-				<Severity severity={criticalityToRiskSeverity(library.highestCriticality)} />
+				<Severity severity={criticalityToRiskSeverity(library.highestSeverity)} />
 			</Row>
-			{expanded && library.vulns.map(vuln => <VulnRow vuln={vuln} />)}
+			{expanded &&
+				library.vulnerabilities.map(vuln => (
+					<VulnerabilityRow
+						accountId={props.accountId}
+						entityGuid={props.entityGuid}
+						vulnerability={vuln}
+					/>
+				))}
 		</>
 	);
 }
 
 export const SecurityIssuesWrapper = React.memo((props: Props) => {
-	const [expanded, setExpanded] = useState<boolean>(false);
-	const [selectedItems, setSelectedItems] = useState<RiskSeverity[]>(["CRITICAL", "HIGH"]);
+	const [isExpanded, setIsExpanded] = useState<boolean>(false);
+
+	const derivedState = useAppSelector((state: CodeStreamState) => {
+		const { preferences } = state;
+
+		const securityIssuesDropdownIsExpanded = preferences?.securityIssuesDropdownIsExpanded ?? false;
+
+		const vulnerabilitySeverityFilter = preferences?.vulnerabilitySeverityFilter;
+
+		return {
+			securityIssuesDropdownIsExpanded,
+			vulnerabilitySeverityFilter,
+		};
+	});
+	const [selectedItems, setSelectedItems] = useState<RiskSeverity[]>(
+		derivedState.vulnerabilitySeverityFilter || ["CRITICAL", "HIGH"]
+	);
 	const [rows, setRows] = useState<number | undefined | "all">(undefined);
+	const dispatch = useAppDispatch();
 
 	const { loading, data, error } = useRequestType<
 		typeof GetLibraryDetailsType,
@@ -270,16 +357,23 @@ export const SecurityIssuesWrapper = React.memo((props: Props) => {
 			severityFilter: isEmpty(selectedItems) ? undefined : selectedItems,
 			rows,
 		},
-		[selectedItems, props.entityGuid, rows, expanded],
+		[selectedItems, props.entityGuid, rows],
 		true
 	);
 
 	function handleSelect(severity: RiskSeverity) {
+		let itemsToSelect;
 		if (selectedItems.includes(severity)) {
-			setSelectedItems(selectedItems.filter(_ => _ !== severity));
+			itemsToSelect = selectedItems.filter(_ => _ !== severity);
 		} else {
-			setSelectedItems([...selectedItems, severity]);
+			itemsToSelect = [...selectedItems, severity];
 		}
+		setSelectedItems(itemsToSelect);
+		dispatch(
+			setPreferences({
+				vulnerabilitySeverityFilter: itemsToSelect,
+			})
+		);
 	}
 
 	const additional = data ? data.totalRecords - data.recordCount : undefined;
@@ -332,6 +426,25 @@ export const SecurityIssuesWrapper = React.memo((props: Props) => {
 	const warningTooltip =
 		data && data.totalRecords === 1 ? "1 vulnerability" : `${data?.totalRecords} vulnerabilities`;
 
+	const handleRowOnClick = () => {
+		if (props.isServiceSearch) {
+			setIsExpanded(!isExpanded);
+		} else {
+			const { securityIssuesDropdownIsExpanded } = derivedState;
+
+			dispatch(
+				setUserPreference({
+					prefPath: ["securityIssuesDropdownIsExpanded"],
+					value: !securityIssuesDropdownIsExpanded,
+				})
+			);
+		}
+	};
+
+	const expanded = props.isServiceSearch
+		? isExpanded
+		: derivedState.securityIssuesDropdownIsExpanded;
+
 	return (
 		<>
 			<Row
@@ -340,9 +453,7 @@ export const SecurityIssuesWrapper = React.memo((props: Props) => {
 					alignItems: "baseline",
 				}}
 				className="vuln"
-				onClick={() => {
-					setExpanded(!expanded);
-				}}
+				onClick={() => handleRowOnClick()}
 				data-testid={`security-issues-dropdown`}
 			>
 				{expanded && <Icon name="chevron-down-thin" />}
@@ -383,7 +494,13 @@ export const SecurityIssuesWrapper = React.memo((props: Props) => {
 			{expanded && !loading && data && data.totalRecords > 0 && (
 				<>
 					{data.libraries.map(library => {
-						return <LibraryRow library={library} />;
+						return (
+							<LibraryRow
+								accountId={props.accountId}
+								entityGuid={props.entityGuid}
+								library={library}
+							/>
+						);
 					})}
 					<Additional onClick={loadAll} additional={additional} />
 				</>

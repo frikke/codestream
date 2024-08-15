@@ -18,8 +18,6 @@ import {
 	AddBlameMapRequestType,
 	AddEnterpriseProviderHostRequest,
 	AddEnterpriseProviderHostResponse,
-	AddMarkersResponse,
-	AddReferenceLocationRequest,
 	AgentOpenUrlRequestType,
 	ArchiveStreamRequest,
 	Capabilities,
@@ -29,8 +27,6 @@ import {
 	CloseStreamRequest,
 	CodeStreamEnvironment,
 	CreateChannelStreamRequest,
-	CreateCodemarkPermalinkRequest,
-	CreateCodemarkRequest,
 	CreateCompanyRequest,
 	CreateCompanyRequestType,
 	CreateDirectStreamRequest,
@@ -38,10 +34,7 @@ import {
 	CreateForeignCompanyRequest,
 	CreateForeignCompanyRequestType,
 	CreateForeignCompanyResponse,
-	CreateMarkerLocationRequest,
-	CreateMarkerRequest,
 	CreatePostRequest,
-	CreateRepoRequest,
 	CreateTeamRequest,
 	CreateTeamRequestType,
 	CreateTeamTagRequestType,
@@ -50,12 +43,9 @@ import {
 	DeleteBlameMapRequest,
 	DeleteBlameMapRequestType,
 	DeleteCodeErrorRequest,
-	DeleteCodemarkRequest,
 	DeleteCompanyRequest,
 	DeleteCompanyRequestType,
 	DeleteCompanyResponse,
-	DeleteMarkerRequest,
-	DeleteMarkerResponse,
 	DeleteMeUserRequest,
 	DeleteMeUserRequestType,
 	DeleteMeUserResponse,
@@ -65,15 +55,13 @@ import {
 	DeleteUserRequest,
 	DeleteUserResponse,
 	DidChangeDataNotificationType,
+	ERROR_GENERIC_USE_ERROR_MESSAGE,
 	EditPostRequest,
 	FetchCodeErrorsRequest,
 	FetchCodeErrorsResponse,
-	FetchCodemarksRequest,
 	FetchCompaniesRequest,
 	FetchCompaniesResponse,
 	FetchFileStreamsRequest,
-	FetchMarkerLocationsRequest,
-	FetchMarkersRequest,
 	FetchPostRepliesRequest,
 	FetchPostsRequest,
 	FetchReviewCheckpointDiffsRequest,
@@ -90,52 +78,41 @@ import {
 	FetchUsersRequest,
 	FollowCodeErrorRequest,
 	FollowCodeErrorResponse,
-	FollowCodemarkRequest,
-	FollowCodemarkResponse,
-	FollowReviewRequest,
-	FollowReviewResponse,
 	GenerateLoginCodeRequest,
+	GenerateMSTeamsConnectCodeRequest,
+	GenerateMSTeamsConnectCodeResponse,
 	GetCodeErrorRequest,
 	GetCodeErrorResponse,
-	GetCodemarkRequest,
 	GetCompanyRequest,
 	GetCompanyResponse,
-	GetMarkerRequest,
 	GetNewRelicSignupJwtTokenRequest,
 	GetNewRelicSignupJwtTokenRequestType,
 	GetNewRelicSignupJwtTokenResponse,
 	GetPostRequest,
 	GetPostsRequest,
 	GetPreferencesResponse,
-	GetRepoRequest,
 	GetReviewRequest,
 	GetReviewResponse,
 	GetStreamRequest,
 	GetTeamRequest,
-	GetUnreadsRequest,
 	GetUserRequest,
 	InviteUserRequest,
 	JoinCompanyRequest,
 	JoinCompanyResponse,
 	JoinStreamRequest,
-	LogoutCompanyRequest,
-	LogoutCompanyResponse,
 	KickUserRequest,
 	KickUserResponse,
 	LeaveStreamRequest,
 	LoginFailResponse,
+	LogoutCompanyRequest,
+	LogoutCompanyResponse,
 	LookupNewRelicOrganizationsRequest,
 	LookupNewRelicOrganizationsResponse,
 	MarkItemReadRequest,
 	MarkPostUnreadRequest,
 	MarkStreamReadRequest,
-	MatchReposRequest,
-	MatchReposRequestType,
-	MatchReposResponse,
-	MoveMarkerResponse,
 	MuteStreamRequest,
 	OpenStreamRequest,
-	PinReplyToCodemarkRequest,
 	PollForMaintenanceModeResponse,
 	ProviderTokenRequest,
 	ProviderTokenRequestType,
@@ -145,22 +122,20 @@ import {
 	ReportingMessageType,
 	SendPasswordResetEmailRequest,
 	SendPasswordResetEmailRequestType,
-	SetCodemarkPinnedRequest,
-	SetCodemarkStatusRequest,
+	ServiceEntitiesViewedRequest,
+	ServiceEntitiesViewedRequestType,
+	SessionTokenStatus,
 	SetPasswordRequest,
 	SetPasswordRequestType,
 	SetStreamPurposeRequest,
 	SharePostViaServerRequest,
 	ThirdPartyProviderSetInfoRequest,
 	UnarchiveStreamRequest,
-	Unreads,
 	UpdateCodeErrorRequest,
-	UpdateCodemarkRequest,
 	UpdateCompanyRequest,
 	UpdateCompanyRequestType,
 	UpdateCompanyResponse,
 	UpdateInvisibleRequest,
-	UpdateMarkerRequest,
 	UpdatePostSharingDataRequest,
 	UpdatePreferencesRequest,
 	UpdatePresenceRequest,
@@ -178,18 +153,11 @@ import {
 	UploadFileRequest,
 	UploadFileRequestType,
 	VerifyConnectivityResponse,
-	GenerateMSTeamsConnectCodeRequest,
-	GenerateMSTeamsConnectCodeResponse,
-	ERROR_GENERIC_USE_ERROR_MESSAGE,
 } from "@codestream/protocols/agent";
 import {
-	CSAccessTokenInfo,
-	CSAddMarkersRequest,
-	CSAddMarkersResponse,
+	CSAccessTokenType,
 	CSAddProviderHostRequest,
 	CSAddProviderHostResponse,
-	CSAddReferenceLocationRequest,
-	CSAddReferenceLocationResponse,
 	CSApiCapabilities,
 	CSApiFeatures,
 	CSChannelStream,
@@ -199,21 +167,10 @@ import {
 	CSConfirmRegistrationRequest,
 	CSCreateChannelStreamRequest,
 	CSCreateChannelStreamResponse,
-	CSCreateCodemarkPermalinkRequest,
-	CSCreateCodemarkPermalinkResponse,
-	CSCreateCodemarkRequest,
-	CSCreateCodemarkResponse,
 	CSCreateDirectStreamRequest,
 	CSCreateDirectStreamResponse,
-	CSCreateMarkerLocationRequest,
-	CSCreateMarkerLocationResponse,
-	CSCreateMarkerRequest,
-	CSCreateMarkerResponse,
 	CSCreatePostRequest,
 	CSCreatePostResponse,
-	CSCreateRepoRequest,
-	CSCreateRepoResponse,
-	CSDeleteCodemarkResponse,
 	CSDeletePostResponse,
 	CSDirectStream,
 	CSEditPostRequest,
@@ -222,20 +179,13 @@ import {
 	CSGetApiCapabilitiesResponse,
 	CSGetCodeErrorResponse,
 	CSGetCodeErrorsResponse,
-	CSGetCodemarkResponse,
-	CSGetCodemarksResponse,
 	CSGetCompaniesResponse,
 	CSGetCompanyResponse,
 	CSGetInviteInfoRequest,
 	CSGetInviteInfoResponse,
-	CSGetMarkerLocationsResponse,
-	CSGetMarkerResponse,
-	CSGetMarkersResponse,
 	CSGetMeResponse,
 	CSGetPostResponse,
 	CSGetPostsResponse,
-	CSGetRepoResponse,
-	CSGetReposResponse,
 	CSGetReviewCheckpointDiffsResponse,
 	CSGetReviewDiffsResponse,
 	CSGetReviewResponse,
@@ -244,7 +194,6 @@ import {
 	CSGetStreamsResponse,
 	CSGetTeamResponse,
 	CSGetTeamsResponse,
-	CSGetTelemetryKeyResponse,
 	CSGetUserResponse,
 	CSGetUsersResponse,
 	CSInviteUserRequest,
@@ -266,8 +215,6 @@ import {
 	CSNRRegisterRequest,
 	CSNRRegisterResponse,
 	CSObjectStream,
-	CSPinReplyToCodemarkRequest,
-	CSPinReplyToCodemarkResponse,
 	CSPost,
 	CSProviderShareRequest,
 	CSProviderShareResponse,
@@ -276,8 +223,6 @@ import {
 	CSRegisterRequest,
 	CSRegisterResponse,
 	CSRemoveProviderHostResponse,
-	CSSetCodemarkPinnedRequest,
-	CSSetCodemarkPinnedResponse,
 	CSSetPasswordRequest,
 	CSSetPasswordResponse,
 	CSStream,
@@ -287,10 +232,6 @@ import {
 	CSTrackProviderPostRequest,
 	CSUpdateCodeErrorRequest,
 	CSUpdateCodeErrorResponse,
-	CSUpdateCodemarkRequest,
-	CSUpdateCodemarkResponse,
-	CSUpdateMarkerRequest,
-	CSUpdateMarkerResponse,
 	CSUpdatePostSharingDataRequest,
 	CSUpdatePostSharingDataResponse,
 	CSUpdatePresenceRequest,
@@ -309,16 +250,14 @@ import {
 	TriggerMsTeamsProactiveMessageResponse,
 } from "@codestream/protocols/api";
 
-import HttpsProxyAgent from "https-proxy-agent";
+import { HttpsProxyAgent } from "https-proxy-agent";
 import { ServerError } from "../../agentError";
-import { Team, User } from "../../api/extensions";
+import { Team, User } from "../extensions";
 import { HistoryFetchInfo } from "../../broadcaster/broadcaster";
 import { Container, SessionContainer } from "../../container";
 import { Logger } from "../../logger";
 import { safeDecode, safeEncode } from "../../managers/operations";
-import { NewRelicProvider } from "../../providers/newrelic";
 import { getProvider, log, lsp, lspHandler, Objects, Strings } from "../../system";
-import { customFetch, fetchCore } from "../../system/fetchCore";
 import { VersionInfo } from "../../types";
 import {
 	ApiProvider,
@@ -332,9 +271,12 @@ import {
 } from "../apiProvider";
 import { CodeStreamPreferences } from "../preferences";
 import { BroadcasterEvents } from "./events";
-import { CodeStreamUnreads } from "./unreads";
 import { clearResolvedFlag } from "@codestream/utils/api/codeErrorCleanup";
 import { ResponseError } from "vscode-jsonrpc/lib/messages";
+import { parseId } from "../../providers/newrelic/utils";
+import { machineIdSync } from "node-machine-id";
+import { ExtraRequestInit, FetchCore } from "../../system/fetchCore";
+import { tokenHolder } from "../../providers/newrelic/TokenHolder";
 
 @lsp
 export class CodeStreamApiProvider implements ApiProvider {
@@ -352,20 +294,20 @@ export class CodeStreamApiProvider implements ApiProvider {
 	private _events: BroadcasterEvents | undefined;
 	private readonly _middleware: CodeStreamApiMiddleware[] = [];
 	private _pubnubSubscribeKey: string | undefined;
+	private _pubnubCipherKey: string | undefined;
 	private _broadcasterToken: string | undefined;
-	private _socketCluster: { host: string; port: string; ignoreHttps?: boolean } | undefined;
+	private _isV3BroadcasterToken: boolean = false;
 	private _subscribedMessageTypes: Set<MessageType> | undefined;
 	private _teamId: string | undefined;
 	private _team: CSTeam | undefined;
-	private _token: string | undefined;
-	private _tokenInfo: CSAccessTokenInfo | undefined;
-	private _unreads: CodeStreamUnreads | undefined;
 	private _userId: string | undefined;
 	private _preferences: CodeStreamPreferences | undefined;
 	private _features: CSApiFeatures | undefined;
 	private _messageProcessingPromise: Promise<void> | undefined;
 	private _usingServiceGatewayAuth: boolean = false;
 	private _refreshNRTokenPromise: Promise<CSNewRelicProviderInfo> | undefined;
+	private _refreshTokenFailed: boolean = false;
+	private _clientId: string;
 
 	readonly capabilities: Capabilities = {
 		channelMute: true,
@@ -379,9 +321,13 @@ export class CodeStreamApiProvider implements ApiProvider {
 	constructor(
 		public baseUrl: string,
 		private readonly _version: VersionInfo,
-		private readonly _httpsAgent: HttpsAgent | HttpsProxyAgent | HttpAgent | undefined,
-		private readonly _strictSSL: boolean
-	) {}
+		private readonly _httpsAgent: HttpsAgent | HttpsProxyAgent<string> | HttpAgent | undefined,
+		private readonly _strictSSL: boolean,
+		private fetchClient: FetchCore
+	) {
+		this._clientId = this.getMachineId();
+		Logger.log(`clientId: ${this._clientId}`);
+	}
 
 	get teamId(): string {
 		return this._teamId!;
@@ -397,6 +343,15 @@ export class CodeStreamApiProvider implements ApiProvider {
 
 	get features() {
 		return this._features;
+	}
+
+	getMachineId() {
+		try {
+			return machineIdSync();
+		} catch (e) {
+			Logger.log("Error getting machine id", e);
+			return "";
+		}
 	}
 
 	setServerUrl(serverUrl: string) {
@@ -443,7 +398,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 			case "otc":
 				const nrAccountId =
 					options.errorGroupGuid !== undefined
-						? NewRelicProvider.parseId(options.errorGroupGuid)?.accountId
+						? parseId(options.errorGroupGuid)?.accountId
 						: undefined;
 				response = await this.put<CSCompleteSignupRequest, CSLoginResponse>(
 					"/no-auth/check-signup",
@@ -461,34 +416,13 @@ export class CodeStreamApiProvider implements ApiProvider {
 						`Invalid token, options.token.url="${options.token.url}" this.baseUrl="${this.baseUrl}"`
 					);
 				}
-
-				let triedRefresh = false;
-				while (!response) {
-					try {
-						response = await this.put<{}, CSLoginResponse>("/login", {}, options.token.value);
-					} catch (ex) {
-						if (ex.info?.error.match(/id token expired/) && !triedRefresh) {
-							Logger.log("Attempted token login with an expired token, attempting to refresh...");
-							let tokenInfo;
-							try {
-								tokenInfo = await this.refreshNewRelicToken(options.token.refreshToken!);
-							} catch (refreshEx) {
-								Logger.warn("Exception thrown refreshing NR access token", refreshEx);
-								// rethrow the original exception, more meaningful than the exception on refresh
-								throw ex;
-							}
-							Logger.log("Expired token successfully refreshed");
-							options.token.value = tokenInfo.accessToken;
-							triedRefresh = true;
-						} else {
-							throw ex;
-						}
-					}
-				}
+				response = await this.put<{}, CSLoginResponse>("/login", {}, options.token);
 
 				response.provider = options.token.provider;
 				response.providerAccess = options.token.providerAccess;
 				response.teamId = options.token.teamId;
+
+				// Logger.debug(`login 'token' complete with response ${JSON.stringify(response)}`);
 
 				break;
 
@@ -518,7 +452,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		*/
 		if (response.user.mustSetPassword) {
 			// save the accessToken for the call to set password
-			this._token = response.accessToken;
+			tokenHolder.setAccessToken("mustSetPassword", response.accessToken);
 			throw {
 				error: LoginResult.MustSetPassword,
 				extra: { email: response.user.email },
@@ -528,7 +462,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		// 💩see above
 		if (response.companies.length === 0 || response.teams.length === 0) {
 			// save the accessToken for the call to create a team
-			this._token = response.accessToken;
+			tokenHolder.setAccessToken("createTeam", response.accessToken);
 
 			throw {
 				error: LoginResult.NotInCompany,
@@ -651,10 +585,19 @@ export class CodeStreamApiProvider implements ApiProvider {
 
 		Logger.log(`Using team '${team.name}' (${team.id})${pickedTeamReason || ""}`);
 
-		this._token = response.accessToken;
+		tokenHolder.setAccessToken(
+			"CodeStreamApiProvider.login",
+			response.accessToken,
+			response.accessTokenInfo
+		);
 		this._pubnubSubscribeKey = response.pubnubKey;
-		this._broadcasterToken = response.broadcasterToken || response.pubnubToken;
-		this._socketCluster = response.socketCluster;
+		this._pubnubCipherKey = response.pubnubCipherKey;
+		if (response.broadcasterV3Token) {
+			this._broadcasterToken = response.broadcasterV3Token;
+			this._isV3BroadcasterToken = true;
+		} else {
+			this._broadcasterToken = response.broadcasterToken;
+		}
 
 		this._teamId = team.id;
 		this._team = team;
@@ -683,7 +626,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		return await this.post<GenerateMSTeamsConnectCodeRequest, GenerateMSTeamsConnectCodeResponse>(
 			"/msteams/generate-connect-code",
 			request,
-			this._token
+			tokenHolder.accessToken
 		);
 	}
 
@@ -696,7 +639,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 			request
 		);
 		if ((response as CSLoginResponse).accessToken) {
-			this._token = (response as CSLoginResponse).accessToken;
+			tokenHolder.accessToken = (response as CSLoginResponse).accessToken;
 		}
 		return response;
 	}
@@ -707,31 +650,25 @@ export class CodeStreamApiProvider implements ApiProvider {
 			request
 		);
 		if (response.accessToken) {
-			this._token = response.accessToken;
+			tokenHolder.accessToken = response.accessToken;
 		}
 		return response;
 	}
 
 	async confirmRegistration(request: CSConfirmRegistrationRequest): Promise<CSLoginResponse> {
 		if (request.errorGroupGuid !== undefined && request.nrAccountId === undefined) {
-			request.nrAccountId = NewRelicProvider.parseId(request.errorGroupGuid)?.accountId;
+			request.nrAccountId = parseId(request.errorGroupGuid)?.accountId;
 		}
 		const response = await this.post<CSConfirmRegistrationRequest, CSLoginResponse>(
 			"/no-auth/confirm",
 			request
 		);
-		this._token = response.accessToken;
+		tokenHolder.setAccessToken("CodeStreamApiProvider.confirmRegistration", response.accessToken);
 		return response;
 	}
 
 	getInviteInfo(request: CSGetInviteInfoRequest) {
 		return this.get<CSGetInviteInfoResponse>(`/no-auth/invite-info?code=${request.code}`);
-	}
-
-	setAccessToken(token: string, tokenInfo?: CSAccessTokenInfo) {
-		this._token = token;
-		this._tokenInfo = tokenInfo;
-		Logger.log("CodeStream API access token was set");
 	}
 
 	@log()
@@ -740,11 +677,6 @@ export class CodeStreamApiProvider implements ApiProvider {
 
 		const { session, users } = SessionContainer.instance();
 		const me = await users.getMe();
-		if (types === undefined || types.includes(MessageType.Unreads)) {
-			this._unreads = new CodeStreamUnreads(this);
-			this._unreads.onDidChange(this.onUnreadsChanged, this);
-			this._unreads.compute(me.lastReads, me.lastReadItems);
-		}
 		if (types === undefined || types.includes(MessageType.Preferences)) {
 			this._preferences = new CodeStreamPreferences(me.preferences);
 			this._preferences.onDidChange(preferences => {
@@ -757,14 +689,16 @@ export class CodeStreamApiProvider implements ApiProvider {
 			this._httpsAgent instanceof HttpsAgent || this._httpsAgent instanceof HttpsProxyAgent
 				? this._httpsAgent
 				: undefined;
+		Logger.log(`Invoking broadcaster with ${this._isV3BroadcasterToken ? "V3" : "V2"} token`);
 		this._events = new BroadcasterEvents({
-			accessToken: this._token!,
+			accessToken: tokenHolder.accessToken!,
 			pubnubSubscribeKey: this._pubnubSubscribeKey,
+			pubnubCipherKey: this._pubnubCipherKey,
 			broadcasterToken: this._broadcasterToken!,
+			isV3Token: this._isV3BroadcasterToken,
 			api: this,
 			httpsAgent,
 			strictSSL: this._strictSSL,
-			socketCluster: this._socketCluster,
 			supportsEcho: session.isOnPrem && (!!session.apiCapabilities.echoes || false),
 		});
 		this._events.onDidReceiveMessage(this.onPubnubMessageReceivedWithBlocking, this);
@@ -814,29 +748,12 @@ export class CodeStreamApiProvider implements ApiProvider {
 
 		// Resolve any directives in the message data
 		switch (e.type) {
-			case MessageType.Codemarks:
-				e.data = await SessionContainer.instance().codemarks.resolve(e, { onlyIfNeeded: false });
-				if (e.data == null || e.data.length === 0) return;
-
-				break;
 			case MessageType.Companies: {
 				const { companies } = SessionContainer.instance();
 				e.data = await companies.resolve(e);
 				if (e.data == null || e.data.length === 0) return;
 				break;
 			}
-			case MessageType.MarkerLocations:
-				e.data = await SessionContainer.instance().markerLocations.resolve(e, {
-					onlyIfNeeded: false,
-				});
-				if (e.data == null || e.data.length === 0) return;
-
-				break;
-			case MessageType.Markers:
-				e.data = await SessionContainer.instance().markers.resolve(e, { onlyIfNeeded: false });
-				if (e.data == null || e.data.length === 0) return;
-
-				break;
 			case MessageType.Posts:
 				const ids = (e.data as CSPost[]).map(o => o.id);
 				const oldPosts = await Promise.all(
@@ -848,54 +765,12 @@ export class CodeStreamApiProvider implements ApiProvider {
 				e.data = await SessionContainer.instance().posts.resolve(e, { onlyIfNeeded: false });
 				if (e.data == null || e.data.length === 0) return;
 
-				if (this._unreads !== undefined) {
-					this._unreads.update(e.data as CSPost[], oldPosts);
-				}
-
 				await this.fetchAndStoreUnknownAuthors(e.data as CSPost[]);
 
 				break;
-			case MessageType.Repositories:
-				e.data = await SessionContainer.instance().repos.resolve(e, { onlyIfNeeded: false });
-				if (e.data == null || e.data.length === 0) return;
-
-				break;
-			case MessageType.Reviews: {
-				e.data = await SessionContainer.instance().reviews.resolve(e, { onlyIfNeeded: false });
-				if (e.data == null || e.data.length === 0) return;
-				break;
-			}
-			case MessageType.CodeErrors: {
-				e.data = await SessionContainer.instance().codeErrors.resolve(e, { onlyIfNeeded: false });
-				if (e.data == null || e.data.length === 0) return;
-
-				/*
-				if (this._events !== undefined) {
-					for (const codeError of e.data as CSCodeError[]) {
-						this._events.subscribeToObject(codeError.id);
-					}
-				}
-				*/
-
-				break;
-			}
 			case MessageType.Streams:
 				e.data = await SessionContainer.instance().streams.resolve(e, { onlyIfNeeded: false });
 				if (e.data == null || e.data.length === 0) return;
-
-				/*
-				if (this._events !== undefined) {
-					for (const stream of e.data as (CSChannelStream | CSDirectStream | CSObjectStream)[]) {
-						if (
-							CodeStreamApiProvider.isStreamSubscriptionRequired(stream, this.userId, this.teamId)
-						) {
-							this._events.subscribeToStream(stream.id);
-						} else if (CodeStreamApiProvider.isStreamUnsubscribeRequired(stream, this.userId)) {
-							this._events.unsubscribeFromStream(stream.id);
-						}
-					}
-				}
-				*/
 				break;
 			case MessageType.Teams:
 				const { session, teams } = SessionContainer.instance();
@@ -950,12 +825,6 @@ export class CodeStreamApiProvider implements ApiProvider {
 				}
 
 				let me = await usersManager.getMe();
-				const lastReads = {
-					...(this._unreads ? (await this._unreads.get()).lastReads : me.lastReads),
-				};
-				const lastReadItems = {
-					...(this._unreads ? (await this._unreads.get()).lastReadItems : me.lastReadItems),
-				};
 
 				const userPreferencesBefore = JSON.stringify(me.preferences);
 
@@ -968,18 +837,14 @@ export class CodeStreamApiProvider implements ApiProvider {
 				e.data = [me];
 
 				try {
-					if (
-						this._unreads !== undefined &&
-						(!Objects.shallowEquals(lastReads, me.lastReads || {}) ||
-							!Objects.shallowEquals(lastReadItems, me.lastReadItems || {}))
-					) {
-						this._unreads.compute(me.lastReads, me.lastReadItems);
-					}
 					if (!this._preferences) {
 						this._preferences = new CodeStreamPreferences(me.preferences);
 					}
 					if (me.preferences && JSON.stringify(me.preferences) !== userPreferencesBefore) {
 						this._preferences.update(me.preferences);
+					}
+					if (me.broadcasterV3Token && this._events) {
+						this._events.setV3BroadcasterToken(me.broadcasterV3Token);
 					}
 				} catch {
 					debugger;
@@ -991,41 +856,23 @@ export class CodeStreamApiProvider implements ApiProvider {
 		this._onDidReceiveMessage.fire(e as RTMessage);
 	}
 
-	private onUnreadsChanged(e: Unreads) {
-		this._onDidReceiveMessage.fire({ type: MessageType.Unreads, data: e });
-	}
-
 	grantBroadcasterChannelAccess(token: string, channel: string): Promise<{}> {
 		return this.put(`/grant/${channel}`, {}, token);
 	}
 
 	@log()
 	private getMe() {
-		return this.get<CSGetMeResponse>("/users/me", this._token);
-	}
-
-	@log()
-	async getUnreads(request: GetUnreadsRequest) {
-		if (this._unreads === undefined) {
-			return {
-				unreads: {
-					lastReads: {},
-					lastReadItems: {},
-					mentions: {},
-					unreads: {},
-					totalMentions: 0,
-					totalUnreads: 0,
-				},
-			};
-		}
-
-		return { unreads: await this._unreads!.get() };
+		return this.get<CSGetMeResponse>("/users/me", tokenHolder.accessToken);
 	}
 
 	@log()
 	async trackProviderPost(request: CSTrackProviderPostRequest) {
 		try {
-			return await this.post(`/provider-posts/${request.provider}`, request, this._token);
+			return await this.post(
+				`/provider-posts/${request.provider}`,
+				request,
+				tokenHolder.accessToken
+			);
 		} catch (ex) {
 			debugger;
 			Logger.error(ex, `Failed updating ${request.provider} post count`);
@@ -1039,7 +886,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		const update = await this.put<CSMePreferences, any>(
 			"/preferences",
 			request.preferences,
-			this._token
+			tokenHolder.accessToken
 		);
 
 		const user = await SessionContainer.instance().session.resolveUserAndNotify(update.user);
@@ -1067,7 +914,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 					...request.status,
 				},
 			},
-			this._token
+			tokenHolder.accessToken
 		);
 
 		const user = await SessionContainer.instance().session.resolveUserAndNotify(update.user);
@@ -1080,7 +927,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		const update = await this.put<{ status: { invisible: boolean } }, any>(
 			"/users/me",
 			{ status: { invisible: request.invisible } },
-			this._token
+			tokenHolder.accessToken
 		);
 
 		const user = await SessionContainer.instance().session.resolveUserAndNotify(update.user);
@@ -1092,7 +939,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		return this.put<CSUpdatePresenceRequest, CSUpdatePresenceResponse>(
 			`/presence`,
 			request,
-			this._token
+			tokenHolder.accessToken
 		);
 	}
 
@@ -1109,7 +956,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 	async fetchFileStreams(request: FetchFileStreamsRequest) {
 		return this.getStreams<CSGetStreamsResponse<CSFileStream>>(
 			`/streams?teamId=${this.teamId}&repoId=${request.repoId}`,
-			this._token
+			tokenHolder.accessToken
 		);
 	}
 
@@ -1133,197 +980,12 @@ export class CodeStreamApiProvider implements ApiProvider {
 	}
 
 	@log()
-	createMarkerLocation(request: CreateMarkerLocationRequest) {
-		return this.put<CSCreateMarkerLocationRequest, CSCreateMarkerLocationResponse>(
-			`/marker-locations`,
-			{ ...request, teamId: this.teamId },
-			this._token
-		);
-	}
-
-	@log()
-	fetchMarkerLocations(request: FetchMarkerLocationsRequest) {
-		return this.get<CSGetMarkerLocationsResponse>(
-			`/marker-locations?teamId=${this.teamId}&streamId=${request.streamId}&commitHash=${request.commitHash}`,
-			this._token
-		);
-	}
-
-	@log()
-	addReferenceLocation(request: AddReferenceLocationRequest) {
-		return this.put<CSAddReferenceLocationRequest, CSAddReferenceLocationResponse>(
-			`/markers/${request.markerId}/reference-location`,
-			request,
-			this._token
-		);
-	}
-
-	@log()
-	fetchMarkers(request: FetchMarkersRequest) {
-		// TODO: This doesn't handle all the request params
-		return this.get<CSGetMarkersResponse>(
-			`/markers?teamId=${this.teamId}&streamId=${request.streamId}${
-				request.commitHash ? `&commitHash=${request.commitHash}` : ""
-			}`,
-			this._token
-		);
-	}
-
-	@log()
-	getMarker(request: GetMarkerRequest) {
-		return this.get<CSGetMarkerResponse>(`/markers/${request.markerId}`, this._token);
-	}
-
-	@log()
-	updateMarker(request: UpdateMarkerRequest) {
-		return this.put<CSUpdateMarkerRequest, CSUpdateMarkerResponse>(
-			`/markers/${request.markerId}`,
-			request,
-			this._token
-		);
-	}
-
-	@log()
-	moveMarker(request: {
-		oldMarkerId: string;
-		newMarker: CreateMarkerRequest;
-	}): Promise<MoveMarkerResponse> {
-		return this.put<CSCreateMarkerRequest, CSCreateMarkerResponse>(
-			`/markers/${request.oldMarkerId}/move`,
-			request.newMarker,
-			this._token
-		);
-	}
-
-	@log()
-	addMarkers(request: {
-		codemarkId: string;
-		newMarkers: CreateMarkerRequest[];
-	}): Promise<AddMarkersResponse> {
-		return this.put<CSAddMarkersRequest, CSAddMarkersResponse>(
-			`/codemarks/${request.codemarkId}/add-markers`,
-			{ markers: request.newMarkers },
-			this._token
-		);
-	}
-
-	@log()
-	deleteMarker(request: DeleteMarkerRequest): Promise<DeleteMarkerResponse> {
-		return this.delete<{}>(`/markers/${request.markerId}`, this._token);
-	}
-
-	@log()
-	createCodemark(request: CreateCodemarkRequest) {
-		return this.post<CSCreateCodemarkRequest, CSCreateCodemarkResponse>(
-			"/codemarks",
-			{ ...request, teamId: this.teamId },
-			this._token
-		);
-	}
-
-	@log()
-	deleteCodemark(request: DeleteCodemarkRequest) {
-		const { codemarkId } = request;
-		return this.delete<CSDeleteCodemarkResponse>(`/codemarks/${codemarkId}`, this._token);
-	}
-
-	@log()
-	fetchCodemarks(request: FetchCodemarksRequest) {
-		return this.get<CSGetCodemarksResponse>(
-			`/codemarks?${qs.stringify({
-				teamId: this.teamId,
-				byLastAcivityAt: request.byLastAcivityAt,
-			})}${request.before ? `&before=${request.before}` : ""}`,
-			this._token
-		);
-	}
-
-	@log()
-	getCodemark(request: GetCodemarkRequest) {
-		return this.get<CSGetCodemarkResponse>(
-			`/codemarks/${request.codemarkId}?${qs.stringify({
-				byLastAcivityAt: request.sortByActivity,
-			})}`,
-			this._token
-		);
-	}
-
-	@log()
-	setCodemarkPinned(request: SetCodemarkPinnedRequest) {
-		return this.put<CSSetCodemarkPinnedRequest, CSSetCodemarkPinnedResponse>(
-			`${request.value ? "/pin" : "/unpin"}/${request.codemarkId}`,
-			request,
-			this._token
-		);
-	}
-
-	@log()
-	pinReplyToCodemark(request: PinReplyToCodemarkRequest) {
-		return this.put<CSPinReplyToCodemarkRequest, CSPinReplyToCodemarkResponse>(
-			request.value ? "/pin-post" : "/unpin-post",
-			request,
-			this._token
-		);
-	}
-
-	@log()
-	followCodemark(request: FollowCodemarkRequest) {
-		const pathType = request.value ? "follow" : "unfollow";
-		return this.put<FollowCodemarkRequest, FollowCodemarkResponse>(
-			`/codemarks/${pathType}/${request.codemarkId}`,
-			request,
-			this._token
-		);
-	}
-
-	@log()
-	followReview(request: FollowReviewRequest) {
-		const pathType = request.value ? "follow" : "unfollow";
-		return this.put<FollowReviewRequest, FollowReviewResponse>(
-			`/reviews/${pathType}/${request.id}`,
-			request,
-			this._token
-		);
-	}
-
-	@log()
 	followCodeError(request: FollowCodeErrorRequest) {
 		const pathType = request.value ? "follow" : "unfollow";
 		return this.put<FollowCodeErrorRequest, FollowCodeErrorResponse>(
 			`/code-errors/${pathType}/${request.id}`,
 			request,
-			this._token
-		);
-	}
-
-	@log()
-	setCodemarkStatus(request: SetCodemarkStatusRequest) {
-		return this.updateCodemark(request);
-	}
-
-	@log()
-	async updateCodemark(request: UpdateCodemarkRequest) {
-		const { codemarkId, ...attributes } = request;
-		const response = await this.put<CSUpdateCodemarkRequest, CSUpdateCodemarkResponse>(
-			`/codemarks/${codemarkId}`,
-			attributes,
-			this._token
-		);
-
-		const [codemark] = await SessionContainer.instance().codemarks.resolve({
-			type: MessageType.Codemarks,
-			data: [response.codemark],
-		});
-
-		return { codemark };
-	}
-
-	@log()
-	createCodemarkPermalink(request: CreateCodemarkPermalinkRequest) {
-		return this.post<CSCreateCodemarkPermalinkRequest, CSCreateCodemarkPermalinkResponse>(
-			`/codemarks/${request.codemarkId}/permalink`,
-			{ isPublic: request.isPublic },
-			this._token
+			tokenHolder.accessToken
 		);
 	}
 
@@ -1344,30 +1006,23 @@ export class CodeStreamApiProvider implements ApiProvider {
 			};
 		}
 
-		return this.post<CSCreatePostRequest, CSCreatePostResponse>(
+		const result = this.post<CSCreatePostRequest, CSCreatePostResponse>(
 			`/posts`,
 			{ ...request, teamId: this.teamId },
-			this._token
+			tokenHolder.accessToken
 		);
+		return result;
 	}
 
 	@log()
 	async deletePost(request: DeletePostRequest) {
 		const response = await this.delete<CSDeletePostResponse>(
 			`/posts/${request.postId}`,
-			this._token
+			tokenHolder.accessToken
 		);
 		const [post] = await SessionContainer.instance().posts.resolve({
 			type: MessageType.Posts,
 			data: response.posts,
-		});
-		await SessionContainer.instance().codemarks.resolve({
-			type: MessageType.Codemarks,
-			data: response.codemarks || [],
-		});
-		await SessionContainer.instance().markers.resolve({
-			type: MessageType.Markers,
-			data: response.markers || [],
 		});
 
 		return { ...response, post };
@@ -1378,7 +1033,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		const response = await this.put<CSEditPostRequest, CSEditPostResponse>(
 			`/posts/${request.postId}`,
 			request,
-			this._token
+			tokenHolder.accessToken
 		);
 		const [post] = await SessionContainer.instance().posts.resolve({
 			type: MessageType.Streams,
@@ -1392,7 +1047,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		const response = await this.put<
 			CSUpdatePostSharingDataRequest,
 			CSUpdatePostSharingDataResponse
-		>(`/posts/${request.postId}`, request, this._token);
+		>(`/posts/${request.postId}`, request, tokenHolder.accessToken);
 		const [post] = await SessionContainer.instance().posts.resolve({
 			type: MessageType.Streams,
 			data: [response.post],
@@ -1412,7 +1067,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 				{
 					postId: request.postId,
 				},
-				this._token
+				tokenHolder.accessToken
 			);
 			const [post] = await SessionContainer.instance().posts.resolve({
 				type: MessageType.Streams,
@@ -1423,9 +1078,10 @@ export class CodeStreamApiProvider implements ApiProvider {
 			if (provider.name === "slack") {
 				const telemetry = Container.instance().telemetry;
 				telemetry.track({
-					eventName: "Slack Sharing Error",
+					eventName: "codestream/codemarks/slack_sharing failed",
 					properties: {
-						Error: ex.message,
+						meta_data: `error: ex.message`,
+						event_type: "response",
 					},
 				});
 			}
@@ -1438,7 +1094,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		const post = await SessionContainer.instance().posts.getById(request.postId);
 		const response = await this.get<CSGetPostsResponse>(
 			`/posts?teamId=${this.teamId}&streamId=${request.streamId}&parentPostId=${request.postId}`,
-			this._token
+			tokenHolder.accessToken
 		);
 
 		// when fetching replies to code errors, we may end up with authors that aren't part of the
@@ -1475,7 +1131,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 
 		const response = await this.get<CSGetPostsResponse>(
 			`/posts?${qs.stringify(params)}`,
-			this._token
+			tokenHolder.accessToken
 		);
 
 		if (response.posts && request.streamId) {
@@ -1525,7 +1181,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 	getPost(request: GetPostRequest) {
 		return this.get<CSGetPostResponse>(
 			`/posts/${request.postId}?teamId=${this.teamId}`,
-			this._token
+			tokenHolder.accessToken
 		);
 	}
 
@@ -1537,7 +1193,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 				streamId: request.streamId,
 				ids: request.postIds && request.postIds.join(","),
 			})}`,
-			this._token
+			tokenHolder.accessToken
 		);
 	}
 
@@ -1546,7 +1202,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		return this.put<CSMarkPostUnreadRequest, CSMarkPostUnreadResponse>(
 			`/unread/${request.postId}`,
 			request,
-			this._token
+			tokenHolder.accessToken
 		);
 	}
 
@@ -1555,7 +1211,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		return this.put<CSMarkItemReadRequest, CSMarkItemReadResponse>(
 			`/read-item/${request.itemId}`,
 			{ numReplies: request.numReplies },
-			this._token
+			tokenHolder.accessToken
 		);
 	}
 
@@ -1564,7 +1220,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		const response = await this.put<CSReactions, CSReactToPostResponse>(
 			`/react/${request.postId}`,
 			request.emojis,
-			this._token
+			tokenHolder.accessToken
 		);
 
 		const [post] = await SessionContainer.instance().posts.resolve({
@@ -1574,26 +1230,12 @@ export class CodeStreamApiProvider implements ApiProvider {
 		return { ...response, post: post };
 	}
 
-	@log()
-	createRepo(request: CreateRepoRequest) {
-		return this.post<CSCreateRepoRequest, CSCreateRepoResponse>(
-			`/repos`,
-			{ ...request, teamId: this.teamId },
-			this._token
-		);
-	}
-
-	@log()
-	fetchRepos() {
-		return this.get<CSGetReposResponse>(`/repos?teamId=${this.teamId}`, this._token);
-	}
-
 	fetchMsTeamsConversations(
 		request: CSMsTeamsConversationRequest
 	): Promise<CSMsTeamsConversationResponse> {
 		return this.get<any>(
 			`/msteams_conversations?teamId=${this.teamId}&tenantId=${request.tenantId}`,
-			this._token
+			tokenHolder.accessToken
 		);
 	}
 
@@ -1603,35 +1245,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		return this.post<any, any>(
 			"/msteams_conversations",
 			{ ...request, teamId: this.teamId },
-			this._token
-		);
-	}
-
-	@log()
-	getRepo(request: GetRepoRequest) {
-		return this.get<CSGetRepoResponse>(`/repos/${request.repoId}`, this._token);
-	}
-
-	@log()
-	async matchRepos(request: MatchReposRequest) {
-		const response = await this.put<MatchReposRequest, MatchReposResponse>(
-			`/repos/match/${this.teamId}`,
-			request,
-			this._token
-		);
-		await SessionContainer.instance().repos.resolve({
-			type: MessageType.Repositories,
-			data: [response.repos],
-		});
-		return response;
-	}
-
-	@lspHandler(MatchReposRequestType)
-	@log()
-	async matchRepo(request: MatchReposRequest) {
-		return this.get<MatchReposResponse>(
-			`/repos/match/${this.teamId}?repos=${encodeURIComponent(JSON.stringify(request))}`,
-			this._token
+			tokenHolder.accessToken
 		);
 	}
 
@@ -1647,7 +1261,10 @@ export class CodeStreamApiProvider implements ApiProvider {
 			params.streamId = request.streamId;
 		}
 
-		return this.get<CSGetReviewsResponse>(`/reviews?${qs.stringify(params)}`, this._token);
+		return this.get<CSGetReviewsResponse>(
+			`/reviews?${qs.stringify(params)}`,
+			tokenHolder.accessToken
+		);
 	}
 
 	@log()
@@ -1665,7 +1282,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		*/
 		const response = await this.get<CSGetCodeErrorsResponse>(
 			`/code-errors?${qs.stringify(params)}`,
-			this._token
+			tokenHolder.accessToken
 		);
 
 		/*
@@ -1687,7 +1304,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 				objectId: request.objectId,
 				objectType: request.objectType,
 			},
-			this._token
+			tokenHolder.accessToken
 		);
 		// Clear out resolved: true from all stack lines (each user has a different local path)
 		if (response.codeError) {
@@ -1699,14 +1316,14 @@ export class CodeStreamApiProvider implements ApiProvider {
 
 	@log()
 	getReview(request: GetReviewRequest): Promise<GetReviewResponse> {
-		return this.get<CSGetReviewResponse>(`/reviews/${request.reviewId}`, this._token);
+		return this.get<CSGetReviewResponse>(`/reviews/${request.reviewId}`, tokenHolder.accessToken);
 	}
 
 	@log()
 	async getCodeError(request: GetCodeErrorRequest): Promise<GetCodeErrorResponse> {
 		const response = await this.get<CSGetCodeErrorResponse>(
 			`/code-errors/${request.codeErrorId}`,
-			this._token
+			tokenHolder.accessToken
 		);
 		if (response.codeError) {
 			clearResolvedFlag([response.codeError]);
@@ -1733,7 +1350,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 				return this.put<CSUpdateReviewRequest, CSUpdateReviewResponse>(
 					`/reviews${route}/${id}`,
 					{},
-					this._token
+					tokenHolder.accessToken
 				);
 			} else {
 				Logger.warn("Unknown route for status: ", params);
@@ -1743,7 +1360,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		return this.put<CSUpdateReviewRequest, CSUpdateReviewResponse>(
 			`/reviews/${id}`,
 			params,
-			this._token
+			tokenHolder.accessToken
 		);
 	}
 
@@ -1753,25 +1370,28 @@ export class CodeStreamApiProvider implements ApiProvider {
 		return this.put<CSUpdateCodeErrorRequest, CSUpdateCodeErrorResponse>(
 			`/code-errors/${id}`,
 			params,
-			this._token
+			tokenHolder.accessToken
 		);
 	}
 
 	@log()
 	async deleteReview(request: DeleteReviewRequest) {
-		await this.delete(`/reviews/${request.id}`, this._token);
+		await this.delete(`/reviews/${request.id}`, tokenHolder.accessToken);
 		return {};
 	}
 
 	@log()
 	async deleteCodeError(request: DeleteCodeErrorRequest) {
-		await this.delete(`/code-errors/${request.id}`, this._token);
+		await this.delete(`/code-errors/${request.id}`, tokenHolder.accessToken);
 		return {};
 	}
 
 	@log()
 	fetchReviewDiffs(request: FetchReviewDiffsRequest): Promise<FetchReviewDiffsResponse> {
-		return this.get<CSGetReviewDiffsResponse>(`/reviews/diffs/${request.reviewId}`, this._token);
+		return this.get<CSGetReviewDiffsResponse>(
+			`/reviews/diffs/${request.reviewId}`,
+			tokenHolder.accessToken
+		);
 	}
 
 	@log()
@@ -1780,7 +1400,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 	): Promise<FetchReviewCheckpointDiffsResponse> {
 		return this.get<CSGetReviewCheckpointDiffsResponse>(
 			`/reviews/checkpoint-diffs/${request.reviewId}`,
-			this._token
+			tokenHolder.accessToken
 		);
 	}
 
@@ -1789,7 +1409,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		return this.post<CSCreateChannelStreamRequest, CSCreateChannelStreamResponse>(
 			`/streams`,
 			{ ...request, teamId: this.teamId },
-			this._token
+			tokenHolder.accessToken
 		);
 	}
 
@@ -1798,7 +1418,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		return this.post<CSCreateDirectStreamRequest, CSCreateDirectStreamResponse>(
 			`/streams`,
 			{ ...request, teamId: this.teamId },
-			this._token
+			tokenHolder.accessToken
 		);
 	}
 
@@ -1811,12 +1431,12 @@ export class CodeStreamApiProvider implements ApiProvider {
 		) {
 			return this.getStreams<
 				CSGetStreamsResponse<CSChannelStream | CSDirectStream | CSObjectStream>
-			>(`/streams?teamId=${this.teamId}`, this._token);
+			>(`/streams?teamId=${this.teamId}`, tokenHolder.accessToken);
 		}
 
 		return this.getStreams<CSGetStreamsResponse<CSChannelStream | CSDirectStream | CSObjectStream>>(
 			`/streams?teamId=${this.teamId}&type=${request.types[0]}`,
-			this._token
+			tokenHolder.accessToken
 		);
 	}
 
@@ -1824,7 +1444,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 	fetchUnreadStreams(request: FetchUnreadStreamsRequest) {
 		return this.getStreams<CSGetStreamsResponse<CSChannelStream | CSDirectStream | CSObjectStream>>(
 			`/streams?teamId=${this.teamId}&unread`,
-			this._token
+			tokenHolder.accessToken
 		);
 	}
 
@@ -1832,7 +1452,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 	async getStream(request: GetStreamRequest) {
 		return this.get<CSGetStreamResponse<CSChannelStream | CSDirectStream | CSObjectStream>>(
 			`/streams/${request.streamId}`,
-			this._token
+			tokenHolder.accessToken
 		);
 	}
 
@@ -1851,7 +1471,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		const response = await this.put<CSJoinStreamRequest, CSJoinStreamResponse>(
 			`/join/${request.streamId}`,
 			{},
-			this._token
+			tokenHolder.accessToken
 		);
 
 		const [stream] = await SessionContainer.instance().streams.resolve({
@@ -1898,7 +1518,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 
 	@log()
 	markStreamRead(request: MarkStreamReadRequest) {
-		return this.put(`/read/${request.streamId}`, {}, this._token);
+		return this.put(`/read/${request.streamId}`, {}, tokenHolder.accessToken);
 	}
 
 	@log()
@@ -1942,7 +1562,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 			{
 				...changes,
 			},
-			this._token
+			tokenHolder.accessToken
 		);
 
 		const [stream] = await SessionContainer.instance().streams.resolve({
@@ -1961,7 +1581,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 				$push: request.add == null ? undefined : { memberIds: request.add },
 				$pull: request.remove == null ? undefined : { memberIds: request.remove },
 			},
-			this._token
+			tokenHolder.accessToken
 		);
 
 		const [stream] = await SessionContainer.instance().streams.resolve({
@@ -1975,7 +1595,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 	@log()
 	@lspHandler(CreateTeamRequestType)
 	createTeam(request: CreateTeamRequest) {
-		return this.post("/teams", request, this._token);
+		return this.post("/teams", request, tokenHolder.accessToken);
 	}
 
 	@lspHandler(SendPasswordResetEmailRequestType)
@@ -1988,7 +1608,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		return this.put<CSSetPasswordRequest, CSSetPasswordResponse>(
 			"/password",
 			{ newPassword: request.password },
-			this._token
+			tokenHolder.accessToken
 		);
 	}
 
@@ -2005,13 +1625,13 @@ export class CodeStreamApiProvider implements ApiProvider {
 
 		return this.get<CSGetTeamsResponse>(
 			`/teams${params ? `?${params.substring(1)}` : ""}`,
-			this._token
+			tokenHolder.accessToken
 		);
 	}
 
 	@log()
 	getTeam(request: GetTeamRequest) {
-		return this.get<CSGetTeamResponse>(`/teams/${request.teamId}`, this._token);
+		return this.get<CSGetTeamResponse>(`/teams/${request.teamId}`, tokenHolder.accessToken);
 	}
 
 	fetchCompanies(request: FetchCompaniesRequest): Promise<FetchCompaniesResponse> {
@@ -2023,11 +1643,17 @@ export class CodeStreamApiProvider implements ApiProvider {
 			params.ids = request.companyIds!.join(",");
 		}
 
-		return this.get<CSGetCompaniesResponse>(`/companies?${qs.stringify(params)}`, this._token);
+		return this.get<CSGetCompaniesResponse>(
+			`/companies?${qs.stringify(params)}`,
+			tokenHolder.accessToken
+		);
 	}
 
 	getCompany(request: GetCompanyRequest): Promise<GetCompanyResponse> {
-		return this.get<CSGetCompanyResponse>(`/companies/${request.companyId}`, this._token);
+		return this.get<CSGetCompanyResponse>(
+			`/companies/${request.companyId}`,
+			tokenHolder.accessToken
+		);
 	}
 
 	async joinCompany(request: JoinCompanyRequest): Promise<JoinCompanyResponse> {
@@ -2038,15 +1664,15 @@ export class CodeStreamApiProvider implements ApiProvider {
 		// they don't yet have a teamId in their session
 		const csAuth = !this.teamId && this._usingServiceGatewayAuth ? "/cs-auth" : "";
 
-		return this.put(`${csAuth}/join-company/${request.companyId}`, {}, this._token);
+		return this.put(`${csAuth}/join-company/${request.companyId}`, {}, tokenHolder.accessToken);
 	}
 
 	async logoutCompany(request: LogoutCompanyRequest): Promise<LogoutCompanyResponse> {
-		return this.put(`/logout`, {}, this._token);
+		return this.put(`/logout`, {}, tokenHolder.accessToken);
 	}
 
 	async declineInvite(request: DeclineInviteRequest): Promise<DeclineInviteResponse> {
-		return this.put(`/decline-invite/${request.companyId}`, {}, this._token);
+		return this.put(`/decline-invite/${request.companyId}`, {}, tokenHolder.accessToken);
 	}
 
 	async joinCompanyFromEnvironment(request: JoinCompanyRequest): Promise<JoinCompanyResponse> {
@@ -2056,7 +1682,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		// switch may not have fully sync'd yet
 		this.setServerUrl(toServerUrl);
 
-		// NOTE that this._token here is the access token for the server we are switching FROM,
+		// NOTE that tokenHolder.accessToken here is the access token for the server we are switching FROM,
 		// this is OK, since in this request, the access token actually gets passed on to the
 		// server we are switching FROM, by the server we are switching TO
 		// isn't this awesome???
@@ -2065,19 +1691,26 @@ export class CodeStreamApiProvider implements ApiProvider {
 			userId,
 		};
 
-		return this.put(`/xenv/join-company/${request.companyId}`, xenvRequest, this._token);
+		return this.put(
+			`/xenv/join-company/${request.companyId}`,
+			xenvRequest,
+			tokenHolder.accessToken
+		);
 	}
 
 	@lspHandler(UpdateCompanyRequestType)
 	@log()
 	async updateCompany(request: UpdateCompanyRequest): Promise<UpdateCompanyResponse> {
-		return this.put(`/companies/${request.companyId}`, request, this._token);
+		return this.put(`/companies/${request.companyId}`, request, tokenHolder.accessToken);
 	}
 
 	@lspHandler(DeleteCompanyRequestType)
 	@log()
 	deleteCompany(request: DeleteCompanyRequest): Promise<DeleteCompanyResponse> {
-		return this.delete<DeleteCompanyResponse>(`/companies/${request.companyId}`, this._token);
+		return this.delete<DeleteCompanyResponse>(
+			`/companies/${request.companyId}`,
+			tokenHolder.accessToken
+		);
 	}
 
 	async setCompanyTestGroups(
@@ -2087,7 +1720,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		const response = await this.put<{ [key: string]: string }, { company: any }>(
 			`/company-test-group/${companyId}`,
 			request,
-			this._token
+			tokenHolder.accessToken
 		);
 		const companies = (await SessionContainer.instance().companies.resolve({
 			type: MessageType.Companies,
@@ -2121,7 +1754,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 				accountIds,
 				orgIds,
 			},
-			this._token
+			tokenHolder.accessToken
 		);
 
 		return true;
@@ -2137,7 +1770,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		// they don't yet have a teamId in their session
 		const csAuth = !this.teamId && this._usingServiceGatewayAuth ? "/cs-auth" : "";
 
-		return this.post(`${csAuth}/companies`, request, this._token);
+		return this.post(`${csAuth}/companies`, request, tokenHolder.accessToken);
 	}
 
 	@log()
@@ -2151,7 +1784,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		const response: CreateForeignCompanyResponse = await this.post(
 			"/create-xenv-company",
 			body,
-			this._token
+			tokenHolder.accessToken
 		);
 
 		const users = await SessionContainer.instance().users.resolve({
@@ -2168,12 +1801,12 @@ export class CodeStreamApiProvider implements ApiProvider {
 
 	@lspHandler(CreateTeamTagRequestType)
 	async createTeamTag(request: CSTeamTagRequest) {
-		await this.post(`/team-tags/${request.team.id}`, { ...request.tag }, this._token);
+		await this.post(`/team-tags/${request.team.id}`, { ...request.tag }, tokenHolder.accessToken);
 	}
 
 	@lspHandler(DeleteTeamTagRequestType)
 	async deleteTeamTag(request: CSTeamTagRequest) {
-		await this.delete(`/team-tags/${request.team.id}/${request.tag.id}`, this._token);
+		await this.delete(`/team-tags/${request.team.id}/${request.tag.id}`, tokenHolder.accessToken);
 	}
 
 	@lspHandler(UpdateTeamTagRequestType)
@@ -2181,7 +1814,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		await this.put(
 			`/team-tags/${request.team.id}/${request.tag.id}`,
 			{ ...request.tag },
-			this._token
+			tokenHolder.accessToken
 		);
 	}
 
@@ -2193,18 +1826,22 @@ export class CodeStreamApiProvider implements ApiProvider {
 				$push: request.add == null ? undefined : { adminIds: request.add },
 				$pull: request.remove == null ? undefined : { adminIds: request.remove },
 			},
-			this._token
+			tokenHolder.accessToken
 		);
 	}
 
 	@lspHandler(UpdateTeamRequestType)
 	async updateTeam(request: UpdateTeamRequest) {
-		await this.put(`/teams/${request.teamId}`, { ...request }, this._token);
+		await this.put(`/teams/${request.teamId}`, { ...request }, tokenHolder.accessToken);
 	}
 
 	@lspHandler(UpdateTeamSettingsRequestType)
 	async updateTeamSettings(request: UpdateTeamSettingsRequest) {
-		await this.put(`/team-settings/${request.teamId}`, { ...request.settings }, this._token);
+		await this.put(
+			`/team-settings/${request.teamId}`,
+			{ ...request.settings },
+			tokenHolder.accessToken
+		);
 	}
 
 	@lspHandler(AddBlameMapRequestType)
@@ -2212,13 +1849,26 @@ export class CodeStreamApiProvider implements ApiProvider {
 		await this.post(
 			`/add-blame-map/${request.teamId}`,
 			{ email: request.email, userId: request.userId },
-			this._token
+			tokenHolder.accessToken
 		);
 	}
 
 	@lspHandler(DeleteBlameMapRequestType)
 	async deleteBlameMap(request: DeleteBlameMapRequest) {
-		await this.put(`/delete-blame-map/${request.teamId}`, { email: request.email }, this._token);
+		await this.put(
+			`/delete-blame-map/${request.teamId}`,
+			{ email: request.email },
+			tokenHolder.accessToken
+		);
+	}
+
+	@lspHandler(ServiceEntitiesViewedRequestType)
+	async serviceEntitiesViewed(request: ServiceEntitiesViewedRequest) {
+		await this.post(
+			`/entities`,
+			{ teamId: request.teamId, entityId: request.entityId },
+			tokenHolder.accessToken
+		);
 	}
 
 	@log()
@@ -2228,7 +1878,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 			path += `&ids=${request.userIds.join(",")}`;
 		}
 
-		const response = await this.get<CSGetUsersResponse>(path, this._token);
+		const response = await this.get<CSGetUsersResponse>(path, tokenHolder.accessToken);
 
 		// Find ourselves and replace it with our model
 		const index = response.users.findIndex(u => u.id === this._userId);
@@ -2244,7 +1894,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 			return this.getMe();
 		}
 
-		return this.get<CSGetUserResponse>(`/users/${request.userId}`, this._token);
+		return this.get<CSGetUserResponse>(`/users/${request.userId}`, tokenHolder.accessToken);
 	}
 
 	@log()
@@ -2264,19 +1914,19 @@ export class CodeStreamApiProvider implements ApiProvider {
 		return this.post<CSInviteUserRequest, CSInviteUserResponse>(
 			"/users",
 			postUserRequest,
-			this._token
+			tokenHolder.accessToken
 		);
 	}
 
 	@log()
 	deleteUser(request: DeleteUserRequest) {
-		return this.delete<DeleteUserResponse>(`/users/${request.userId}`, this._token);
+		return this.delete<DeleteUserResponse>(`/users/${request.userId}`, tokenHolder.accessToken);
 	}
 
 	@lspHandler(DeleteMeUserRequestType)
 	@log()
 	deleteMeUser(request: DeleteMeUserRequest) {
-		return this.delete<DeleteMeUserResponse>(`/users/${request.userId}`, this._token);
+		return this.delete<DeleteMeUserResponse>(`/users/${request.userId}`, tokenHolder.accessToken);
 	}
 
 	@log()
@@ -2286,7 +1936,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 			{
 				$addToSet: { removedMemberIds: [request.userId] },
 			},
-			this._token
+			tokenHolder.accessToken
 		);
 	}
 
@@ -2296,31 +1946,25 @@ export class CodeStreamApiProvider implements ApiProvider {
 			return this.put<CSUpdateUserRequest, CSUpdateUserResponse>(
 				"/change-email/",
 				request,
-				this._token
+				tokenHolder.accessToken
 			);
 		} else {
 			return this.put<CSUpdateUserRequest, CSUpdateUserResponse>(
 				"/users/" + this.userId,
 				request,
-				this._token
+				tokenHolder.accessToken
 			);
 		}
 	}
 
 	@log()
 	async getPreferences() {
-		const preferences = await this.get<GetPreferencesResponse>("/preferences", this._token);
+		const preferences = await this.get<GetPreferencesResponse>(
+			"/preferences",
+			tokenHolder.accessToken
+		);
 		safeDecode(preferences);
 		return preferences;
-	}
-
-	@log()
-	async getTelemetryKey(): Promise<string> {
-		const telemetrySecret = "84$gTe^._qHm,#D";
-		const response = await this.get<CSGetTelemetryKeyResponse>(
-			`/no-auth/telemetry-key?secret=${encodeURIComponent(telemetrySecret)}`
-		);
-		return response.key;
 	}
 
 	@log()
@@ -2339,7 +1983,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 
 			const response = await this.get<{ code: string }>(
 				`/provider-auth-code?teamId=${this.teamId}${request.sharing ? "&sharing=true" : ""}`,
-				this._token
+				tokenHolder.accessToken
 			);
 			const params: { [key: string]: string } = {
 				code: response.code,
@@ -2389,7 +2033,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 			const response = await this.put<CSThirdPartyProviderSetInfoRequestData, { user: any }>(
 				`/provider-info/${providerConfig.name}`,
 				params,
-				this._token
+				tokenHolder.accessToken
 			);
 
 			// the webview needs to know about the change to the user object with the new provider access token
@@ -2431,7 +2075,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 			void (await this.put<{ teamId: string; host?: string }, {}>(
 				`/provider-deauth/${providerConfig.name}`,
 				params,
-				this._token
+				tokenHolder.accessToken
 			));
 		} catch (ex) {
 			Logger.error(ex, cc);
@@ -2443,33 +2087,70 @@ export class CodeStreamApiProvider implements ApiProvider {
 	refreshNewRelicToken(refreshToken: string): Promise<CSNewRelicProviderInfo> {
 		const cc = Logger.getCorrelationContext();
 
+		Logger.log(cc, "Incoming refresh New Relic token request");
 		if (this._refreshNRTokenPromise) {
+			Logger.log(cc, "Promise already made");
 			return this._refreshNRTokenPromise;
 		}
+
 		this._refreshNRTokenPromise = new Promise((resolve, reject) => {
+			Logger.log(cc, "Calling provider refresh for New Relic token...");
 			const url = "/no-auth/provider-refresh/newrelic";
-			this.put<{ refreshToken: string }, CSNewRelicProviderInfo>(url, {
-				refreshToken,
-			})
+			this.put<{ refreshToken: string }, CSNewRelicProviderInfo>(
+				url,
+				{
+					refreshToken: refreshToken, //+ "x", // uncomment to test roadblock
+				},
+				undefined,
+				{ skipInterceptors: true }
+			)
 				.then(response => {
 					if (response.accessToken) {
 						Logger.log("New Relic access token successfully refreshed, setting...");
-						this.setAccessToken(response.accessToken, {
+						tokenHolder.setAccessToken("CodestreamApi.refreshNewRelicToken", response.accessToken, {
 							expiresAt: response.expiresAt!,
 							refreshToken: response.refreshToken!,
+							tokenType: response.tokenType! as CSAccessTokenType,
 						});
 						if (SessionContainer.isInitialized()) {
 							SessionContainer.instance().session.onAccessTokenChanged(
 								response.accessToken,
-								response.refreshToken
+								response.refreshToken,
+								response.tokenType as CSAccessTokenType
 							);
 						}
 					}
 					delete this._refreshNRTokenPromise;
+					if (this._refreshTokenFailed) {
+						Logger.log("Recovering from refresh token failure status, session now active");
+						if (SessionContainer.isInitialized()) {
+							SessionContainer.instance().session.onSessionTokenStatusChanged(
+								SessionTokenStatus.Active
+							);
+						}
+						this._refreshTokenFailed = false;
+					}
 					resolve(response);
 				})
 				.catch(ex => {
+					Logger.log(`New Relic access token refresh failed, status code ${ex.statusCode}:`, ex);
 					Logger.error(ex, cc);
+
+					if (ex.statusCode === 403) {
+						delete this._refreshNRTokenPromise;
+						if (SessionContainer.isInitialized()) {
+							Logger.log("Setting session expired");
+							SessionContainer.instance().session.onSessionTokenStatusChanged(
+								SessionTokenStatus.Expired
+							);
+						} else {
+							Logger.log(
+								`Session is either not initialized (${SessionContainer.isInitialized()}), or token refresh has already failed, not setting session expired`
+							);
+						}
+						this._refreshTokenFailed = true;
+					}
+					delete this._refreshNRTokenPromise;
 					reject(ex);
 				});
 		});
@@ -2504,7 +2185,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 			const sharing = request.sharing ? "&sharing=true" : "";
 			const subId = request.subId ? `&subId=${request.subId}` : "";
 			const url = `/provider-refresh/${providerConfig.name}?${team}${host}${sharing}${subId}`;
-			const response = await this.get<{ user: any }>(url, this._token);
+			const response = await this.get<{ user: any }>(url, tokenHolder.accessToken);
 
 			const user = await SessionContainer.instance().session.resolveUserAndNotify(response.user);
 			return user as CSMe;
@@ -2523,7 +2204,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 			const response = await this.put<CSAddProviderHostRequest, CSAddProviderHostResponse>(
 				`/provider-host/${request.provider}/${request.teamId}`,
 				{ host: request.host, ...request.data },
-				this._token
+				tokenHolder.accessToken
 			);
 
 			await SessionContainer.instance().teams.resolve({
@@ -2546,7 +2227,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 				`/provider-host/${request.provider}/${request.teamId}/${encodeURIComponent(
 					request.providerId
 				)}`,
-				this._token
+				tokenHolder.accessToken
 			);
 
 			await SessionContainer.instance().teams.resolve({
@@ -2594,11 +2275,18 @@ export class CodeStreamApiProvider implements ApiProvider {
 			formData.append("file", new Blob([await Buffer.from(bareString, "base64")]), request.name);
 		}
 		const url = `${this.baseUrl}/upload-file/${this.teamId}`;
+		const tokenHeader =
+			tokenHolder.tokenType === CSAccessTokenType.ACCESS_TOKEN ? "x-access-token" : "x-id-token";
 		const headers = new Headers({
-			Authorization: `Bearer ${this._token}`,
+			//Authorization: `Bearer ${this._token}`,
+			[tokenHeader]: tokenHolder.accessToken!,
 		});
 
-		const response = await customFetch(url, { method: "post", body: formData, headers });
+		const response = await this.fetchClient.customFetch(url, {
+			method: "post",
+			body: formData,
+			headers,
+		});
 		if (!response.ok) {
 			const body = await response.text();
 			throw new ResponseError(
@@ -2618,7 +2306,10 @@ export class CodeStreamApiProvider implements ApiProvider {
 		if (session.environment === CodeStreamEnvironment.Unknown || isEmpty(session.environment)) {
 			await session.verifyConnectivity();
 		}
-		const response = await this.get<GetNewRelicSignupJwtTokenResponse>(`/signup-jwt`, this._token);
+		const response = await this.get<GetNewRelicSignupJwtTokenResponse>(
+			`/signup-jwt`,
+			tokenHolder.accessToken
+		);
 		const baseLandingUrl =
 			SessionContainer.instance().session.newRelicLandingServiceUrl ??
 			"https://landing.service.newrelic.com";
@@ -2634,7 +2325,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		return this.post<LookupNewRelicOrganizationsRequest, LookupNewRelicOrganizationsResponse>(
 			`/lookup-nr-orgs`,
 			request,
-			this._token
+			tokenHolder.accessToken
 		);
 	}
 
@@ -2650,29 +2341,42 @@ export class CodeStreamApiProvider implements ApiProvider {
 		throw new Error("Not supported");
 	}
 
-	async delete<R extends object>(url: string, token?: string): Promise<R> {
-		if (!token && url.indexOf("/no-auth/") === -1) token = this._token;
+	async delete<R extends object>(url: string, token?: string | AccessToken): Promise<R> {
+		const init: ExtraRequestInit = {};
+		if (!token && url.indexOf("/no-auth/") === -1) {
+			token = tokenHolder.accessToken;
+			init.skipInterceptors = true;
+		}
 		let resp = undefined;
 		if (resp === undefined) {
-			resp = this.fetch<R>(url, { method: "DELETE" }, token) as Promise<R>;
+			resp = this.fetch<R>(url, { ...init, method: "DELETE" }, token) as Promise<R>;
 		}
 		return resp;
 	}
 
-	async get<R extends object>(url: string, token?: string): Promise<R> {
-		if (!token && url.indexOf("/no-auth/") === -1) token = this._token;
-		return this.fetch<R>(url, { method: "GET" }, token) as Promise<R>;
+	async get<R extends object>(url: string, token?: string | AccessToken): Promise<R> {
+		const init: ExtraRequestInit = {};
+		if (!token && url.indexOf("/no-auth/") === -1) {
+			token = tokenHolder.accessToken;
+			init.skipInterceptors = true;
+		}
+		return this.fetch<R>(url, { ...init, method: "GET" }, token) as Promise<R>;
 	}
 
 	async post<RQ extends object, R extends object>(
 		url: string,
 		body: RQ,
-		token?: string
+		token?: string | AccessToken
 	): Promise<R> {
-		if (!token && url.indexOf("/no-auth/") === -1) token = this._token;
+		const init: ExtraRequestInit = {};
+		if (!token && url.indexOf("/no-auth/") === -1) {
+			token = tokenHolder.accessToken;
+			init.skipInterceptors = true;
+		}
 		return this.fetch<R>(
 			url,
 			{
+				...init,
 				method: "POST",
 				body: JSON.stringify(body),
 			},
@@ -2683,12 +2387,21 @@ export class CodeStreamApiProvider implements ApiProvider {
 	async put<RQ extends object, R extends object>(
 		url: string,
 		body: RQ,
-		token?: string
+		token?: string | AccessToken,
+		init?: ExtraRequestInit
 	): Promise<R> {
-		if (!token && url.indexOf("/no-auth/") === -1) token = this._token;
+		if (!init) {
+			init = {};
+		}
+		if (!token && url.indexOf("/no-auth/") === -1) {
+			// Logger.debug(`token swapped to this._token ${tokenHolder.accessToken}`);
+			token = tokenHolder.accessToken;
+			init.skipInterceptors = true;
+		}
 		return this.fetch<R>(
 			url,
 			{
+				...init,
 				method: "PUT",
 				body: JSON.stringify(body),
 			},
@@ -2697,9 +2410,23 @@ export class CodeStreamApiProvider implements ApiProvider {
 	}
 
 	/*private*/
-	async fetch<R extends object>(url: string, init?: RequestInit, token?: string): Promise<R> {
+	async fetch<R extends object>(
+		url: string,
+		init?: RequestInit,
+		accessToken?: string | AccessToken
+	): Promise<R> {
 		const start = process.hrtime();
 
+		let token, tokenType, refreshToken;
+		if (typeof accessToken === "object") {
+			token = accessToken.value;
+			tokenType = accessToken.tokenType;
+			refreshToken = accessToken.refreshToken;
+		} else {
+			token = accessToken;
+			tokenType = tokenHolder.tokenInfo?.tokenType;
+			refreshToken = tokenHolder.tokenInfo?.refreshToken;
+		}
 		const sanitizedUrl = CodeStreamApiProvider.sanitizeUrl(url);
 		let traceResult;
 		try {
@@ -2715,9 +2442,20 @@ export class CodeStreamApiProvider implements ApiProvider {
 				if (init.headers instanceof Headers) {
 					init.headers.append("Accept", "application/json");
 					init.headers.append("Content-Type", "application/json");
+					if (!isEmpty(this._clientId)) {
+						init.headers.append("X-CS-Client-Machine-ID", this._clientId);
+					}
 
 					if (token !== undefined) {
-						init.headers.append("Authorization", `Bearer ${token}`);
+						if (tokenType) {
+							if (tokenType === CSAccessTokenType.ACCESS_TOKEN) {
+								init.headers.append("x-access-token", token);
+							} else {
+								init.headers.append("x-id-token", token);
+							}
+						} else {
+							init.headers.append("Authorization", `Bearer ${token}`);
+						}
 					}
 
 					// for Unified Identity, set this header ... eventually we can remove this,
@@ -2778,38 +2516,47 @@ export class CodeStreamApiProvider implements ApiProvider {
 			}
 
 			let id;
-			let resp;
+			let resp: Response | undefined;
 			let retryCount = 0;
 			let triedRefresh = false;
+			let responseBody = "";
 			if (json === undefined) {
 				while (!resp) {
-					[resp, retryCount] = await fetchCore(0, absoluteUrl, init);
+					[resp, retryCount] = await this.fetchClient.fetchCore(0, absoluteUrl, init);
+					if (!resp.ok) {
+						const resp2 = resp.clone();
+						responseBody = (await resp2.text()) ?? "";
+					}
 					if (
 						!triedRefresh &&
 						!resp.ok &&
-						resp.status === 403 &&
-						this._tokenInfo &&
-						this._tokenInfo.refreshToken &&
+						(resp.status === 403 || resp.status === 401) &&
+						refreshToken &&
 						init?.headers instanceof Headers
 					) {
-						const resp2 = resp.clone();
-						const jsonData = (await resp2.json()) as { error: string };
-						if (jsonData?.error && jsonData.error.match(/service gateway: id token expired/)) {
+						if (responseBody.match(/token expired/) || resp.status === 401) {
 							Logger.log(
 								"On CodeStream API request, token was found to be expired, attempting to refresh..."
 							);
 							let tokenInfo;
 							try {
-								tokenInfo = await this.refreshNewRelicToken(this._tokenInfo.refreshToken!);
+								tokenInfo = await this.refreshNewRelicToken(refreshToken);
 								Logger.log("NR access token successfully refreshed, trying request again...");
 								token = tokenInfo.accessToken;
-								init.headers.set("Authorization", `Bearer ${token}`);
+								if (tokenInfo.tokenType === CSAccessTokenType.ACCESS_TOKEN) {
+									init?.headers.set("x-access-token", token);
+								} else {
+									init?.headers.set("x-id-token", token);
+								}
+								//init.headers.set("Authorization", `Bearer ${token}`);
 								triedRefresh = true;
 								resp = undefined;
 							} catch (ex) {
 								Logger.warn("Exception thrown refreshing NR access token:", ex);
 								// allow the original (failed) flow to continue, more meaningful than throwing an exception on refresh
 							}
+						} else {
+							Logger.warn(`Non-expired token found with ${resp.status} error, not refreshing`);
 						}
 					}
 				}
@@ -2835,14 +2582,14 @@ export class CodeStreamApiProvider implements ApiProvider {
 					} catch (ex) {
 						Logger.error(
 							ex,
-							`API(${id}): ${method} ${sanitizedUrl}: Middleware(${mw.name}).onResponse FAILED`
+							`API(${id}): ${method} ${this.baseUrl} ${sanitizedUrl}: Middleware(${mw.name}).onResponse FAILED`
 						);
 					}
 				}
 			}
 
 			if (resp !== undefined && !resp.ok) {
-				traceResult = `API(${id}): FAILED(${retryCount}x) ${method} ${sanitizedUrl}`;
+				traceResult = `API(${id}): FAILED(${retryCount}x) ${method} ${this.baseUrl} ${sanitizedUrl} ${resp.status}`;
 				Container.instance().errorReporter.reportBreadcrumb({
 					message: traceResult,
 					category: "apiErrorResponse",
@@ -2985,7 +2732,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		try {
 			Logger.log("Verifying API server connectivity");
 
-			const resp = await customFetch(this.baseUrl + "/no-auth/capabilities", {
+			const resp = await this.fetchClient.customFetch(this.baseUrl + "/no-auth/capabilities", {
 				timeout: 5000,
 			});
 
@@ -3005,6 +2752,8 @@ export class CodeStreamApiProvider implements ApiProvider {
 				response.newRelicLandingServiceUrl = json.newRelicLandingServiceUrl;
 				response.newRelicApiUrl = json.newRelicApiUrl;
 				response.newRelicSecApiUrl = json.newRelicSecApiUrl;
+				response.o11yServerUrl = json.o11yServerUrl;
+				response.telemetryEndpoint = json.telemetryEndpoint;
 				response.environmentHosts = json.environmentHosts;
 			}
 		} catch (err) {
@@ -3032,7 +2781,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 		try {
 			Logger.log("Verifying API server connectivity");
 
-			const nonJsonCapabilitiesResponse = await customFetch(
+			const nonJsonCapabilitiesResponse = await this.fetchClient.customFetch(
 				this.baseUrl + "/no-auth/capabilities",
 				{
 					timeout: 5000,

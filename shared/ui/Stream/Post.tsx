@@ -22,8 +22,7 @@ import {
 } from "../store/users/reducer";
 import { escapeHtml, replaceHtml, safe } from "../utils";
 import { HostApi } from "../webview-api";
-import { cancelPost, deletePost, editPost, retryPost, setCodemarkStatus } from "./actions";
-import { Attachments } from "./Attachments";
+import { editPost } from "./actions";
 import Button from "./Button";
 import CodemarkActions from "./CodemarkActions";
 import { confirmPopup } from "./Confirm";
@@ -35,8 +34,6 @@ import { MarkdownText } from "./MarkdownText";
 import { Marker } from "./Marker";
 import Menu from "./Menu";
 import { AddReactionIcon, Reactions } from "./Reactions";
-import RetrySpinner from "./RetrySpinner";
-import Timestamp from "./Timestamp";
 import Tooltip from "./Tooltip";
 import {
 	useAppDispatch,
@@ -48,6 +45,7 @@ import { CSUser } from "@codestream/protocols/api";
 import { isPending } from "@codestream/webview/store/posts/types";
 import { MenuItem } from "@codestream/webview/src/components/controls/InlineMenu";
 import { AutoHeightTextArea } from "@codestream/webview/src/components/AutoHeightTextArea";
+import { deletePostApi } from "@codestream/webview/store/posts/thunks";
 
 export type PostProps = {
 	id: string;
@@ -218,13 +216,13 @@ export function Post(props: PostProps) {
 		showCode();
 	};
 
-	const resubmit = () => {
-		if (derivedState?.post?.id) dispatch(retryPost(derivedState.post?.id));
-	};
+	// const resubmit = () => {
+	// 	if (derivedState?.post?.id) dispatch(retryPost(derivedState.post?.id));
+	// };
 
-	const cancel = () => {
-		if (derivedState?.post?.id) dispatch(cancelPost(derivedState.post?.id));
-	};
+	// const cancel = () => {
+	// 	if (derivedState?.post?.id) dispatch(cancelPost(derivedState.post?.id));
+	// };
 
 	function getWarningMessage() {
 		switch (warning) {
@@ -492,7 +490,7 @@ export function Post(props: PostProps) {
 	const closeIssue = () => {
 		const { codemark } = derivedState;
 		if (codemark) {
-			dispatch(setCodemarkStatus(codemark.id, "closed"));
+			//dispatch(setCodemarkStatus(codemark.id, "closed"));
 			submitReply("/me closed this issue");
 		}
 	};
@@ -500,7 +498,7 @@ export function Post(props: PostProps) {
 	const openIssue = () => {
 		const { codemark } = derivedState;
 		if (codemark) {
-			dispatch(setCodemarkStatus(codemark.id, "open"));
+			//dispatch(setCodemarkStatus(codemark.id, "open"));
 			submitReply("/me reopened this issue");
 		}
 	};
@@ -726,7 +724,7 @@ export function Post(props: PostProps) {
 							if (!post) {
 								return;
 							}
-							dispatch(deletePost(post.streamId, post.id));
+							dispatch(deletePostApi({ streamId: post.streamId, postId: post.id }));
 						},
 					},
 					{ label: "Cancel" },
@@ -766,11 +764,11 @@ export function Post(props: PostProps) {
 				</ProfileLink>
 				{author?.username}
 				{renderEmote(post)}
-				{isPending(post) && post.error ? (
+				{/* {isPending(post) && post.error ? (
 					<RetrySpinner callback={resubmit} cancel={cancel} />
 				) : (
 					<Timestamp relative time={post.createdAt} edited={post.hasBeenEdited} />
-				)}
+				)} */}
 				{codemark && codemark.color && <div className={`label-indicator ${color}-background`} />}
 			</div>
 			{derivedState.post?.parentPostId &&
@@ -802,7 +800,7 @@ export function Post(props: PostProps) {
 					{renderCodeBlockFile()}
 				</div>
 				{/*!props.showDetails &&*/ codeBlock}
-				{derivedState.post && <Attachments post={derivedState.post} />}
+				{/* {derivedState.post && <Attachments post={derivedState.post} />} */}
 			</div>
 			{derivedState.post && <Reactions post={derivedState.post} />}
 		</div>

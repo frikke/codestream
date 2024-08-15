@@ -12,16 +12,21 @@ import {
 	ObservabilityRepo,
 	SpanWithCodeAttrs,
 } from "@codestream/protocols/agent";
-import { INewRelicProvider, NewRelicProvider } from "../newrelic";
 import { Logger } from "../../logger";
 import { getStorage } from "../../storage";
 import { getAnomalyDetectionMockResponse } from "./anomalyDetectionMockResults";
 import { getLanguageSupport, LanguageSupport } from "./clm/languageSupport";
+import { NewRelicGraphqlClient } from "./newRelicGraphqlClient";
+import { ReposProvider } from "./repos/reposProvider";
+import { DeploymentsProvider } from "./deployments/deploymentsProvider";
+import { parseId } from "./utils";
 
 export class AnomalyDetector {
 	constructor(
 		private _request: GetObservabilityAnomaliesRequest,
-		private _provider: INewRelicProvider
+		private graphqlClient: NewRelicGraphqlClient,
+		private reposProvider: ReposProvider,
+		private deploymentsProvider: DeploymentsProvider
 	) {
 		const sinceDaysAgo = parseInt(_request.sinceDaysAgo as any);
 		const baselineDays = parseInt(_request.baselineDays as any);
@@ -29,7 +34,7 @@ export class AnomalyDetector {
 		this._baselineTimeFrame = `SINCE ${
 			sinceDaysAgo + baselineDays
 		} days AGO UNTIL ${sinceDaysAgo} days AGO`;
-		this._accountId = NewRelicProvider.parseId(_request.entityGuid)!.accountId;
+		this._accountId = parseId(_request.entityGuid)!.accountId;
 		this._sinceDaysAgo = sinceDaysAgo;
 	}
 
@@ -44,7 +49,7 @@ export class AnomalyDetector {
 	private _releaseBased = false;
 
 	async execute(): Promise<GetObservabilityAnomaliesResponse> {
-		const mockResponse = getAnomalyDetectionMockResponse(this._request);
+		const mockResponse = getAnomalyDetectionMockResponse(this._request.entityGuid);
 		if (mockResponse) {
 			await this.notifyNewAnomalies(mockResponse.responseTime, mockResponse.errorRate, true);
 			return mockResponse;
@@ -78,7 +83,7 @@ export class AnomalyDetector {
 		let detectionMethod: DetectionMethod = "Time Based";
 		if (this._request.sinceLastRelease) {
 			const deployments = (
-				await this._provider.getDeployments({
+				await this.deploymentsProvider.getDeployments({
 					entityGuid: this._request.entityGuid,
 					since: `31 days ago`,
 				})
@@ -124,7 +129,7 @@ export class AnomalyDetector {
 				languageSupport,
 				benchmarkSampleSizes,
 				benchmarkSpans,
-				this._request.minimumErrorRate,
+				this._request.minimumErrorPercentage,
 				this._request.minimumSampleRate,
 				this._request.minimumRatio
 			);
@@ -155,58 +160,34 @@ export class AnomalyDetector {
 			...durationAnomalies.map(_ => _.name),
 			...errorRateAnomalies.map(_ => _.name),
 		];
-		const allOtherAnomalies: ObservabilityAnomaly[] = [];
-		const allMetrics = languageSupport.filterMetrics(benchmarkMetrics, benchmarkSpans);
-		for (const { name } of allMetrics) {
-			if (anomalousMetricNames.find(_ => _ === name)) continue;
-
-			const codeAttrs = languageSupport.codeAttrs(name, benchmarkSpans);
-			const text = languageSupport.displayName(codeAttrs, name);
-			if (allOtherAnomalies.find(_ => _.text === text)) continue;
-
-			const anomaly: ObservabilityAnomaly = {
-				name,
-				text,
-				...codeAttrs,
-				language: languageSupport.language,
-				oldValue: 0,
-				newValue: 0,
-				ratio: 1,
-				sinceText: this._sinceText,
-				totalDays: this._totalDays,
-				chartHeaderTexts: {},
-				metricTimesliceName: name,
-				errorMetricTimesliceName: "Errors/" + name,
-				notificationText: "",
-				entityName: "",
-			};
-			allOtherAnomalies.push(anomaly);
-		}
-		allOtherAnomalies.sort((a, b) => a.name.localeCompare(b.name));
-
-		try {
-			const telemetry = Container.instance().telemetry;
-			const event = {
-				"Total Methods": allMetricTimesliceNames.size,
-				"Anomalous Error Methods": errorRateAnomalies.length,
-				"Anomalous Duration Methods": durationAnomalies.length,
-				"Entity GUID": this._request.entityGuid,
-				"Minimum Change": Math.round((this._request.minimumRatio - 1) * 100),
-				"Minimum RPM": this._request.minimumSampleRate,
-				"Minimum Error Rate": this._request.minimumErrorRate,
-				"Minimum Avg Duration": this._request.minimumResponseTime,
-				"Since Days Ago": this._sinceDaysAgo,
-				"Baseline Days": this._request.baselineDays,
-				"Release Based": this._releaseBased,
-				Language: languageSupport.language,
-			};
-			telemetry?.track({
-				eventName: "CLM Anomalies Calculated",
-				properties: event,
-			});
-		} catch (e) {
-			Logger.warn("Error generating anomaly detection telemetry", e);
-		}
+		// const allOtherAnomalies: ObservabilityAnomaly[] = [];
+		// const allMetrics = languageSupport.filterMetrics(benchmarkMetrics, benchmarkSpans);
+		// for (const { name } of allMetrics) {
+		// 	if (anomalousMetricNames.find(_ => _ === name)) continue;
+		//
+		// 	const codeAttrs = languageSupport.codeAttrs(name, benchmarkSpans);
+		// 	const text = languageSupport.displayName(codeAttrs, name);
+		// 	if (allOtherAnomalies.find(_ => _.text === text)) continue;
+		//
+		// 	const anomaly: ObservabilityAnomaly = {
+		// 		name,
+		// 		text,
+		// 		...codeAttrs,
+		// 		language: languageSupport.language,
+		// 		oldValue: 0,
+		// 		newValue: 0,
+		// 		ratio: 1,
+		// 		sinceText: this._sinceText,
+		// 		totalDays: this._totalDays,
+		// 		chartHeaderTexts: {},
+		// 		metricTimesliceName: name,
+		// 		errorMetricTimesliceName: "Errors/" + name,
+		// 		notificationText: "",
+		// 		entityName: "",
+		// 	};
+		// 	allOtherAnomalies.push(anomaly);
+		// }
+		// allOtherAnomalies.sort((a, b) => a.name.localeCompare(b.name));
 
 		let didNotifyNewAnomalies = false;
 		if (this._request.notifyNewAnomalies) {
@@ -223,7 +204,6 @@ export class AnomalyDetector {
 		return {
 			responseTime: durationAnomalies,
 			errorRate: errorRateAnomalies,
-			allOtherAnomalies: allOtherAnomalies,
 			detectionMethod,
 			didNotifyNewAnomalies,
 			isSupported: true,
@@ -571,7 +551,7 @@ export class AnomalyDetector {
 	}
 
 	private runNrql<T>(nrql: string): Promise<T[]> {
-		return this._provider.runNrql(this._accountId, nrql, 400);
+		return this.graphqlClient.runNrql(this._accountId, nrql, 400);
 	}
 
 	private durationComparisonToAnomaly(
@@ -588,6 +568,7 @@ export class AnomalyDetector {
 		const codeAttrs = languageSupport.codeAttrs(comparison.name, benchmarkSpans);
 		return {
 			...comparison,
+			type: "duration",
 			codeAttrs,
 			language: languageSupport.language,
 			text: languageSupport.displayName(codeAttrs, comparison.name),
@@ -616,6 +597,7 @@ export class AnomalyDetector {
 		const codeAttrs = languageSupport.codeAttrs(comparison.name, benchmarkSpans);
 		return {
 			...comparison,
+			type: "errorRate",
 			codeAttrs,
 			language: languageSupport.language,
 			text: languageSupport.displayName(codeAttrs, comparison.name),
@@ -683,7 +665,7 @@ export class AnomalyDetector {
 	private async getObservabilityRepo(): Promise<ObservabilityRepo | undefined> {
 		if (this._observabilityRepo) return this._observabilityRepo;
 
-		const { repos: observabilityRepos } = await this._provider.getObservabilityRepos({});
+		const { repos: observabilityRepos } = await this.reposProvider.getObservabilityRepos({});
 		const { entityGuid } = this._request;
 
 		if (!observabilityRepos) return undefined;

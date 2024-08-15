@@ -4,9 +4,16 @@ import { InitializeResult, RequestType, WorkspaceFolder } from "vscode-languages
 
 import { LoginResponse } from "./agent.protocol.auth";
 import { CreateCompanyRequest, CreateCompanyResponse } from "./agent.protocol.companies";
-import { Unreads } from "./agent.protocol.notifications";
 import { ThirdPartyProviders } from "./agent.protocol.providers";
-import { CSCompany, CSMePreferences, CSRepository, CSStream, CSTeam, CSUser } from "./api.protocol";
+import {
+	CSAccessTokenType,
+	CSCompany,
+	CSMePreferences,
+	CSRepository,
+	CSStream,
+	CSTeam,
+	CSUser,
+} from "./api.protocol";
 
 export * from "./agent.protocol.asana";
 export * from "./agent.protocol.auth";
@@ -83,6 +90,7 @@ export interface AccessToken {
 	provider?: string;
 	providerAccess?: "strict";
 	refreshToken?: string;
+	tokenType?: CSAccessTokenType;
 }
 
 export enum CodeStreamEnvironment {
@@ -101,6 +109,8 @@ export interface CodeStreamEnvironmentInfo {
 	newRelicLandingServiceUrl?: string;
 	newRelicApiUrl?: string;
 	newRelicSecApiUrl?: string;
+	o11yServerUrl?: string;
+	telemetryEndpoint?: string;
 	environmentHosts?: EnvironmentHost[];
 }
 
@@ -192,6 +202,8 @@ export interface VerifyConnectivityResponse {
 	newRelicLandingServiceUrl?: string;
 	newRelicApiUrl?: string;
 	newRelicSecApiUrl?: string;
+	o11yServerUrl?: string;
+	telemetryEndpoint?: string;
 	environmentHosts?: EnvironmentHost[];
 }
 
@@ -225,7 +237,6 @@ export interface BootstrapResponse {
 	teams: CSTeam[];
 	companies: CSCompany[];
 	users: CSUser[];
-	unreads: Unreads;
 	providers: ThirdPartyProviders;
 }
 
@@ -273,13 +284,93 @@ export const ReportBreadcrumbRequestType = new RequestType<
 	void
 >("codestream/reporting/breadcrumb");
 
+export type TelemetryEventName =
+	| "codestream/anomaly_link clicked"
+	| "codestream/codelens_link clicked"
+	| "codestream/codelenses displayed"
+	| "codestream/codemarks/share succeeded"
+	| "codestream/codemarks/codemark displayed"
+	| "codestream/codemarks/slack_sharing failed"
+	| "codestream/email_unsubscribe succeeded"
+	| "codestream/entity_association succeeded"
+	| "codestream/errors/error_group displayed"
+	| "codestream/errors/error_group_roadblock displayed"
+	| "codestream/errors/error_parsing_stack_trace displayed"
+	| "codestream/errors/assignment succeeded"
+	| "codestream/errors/status_change succeeded"
+	| "codestream/errors/apply_fix_button clicked"
+	| "codestream/grok_response created"
+	| "codestream/grok_response failed"
+	| "codestream/ide selected"
+	| "codestream/ide_redirect failed"
+	| "codestream/ide_redirect page_viewed"
+	| "codestream/instrumentation_wizard/intro displayed"
+	| "codestream/instrumentation_wizard/start_button clicked"
+	| "codestream/instrumentation_wizard/finish displayed"
+	| "codestream/integration/connection succeeded"
+	| "codestream/newrelic_link clicked"
+	| "codestream/logs/search succeeded"
+	| "codestream/logs/expand_button clicked"
+	| "codestream/logs/show_surrounding_button clicked"
+	| "codestream/logs/webview displayed"
+	| "codestream/nrai/error_analysis succeeded"
+	| "codestream/nrql/export succeeded"
+	| "codestream/nrql/query submitted"
+	| "codestream/nrql/visualization changed"
+	| "codestream/nrql/webview displayed"
+	| "codestream/notifications/repo_following_option changed"
+	| "codestream/notifications/service_notification_option changed"
+	| "codestream/o11y displayed"
+	| "codestream/o11y_fetch failed"
+	| "codestream/related_service_link clicked"
+	| "codestream/repo_association succeeded"
+	| "codestream/repo_association_modal displayed"
+	| "codestream/repo_disambiguation succeeded"
+	| "codestream/service displayed"
+	| "codestream/sign_in page_viewed"
+	| "codestream/sign_in_form displayed"
+	| "codestream/sign_in_button clicked"
+	| "codestream/toast displayed"
+	| "codestream/toast_button clicked"
+	| "codestream/tracing/span displayed"
+	| "codestream/user/login failed"
+	| "codestream/user/login succeeded"
+	| "codestream/user/switch submitted"
+	| "codestream/vulnerability_link clicked";
+
+export interface TelemetryData {
+	/** This should not be a string, empty string, or 0. null or undefined is OK */
+	account_id?: number;
+	/** This should not be an empty string. null or undefined is OK */
+	entity_guid?: string;
+	event_type:
+		| "change"
+		| "click"
+		| "modal_display"
+		| "page_view"
+		| "response"
+		| "state_load"
+		| "submit";
+	meta_data?: string;
+	meta_data_2?: string;
+	meta_data_3?: string;
+	meta_data_4?: string;
+	meta_data_5?: string;
+	session_id?: string;
+	target?: string;
+	target_text?: string;
+	platform?: string;
+	path?: string;
+	section?: string;
+}
+
 /**
  * @param eventName The name of the telemetry event you want to track, eg: "Page Viewed"
  * @param properties Optional properties to pass along with eventName
  */
 export interface TelemetryRequest {
-	eventName: string;
-	properties?: { [key: string]: string | number | boolean };
+	eventName: TelemetryEventName;
+	properties?: TelemetryData;
 }
 
 export interface TelemetrySetAnonymousIdRequest {

@@ -1,0 +1,22 @@
+// Dummy parser required to wire code completion.
+// Use the Grammar-Kit plugin to generate the NrqlLexer class: Right click -> Generate Parser Code.
+// Choose codestream/jb as the output directory - the class will be generated under codestream/jb/src/main/gen.
+
+{
+  parserClass="com.codestream.language.NrqlParser"
+
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+  psiClassPrefix="Nrql"
+  psiImplClassSuffix="Impl"
+  psiPackage="com.codestream.language.psi"
+  psiImplPackage="com.codestream.language.psi.impl"
+
+  elementTypeHolderClass="com.codestream.language.NrqlTypes"
+  elementTypeClass="com.codestream.language.psi.NrqlElementType"
+  tokenTypeClass="com.codestream.language.psi.NrqlTokenType"
+}
+
+simpleFile ::= item*
+
+item ::= (ATTRIBUTE_NAME|COMMENT|DOUBLE_QUOTED_STRING|FUNCTION|KEYWORD|NUMBER|OPERATOR|PREPROCESSOR|SINGLE_QUOTED_STRING)

@@ -1,0 +1,72 @@
+name: 'VSCode Build'
+  
+on:
+  workflow_dispatch:
+ 
+jobs:
+  VSCode-Build:     
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js environment
+      uses: actions/setup-node@v4.0.2
+      with:
+        node-version: 18.5.0
+
+    - name: NPM Install
+      run: |
+        cd vscode
+        npm install --no-save
+        
+    - name: Compile & Verify VSCode
+      run: |
+        cd ./vscode
+        npm run verify:compile
+
+    - name: Compile & Verify Agent
+      run: |
+        cd ./shared/agent
+        npm run verify:compile
+        
+    - name: Compile & Verify Webviews
+      run: |
+        cd ./shared/ui
+        npm run verify:compile
+
+    - name: Test VSCode
+      run: |
+        cd vscode
+        npm run vscode:test
+
+    - name: Test Agent
+      run: |
+        cd ./shared/agent
+        npm run test:unit
+
+    - name: Test UI
+      run: |
+        cd ./shared/agent
+        npm run test:ci
+
+    - name: Build Agent
+      run: |
+        cd ./shared/agent
+        npm run build
+
+    - name: Build VSCode
+      run: |
+        cd ./vscode
+        npm run build        
+        
+    - name: Pack It Up
+      run: |
+        cd ./vscode
+        npm run pack
+
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v4.3.3
+      with:
+        path: ./vscode/codestream-*.vsix
+    

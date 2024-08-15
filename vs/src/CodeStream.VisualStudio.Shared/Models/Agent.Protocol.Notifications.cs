@@ -2,9 +2,58 @@
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using CodeStream.VisualStudio.Core;
+using CodeStream.VisualStudio.Core.Models;
 
 namespace CodeStream.VisualStudio.Shared.Models
 {
+	public class DidDetectObservabilityAnomaliesNotification
+	{
+		[JsonProperty("entityGuid", NullValueHandling = NullValueHandling.Ignore)]
+		public string EntityGuid { get; set; }
+
+		[JsonProperty("duration", NullValueHandling = NullValueHandling.Ignore)]
+		public IList<ObservabilityAnomaly> Duration { get; set; } =
+			new List<ObservabilityAnomaly>();
+
+		[JsonProperty("errorRate", NullValueHandling = NullValueHandling.Ignore)]
+		public IList<ObservabilityAnomaly> ErrorRate { get; set; } =
+			new List<ObservabilityAnomaly>();
+	}
+
+	public class DidDetectObservabilityAnomaliesNotificationType
+		: NotificationType<DidDetectObservabilityAnomaliesNotification>
+	{
+		public DidDetectObservabilityAnomaliesNotificationType(
+			DidDetectObservabilityAnomaliesNotification @params
+		)
+		{
+			Params = @params;
+		}
+
+		public const string MethodName = "codestream/didDetectObservabilityAnomalies";
+		public override string Method => MethodName;
+	}
+
+	public class DidChangeSessionTokenStatusNotification
+	{
+		[JsonProperty("status", NullValueHandling = NullValueHandling.Ignore)]
+		public string Status { get; set; }
+	}
+
+	public class DidChangeSessionTokenStatusNotificationType
+		: NotificationType<DidChangeSessionTokenStatusNotification>
+	{
+		public DidChangeSessionTokenStatusNotificationType(
+			DidChangeSessionTokenStatusNotification @params
+		)
+		{
+			Params = @params;
+		}
+
+		public const string MethodName = "codestream/didChangeSessionTokenStatus";
+		public override string Method => MethodName;
+	}
+
 	public class DidRefreshAccessTokenNotificationType
 		: NotificationType<DidRefreshAccessTokenNotification>
 	{
@@ -26,12 +75,11 @@ namespace CodeStream.VisualStudio.Shared.Models
 		[JsonProperty("teamId", NullValueHandling = NullValueHandling.Ignore)]
 		public string TeamId { get; set; }
 
-		/// <summary>
-		/// Everywhere this is used in the application needs to be "Value", but
-		/// the notification type in the agent uses "Token". Remapping here for ease.
-		/// </summary>
 		[JsonProperty("token", NullValueHandling = NullValueHandling.Ignore)]
 		public string Token { get; set; }
+
+		[JsonProperty("tokenType", NullValueHandling = NullValueHandling.Ignore)]
+		public string TokenType { get; set; }
 
 		[JsonProperty("refreshToken", NullValueHandling = NullValueHandling.Ignore)]
 		public string RefreshToken { get; set; }

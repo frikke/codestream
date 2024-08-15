@@ -4,12 +4,7 @@ using CodeStream.VisualStudio.Core.Logging;
 using CodeStream.VisualStudio.Shared.Services;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Serilog;
-
-#if X86
-using CodeStream.VisualStudio.Vsix.x86;
-#else
 using CodeStream.VisualStudio.Vsix.x64;
-#endif
 
 namespace CodeStream.VisualStudio.Shared.Commands
 {
@@ -19,7 +14,10 @@ namespace CodeStream.VisualStudio.Shared.Commands
 		private readonly ISessionService _sessionService;
 
 		public WebViewReloadCommand(ISessionService sessionService)
-			: base(PackageGuids.guidWebViewPackageCmdSet, PackageIds.WebViewReloadCommandId)
+			: base(
+				PackageGuids.guidVSPackageCommandTopMenuCmdSet,
+				PackageIds.CodeStreamTopLevelMenuReloadCommand
+			)
 		{
 			_sessionService = sessionService;
 		}

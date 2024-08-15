@@ -1,26 +1,36 @@
-import { openErrorGroup } from "@codestream/webview/store/codeErrors/thunks";
+import {
+	openErrorGroup,
+} from "@codestream/webview/store/codeErrors/thunks";
 import { useAppDispatch, useAppSelector } from "@codestream/webview/utilities/hooks";
 import { isEmpty as _isEmpty } from "lodash-es";
 import React, { useEffect, useState } from "react";
 import { shallowEqual } from "react-redux";
 import { CodeStreamState } from "../store";
-import { ErrorRow } from "./Observability";
+import { ErrorRow } from "./ErrorRow";
 import { Row } from "./CrossPostIssueControls/IssuesPane";
 import Icon from "./Icon";
 import { HostApi } from "../webview-api";
 import {
 	GetObservabilityErrorGroupMetadataRequestType,
 	GetObservabilityErrorGroupMetadataResponse,
+	ObservabilityRepo,
+	ObservabilityRepoError,
 } from "@codestream/protocols/agent";
-import { CodeErrorTimeWindow } from "../../util/src/protocol/agent/api.protocol.models";
+import { CodeErrorTimeWindow } from "@codestream/protocols/api";
 import { InlineMenu } from "../src/components/controls/InlineMenu";
 import { setUserPreference } from "./actions";
 import styled from "styled-components";
+import { openModal } from "../store/context/actions";
+import { WebviewModals } from "@codestream/protocols/webview";
+import { parseId } from "../utilities/newRelic";
 
 interface Props {
-	observabilityErrors?: any;
-	observabilityRepo?: any;
+	observabilityErrors: ObservabilityRepoError[];
+	observabilityRepo?: ObservabilityRepo;
 	entityGuid?: string;
+	domain?: string;
+	isServiceSearch?: boolean;
+	hasRepoAssociated?: boolean;
 }
 
 const SubtleDropdown = styled.span`
@@ -37,8 +47,11 @@ export const ObservabilityErrorDropdown = React.memo((props: Props) => {
 				? state.preferences.codeErrorTimeWindow
 				: CodeErrorTimeWindow.ThreeDays;
 		return {
+			accountId: parseId(state.context.currentEntityGuid!)?.accountId!,
+			currentEntityGuid: state.context.currentEntityGuid!,
 			sessionStart: state.context.sessionStart,
 			timeWindow,
+			errorsDemoMode: state.codeErrors.demoMode.enabled,
 		};
 	}, shallowEqual);
 
@@ -47,16 +60,22 @@ export const ObservabilityErrorDropdown = React.memo((props: Props) => {
 	const [isLoadingErrorGroupGuid, setIsLoadingErrorGroupGuid] = useState<string>("");
 
 	useEffect(() => {
-		let _filteredErrorsByRepo = props.observabilityErrors.filter(
-			oe => oe?.repoId === observabilityRepo?.repoId
-		);
+		if (!props.isServiceSearch) {
+			let _filteredErrorsByRepo = props.observabilityErrors.filter(
+				oe => oe?.repoId === observabilityRepo?.repoId
+			);
 
-		const _filteredErrors = _filteredErrorsByRepo.map(fe => {
-			return fe.errors.filter(error => {
-				return error.entityId === props.entityGuid;
+			const _filteredErrors = _filteredErrorsByRepo.map(fe => {
+				return fe.errors.filter(error => {
+					return error.entityId === props.entityGuid;
+				});
 			});
-		});
-		setFilteredErrors(_filteredErrors || []);
+			setFilteredErrors(_filteredErrors || []);
+		} else {
+			if (props.observabilityErrors.length > 0) {
+				setFilteredErrors([props.observabilityErrors[0]?.errors] || []);
+			}
+		}
 	}, [props.observabilityErrors]);
 
 	const { observabilityRepo } = props;
@@ -67,6 +86,8 @@ export const ObservabilityErrorDropdown = React.memo((props: Props) => {
 		checked: derivedState.timeWindow === _,
 		action: () => dispatch(setUserPreference({ prefPath: ["codeErrorTimeWindow"], value: _ })),
 	}));
+
+	const popup = (modal: WebviewModals) => dispatch(openModal(modal));
 
 	return (
 		<>
@@ -123,29 +144,44 @@ export const ObservabilityErrorDropdown = React.memo((props: Props) => {
 											customPadding={"0 10px 0 50px"}
 											isLoading={isLoadingErrorGroupGuid === indexedErrorGroupGuid}
 											onClick={async e => {
-												try {
-													setIsLoadingErrorGroupGuid(indexedErrorGroupGuid);
-													const response = (await HostApi.instance.send(
-														GetObservabilityErrorGroupMetadataRequestType,
-														{ errorGroupGuid: err.errorGroupGuid }
-													)) as GetObservabilityErrorGroupMetadataResponse;
-													await dispatch(
-														openErrorGroup(err.errorGroupGuid, err.occurrenceId, {
-															multipleRepos: response?.relatedRepos?.length > 1,
-															relatedRepos: response?.relatedRepos || undefined,
-															timestamp: err.lastOccurrence,
-															sessionStart: derivedState.sessionStart,
-															pendingEntityId: response?.entityId || err.entityId,
-															occurrenceId: response?.occurrenceId || err.occurrenceId,
-															pendingErrorGroupGuid: err.errorGroupGuid,
-															openType: "Observability Section",
-															remote: err?.remote || undefined,
-														})
-													);
-												} catch (ex) {
-													console.error(ex);
-												} finally {
-													setIsLoadingErrorGroupGuid("");
+												if (props.isServiceSearch && !props.hasRepoAssociated) {
+													popup(WebviewModals.ErrorRoadblock);
+												} else {
+													try {
+														setIsLoadingErrorGroupGuid(indexedErrorGroupGuid);
+														const response = derivedState.errorsDemoMode
+															? ({} as GetObservabilityErrorGroupMetadataResponse)
+															: await HostApi.instance.send(
+																	GetObservabilityErrorGroupMetadataRequestType,
+																	{ entityGuid: err.entityId, traceId: err.traceId }
+															  );
+														await dispatch(
+															openErrorGroup({
+																errorGroupGuid: err.errorGroupGuid,
+																occurrenceId: err.occurrenceId,
+																data: {
+																	multipleRepos: response?.relatedRepos?.length > 1,
+																	relatedRepos: response?.relatedRepos || undefined,
+																	timestamp: err.lastOccurrence,
+																	sessionStart: derivedState.sessionStart,
+																	occurrenceId: response?.occurrenceId || err.occurrenceId,
+																	openType: "Observability Section",
+																	remote: err?.remote || undefined,
+																	stackSourceMap: response?.stackSourceMap,
+																	domain: props?.domain,
+																	traceId: err.traceId,
+                                                                    																entityGuid: derivedState.currentEntityGuid,
+																accountId: derivedState.accountId,
+																errorGroupGuid: err.errorGroupGuid,
+																},
+															})
+														);
+													} catch (ex) {
+														console.error(ex);
+													} finally {
+														setIsLoadingErrorGroupGuid("");
+													}
+
 												}
 											}}
 										/>

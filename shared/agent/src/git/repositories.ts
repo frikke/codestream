@@ -133,7 +133,7 @@ export class GitRepositories {
 		}
 
 		const tree = this._repositoryTree;
-		const reposToMap = [];
+		const reposToMap: RepoMap[] = [];
 		for (const repo of tree.values()) {
 			Logger.debug(`RepositoryTree repo=${repo.path} repoId=${repo.id}`);
 			// TODO: Probably should update the repo even for ones that have matches, but right now we are only using the repo id
@@ -147,6 +147,7 @@ export class GitRepositories {
 					reposToMap.push({
 						repoId: repo.id,
 						path: repo.path,
+						isInWorkspace: repo.isInWorkspace,
 					});
 				}
 			}
@@ -201,7 +202,8 @@ export class GitRepositories {
 				let initializing = false;
 				const repoMap: RepoMap[] = [];
 				let allAddedRepositories: GitRepository[] = [];
-				const remoteToRepoMap = await this.getKnownRepositories();
+				// removed await this.getKnownRepositories();
+				const remoteToRepoMap = new Map();
 				if (e === undefined) {
 					e = {
 						added: [],
@@ -214,12 +216,15 @@ export class GitRepositories {
 					for (const existingRepo of existingRepositories) {
 						// "upgrade the objects" to GitRepository with remoteToRepoMap objects
 						// so we can get IDs if necessary
+						Logger.log(
+							`onWorkspaceFoldersChanged existingRepositories run with isInWorkspace=true ${existingRepo.path}`
+						);
 						const repo = await new GitRepository(
 							existingRepo.path,
 							existingRepo.root,
 							existingRepo.folder,
 							true
-						).withKnownRepo(remoteToRepoMap);
+						);
 						upgradedRepos.push(repo);
 					}
 					allAddedRepositories = [...upgradedRepos];
@@ -245,12 +250,15 @@ export class GitRepositories {
 
 						const repos = [];
 						for (const foundRepo of repositories) {
+							Logger.log(
+								`onWorkspaceFoldersChanged run with isInWorkspace=true foundRepo ${foundRepo.path}`
+							);
 							const repo = await new GitRepository(
 								foundRepo.path,
 								foundRepo.root,
 								foundRepo.folder,
 								true
-							).withKnownRepo(remoteToRepoMap);
+							);
 
 							repos.push(repo);
 						}
@@ -286,7 +294,8 @@ export class GitRepositories {
 							repoInfo.repos.push({ remotes, knownCommitHashes });
 						})
 					);
-					const repoMatches = await this.session.api.matchRepos(repoInfo);
+					// removed await this.session.api.matchRepos(repoInfo);
+					const repoMatches = { repos: [] as any[] };
 					for (let i = 0; i < repoMatches.repos.length; i++) {
 						Logger.debug(
 							`onWorkspaceFoldersChanged: Git repo ${orderedUnassignedRepos[i].path} matched to ${repoMatches.repos[i].id}:${repoMatches.repos[i].name}`
@@ -380,9 +389,7 @@ export class GitRepositories {
 		});
 	}
 
-	async setKnownRepository(
-		repos: { repoId: string; path: string }[]
-	): Promise<{ [key: string]: boolean } | undefined> {
+	async setKnownRepository(repos: RepoMap[]): Promise<{ [key: string]: boolean } | undefined> {
 		if (!repos || !repos.length) return undefined;
 
 		if (this._repositoryMappingSyncPromise !== undefined) {
@@ -394,28 +401,34 @@ export class GitRepositories {
 		return await this._repositoryMappingSyncPromise;
 	}
 
-	async setKnownRepositoryCore(
-		repos: { repoId: string; path: string }[]
-	): Promise<{ [key: string]: boolean }> {
+	async setKnownRepositoryCore(repos: RepoMap[]): Promise<{ [key: string]: boolean }> {
 		const found: { [key: string]: boolean } = {};
 		const remoteToRepoMap = await this.getKnownRepositories();
 
 		for (const r in repos) {
 			const repo = repos[r];
 
-			const repositories = await this.repoLocator.repositorySearch({
-				uri: repo.path,
-				name: path.basename(repo.path),
-			});
+			const repositories = await this.repoLocator.repositorySearch(
+				{
+					uri: repo.path,
+					name: path.basename(repo.path),
+				},
+				null,
+				false,
+				repo.isInWorkspace
+			);
 
 			const reposWithIds: GitRepository[] = [];
 			for (const foundRepo of repositories) {
+				Logger.log(
+					`setKnownRepositoryCore run with isInWorkspace=${foundRepo.isInWorkspace} ${foundRepo.path}`
+				);
 				const repoWithId = await new GitRepository(
 					foundRepo.path,
 					foundRepo.root,
 					foundRepo.folder,
-					false
-				).withKnownRepo(remoteToRepoMap);
+					foundRepo.isInWorkspace
+				);
 				reposWithIds.push(repoWithId);
 			}
 

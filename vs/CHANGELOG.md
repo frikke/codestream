@@ -1,5 +1,210 @@
 # Change Log
 
+## [15.14.0] - 2024-8-15
+
+### Changed
+
+- You can now mention anyone in your New Relic organization when commenting on an error, and you can also assign the error to anyone
+
+### Fixed
+
+- Fixes an issue with the Assigned to Me section only showing errors occurring within the last 30 minutes
+- Explore this Data button when hovering over a Golden Metric now works for non-APM services
+- Fixes an issue where all facets weren't being displayed when there were multiple facets in a query
+
+## [15.13.1] - 2024-8-7
+
+### Fixed
+
+- Fix migrated AI posts not showing up
+- Fix issue with getting logged out after closing IDE
+
+## [15.13.0] - 2024-8-1
+
+### Changed
+
+- Update extensions for new API server
+
+## [15.12.0] - 2024-7-29
+
+### Changed
+
+- Error discussions are now tied to New Relic's collaboration tools, with discussions accessible from both CodeStream and New Relic on the web
+
+### Fixed
+
+- Fixes an issue with FACET value duplicated in query results in table visualization
+- Fixes an issue with the submission of queries via the Enter key changing the account selection
+- Fixes an issue with the display of charts in code-level metrics details view in JetBrains IDEs
+
+## [15.11.0] - 2024-7-8
+
+### Added
+
+- Adds support for double quotes in NRQL queries
+
+### Fixed
+
+- Fixes an issue with the Enter key not submitting queries when no repositories are open
+
+## [15.10.0] - 2024-6-20
+
+### Added
+
+- Adds service search, allowing you to see observability data for any service, even when you don't have the repository open in your IDE
+
+## [15.9.0] - 2024-6-6
+
+### Added
+
+- Adds support for stacked bar charts for query results
+
+### Changed
+
+- Queries can now be submitted via the Enter key, with Shift+Enter creating a newline
+- Details for transaction anomalies are now displayed in a new webview in the editor group, with relevant errors, critical path analysis or database queries included as appropriate
+
+### Fixed
+
+- Fixes an issue rendering query results as pie charts 
+- Fixes an issue with labels missing from bar charts
+- Fixes an issue with slashes in queries not being properly escaped
+- Fixes an issue where adding TIMESERIES to a query generated a table by default instead of a line chart
+
+## [15.8.1] - 2024-5-9
+
+### Fixed
+
+- Fixes on issue when open-in-IDE from Logs attempts to load logs prior to the user loggging in
+
+## [15.8.0] - 2024-4-30
+
+### Changed
+
+- The codemarks feature (comments and issues) has been removed from the service
+- A new Summary section has been added to the tree view, with issues, golden metrics, SLOs and related services consolidated underneath it
+- The recent queries dropdown in the query builder has been expanded for easier viewing
+- The display of query results is now limited to a single line in height, with a new copy button added and the complete cell value displayed in a tooltip on hover
+
+### Fixed
+
+- Fixes issues with language detection in the instrumentation wizard
+
+## [15.7.0] - 2024-4-18
+
+### Changed
+
+- Improved UX for service and account pickers
+
+### Fixed
+
+- Fixes an issue where NRAI would suggest a code fix when one wasn't needed
+- Fixes an issue where the query builder wouldn't wrap text 
+- Fixes an issue where a log search submitted via Enter key would get re-submitted
+
+## [15.6.0] - 2024-4-4
+
+### Added
+
+- Adds repository as the top-level node in the CodeStream tree view, allowing you to see observability for services related to any repository you have open in your IDE
+- Add the ability to search logs for any entity, including infra logs
+- Adds support for partitions when searching logs
+- Adds a link to related logs when viewing error details
+
+### Fixed
+
+- Fixes an issue with the display of markdown when viewing vulnerability details
+- Fixes an issue where the state of the severity filter for vulnerabilities was not being persisted
+
+## [15.5.0] - 2024-3-14
+
+### Added
+
+- Adds information about the slowest operations when viewing the details of a poorly performing transaction
+
+### Changed
+
+- Removes support for Visual Studio 2019
+
+## [15.4.0] - 2024-3-5
+
+### Added
+
+- Ability to show surrounding logs when viewing log search results
+- Extension support for "Open in IDE" from a span in distributed tracing on New Relic
+
+### Changed
+
+- Updated UX for when a user's auth token expires and can't be refreshed
+- When associating a repo with a service on New Relic, services already associated with the repo are no longer listed
+- All sections of the CodeStream pane are now collapsed by default for new users
+
+### Fixed
+
+- Fixes an issue where creating an issue on Shortcut would result in duplicate issues
+- Addresses [#1869](https://github.com/TeamCodeStream/codestream/issues/1869) &mdash; OTel service not recognized
+
+## [15.3.0] - 2024-2-14
+
+### Added
+
+- Adds a "What's New" page under username > Help that covers recently added features
+
+## [15.2.0] - 2024-2-7
+
+### Changed
+
+- A new "Apply Fix" button allows you to easily accept a suggested code fix when NRAI analyzes an error for you
+- Code fixes suggested by NRAI are now presented in a diff view
+- In-editor code-level metrics are now represented by a New Relic icon in the gutter, with a red icon indicating anomalous performance
+
+## [15.1.1] - 2024-1-25
+
+### Added
+
+- Fixes an issue with an infinite loop on non-refresh token errors
+
+## [15.1.0] - 2024-1-23
+
+### Added
+
+- Adds support for errors from Browser services
+- Adds change in error rate and response time in Golden Metrics section from three hours before your last deployment to three hours after
+- Adds display of Golden Metrics, SLOs and Related Services for OTel services
+- Adds display of Golden Metrics for Lambda functions
+
+### Changed
+
+- Anomalies in the Code-Level Metrics section are now displayed in a hierarchy of transactions and metrics
+- When viewing anomaly details, the chart appropriate to the type of anomaly is now displayed first
+
+### Fixed
+
+- Addresses [#1682](https://github.com/TeamCodeStream/codestream/issues/1682) &mdash; Export data has bad header
+- Addresses [#1683](https://github.com/TeamCodeStream/codestream/issues/1683) &mdash; Export data corrupt when comment has a comma
+
+## [15.0.1] - 2023-12-15
+
+### Changed
+
+- Generative AI assistant is now named New Relic AI
+
+## [15.0.0] - 2023-12-13
+
+### Changed
+
+- Identity is now unified with New Relic, and you will sign in to CodeStream using your New Relic credentials
+- Adding and removing organization members is now handled via New Relic on the web
+- Changing your email address or full name is now handled via New Relic on the web
+- The expanded/collapsed state of each top-level section of the CodeStream pane is preserved as you switch between services
+- Open incidents for a given service have been replaced by open issues, and are now displayed above the Golden Metrics
+- Anomalous methods in the Code-Level Metrics section are no longer split up between average duration and error rate anomalies
+- The "Switch Organization" menu has been renamed to "Switch Users"
+
+### Fixed
+
+- Fixes an issue where a newly opened repo wouldn't be recognized by the CodeStream pane without a reload
+
 ## [14.30.1] - 2023-09-29
 
 ### Fixed

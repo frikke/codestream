@@ -8,16 +8,21 @@ import {
 	OtcLoginRequestType,
 	PasswordLoginRequest,
 	PasswordLoginRequestType,
+	TelemetryData,
 	TokenLoginRequest,
 	TokenLoginRequestType,
 	UpdateNewRelicOrgIdRequestType,
 } from "@codestream/protocols/agent";
-import { CodemarkType, LoginResult } from "@codestream/protocols/api";
+import { CodemarkType, LoginResult, WebviewPanels } from "@codestream/protocols/api";
 import { LogoutRequestType } from "@codestream/protocols/webview";
 import { setBootstrapped } from "@codestream/webview/store/bootstrapped/actions";
 import { withExponentialConnectionRetry } from "@codestream/webview/store/common";
-import { reset } from "@codestream/webview/store/session/actions";
-import { BootstrapInHostRequestType, OpenUrlRequestType } from "../ipc/host.protocol";
+import { reset, setMaintenanceMode, setSession } from "@codestream/webview/store/session/actions";
+import {
+	BootstrapInHostRequestType,
+	OpenUrlRequestType,
+	UpdateServerUrlRequestType,
+} from "../ipc/host.protocol";
 import { GetActiveEditorContextRequestType } from "../ipc/host.protocol.editor";
 import { logError } from "../logger";
 import { CodeStreamState } from "../store";
@@ -35,20 +40,17 @@ import {
 	goToTeamCreation,
 	handlePendingProtocolHandlerUrl,
 	setContext,
-	setCurrentCodeError,
+	setCurrentCodeErrorData,
 	setCurrentCodemark,
 	setCurrentReview,
 	SupportedSSOProvider,
 } from "../store/context/actions";
 import { ChatProviderAccess } from "../store/context/types";
-import { setMaintenanceMode, setSession } from "../store/session/actions";
 import { fetchCodemarks, setUserPreference, setUserPreferences } from "../Stream/actions";
 import { moveCursorToLine } from "../Stream/api-functions";
 import { localStore } from "../utilities/storage";
 import { emptyObject, uuid } from "../utils";
 import { HostApi } from "../webview-api";
-import { WebviewPanels } from "@codestream/protocols/api";
-import { UpdateServerUrlRequestType } from "../ipc/host.protocol";
 export enum SignupType {
 	JoinTeam = "joinTeam",
 	CreateTeam = "createTeam",
@@ -71,6 +73,8 @@ export interface SSOAuthInfo {
 	loginUrl?: string;
 	domain?: string;
 	nrUserId?: string | number;
+	email?: string;
+	authDomainId?: string;
 }
 
 export const ProviderNames = {
@@ -120,6 +124,13 @@ export const startSSOSignin =
 			const stringifiedNrUserId = info.nrUserId.toString();
 			query.nrUserId = stringifiedNrUserId;
 		}
+		if (info && info.email) {
+			query.email = info.email;
+		}
+		if (info && info.authDomainId) {
+			query.authDomainId = info.authDomainId;
+		}
+
 		query.enableUId = "1"; // operating under Unified Identity
 
 		const anonymousId = await HostApi.instance.getAnonymousId();
@@ -128,14 +139,14 @@ export const startSSOSignin =
 		}
 
 		const queryString = Object.keys(query)
-			.map(key => `${key}=${query[key]}`)
+			.map(key => `${key}=${encodeURIComponent(query[key])}`)
 			.join("&");
 
 		try {
 			await HostApi.instance.send(OpenUrlRequestType, {
 				url: info?.loginUrl
 					? info.loginUrl
-					: encodeURI(`${configs.serverUrl}/web/provider-auth/${provider}?${queryString}`),
+					: `${configs.serverUrl}/web/provider-auth/${provider}?${queryString}`,
 			});
 			return dispatch(goToSSOAuth(provider, { ...(info || emptyObject), mode: access }));
 		} catch (error) {
@@ -247,10 +258,12 @@ export const authenticate =
 					throw response.error;
 			}
 		}
-
-		api.track("Signed In", {
-			"Auth Type": "Email",
-			Source: context.pendingProtocolHandlerQuery?.src,
+		api.track("codestream/user/login succeeded", {
+			meta_data: `source: ${context.pendingProtocolHandlerQuery?.src}`,
+			event_type: "response",
+			platform: "codestream",
+			path: "N/A (codestream)",
+			section: "N/A (codestream)",
 		});
 
 		return dispatch(onLogin(response));
@@ -337,7 +350,7 @@ export const onLogin =
 		} else if (response.state.reviewId) {
 			dispatch(setCurrentReview(response.state.reviewId));
 		} else if (response.state.codeErrorId) {
-			dispatch(setCurrentCodeError(response.state.codeErrorId));
+			dispatch(setCurrentCodeErrorData(response.state.codeErrorId));
 		}
 
 		if (context.pendingProtocolHandlerUrl && !teamCreated) {
@@ -405,10 +418,10 @@ export const completeSignup =
 		const providerName = extra.provider
 			? ProviderNames[extra.provider.toLowerCase()] || extra.provider
 			: "Email";
-		HostApi.instance.track("Signup Completed", {
-			"Signup Type": extra.byDomain ? "Domain" : extra.createdTeam ? "Organic" : "Viral",
-			"Auth Provider": providerName,
-		});
+		// HostApi.instance.track("Signup Completed", {
+		// 	"Signup Type": extra.byDomain ? "Domain" : extra.createdTeam ? "Organic" : "Viral",
+		// 	"Auth Provider": providerName,
+		// });
 		dispatch(onLogin(response, true, extra.createdTeam));
 	};
 
@@ -472,10 +485,10 @@ export const completeAcceptInvite =
 		const providerName = extra.provider
 			? ProviderNames[extra.provider.toLowerCase()] || extra.provider
 			: "Email";
-		HostApi.instance.track("Signup Completed", {
-			"Signup Type": extra.byDomain ? "Domain" : extra.createdTeam ? "Organic" : "Viral",
-			"Auth Provider": providerName,
-		});
+		// HostApi.instance.track("Signup Completed", {
+		// 	"Signup Type": extra.byDomain ? "Domain" : extra.createdTeam ? "Organic" : "Viral",
+		// 	"Auth Provider": providerName,
+		// });
 		dispatch(onLogin(response, true, extra.createdTeam));
 	};
 
@@ -506,11 +519,11 @@ export const validateSignup =
 				case LoginResult.AlreadySignedIn:
 					return dispatch(bootstrap());
 				case LoginResult.NotInCompany:
-					HostApi.instance.track("Account Created", {
-						email: response.extra.email,
-						"Auth Provider": providerName,
-						Source: context.pendingProtocolHandlerQuery?.src,
-					});
+					// HostApi.instance.track("Account Created", {
+					// 	email: response.extra.email,
+					// 	"Auth Provider": providerName,
+					// 	Source: context.pendingProtocolHandlerQuery?.src,
+					// });
 					return dispatch(
 						goToCompanyCreation({
 							email: response.extra && response.extra.email,
@@ -523,11 +536,11 @@ export const validateSignup =
 						})
 					);
 				case LoginResult.NotOnTeam:
-					HostApi.instance.track("Account Created", {
-						email: response.extra.email,
-						"Auth Provider": providerName,
-						Source: context.pendingProtocolHandlerQuery?.src,
-					});
+					// HostApi.instance.track("Account Created", {
+					// 	email: response.extra.email,
+					// 	"Auth Provider": providerName,
+					// 	Source: context.pendingProtocolHandlerQuery?.src,
+					// });
 					return dispatch(
 						goToTeamCreation({
 							email: response.extra && response.extra.email,
@@ -557,40 +570,43 @@ export const validateSignup =
 		}
 
 		if (authInfo && authInfo.fromSignup) {
-			HostApi.instance.track("Account Created", {
-				email: response.loginResponse.user.email,
-				"Auth Provider": providerName,
-				Source: context.pendingProtocolHandlerQuery?.src,
-			});
+			// HostApi.instance.track("Account Created", {
+			// 	email: response.loginResponse.user.email,
+			// 	"Auth Provider": providerName,
+			// 	Source: context.pendingProtocolHandlerQuery?.src,
+			// });
 
-			HostApi.instance.track("Signup Completed", {
-				// i don't think there's any way of reaching here unless user is already on a company/team by invite
-				"Signup Type": "Viral", // authInfo.type === SignupType.CreateTeam ? "Organic" : "Viral",
-				"Auth Provider": providerName,
-			});
+			// HostApi.instance.track("Signup Completed", {
+			// 	// i don't think there's any way of reaching here unless user is already on a company/team by invite
+			// 	"Signup Type": "Viral", // authInfo.type === SignupType.CreateTeam ? "Organic" : "Viral",
+			// 	"Auth Provider": providerName,
+			// });
 
 			return await dispatch(onLogin(response, true));
 		} else {
 			const signupStatus = response.loginResponse?.signupStatus;
 
 			let trackingInfo = {
-				"Auth Type": provider,
-				"Org Created": false,
-				"User Created": false,
-				"Open in IDE Flow": false,
-				Source: context.pendingProtocolHandlerQuery?.src,
-			};
+				meta_data_2: `org_created: false`,
+				meta_data_3: `user_created: false`,
+				meta_data_4: `openinide_flow: false`,
+				meta_data: `source: ${context.pendingProtocolHandlerQuery?.src}`,
+				event_type: "response",
+				platform: "codestream",
+				path: "N/A (codestream)",
+				section: "N/A (codestream)",
+			} as TelemetryData;
 			if (signupStatus === "teamCreated") {
-				trackingInfo["Org Created"] = true;
-				trackingInfo["User Created"] = true;
+				trackingInfo["meta_data_2"] = `org_created: true`;
+				trackingInfo["meta_data_3"] = `user_created: true`;
 			}
-			if (signupStatus === "userCreated") trackingInfo["User Created"] = true;
-			if (!_isEmpty(context.pendingProtocolHandlerUrl)) trackingInfo["Open in IDE Flow"] = true;
-			if (provider === "New Relic") trackingInfo["Auth Type"] = "Email";
-			HostApi.instance.track("Signed In", trackingInfo);
+			if (signupStatus === "userCreated") trackingInfo["meta_data_3"] = `user_created: true`;
+			if (!_isEmpty(context.pendingProtocolHandlerUrl))
+				trackingInfo["meta_data_4"] = `openinide_flow: true`;
+			HostApi.instance.track("codestream/user/login succeeded", trackingInfo);
 			if (localStore.get("enablingRealTime") === true) {
 				localStore.delete("enablingRealTime");
-				HostApi.instance.track("Slack Chat Enabled");
+				// HostApi.instance.track("Slack Chat Enabled");
 				const result = await dispatch(onLogin(response));
 				dispatch(setContext({ chatProviderAccess: "permissive" }));
 				return result;

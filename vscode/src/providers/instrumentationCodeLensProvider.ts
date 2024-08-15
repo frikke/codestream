@@ -1,12 +1,15 @@
 "use strict";
-
-import { EventEmitter, extensions, TextDocument } from "vscode";
 import * as vscode from "vscode";
+import { EventEmitter, extensions, TextDocument } from "vscode";
 import { Event, SymbolKind } from "vscode-languageclient";
 import {
+	FileLevelTelemetryAverageDuration,
+	FileLevelTelemetryErrorRate,
+	FileLevelTelemetryMetric,
 	FileLevelTelemetryRequestOptions,
+	FileLevelTelemetrySampleSize,
 	FunctionLocator,
-	GetFileLevelTelemetryResponse
+	TelemetryData
 } from "@codestream/protocols/agent";
 
 import {
@@ -17,6 +20,40 @@ import { Strings } from "../system";
 import { Logger } from "../logger";
 import { InstrumentableSymbol, ISymbolLocator } from "./symbolLocator";
 import { Container } from "../container";
+import { IObservabilityService } from "../agent/ObservabilityService";
+
+export type CollatedMetric = {
+	duration?: FileLevelTelemetryAverageDuration;
+	sampleSize?: FileLevelTelemetrySampleSize;
+	errorRate?: FileLevelTelemetryErrorRate;
+	currentLocation: vscode.Range;
+};
+
+export function isFileLevelTelemetryAverageDuration(
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	value: any
+): value is FileLevelTelemetryAverageDuration {
+	if (!value) {
+		return false;
+	}
+	return typeof value.averageDuration === "number";
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function isFileLevelTelemetrySampleSize(value: any): value is FileLevelTelemetrySampleSize {
+	if (!value) {
+		return false;
+	}
+	return typeof value.sampleSize === "number" && !!value.source;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function isFileLevelTelemetryErrorRate(value: any): value is FileLevelTelemetryErrorRate {
+	if (!value) {
+		return false;
+	}
+	return typeof value.errorRate === "number";
+}
 
 function allEmpty(arrays: (any[] | undefined)[]) {
 	for (const arr of arrays) {
@@ -38,22 +75,19 @@ class ErrorCodeLens extends vscode.CodeLens {
 	isErrorCodeLens = true;
 }
 
+type DocumentInfo = {
+	document: TextDocument;
+	tracked: boolean;
+};
+
 export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider {
-	private documentManager: any = {};
-	private resetCache: boolean = false;
+	private trackingCache: { [key: string]: DocumentInfo } = {};
+	private resetCache = false;
 
 	constructor(
 		private codeLensTemplate: string,
 		private symbolLocator: ISymbolLocator,
-		private observabilityService: {
-			getFileLevelTelemetry(
-				fileUri: string,
-				languageId: string,
-				resetCache?: boolean,
-				locator?: FunctionLocator,
-				options?: FileLevelTelemetryRequestOptions | undefined
-			): Promise<GetFileLevelTelemetryResponse>;
-		},
+		private observabilityService: IObservabilityService,
 		private telemetryService: { track: Function }
 	) {
 		Container.session.onDidChangeCodelenses(e => {
@@ -68,14 +102,14 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 	}
 
 	documentOpened(document: TextDocument) {
-		this.documentManager[document.uri.toString()] = {
+		this.trackingCache[document.uri.toString()] = {
 			document: document,
 			tracked: false
 		};
 	}
 
 	documentClosed(document: TextDocument) {
-		delete this.documentManager[document.uri.toString()];
+		delete this.trackingCache[document.uri.toString()];
 	}
 
 	update(template: string) {
@@ -284,12 +318,50 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 		const lines = documentText.split(/\r?\n/);
 
 		for (const line of lines) {
-			const matcher = line.match(/^\s*namespace\s+([A-Za-z0-9_.]+)\s*;?\s*$/);
+			const matcher = line.match(/^\s*namespace\s+([A-Za-z0-9_.]+)\s*[;|{]?\s*$/);
 			if (matcher && matcher.length > 1) {
 				return matcher[1];
 			}
 		}
 		return undefined;
+	}
+
+	private symbolMatcherFn(
+		symbol: InstrumentableSymbol,
+		data: { namespace?: string; className?: string; functionName?: string }
+	) {
+		if (!data.functionName) {
+			return false;
+		}
+		let result: boolean;
+		// Strip off any trailing () for function (csharp and java) - undo this if we get types in agent
+		const simpleSymbolName = symbol.symbol.name.replace(/\(.*?\)$/, "");
+		let simpleClassName;
+		if (data.className != undefined) {
+			const parts = data.className.split("\\");
+			simpleClassName = parts[parts.length - 1];
+		}
+		let simpleFunctionName;
+		if (data.functionName != undefined) {
+			const parts = data.functionName.split("\\");
+			simpleFunctionName = parts[parts.length - 1];
+		}
+		if (symbol.parent) {
+			result =
+				(data.className === symbol.parent.name && data.functionName === simpleSymbolName) ||
+				(data.namespace === symbol.parent.name && data.functionName === simpleSymbolName) ||
+				(simpleClassName === symbol.parent.name && data.functionName === simpleSymbolName);
+		} else {
+			// if no parent (aka class) ensure we find a function that doesn't have a parent
+			result =
+				!symbol.parent &&
+				(data.functionName === simpleSymbolName || simpleFunctionName === simpleSymbolName);
+		}
+		if (!result) {
+			// Since nothing matched, relax criteria and base just on function name
+			result = data.functionName === simpleSymbolName;
+		}
+		return result;
 	}
 
 	public async provideCodeLenses(
@@ -323,9 +395,9 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 
 		try {
 			const cacheKey = document.uri.toString();
-			const cache = this.documentManager[cacheKey];
+			const cache = this.trackingCache[cacheKey];
 			if (!cache) {
-				this.documentManager[cacheKey] = {
+				this.trackingCache[cacheKey] = {
 					document: document,
 					tracked: false
 				};
@@ -348,10 +420,10 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 				return [];
 			}
 
-			const methodLevelTelemetryRequestOptions = {
-				includeAverageDuration: this.codeLensTemplate.indexOf("${averageDuration}") > -1,
-				includeThroughput: this.codeLensTemplate.indexOf("${sampleSize}") > -1,
-				includeErrorRate: this.codeLensTemplate.indexOf("${errorRate}") > -1
+			const methodLevelTelemetryRequestOptions: FileLevelTelemetryRequestOptions = {
+				includeAverageDuration: this.codeLensTemplate.includes("${averageDuration}"),
+				includeThroughput: this.codeLensTemplate.includes("${sampleSize}"),
+				includeErrorRate: this.codeLensTemplate.includes("${errorRate}")
 			};
 
 			let functionLocator: FunctionLocator | undefined = undefined;
@@ -397,7 +469,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 			this.resetCache = false;
 
 			if (fileLevelTelemetryResponse == null) {
-				Logger.log("provideCodeLenses no response", {
+				Logger.log("fileLevelTelemetry no response", {
 					fileName: document.fileName,
 					languageId: document.languageId,
 					methodLevelTelemetryRequestOptions
@@ -406,12 +478,12 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 			}
 
 			if (!fileLevelTelemetryResponse.repo) {
-				Logger.warn("provideCodeLenses missing repo");
+				Logger.warn("fileLevelTelemetry missing repo");
 				return [];
 			}
 
 			if (fileLevelTelemetryResponse.error) {
-				Logger.warn("provideCodeLenses error", {
+				Logger.warn("fileLevelTelemetry error", {
 					error: fileLevelTelemetryResponse.error
 				});
 				if (fileLevelTelemetryResponse.error.type === "NOT_ASSOCIATED") {
@@ -463,56 +535,145 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 					: ""
 			} - ${date ? `since ${date}` : ""}\nClick for more.`;
 
-			const symbolMatcherFn = (
-				symbol: InstrumentableSymbol,
-				data: { namespace?: string; className?: string; functionName: string }
-			) => {
-				let result: boolean;
-				// Strip off any trailing () for function (csharp and java) - undo this if we get types in agent
-				const simpleSymbolName = symbol.symbol.name.replace(/\(.*?\)$/, "");
-				let simpleClassName;
-				if (data.className != undefined) {
-					const parts = data.className.split("\\");
-					simpleClassName = parts[parts.length - 1];
+			const allValidAnonymousMetrics: FileLevelTelemetryMetric[] = [
+				...(fileLevelTelemetryResponse.averageDuration ?? []),
+				...(fileLevelTelemetryResponse.errorRate ?? []),
+				...(fileLevelTelemetryResponse.sampleSize ?? [])
+			].filter(_ => _.functionName === "(anonymous)" && _.lineno && _.column);
+
+			const locationLensMap = new Map<string, CollatedMetric>();
+			for (const metric of allValidAnonymousMetrics) {
+				const commit = metric.commit ?? fileLevelTelemetryResponse.deploymentCommit;
+				if (!commit) {
+					continue;
 				}
-				let simpleFunctionName;
-				if (data.functionName != undefined) {
-					const parts = data.functionName.split("\\");
-					simpleFunctionName = parts[parts.length - 1];
+				const id = `${document.uri.toString()}:${metric.lineno}:${metric.column}:${commit}:${
+					metric.functionName
+				}`;
+				let collatedMetric = locationLensMap.get(id);
+				if (!collatedMetric && metric.functionName) {
+					const currentLocation = await this.observabilityService.computeCurrentLocation(
+						id,
+						metric.lineno!, // Was filtered earlier
+						metric.column!, // Was filtered earlier
+						commit,
+						metric.functionName,
+						document.uri.toString()
+					);
+					for (const [_key, value] of Object.entries(currentLocation.locations)) {
+						Logger.debug(`currentLocation ${value.lineStart} / ${value.colStart}`);
+						const currentLocation = new vscode.Range(
+							new vscode.Position(value.lineStart - 1, 0),
+							new vscode.Position(value.lineStart - 1, 0)
+						);
+						collatedMetric = { currentLocation };
+						locationLensMap.set(id, collatedMetric);
+					}
 				}
-				if (symbol.parent) {
-					result =
-						(data.className === symbol.parent.name && data.functionName === simpleSymbolName) ||
-						(data.namespace === symbol.parent.name && data.functionName === simpleSymbolName) ||
-						(simpleClassName === symbol.parent.name && data.functionName === simpleSymbolName);
-				} else {
-					// if no parent (aka class) ensure we find a function that doesn't have a parent
-					result =
-						!symbol.parent &&
-						(data.functionName === simpleSymbolName || simpleFunctionName === simpleSymbolName);
+
+				if (collatedMetric) {
+					if (isFileLevelTelemetryAverageDuration(metric)) {
+						collatedMetric.duration = metric;
+					} else if (isFileLevelTelemetrySampleSize(metric)) {
+						collatedMetric.sampleSize = metric;
+					} else if (isFileLevelTelemetryErrorRate(metric)) {
+						collatedMetric.errorRate = metric;
+					}
 				}
-				if (!result) {
-					// Since nothing matched, relax criteria and base just on function name
-					result = data.functionName === simpleSymbolName;
+
+				// if (currentLocation[id]) {
+				// 	Logger.log(
+				// 		`*** currentLocation ${currentLocation.locations[0].lineStart} ${currentLocation.locations[0].colStart}`
+				// 	);
+				// }
+			}
+
+			const lineLevelLensMap = new Map<string, CollatedMetric[]>();
+			for (const value of locationLensMap.values()) {
+				const lineKey = `${value.currentLocation.start.line}`;
+				let collatedMetrics = lineLevelLensMap.get(lineKey);
+				if (!collatedMetrics) {
+					collatedMetrics = [];
+					lineLevelLensMap.set(lineKey, collatedMetrics);
 				}
-				return result;
-			};
+				collatedMetrics.push(value);
+			}
+
+			const locationLenses: vscode.CodeLens[] = [];
+
+			for (const lineLevelMetrics of lineLevelLensMap.values()) {
+				// Skipping lineLevelMetrics.length > 1 as it is handled in inlayHintProvider.ts
+				if (lineLevelMetrics.length === 1) {
+					const lineLevelMetric = lineLevelMetrics[0];
+					// Don't show the inlay if there is presently no code at the location
+					// (otherwise you get phantom inlays for removed code)
+					if (!this.lineHasAnonymousFunction(allSymbols, lineLevelMetric.currentLocation)) {
+						continue;
+					}
+					const viewCommandArgs: ViewMethodLevelTelemetryCommandArgs = {
+						repo: fileLevelTelemetryResponse.repo,
+						codeNamespace: fileLevelTelemetryResponse.codeNamespace!,
+						metricTimesliceNameMapping: {
+							sampleSize: lineLevelMetric.sampleSize ? lineLevelMetric.sampleSize.facet[0] : "",
+							duration: lineLevelMetric.duration ? lineLevelMetric.duration.facet[0] : "",
+							errorRate: lineLevelMetric.errorRate ? lineLevelMetric.errorRate.facet[0] : "",
+							source: lineLevelMetric.sampleSize ? lineLevelMetric.sampleSize.source : ""
+						},
+						filePath: document.fileName,
+						relativeFilePath: fileLevelTelemetryResponse.relativeFilePath,
+						languageId: document.languageId,
+						range: lineLevelMetric.currentLocation,
+						functionName: "(anonymous)",
+						newRelicAccountId: fileLevelTelemetryResponse.newRelicAccountId,
+						newRelicEntityGuid: fileLevelTelemetryResponse.newRelicEntityGuid,
+						methodLevelTelemetryRequestOptions: methodLevelTelemetryRequestOptions
+						// TODO anomaly?
+					};
+					const text =
+						Strings.interpolate(this.codeLensTemplate, {
+							averageDuration:
+								lineLevelMetric.duration && lineLevelMetric.duration.averageDuration
+									? `${lineLevelMetric.duration.averageDuration.toFixed(3) || "0.00"}ms`
+									: "n/a",
+							sampleSize:
+								lineLevelMetric.sampleSize && lineLevelMetric.sampleSize.sampleSize
+									? `${lineLevelMetric.sampleSize.sampleSize}`
+									: "n/a",
+							errorRate:
+								lineLevelMetric.errorRate && lineLevelMetric.errorRate.errorRate
+									? `${(lineLevelMetric.errorRate.errorRate * 100).toFixed(2)}%`
+									: "0.00%",
+							since: fileLevelTelemetryResponse.sinceDateFormatted,
+							date: date
+						}) + " (anonymous)";
+
+					const lens = new vscode.CodeLens(
+						lineLevelMetric.currentLocation,
+						new InstrumentableSymbolCommand(text, "codestream.viewMethodLevelTelemetry", tooltip, [
+							JSON.stringify(viewCommandArgs)
+						])
+					);
+					locationLenses.push(lens);
+					continue;
+				}
+				// Skipping lineLevelMetrics.length > 1 as it is handled in inlayHintProvider.ts
+			}
 
 			const lenses = instrumentableSymbols.map(_ => {
 				const sampleSizeForFunction = fileLevelTelemetryResponse.sampleSize
-					? fileLevelTelemetryResponse.sampleSize.find((i: any) => symbolMatcherFn(_, i))
+					? fileLevelTelemetryResponse.sampleSize.find(i => this.symbolMatcherFn(_, i))
 					: undefined;
 
 				const averageDurationForFunction = fileLevelTelemetryResponse.averageDuration
-					? fileLevelTelemetryResponse.averageDuration.find((i: any) => symbolMatcherFn(_, i))
+					? fileLevelTelemetryResponse.averageDuration.find(i => this.symbolMatcherFn(_, i))
 					: undefined;
 
 				const errorRateForFunction = fileLevelTelemetryResponse.errorRate
-					? fileLevelTelemetryResponse.errorRate.find((i: any) => symbolMatcherFn(_, i))
+					? fileLevelTelemetryResponse.errorRate.find(i => this.symbolMatcherFn(_, i))
 					: undefined;
 
 				if (!sampleSizeForFunction && !averageDurationForFunction && !errorRateForFunction) {
-					Logger.warn(`provideCodeLenses no data for ${_.symbol.name}`);
+					Logger.warn(`provideCodeLenses no data for ${_.symbol.name} (might be anon function)`);
 					return undefined;
 				}
 
@@ -521,11 +682,9 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 					repo: fileLevelTelemetryResponse.repo,
 					codeNamespace: fileLevelTelemetryResponse.codeNamespace!,
 					metricTimesliceNameMapping: {
-						sampleSize: sampleSizeForFunction ? sampleSizeForFunction.metricTimesliceName : "",
-						duration: averageDurationForFunction
-							? averageDurationForFunction.metricTimesliceName
-							: "",
-						errorRate: errorRateForFunction ? errorRateForFunction.metricTimesliceName : "",
+						sampleSize: sampleSizeForFunction ? sampleSizeForFunction.facet[0] : "",
+						duration: averageDurationForFunction ? averageDurationForFunction.facet[0] : "",
+						errorRate: errorRateForFunction ? errorRateForFunction.facet[0] : "",
 						source: sampleSizeForFunction ? sampleSizeForFunction.source : ""
 					},
 					filePath: document.fileName,
@@ -585,29 +744,20 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 				);
 			});
 
-			codeLenses = lenses.filter(_ => _ != null) as vscode.CodeLens[];
+			lenses.push(...locationLenses);
 
-			const localRanges = codeLenses.map(_ => _.range);
-			const uriRanges = await Container.agent.documentMarkers.getRangesForUri(
-				localRanges,
-				document.uri.toString(true)
-			);
-			codeLenses.forEach((lens, i) => {
-				const agentRange = uriRanges.ranges[i];
-				const start = new vscode.Position(agentRange.start.line, agentRange.start.character);
-				const end = new vscode.Position(agentRange.end.line, agentRange.end.character);
-				const newRange = new vscode.Range(start, end);
-				lens.range = newRange;
-			});
+			codeLenses = lenses.filter(_ => _ != null) as vscode.CodeLens[];
 			codeLenses = codeLenses.filter(_ => _.range.start.line >= 0);
+
 			const hasLenses = codeLenses.length > 0;
 
 			if (hasLenses) {
 				this.tryTrack(
 					cacheKey,
 					fileLevelTelemetryResponse && fileLevelTelemetryResponse.newRelicAccountId
-						? fileLevelTelemetryResponse.newRelicAccountId.toString()
-						: "",
+						? fileLevelTelemetryResponse.newRelicAccountId
+						: undefined,
+					fileLevelTelemetryResponse?.newRelicEntityGuid,
 					document.languageId,
 					codeLenses.length
 				);
@@ -621,15 +771,36 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 		return codeLenses;
 	}
 
-	private tryTrack(cacheKey: string, accountId: string, languageId: string, codeLensCount: number) {
-		const doc = this.documentManager[cacheKey];
+	private lineHasAnonymousFunction(
+		allSymbols: vscode.DocumentSymbol[],
+		currentLocation: vscode.Range
+	): boolean {
+		const symbolsForLine = allSymbols.filter(symbol => {
+			return (
+				symbol.range.start.line === currentLocation.start.line && symbol.name.endsWith(" callback")
+			);
+		});
+		Logger.debug(`symbolsForLine ${JSON.stringify(symbolsForLine, null, 2)}`);
+		return symbolsForLine.length > 0;
+	}
+
+	private tryTrack(
+		cacheKey: string,
+		accountId: number | undefined,
+		entityGuid: string | undefined,
+		languageId: string,
+		codeLensCount: number
+	) {
+		const doc = this.trackingCache[cacheKey];
 		if (doc && !doc.tracked) {
 			try {
-				this.telemetryService.track("MLT Codelenses Rendered", {
-					"NR Account ID": accountId,
-					Language: languageId,
-					"Codelense Count": codeLensCount
-				});
+				this.telemetryService.track("codestream/codelenses displayed", {
+					account_id: accountId,
+					entity_guid: entityGuid,
+					meta_data: `language: ${languageId}`,
+					meta_data_2: `codelense_count: ${codeLensCount}`,
+					event_type: "state_load"
+				} as TelemetryData);
 				doc.tracked = true;
 			} catch {}
 		}
@@ -640,7 +811,7 @@ export class InstrumentationCodeLensProvider implements vscode.CodeLensProvider 
 	}
 }
 
-class InstrumentableSymbolCommand implements vscode.Command {
+export class InstrumentableSymbolCommand implements vscode.Command {
 	arguments: string[] | undefined;
 	constructor(
 		public title: string,

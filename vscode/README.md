@@ -2,14 +2,11 @@
 
 Shift left by making code performance part of the earliest stages of the development process. 
 
-- Get performance data for individual methods in the code, including notifications about poorly performing methods.
-- Get actionable information, such as errors, vulnerabilities and non-compliant SLOs, for the services built from your code.
+- See how the services built from your code are performing, with information about golden metrics, errors, transaction anomalies, SLOs, and more.
 - Investigate errors more quickly by stepping through the stack trace and collaborating with teammates.
-
-### Integrations
-
-- **Issue Trackers:** Asana, Azure DevOps, Bitbucket, GitHub, GitHub Enterprise, GitLab, GitLab Self-Managed, Jira, Linear, Shortcut, Trello, YouTrack
-- **Messaging Services:** Slack, Microsoft Teams
+- Search logs from your IDE to investigate issues without context switching.
+- Run NRQL queries, and save and share queries with your teammates via .nrql files.
+- See performance data for individual methods in the code, right in the editor.
 
 ### Requirements
 
@@ -22,17 +19,23 @@ See performance data, at the method level, right in your editor. Always-on view 
 
 ![Code-Level Metrics](https://raw.githubusercontent.com/TeamCodeStream/CodeStream/develop/images/marketplace-vsc-clm.png)
 
-# Investigate Errors
+# Log Search
+
+No need to slow down your investigation by context switching between your IDE and your browser to search logs. CodeStream brings the New Relic log-search experience right into your IDE! You can even search for output from specific log lines in your code.
+
+![Log Search](https://images.codestream.com/misc/WN-log-search.png)
+
+# Error Investigation
 
 Discover errors happening in the code you’re responsible for. Quickly step through the stack trace, with CodeStream automatically taking you to the correct file and line number, then bring relevant teammates into the discussion so that you can resolve the issue as quickly as possible.
 
-![Investigate Errors](https://raw.githubusercontent.com/TeamCodeStream/CodeStream/develop/images/marketplace-vsc-error.png)
+![Error Investigation](https://raw.githubusercontent.com/TeamCodeStream/CodeStream/develop/images/marketplace-vsc-error.png)
 
-# Application Performance Monitoring (APM)
+# Performance Monitoring
 
 Get an in-IDE view of how the services built from your code are performing, in any environment. Golden metrics, service-level objectives and related services give you the big picture at a glance.
 
-![Application Performance Monitoring](https://raw.githubusercontent.com/TeamCodeStream/CodeStream/develop/images/marketplace-vsc-slt.png)
+![Performance Monitoring](https://images.codestream.com/misc/marketplace-o11y.png)
 
 # Don't have New Relic? 
 
@@ -40,4 +43,4 @@ Become a hands-on observability practitioner by [creating a free account](https:
 
 # Help & Feedback
 
-Check out the [user guide](https://docs.newrelic.com/docs/codestream/) for more information on getting started with New Relic CodeStream. Please follow [@newrelic](http://twitter.com/newrelic) for product updates and to share feedback and questions. You can also email us at codestream@newrelic.com.
+Check out the [user guide](https://docs.newrelic.com/docs/codestream/) for more information on getting started with New Relic CodeStream. Please follow [@newrelic](http://twitter.com/newrelic) for product updates and to share feedback and questions. You can also [contact support](https://support.newrelic.com).

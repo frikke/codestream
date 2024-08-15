@@ -1226,9 +1226,9 @@ export const IssueList = React.memo((props: React.PropsWithChildren<IssueListPro
 							key={card.key}
 							onClick={() => {
 								selectCard(card);
-								HostApi.instance.track("StartWork Form Opened", {
-									"Opened Via": "Selected Ticket",
-								});
+								// HostApi.instance.track("StartWork Form Opened", {
+								// 	"Opened Via": "Selected Ticket",
+								// });
 							}}
 							className={card.id === derivedState.selectedCardId ? "selected" : ""}
 						>
@@ -1355,7 +1355,7 @@ export const Row = styled.div`
 		color: var(--text-color);
 		.icon {
 			margin-left: 10px;
-			display: none !important;
+			display: none;
 		}
 		padding-left: 2.5px;
 		.clickable {

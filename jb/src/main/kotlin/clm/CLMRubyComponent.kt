@@ -11,7 +11,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiPolyVariantReference
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.findParentOfType
-import org.jetbrains.kotlin.idea.core.util.range
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 import org.jetbrains.plugins.ruby.ruby.lang.psi.controlStructures.classes.RClass
 import org.jetbrains.plugins.ruby.ruby.lang.psi.controlStructures.methods.RMethod
@@ -29,7 +28,7 @@ import org.jetbrains.plugins.ruby.ruby.lang.psi.variables.fields.RInstanceVariab
 import org.jetbrains.plugins.ruby.ruby.lang.psi.visitors.RubyRecursiveElementVisitor
 
 class CLMRubyComponent(project: Project) :
-    CLMLanguageComponent<CLMRubyEditorManager>(project, RFileImpl::class.java, ::CLMRubyEditorManager, RubySymbolResolver()) {
+    CLMLanguageComponent<CLMRubyEditorManager>(project, "ruby", RFileImpl::class.java, ::CLMRubyEditorManager, RubySymbolResolver()) {
 
     private val logger = Logger.getInstance(CLMRubyComponent::class.java)
 
@@ -105,6 +104,10 @@ class RubySymbolResolver : SymbolResolver {
         return findAnyFunction(psiFile, justFunctionName)
     }
 
+    override fun findParentFunction(psiElement: PsiElement): PsiElement? {
+        return psiElement.findParentOfType<RMethodImpl>()
+    }
+
     override fun clmElements(psiFile: PsiFile, clmResult: ClmResult?): List<ClmElements> {
         if (psiFile !is RFileImpl) return listOf()
         if (clmResult == null) return listOf()
@@ -125,7 +128,7 @@ class RubySymbolResolver : SymbolResolver {
 
         val clmElements: List<ClmElements> = infoBySymbol.map {
             ClmElements(
-                it.key.range,
+                it.key.textRange,
                 it.value.joinToString("\n"),
                 false,
                 "type"
@@ -220,6 +223,6 @@ class RubySymbolResolver : SymbolResolver {
     }
 }
 
-class CLMRubyEditorManager(editor: Editor) : CLMEditorManager(editor, "ruby", false, false, RubySymbolResolver()) {
+class CLMRubyEditorManager(editor: Editor, languageId: String) : CLMEditorManager(editor, languageId, false, false, RubySymbolResolver()) {
 
 }

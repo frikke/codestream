@@ -1,17 +1,52 @@
-import { SymbolLocator } from "providers/symbolLocator";
+import { InstrumentableSymbol, SymbolLocator } from "providers/symbolLocator";
 import {
 	EditorCopySymbolRequest,
 	EditorCopySymbolResponse,
 	EditorReplaceSymbolRequest,
-	EditorReplaceSymbolResponse
+	EditorReplaceSymbolResponse,
+	EditorUndoRequest,
+	EditorUndoResponse
 } from "@codestream/protocols/webview";
 import { Editor } from "extensions";
-import { Uri, commands, Range } from "vscode";
+import { Uri, commands, Range, DocumentSymbol, window } from "vscode";
 import { CancellationTokenSource } from "vscode-languageclient";
 import { BuiltInCommands } from "../constants";
 import { Logger } from "logger";
 
 const symbolLocator = new SymbolLocator();
+
+function findSymbol(
+	symbols: {
+		instrumentableSymbols: InstrumentableSymbol[];
+		allSymbols: DocumentSymbol[];
+	},
+	symbolName: string
+): DocumentSymbol | undefined {
+	const fullList = [...symbols.allSymbols, ...symbols.instrumentableSymbols.map(s => s.symbol)];
+	for (const symbol of fullList) {
+		// Strip () out of method name .i.e getVets() becomes getVets
+		const simpleSymbolName = symbol.name.replace(/\(.*?\)$/, "");
+		if (simpleSymbolName === symbolName) {
+			return symbol;
+		}
+	}
+	return undefined;
+}
+
+export async function editorUndo(params: EditorUndoRequest): Promise<EditorUndoResponse> {
+	const editor = await Editor.getActiveOrVisible();
+	if (!editor) {
+		return { success: false };
+	}
+	window.showTextDocument(editor.document); // Try to focus the editor so the undo works
+	for (let i = 0; i < params.times; i++) {
+		await commands.executeCommand("undo");
+		if (params.times > 1) {
+			await new Promise(resolve => setTimeout(resolve, 1500)); // wait 1.5 seconds between undos - must be an epic debounce somewhere
+		}
+	}
+	return { success: true };
+}
 
 export async function copySymbol(
 	params: EditorCopySymbolRequest
@@ -19,28 +54,39 @@ export async function copySymbol(
 	try {
 		const editor = await Editor.findOrOpenEditor(Uri.parse(params.uri));
 		if (!editor?.document) {
+			Logger.log("copySymbol: exiting: !editor?.document");
 			return { success: false };
 		}
 		const symbols = await symbolLocator.locate(
 			editor?.document,
 			new CancellationTokenSource().token
 		);
-		const fullList = [...symbols.allSymbols, ...symbols.instrumentableSymbols.map(s => s.symbol)];
-		for (const symbol of fullList) {
-			// Strip () out of method name .i.e getVets() becomes getVets
-			const simpleSymbolName = symbol.name.replace(/\(.*?\)$/, "");
-			if (simpleSymbolName === params.symbolName) {
-				// Logger.warn(`Found symbol ${JSON.stringify(symbol)}`);
-				const theText = editor.document.getText(symbol.range);
-				return {
-					success: true,
-					text: theText,
-					range: symbol.range
-				};
-			}
+		Logger.log(`copySymbol: got ${symbols.allSymbols.length} symbols`);
+		const symbol = findSymbol(symbols, params.symbolName);
+		if (!symbol) {
+			Logger.log(`copySymbol: exiting: did not find symbol ${params.symbolName}`);
+			return {
+				success: false
+			};
 		}
+
+		Logger.log(`copySymbol: found symbol ${params.symbolName}`);
+		const theText = editor.document.getText(symbol.range);
 		return {
-			success: false
+			success: true,
+			text: theText,
+			language: editor.document.languageId,
+			// just assigning the range direcly results in an array of Positions instead of a start / end Position - not sure why?????
+			range: {
+				start: {
+					line: symbol.range.start.line,
+					character: symbol.range.start.character
+				},
+				end: {
+					line: symbol.range.end.line,
+					character: symbol.range.end.character
+				}
+			}
 		};
 	} catch (ex) {
 		// TODO fix vscode error logging (logs errors as {})
@@ -69,7 +115,7 @@ export async function replaceSymbol(
 			editor?.document,
 			new CancellationTokenSource().token
 		);
-		const targetSymbol = symbols.allSymbols.find(s => s.name === params.symbolName);
+		const targetSymbol = findSymbol(symbols, params.symbolName);
 		if (!targetSymbol) {
 			return {
 				success: false
@@ -83,7 +129,7 @@ export async function replaceSymbol(
 			editor?.document,
 			new CancellationTokenSource().token
 		);
-		const updatedTargetSymbol = updatedSymbols.allSymbols.find(s => s.name === params.symbolName);
+		const updatedTargetSymbol = findSymbol(updatedSymbols, params.symbolName);
 		if (!updatedTargetSymbol) {
 			// we still win but not formatted?
 			return {
@@ -95,6 +141,7 @@ export async function replaceSymbol(
 		});
 		await commands.executeCommand(BuiltInCommands.IndentSelection);
 		await commands.executeCommand(BuiltInCommands.FormatSelection);
+		// await commands.executeCommand(BuiltInCommands.FormatDocument);
 		// Undo the highlight done by the stack trace error jump
 		await Editor.highlightRange(uri, updatedTargetSymbol.range, undefined, true);
 		await Editor.selectRange(

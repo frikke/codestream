@@ -5,7 +5,7 @@ import {
 	PostPlus,
 	SetCodemarkPinnedRequestType,
 } from "@codestream/protocols/agent";
-import { CodemarkType, CSMe, CSUser } from "@codestream/protocols/api";
+import { CodemarkType, CSMe, CSUser, WebviewPanels } from "@codestream/protocols/api";
 import cx from "classnames";
 import PropTypes from "prop-types";
 import React, { PureComponent } from "react";
@@ -18,7 +18,6 @@ import { PostsState } from "@codestream/webview/store/posts/types";
 import {
 	closeModal,
 	closePanel,
-	createPostAndCodemark,
 	markPostUnread,
 	openPanel,
 	setUserPreference,
@@ -33,14 +32,14 @@ import {
 	PixieDynamicLoggingType,
 } from "../ipc/webview.protocol";
 import { WebviewModals } from "@codestream/webview/ipc/webview.protocol.common";
-import { WebviewPanels } from "@codestream/protocols/api";
 import { isFeatureEnabled } from "../store/apiVersioning/reducer";
 import { canCreateCodemark } from "../store/codemarks/actions";
 import { getCodemark } from "../store/codemarks/reducer";
 import {
-	setCurrentCodeError,
+	setCurrentCodeErrorData,
 	setCurrentCodemark,
 	setCurrentInstrumentationOptions,
+	setCurrentServiceSearchEntity,
 	setCurrentOrganizationInvite,
 	setCurrentPixieDynamicLoggingOptions,
 	setCurrentPullRequest,
@@ -58,8 +57,6 @@ import { ComponentUpdateEmitter, Disposable } from "../utils";
 import { HostApi } from "../webview-api";
 import { AcceptCompanyInvite } from "./AcceptCompanyInvite";
 import { SetUserPreferenceRequest } from "./actions.types";
-import { ActivityPanel } from "./ActivityPanel";
-import { BlameMap } from "./BlameMap";
 import CancelButton from "./CancelButton";
 import { ChangeAvatar } from "./ChangeAvatar";
 import { ChangeCompanyName } from "./ChangeCompanyName";
@@ -70,8 +67,7 @@ import { ChangePhoneNumber } from "./ChangePhoneNumber";
 import { ChangeTeamName } from "./ChangeTeamName";
 import { ChangeUsername } from "./ChangeUsername";
 import { ChangeWorksOn } from "./ChangeWorksOn";
-import { CodemarkForm } from "./CodemarkForm";
-import { CodemarkView } from "./CodemarkView";
+import { ErrorRoadblock } from "./ErrorRoadblock";
 import ConfigureAzureDevOpsPanel from "./ConfigureAzureDevOpsPanel";
 import ConfigureEnterprisePanel from "./ConfigureEnterprisePanel";
 import ConfigureNewRelicPanel from "./ConfigureNewRelicPanel";
@@ -89,7 +85,6 @@ import { FlowPanel } from "./Flow";
 import { GettingStarted } from "./GettingStarted";
 import { GlobalNav } from "./GlobalNav";
 import InlineCodemarks from "./InlineCodemarks";
-import { IntegrationsPanel } from "./IntegrationsPanel";
 import { Invite } from "./Invite";
 import { Keybindings } from "./Keybindings";
 import { MethodLevelTelemetryPanel } from "./MethodLevelTelemetry/MethodLevelTelemetryPanel";
@@ -101,7 +96,7 @@ import { OnboardNewRelic } from "./OnboardNewRelic";
 import { PixieDynamicLoggingPanel } from "./PixieDynamicLogging/PixieDynamicLoggingPanel";
 import { ProfilePanel } from "./ProfilePanel";
 import { PRProviderErrorBanner } from "./PRProviderErrorBanner";
-import { ReviewForm } from "./ReviewForm";
+//import { ReviewForm } from "./ReviewForm";
 import { CLMSettings } from "./CLMSettings";
 import { Sidebar } from "./Sidebar";
 import { PRInfoModal } from "./SpatialView/PRInfoModal";
@@ -109,12 +104,12 @@ import { Team } from "./Team";
 import { TeamSetup } from "./TeamSetup";
 import { Tester } from "./Tester";
 import { ObservabilityAnomalyPanel } from "@codestream/webview/Stream/MethodLevelTelemetry/ObservabilityAnomalyPanel";
+import { TransactionSpanPanel } from "./TransactionSpanPanel";
 
 interface DispatchProps {
 	clearDynamicLogging: Function;
 	closeModal: Function;
 	closePanel: Function;
-	createPostAndCodemark: Function;
 	markPostUnread: Function;
 	openPanel: typeof openPanel;
 	setCurrentCodemark: typeof setCurrentCodemark;
@@ -137,11 +132,12 @@ interface ConnectedProps {
 	addBlameMapEnabled: boolean;
 	blameMap: { [setting: string]: any };
 	composeCodemarkActive?: CodemarkType;
-	currentCodeErrorId?: string;
+	currentCodeErrorGuid?: string;
 	currentCodemarkId?: string;
 	currentPullRequestId?: string;
 	currentPullRequestView?: string;
 	currentReviewId?: string;
+	currentTransactionSpanId?: string;
 	currentUser: CSUser;
 	currentUserId: string;
 	// even though we don't use hasFocus, leave this in here because of a re-render
@@ -187,9 +183,9 @@ export class SimpleStream extends PureComponent<Props> {
 
 		this.props.setIsFirstPageview(false);
 
-		if (this.props.activePanel === "main" && this.props.postStreamId != undefined) {
-			HostApi.instance.track("Page Viewed", { "Page Name": "Stream" });
-		}
+		// if (this.props.activePanel === "main" && this.props.postStreamId != undefined) {
+		// 	HostApi.instance.track("Page Viewed", { "Page Name": "Stream" });
+		// }
 		this.disposables.push(
 			HostApi.instance.on(NewCodemarkNotificationType, this.handleNewCodemarkRequest, this)
 		);
@@ -376,11 +372,15 @@ export class SimpleStream extends PureComponent<Props> {
 			activePanel && activePanel.match(/^(oauthpat|configure)\-(provider|enterprise)-/);
 
 		// if we're conducting a review, we need the compose functionality of spatial view
-		if (this.props.currentReviewId || this.props.currentCodeErrorId) {
+		if (this.props.currentReviewId || this.props.currentCodeErrorGuid) {
 			activePanel = WebviewPanels.CodemarksForFile;
 		}
 		if (this.props.currentPullRequestId && this.props.currentPullRequestView !== "sidebar-diffs")
 			activePanel = WebviewPanels.CodemarksForFile;
+
+		if (this.props.currentTransactionSpanId) {
+			activePanel = WebviewPanels.TransactionSpan;
+		}
 
 		if (!isConfigurationPanel && this.props.composeCodemarkActive) {
 			// don't override the activePanel if user is trying to configure a provider
@@ -478,9 +478,9 @@ export class SimpleStream extends PureComponent<Props> {
 						{activeModal === WebviewModals.ChangePassword && <ChangePassword />}
 						{activeModal === WebviewModals.ChangeTeamName && <ChangeTeamName />}
 						{activeModal === WebviewModals.ChangeCompanyName && <ChangeCompanyName />}
+						{activeModal === WebviewModals.ErrorRoadblock && <ErrorRoadblock />}
 						{activeModal === WebviewModals.FinishReview && <FinishReview />}
 						{activeModal === WebviewModals.Profile && <ProfilePanel />}
-						{activeModal === WebviewModals.BlameMap && <BlameMap />}
 						{activeModal === WebviewModals.Invite && <Invite />}
 						{activeModal === WebviewModals.Team && <Team />}
 						{activeModal === WebviewModals.TeamSetup && <TeamSetup />}
@@ -514,12 +514,11 @@ export class SimpleStream extends PureComponent<Props> {
 						<Modal translucent>
 							{activePanel === WebviewPanels.Tester && <Tester />}
 							{activePanel === WebviewPanels.FilterSearch && <FilterSearchPanel />}
-							{activePanel === WebviewPanels.Activity && <ActivityPanel />}
 							{activePanel === WebviewPanels.Export && <ExportPanel />}
 							{activePanel === WebviewPanels.PRInfo && (
 								<PRInfoModal onClose={() => this.props.closePanel()} />
 							)}
-							{activePanel === WebviewPanels.NewComment && (
+							{/* {activePanel === WebviewPanels.NewComment && (
 								<CodemarkForm
 									commentType="comment"
 									streamId={this.props.postStreamId}
@@ -530,8 +529,8 @@ export class SimpleStream extends PureComponent<Props> {
 									multiLocation={true}
 									dontAutoSelectLine={true}
 								/>
-							)}
-							{activePanel === WebviewPanels.NewIssue && (
+							)} */}
+							{/* {activePanel === WebviewPanels.NewIssue && (
 								<CodemarkForm
 									commentType="issue"
 									streamId={this.props.postStreamId}
@@ -542,7 +541,7 @@ export class SimpleStream extends PureComponent<Props> {
 									multiLocation={true}
 									dontAutoSelectLine={true}
 								/>
-							)}
+							)} */}
 							{activePanel === WebviewPanels.CodeError && (
 								<>
 									<DelayedRender>
@@ -551,11 +550,11 @@ export class SimpleStream extends PureComponent<Props> {
 								</>
 							)}
 							{activePanel === WebviewPanels.Flow && <FlowPanel />}
-							{activePanel === WebviewPanels.NewReview && <ReviewForm />}
+							{/* {activePanel === WebviewPanels.NewReview && <ReviewForm />} */}
 							{activePanel === WebviewPanels.PixieDynamicLogging && <PixieDynamicLoggingPanel />}
 							{activePanel === WebviewPanels.MethodLevelTelemetry && <MethodLevelTelemetryPanel />}
+							{activePanel === WebviewPanels.TransactionSpan && <TransactionSpanPanel />}
 							{activePanel === WebviewPanels.ObservabilityAnomaly && <ObservabilityAnomalyPanel />}
-							{activePanel === WebviewPanels.Integrations && <IntegrationsPanel />}
 							{activePanel === WebviewPanels.Profile && <ProfilePanel />}
 							{activePanel === WebviewPanels.NewPullRequest && (
 								<CreatePullRequestPanel closePanel={() => this.props.closePanel()} />
@@ -593,11 +592,6 @@ export class SimpleStream extends PureComponent<Props> {
 							)}
 						</Modal>
 					)}
-				{this.props.currentCodemarkId && (
-					<Modal translucent onClose={() => this.props.setCurrentCodemark()}>
-						<CodemarkView />
-					</Modal>
-				)}
 				{/* {false && this.props.currentCodeErrorId && (
 					<Modal onClose={() => this.props.setCurrentCodeError()}>
 						<CodeErrorView />
@@ -756,10 +750,10 @@ export class SimpleStream extends PureComponent<Props> {
 			const state = this.context.store.getState();
 			const newPostEntryPoint =
 				state && state.context ? state.context.newPostEntryPoint : undefined;
-			retVal = await this.props.createPostAndCodemark(
-				attributes,
-				newPostEntryPoint || "Global Nav"
-			);
+			// retVal = await this.props.createPostAndCodemark(
+			// 	attributes,
+			// 	newPostEntryPoint || "Global Nav"
+			// );
 			this.props.closePanel();
 		} finally {
 			this.props.setNewPostEntry(undefined);
@@ -802,13 +796,14 @@ const mapStateToProps = (state: CodeStreamState): ConnectedProps => {
 		addBlameMapEnabled: isFeatureEnabled(state, "addBlameMap"),
 		blameMap: team.settings ? team.settings.blameMap : {},
 		composeCodemarkActive: context.composeCodemarkActive,
-		currentCodeErrorId: context.currentCodeErrorId,
+		currentCodeErrorGuid: context.currentCodeErrorGuid,
 		currentCodemarkId: context.currentCodemarkId,
 		currentPullRequestId: context.currentPullRequest ? context.currentPullRequest.id : undefined,
 		currentPullRequestView: context.currentPullRequest
 			? context.currentPullRequest.view
 			: undefined,
 		currentReviewId: context.currentReviewId,
+		currentTransactionSpanId: context.currentTransactionSpan?.spanId,
 		currentUser: users[session.userId!] as CSMe,
 		currentUserId: session.userId!,
 		isFirstPageview: context.isFirstPageview,
@@ -830,13 +825,13 @@ export default connect(mapStateToProps, {
 	clearDynamicLogging,
 	closeModal,
 	closePanel,
-	createPostAndCodemark,
 	markPostUnread,
 	openPanel,
 	setCurrentCodemark,
 	editCodemark,
-	setCurrentCodeError,
+	setCurrentCodeErrorData,
 	setCurrentInstrumentationOptions,
+	setCurrentServiceSearchEntity,
 	setCurrentPixieDynamicLoggingOptions,
 	setCurrentPullRequest,
 	setCurrentOrganizationInvite,

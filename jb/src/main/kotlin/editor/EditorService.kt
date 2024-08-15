@@ -2,6 +2,7 @@ package com.codestream.editor
 
 import com.codestream.agentService
 import com.codestream.appDispatcher
+import com.codestream.clm.CLMCustomRenderer
 import com.codestream.codeStream
 import com.codestream.extensions.displayPath
 import com.codestream.extensions.file
@@ -39,6 +40,8 @@ import com.codestream.system.isSameUri
 import com.codestream.system.sanitizeURI
 import com.codestream.system.toFile
 import com.codestream.webViewService
+import com.codestream.workaround.HintsPresentationWorkaround
+import com.intellij.codeInsight.hints.InlayPresentationFactory
 import com.intellij.diff.DiffContentFactory
 import com.intellij.diff.DiffManager
 import com.intellij.diff.requests.SimpleDiffRequest
@@ -50,7 +53,9 @@ import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.EditorCustomElementRenderer
 import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.editor.Inlay
 import com.intellij.openapi.editor.LogicalPosition
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
@@ -69,18 +74,25 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.ui.JBColor
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import org.eclipse.lsp4j.DidChangeTextDocumentParams
 import org.eclipse.lsp4j.DidCloseTextDocumentParams
 import org.eclipse.lsp4j.DidOpenTextDocumentParams
 import org.eclipse.lsp4j.DidSaveTextDocumentParams
+import org.eclipse.lsp4j.DocumentSymbol
+import org.eclipse.lsp4j.DocumentSymbolParams
 import org.eclipse.lsp4j.Position
 import org.eclipse.lsp4j.Range
+import org.eclipse.lsp4j.SymbolInformation
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent
 import org.eclipse.lsp4j.TextDocumentItem
 import org.eclipse.lsp4j.TextDocumentSyncKind
 import org.eclipse.lsp4j.VersionedTextDocumentIdentifier
+import org.eclipse.lsp4j.jsonrpc.messages.Either
 import java.awt.Font
+import java.awt.Point
+import java.awt.event.MouseEvent
 import java.io.File
 import java.net.URI
 
@@ -104,7 +116,9 @@ class EditorService(val project: Project) {
     private val managedEditors = mutableSetOf<Editor>()
     private val rangeHighlighters = mutableMapOf<Editor, MutableSet<RangeHighlighter>>()
     private val markerHighlighters = mutableMapOf<Editor, List<RangeHighlighter>>()
+    private val nrqlHighlighters = mutableMapOf<Editor, List<RangeHighlighter>>()
     private val documentMarkers = mutableMapOf<Document, List<DocumentMarker>>()
+    private val firstLineInlay = mutableMapOf<Editor, Inlay<out EditorCustomElementRenderer>>()
     private var spatialViewActive = project.settingsService?.webViewContext?.spatialViewVisible ?: false
     private var codeStreamVisible = project.codeStream?.isVisible ?: false
     private val inlineTextFieldManagers = mutableMapOf<Editor, InlineTextFieldManager>()
@@ -125,7 +139,6 @@ class EditorService(val project: Project) {
         editor.selectionModel.addSelectionListener(SelectionListenerImpl(project))
         editor.scrollingModel.addVisibleAreaListener(VisibleAreaListenerImpl(project))
         (editor as? EditorImpl)?.let {
-            NewCodemarkGutterIconManager(editor)
             if (reviewFile != null) {
                 inlineTextFieldManagers[editor] = InlineTextFieldManager(editor)
             }
@@ -262,20 +275,6 @@ class EditorService(val project: Project) {
         }
     }
 
-    fun updatePullRequestDiffMarkers() {
-        managedEditors
-            .filter {
-                val reviewFile = it.document.file as? ReviewDiffVirtualFile
-                reviewFile?.side == ReviewDiffSide.RIGHT
-            }
-            .forEach {
-                appDispatcher.launch {
-                    val markers = getDocumentMarkers(it.document)
-                    it.renderMarkers(markers)
-                }
-            }
-    }
-
     fun updateMarkers(document: Document) = ApplicationManager.getApplication().invokeLater {
         val editors = EditorFactory.getInstance().getEditors(document, project)
         val visibleEditors = editors
@@ -287,25 +286,22 @@ class EditorService(val project: Project) {
         if (visibleEditors.isEmpty()) return@invokeLater
 
         appDispatcher.launch {
-            val markers = getDocumentMarkers(document)
-            visibleEditors.forEach { it.renderMarkers(markers) }
+            val documentSymbols = getDocumentSymbols(document)
+            visibleEditors.forEach { it.renderDocumentSymbols(documentSymbols) }
         }
     }
 
-    private suspend fun getDocumentMarkers(document: Document): List<DocumentMarker> {
-        val agent = project.agentService ?: return emptyList()
-        val session = project.sessionService ?: return emptyList()
-        val uri = document.uri
+    private suspend fun getDocumentSymbols(document: Document): List<Either<SymbolInformation, DocumentSymbol>>? {
+        try {
+            val agent = project.agentService ?: return emptyList()
+            val identifier = document.textDocumentIdentifier ?: return emptyList()
+            val session = project.sessionService ?: return emptyList()
+            if (session.userLoggedIn == null) return emptyList()
 
-        val markers = if (uri == null || session.userLoggedIn == null || !appSettings.showMarkers) {
-            emptyList()
-        } else {
-            val result = agent.documentMarkers(DocumentMarkersParams(TextDocument(uri), document.gitSha, true))
-            result.markers
+            return agent.agent.textDocumentService.documentSymbol(DocumentSymbolParams(identifier)).await()
+        } catch (ex: Exception) {
+            return emptyList()
         }
-
-        documentMarkers[document] = markers
-        return markers
     }
 
     private val showGutterIcons: Boolean
@@ -355,7 +351,14 @@ class EditorService(val project: Project) {
         }
 
     private val Document.textDocumentItem: TextDocumentItem?
-        get() = TextDocumentItem(uri, "", nextVersion, text)
+        get() {
+            val extension = this.file?.extension?.lowercase() ?: ""
+            val languageId = when(extension) {
+                "nrql" -> "nrql"
+                else -> ""
+            }
+            return TextDocumentItem(uri, languageId, nextVersion, text)
+        }
 
     private val Document.versionedTextDocumentIdentifier: VersionedTextDocumentIdentifier
         get() {
@@ -382,20 +385,25 @@ class EditorService(val project: Project) {
             )
         }
 
-    private fun Editor.renderMarkers(markers: List<DocumentMarker>) = ApplicationManager.getApplication().invokeLater {
+    private fun Editor.renderDocumentSymbols(documentSymbols: List<Either<SymbolInformation, DocumentSymbol>>?) = ApplicationManager.getApplication().invokeLater {
         if (isDisposed) return@invokeLater
+        if (documentSymbols == null) return@invokeLater
+        if (document.file?.extension?.lowercase() != "nrql") return@invokeLater
 
-        markerHighlighters[this]?.let { highlighters ->
+        firstLineInlay[this]?.dispose()
+
+        nrqlHighlighters[this]?.let { highlighters ->
             highlighters.forEach { highlighter ->
                 markupModel.removeHighlighter(highlighter)
             }
         }
 
-        markerHighlighters[this] = markers.filter { marker ->
-            marker.range.start.line >= 0
-        }.map { marker ->
-            val start = getOffset(marker.range.start)
-            val end = getOffset(marker.range.end)
+        nrqlHighlighters[this] = documentSymbols.filter { either ->
+            either.isRight && either.right.range.start.line >= 0
+        }.map { either ->
+            val documentSymbol = either.right
+            val start = getOffset(documentSymbol.range.start)
+            val end = getOffset(documentSymbol.range.end)
 
             markupModel.addRangeHighlighter(
                 Math.min(start, end),
@@ -404,13 +412,27 @@ class EditorService(val project: Project) {
                 null,
                 HighlighterTargetArea.EXACT_RANGE
             ).also {
-                if (showGutterIcons && (marker.codemark != null || marker.externalContent != null)) {
-                    it.gutterIconRenderer = GutterIconRendererImpl(this, marker)
+                if (showGutterIcons) {
+                    it.gutterIconRenderer = NrqlGutterIconRendererImpl(this, documentSymbol.range.start.line, documentSymbol.name)
                 }
                 it.isThinErrorStripeMark = true
-                it.errorStripeMarkColor = if (marker.type == "prcomment") gray else (marker.codemark?.color() ?: green)
-                it.errorStripeTooltip = marker.summary
+                it.errorStripeMarkColor = green
                 it.putUserData(CODESTREAM_HIGHLIGHTER, true)
+            }
+        }
+
+        project?.agentService?.onDidStart {
+            ApplicationManager.getApplication().invokeLater {
+                if (documentSymbols.isEmpty() && project?.sessionService?.userLoggedIn == null && this is EditorImpl) {
+                    val presentationFactory = HintsPresentationWorkaround.newPresentationFactory(this)
+                    val text = "Sign in to New Relic to run queries"
+                    val textPresentation = presentationFactory.text(text)
+                    val referenceOnHoverPresentation =
+                        presentationFactory.referenceOnHover(textPresentation) { event, translated -> project?.codeStream?.show() }
+                    val renderer = CLMCustomRenderer(referenceOnHoverPresentation)
+                    val inlay = this.inlayModel.addBlockElement(0, false, true, 1, renderer)
+                    firstLineInlay[this] = inlay
+                }
             }
         }
     }

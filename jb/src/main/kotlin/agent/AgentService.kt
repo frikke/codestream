@@ -11,6 +11,8 @@ import com.codestream.gson
 import com.codestream.protocols.agent.CSUser
 import com.codestream.protocols.agent.ClmParams
 import com.codestream.protocols.agent.ClmResult
+import com.codestream.protocols.agent.ComputeCurrentLocationsRequest
+import com.codestream.protocols.agent.ComputeCurrentLocationsResult
 import com.codestream.protocols.agent.CreatePermalinkParams
 import com.codestream.protocols.agent.CreatePermalinkResult
 import com.codestream.protocols.agent.CreateShareableCodemarkParams
@@ -114,6 +116,7 @@ import java.util.Collections
 import java.util.Scanner
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.io.path.createTempDirectory
 
 private val posixPermissions = setOf(
     PosixFilePermission.OWNER_READ,
@@ -126,20 +129,26 @@ data class CrashDetails (val details: String, val dateTime: OffsetDateTime)
 val TEST_MODE = System.getenv("TEST_MODE") == "true"
 
 val serverUrlMigrations = hashMapOf(
-    "https://staging-api.codestream.us" to "https://codestream-stg.staging-service.newrelic.com",
-    "https://api.codestream.com" to "https://codestream-us1.service.newrelic.com",
-    "https://eu-api.codestream.com" to "https://codestream-eu1.service.eu.newrelic.com"
+	"https://staging-api.codestream.us" to "https://codestream-api-v2-stg.staging-service.nr-ops.net",
+	"https://api.codestream.com" to "https://codestream-api-v2-us1.service.newrelic.com",
+	"https://eu-api.codestream.com" to "https://codestream-api-v2-eu1.service.eu.newrelic.com",
+	"https://codestream-pd.staging-service.nr-ops.net" to "https://codestream-api-v2-pd.staging-service.nr-ops.net",
+	"https://codestream-qa.staging-service.nr-ops.net" to "https://codestream-api-v2-qa.staging-service.nr-ops.net",
+	"https://codestream.eu.service.newrelic.com" to "https://codestream-api-v2-eu1.service.eu.newrelic.com",
+	"https://codestream-us1.service.newrelic.com" to "https://codestream-api-v2-us1.service.newrelic.com",
+	"https://codestream-eu1.service.eu.newrelic.com" to "https://codestream-api-v2-eu1.service.eu.newrelic.com",
+	"https://codestream-stg.staging-service.newrelic.com" to "https://codestream-api-v2-stg.staging-service.nr-ops.net"
 )
 
 class AgentService(private val project: Project) : Disposable {
 
     companion object {
-        private var debugPortSeed = AtomicInteger(6010)
+        private var debugPortSeed = AtomicInteger(1337)
         private val debugPort get() = debugPortSeed.getAndAdd(1)
     }
 
     private val logger = Logger.getInstance(AgentService::class.java)
-    private var initialization = CompletableFuture<Unit>()
+    var initialization = CompletableFuture<Unit>()
     private var isDisposing = false
     private var isRestarting = false
     private var restartCount = 0
@@ -287,6 +296,32 @@ class AgentService(private val project: Project) : Disposable {
         }
     }
 
+    private fun extractExtraLibs(targetDir: File) {
+        try {
+            logger.info("Extracting extraLibs")
+            val reflections = Reflections(ConfigurationBuilder()
+                .forPackage("agent.node_modules")
+                .filterInputsBy(FilterBuilder().includePackage("agent.node_modules"))
+                .setScanners(Scanners.Resources))
+            val resourceList = reflections.getResources(".*")
+            logger.info("Copying ${resourceList.size} files to node_modules")
+            resourceList.forEach {
+                val destStr = it.replaceFirst("agent/", "")
+                val dest = targetDir.resolve(destStr)
+                if (!dest.parentFile.exists()) {
+                    Files.createDirectories(dest.parentFile.toPath())
+                }
+                FileUtils.copyToFile(AgentService::class.java.getResourceAsStream("/$it"), dest)
+                if (platform.isPosix && it.endsWith(".node")) {
+                    val executable = PosixFilePermissions.fromString("rwxr-xr-x")
+                    Files.setPosixFilePermissions(dest.toPath(), executable)
+                }
+            }
+        } catch (t: Throwable) {
+            logger.error("Error copying extra libs", t)
+        }
+    }
+
     private fun createProductionProcess(agentEnv: Map<String, String>): Process {
         val settings = ServiceManager.getService(ApplicationSettingsService::class.java)
         val agentVersion = settings.environmentVersion
@@ -298,39 +333,19 @@ class AgentService(private val project: Project) : Disposable {
         }
 
         val agentJsDestFile = File(agentDir, "agent-$agentVersion.js")
-        val webJsMap = File(agentDir, "index.js.map")
+        val sidebarJsMap = File(agentDir, "sidebar.js.map")
         val agentJsMap = File(agentDir, "agent.js.map")
+        val whatsNewJson = File(agentDir, "WhatsNew.json")
+
         deleteAllExcept(agentDir, "agent", agentJsDestFile.name)
 
         FileUtils.copyToFile(AgentService::class.java.getResourceAsStream("/agent/agent.js"), agentJsDestFile)
         FileUtils.copyToFile(AgentService::class.java.getResourceAsStream("/agent/agent.js.map"), agentJsMap)
-        FileUtils.copyToFile(AgentService::class.java.getResourceAsStream("/webview/index.js.map"), webJsMap)
+        FileUtils.copyToFile(AgentService::class.java.getResourceAsStream("/agent/WhatsNew.json"), whatsNewJson)
+        FileUtils.copyToFile(AgentService::class.java.getResourceAsStream("/webviews/sidebar/sidebar.js.map"), sidebarJsMap)
 
-        if (platform == Platform.MAC_X64 || platform == Platform.MAC_ARM64) {
-            try {
-                logger.info("Extracting extraLibs")
-                val reflections = Reflections(ConfigurationBuilder()
-                    .forPackage("agent.node_modules")
-                    .filterInputsBy(FilterBuilder().includePackage("agent.node_modules"))
-                    .setScanners(Scanners.Resources))
-                val resourceList = reflections.getResources(".*")
-                logger.info("Copying ${resourceList.size} files to node_modules")
-                val baseDir = userHomeDir.resolve(".codestream")
-                resourceList.forEach {
-                    val dest = baseDir.resolve(it)
-                    if (!dest.parentFile.exists()) {
-                        Files.createDirectories(dest.parentFile.toPath())
-                    }
-                    FileUtils.copyToFile(AgentService::class.java.getResourceAsStream("/$it"), dest)
-                    if (platform.isPosix && it.endsWith(".node")) {
-                        val executable = PosixFilePermissions.fromString("rwxr-xr-x")
-                        Files.setPosixFilePermissions(dest.toPath(), executable)
-                    }
-                }
-            } catch (t: Throwable) {
-                logger.error("Error copying extra libs", t)
-            }
-        }
+        val targetDir = userHomeDir.resolve(".codestream").resolve("agent")
+        extractExtraLibs(targetDir)
 
         getNodeResourcePath()?.let {
             val nodeDestFile = getNodeDestFile(agentDir, agentVersion)
@@ -373,30 +388,34 @@ class AgentService(private val project: Project) : Disposable {
         val agentDir = if (AGENT_PATH != null) {
             File(AGENT_PATH)
         } else {
-            createTempDir("codestream").also {
+            createTempDirectory("codestream").toFile().also {
                 it.deleteOnExit()
             }
         }
 
         val agentJs = File(agentDir, "agent.js")
         val agentJsMap = File(agentDir, "agent.js.map")
-        val webJsMap = File(agentDir, "index.js.map")
+        val sidebarJsMap = File(agentDir, "sidebar.js.map")
+        val whatsNewJson = File(agentDir, "WhatsNew.json")
 
         if (AGENT_PATH == null) {
             FileUtils.copyToFile(AgentService::class.java.getResourceAsStream("/agent/agent.js"), agentJs)
+            FileUtils.copyToFile(AgentService::class.java.getResourceAsStream("/agent/WhatsNew.json"), whatsNewJson)
+
             try {
                 FileUtils.copyToFile(AgentService::class.java.getResourceAsStream("/agent/agent.js.map"), agentJsMap)
-                FileUtils.copyToFile(AgentService::class.java.getResourceAsStream("/webview/index.js.map"), webJsMap)
+                FileUtils.copyToFile(AgentService::class.java.getResourceAsStream("/webviews/sidebar/sidebar.js.map"), sidebarJsMap)
             } catch (ex: Exception) {
                 logger.warn("Could not extract agent.js.map", ex)
             }
             logger.info("CodeStream LSP agent extracted to ${agentJs.absolutePath}")
+            extractExtraLibs(agentDir)
         }
 
         val port = if (AGENT_PATH == null) {
             debugPort
         } else {
-            debugPortSeed // fixed on 6010 so we can just keep "Attach to agent" running
+            debugPortSeed // fixed on 1337 so we can just keep "Attach to agent" running
         }
         lastLaunchedNodePath = "node"
         return GeneralCommandLine(
@@ -465,7 +484,7 @@ class AgentService(private val project: Project) : Disposable {
                             params["Crash Details"] = agentCrashDetails.details
                             params["Crash Date"] = agentCrashDetails.dateTime.toString()
                         }
-                        agent.telemetry(TelemetryParams("Agent Restarted", params))
+
                     }
                 }
             }
@@ -543,20 +562,11 @@ class AgentService(private val project: Project) : Disposable {
         )
     }
 
-    suspend fun documentMarkers(params: DocumentMarkersParams): DocumentMarkersResult {
+    suspend fun computeCurrentLocations(request: ComputeCurrentLocationsRequest): ComputeCurrentLocationsResult {
         val json = remoteEndpoint
-            .request("codestream/textDocument/markers", params)
+            .request("codestream/textDocument/currentLocation", request)
             .await() as JsonObject
-        val result = gson.fromJson<DocumentMarkersResult>(json)
-
-        // Numbers greater than Integer.MAX_VALUE are deserialized as -1. It should not happen,
-        // but some versions of the plugin might do that trying to represent a whole line.
-        for (marker in result.markers) {
-            if (marker.range.end.character == -1) {
-                marker.range.end.character = Integer.MAX_VALUE
-            }
-        }
-
+        val result = gson.fromJson<ComputeCurrentLocationsResult>(json)
         return result
     }
 

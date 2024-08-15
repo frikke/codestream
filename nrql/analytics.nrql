@@ -1,0 +1,5 @@
+// Check for events getting rejected by analytics service
+SELECT * FROM ProductAnalyticsEventViolations where event like 'codestream%' since 1 week ago
+
+// Recent usage by extension version
+FROM ProductAnalyticsEvents SELECT uniqueCount(user_id) WHERE platform = 'codestream' and (email NOT LIKE '%@newrelic.com' AND email NOT LIKE '%testinator.com') facet aparse(meta_data_15, '%"codestream_extension_version":"*"%') limit MAX since 1 week ago
